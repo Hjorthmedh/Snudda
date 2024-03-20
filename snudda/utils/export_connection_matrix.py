@@ -125,7 +125,7 @@ class SnuddaExportConnectionMatrix(object):
             self.plot_matrix(axon_dend_distance, hide_nan=True)
 
         save_matrix = axon_dend_distance.copy()
-        save_matrix[np.isnan(save_matrix)] = -1
+        save_matrix[np.isnan(save_matrix)] = np.inf
 
         # np.savetxt(delay_file, save_matrix, delimiter=",", fmt="%d")
         np.save(delay_file, save_matrix)
