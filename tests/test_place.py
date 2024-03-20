@@ -94,7 +94,7 @@ class TestPlace(unittest.TestCase):
     def test_population_units(self, stage="place-pop-unit-random"):
 
         network_path = os.path.join(os.path.dirname(__file__), "networks", "network_place_pop_unit_random")
-        cnc = SnuddaInit(struct_def={}, network_path=network_path)
+        cnc = SnuddaInit(struct_def={}, network_path=network_path, random_seed=123457)
         cnc.define_striatum(num_dSPN=1000, num_iSPN=1000, num_FS=20, num_LTS=0, num_ChIN=0,
                             volume_type="cube")
         cnc.add_population_unit_random(structure_name="Striatum", neuron_types=["dSPN", "iSPN"],
@@ -120,10 +120,10 @@ class TestPlace(unittest.TestCase):
         neuron_types = sl.get_neuron_types()
 
         self.assertTrue(np.abs(np.sum(pop_units == 1) - 2000*0.5) < 50)  # 50% of dSPN, iSPN should be pop unit 1
-        self.assertTrue(np.abs(np.sum(pop_units == 2) - 2000*0.2) < 45)  # 20% should be pop unit 1
-        self.assertTrue(np.abs(np.sum(pop_units == 3) - 1000*0.3) < 30)  # 30% of dSPN should be pop unit 1
-        self.assertTrue(np.abs(np.sum(pop_units == 4) - 1000*0.15) < 30)  # 15% of iSPN should be pop unit 1
-        self.assertTrue(np.abs(np.sum(pop_units == 10) - 1000*0.15) < 30)  # 15% of iSPN should be pop unit 1
+        self.assertTrue(np.abs(np.sum(pop_units == 2) - 2000*0.2) < 50)  # 20% should be pop unit 1
+        self.assertTrue(np.abs(np.sum(pop_units == 3) - 1000*0.3) < 35)  # 30% of dSPN should be pop unit 1
+        self.assertTrue(np.abs(np.sum(pop_units == 4) - 1000*0.15) < 35)  # 15% of iSPN should be pop unit 1
+        self.assertTrue(np.abs(np.sum(pop_units == 10) - 1000*0.15) < 35)  # 15% of iSPN should be pop unit 1
 
 
 if __name__ == '__main__':

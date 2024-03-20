@@ -223,6 +223,7 @@ class Snudda(object):
         self.place_neurons(random_seed=args.randomseed,
                            parallel=args.parallel,
                            ipython_profile=args.ipython_profile,
+                           ipython_timeout=args.ipython_timeout,
                            h5libver=h5libver,
                            verbose=args.verbose,
                            honor_morphology_stay_inside=args.stay_inside)
@@ -231,6 +232,7 @@ class Snudda(object):
                       random_seed=None,
                       parallel=None,
                       ipython_profile=None,
+                      ipython_timeout=120,
                       h5libver="latest",
                       verbose=False,
                       honor_morphology_stay_inside=False):
@@ -250,7 +252,7 @@ class Snudda(object):
         self.setup_log_file(log_file_name)  # sets self.logFile
 
         if parallel:
-            self.setup_parallel(ipython_profile=ipython_profile)  # sets self.d_view
+            self.setup_parallel(ipython_profile=ipython_profile, timeout=ipython_timeout)  # sets self.d_view
 
         from snudda.place.place import SnuddaPlace
 
@@ -300,6 +302,7 @@ class Snudda(object):
         self.detect_synapses(random_seed=args.randomseed,
                              parallel=args.parallel,
                              ipython_profile=args.ipython_profile,
+                             ipython_timeout=args.ipython_timeout,
                              hyper_voxel_size=hyper_voxel_size,
                              volume_id=args.volumeID,
                              h5libver=h5libver,
@@ -310,6 +313,7 @@ class Snudda(object):
                         random_seed=None,
                         parallel=None,
                         ipython_profile=None,
+                        ipython_timeout=120,
                         hyper_voxel_size=100,
                         volume_id=None,
                         h5libver="latest",
@@ -342,7 +346,7 @@ class Snudda(object):
         self.setup_log_file(log_filename)  # sets self.logfile
 
         if parallel:
-            self.setup_parallel(ipython_profile=ipython_profile)  # sets self.d_view
+            self.setup_parallel(ipython_profile=ipython_profile, timeout=ipython_timeout)  # sets self.d_view
 
         from snudda.detect.detect import SnuddaDetect
 
@@ -404,6 +408,7 @@ class Snudda(object):
                             random_seed=args.randomseed,
                             parallel=args.parallel,
                             ipython_profile=args.ipython_profile,
+                            ipython_timeout=args.ipython_timeout,
                             verbose=args.verbose,
                             keep_files=args.keepfiles,
                             save_putative_synapses = args.savePutative)
@@ -411,7 +416,9 @@ class Snudda(object):
     def prune_synapses(self,
                        config_file=None,
                        random_seed=None,
-                       parallel=None, ipython_profile=None,
+                       parallel=None,
+                       ipython_profile=None,
+                       ipython_timeout=120,
                        h5libver="latest",
                        verbose=False,
                        keep_files=False,
@@ -434,7 +441,7 @@ class Snudda(object):
         self.setup_log_file(log_filename)  # sets self.logfile
 
         if parallel:
-            self.setup_parallel(ipython_profile=ipython_profile)  # sets self.d_view
+            self.setup_parallel(ipython_profile=ipython_profile, timeout=ipython_timeout)  # sets self.d_view
 
         # Optionally set this
         scratch_path = None
@@ -488,6 +495,7 @@ class Snudda(object):
                          h5libver=h5libver,
                          parallel=args.parallel,
                          ipython_profile=args.ipython_profile,
+                         ipython_timeout=args.ipython_timeout,
                          verbose=args.verbose)
 
     def setup_input(self,
@@ -500,6 +508,7 @@ class Snudda(object):
                     h5libver="latest",
                     parallel=None,
                     ipython_profile=None,
+                    ipython_timeout=120,
                     verbose=False):
 
         if parallel is None:
@@ -513,7 +522,7 @@ class Snudda(object):
         self.setup_log_file(log_filename)  # sets self.logfile
 
         if parallel:
-            self.setup_parallel(ipython_profile=ipython_profile)  # sets self.d_view
+            self.setup_parallel(ipython_profile=ipython_profile, timeout=ipython_timeout)  # sets self.d_view
 
         from snudda.input.input import SnuddaInput
 
@@ -854,7 +863,7 @@ class Snudda(object):
 
     ############################################################################
 
-    def setup_parallel(self, ipython_profile=None):
+    def setup_parallel(self, ipython_profile=None, timeout=120):
         """Setup ipyparallel workers."""
 
         self.slurm_id = os.getenv('SLURM_JOBID')
@@ -884,7 +893,7 @@ class Snudda(object):
         print(f"Reading IPYPARALLEL connection info from {u_file}\n")
         self.logfile.write(f"Reading IPYPARALLEL connection info from {u_file}\n")
         # self.rc = Client(profile=ipython_profile, url_file=u_file, timeout=120, debug=False)
-        self.rc = Client(profile=ipython_profile, connection_info=u_file, timeout=120, debug=False)
+        self.rc = Client(profile=ipython_profile, connection_info=u_file, timeout=timeout, debug=False)
 
 
         self.logfile.write(f'Client IDs: {self.rc.ids}')

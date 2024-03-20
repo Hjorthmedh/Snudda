@@ -505,13 +505,19 @@ class NeuronMorphologyExtended:
                  soma_dist : Distance to soma (in meters)
          """
 
-        section = self.morphology_data["neuron"].sections[3][sec_id]  # 3 is dendrite
+        # If sec_id is -1 we are on the soma, need to treat it separately
+        if sec_id == -1:
+            section = self.morphology_data["neuron"].sections[1][0]  # 1 is soma
+            min_sec_x = 0
+            max_sec_x = 1
+        else:
+            section = self.morphology_data["neuron"].sections[3][sec_id]  # 3 is dendrite
+            sec_len = section.section_length()
+            min_sec_x = np.maximum(1e-3, sec_x - 0.5 * distance / sec_len)
+            max_sec_x = np.minimum(1 - 1e-3, sec_x + 0.5 * distance / sec_len)
+
         geometry = self.morphology_data["neuron"].geometry[section.point_idx, :]
         section_data = self.morphology_data["neuron"].section_data[section.point_idx, :]
-        sec_len = section.section_length()
-
-        min_sec_x = np.maximum(1e-3, sec_x - 0.5 * distance / sec_len)
-        max_sec_x = np.minimum(1 - 1e-3, sec_x + 0.5 * distance / sec_len)
 
         cluster_sec_x = rng.uniform(low=min_sec_x, high=max_sec_x, size=count)
 
@@ -530,7 +536,12 @@ class NeuronMorphologyExtended:
                     syn_coords[i, :] = geometry[idx, :3]
                     soma_dist[i] = geometry[idx, 4]
                 else:
-                    f = (cx - section_data[idx-1, 1]) / (section_data[idx, 1] - section_data[idx-1, 1])
+                    sd_diff = section_data[idx, 1] - section_data[idx-1, 1]
+
+                    if sd_diff > 0:
+                        f = (cx - section_data[idx-1, 1]) / sd_diff
+                    else:
+                        f = 0
                     syn_coords[i, :] = (1-f)*geometry[idx-1, :3] + f*geometry[idx, :3]
                     soma_dist[i] = (1-f)*geometry[idx-1, 4] + f*geometry[idx, 4]
 
