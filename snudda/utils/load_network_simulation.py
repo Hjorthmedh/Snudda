@@ -98,7 +98,7 @@ class SnuddaLoadNetworkSimulation:
         """
 
         if neuron_id is None:
-            spike_data = OrderedDict()
+            spike_data = dict()
             for nid in self.network_simulation_file["neurons"]:
 
                 if "spikes" in self.network_simulation_file[f"neurons/{nid}"]:
@@ -116,14 +116,22 @@ class SnuddaLoadNetworkSimulation:
             else:
                 spike_data = np.array([])
 
+        elif isinstance(neuron_id, np.ndarray) and neuron_id.size == 0:
+            spike_data = dict()
         else:
-            spike_data = OrderedDict()
-            for nid in neuron_id:
-                if str(nid) in self.network_simulation_file["neurons"] \
-                        and "spikes" in self.network_simulation_file[f"neurons/{nid}"]:
-                    spike_data[nid] = self.network_simulation_file[f"neurons/{nid}/spikes"][()].copy()
-                else:
-                    spike_data[nid] = np.array([])
+            spike_data = dict()
+            try:
+                for nid in neuron_id:
+                    if str(nid) in self.network_simulation_file["neurons"] \
+                            and "spikes" in self.network_simulation_file[f"neurons/{nid}"]:
+                        spike_data[nid] = self.network_simulation_file[f"neurons/{nid}/spikes"][()].copy()
+                    else:
+                        spike_data[nid] = np.array([])
+            except:
+                import traceback
+                print(traceback.format_exc())
+                import pdb
+                pdb.set_trace()
 
         return spike_data
 

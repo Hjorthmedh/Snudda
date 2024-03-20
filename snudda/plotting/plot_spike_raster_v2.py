@@ -354,13 +354,26 @@ class SnuddaPlotSpikeRaster2:
 
         return ax
 
-    def plot_spike_histogram(self, population_id=None,
+    def plot_spike_histogram(self, population_id=None, neuron_type=None,
                              skip_time=0, end_time=None, fig_size=None, bin_size=50e-3,
                              fig_file=None, ax=None, label_text=None, show_figure=True, save_figure=True, colour=None,
                              linestyle="-", legend_loc="best"):
 
         if population_id is None:
             population_id = self.snudda_load.get_neuron_population_units(return_set=True)
+
+        if neuron_type is not None:
+
+            if type(neuron_type) != list:
+                neuron_type = [neuron_type]
+
+            keep_neuron_id = set()
+            for nt in neuron_type:
+                keep_neuron_id |= set(self.snudda_load.get_neuron_id_of_type(neuron_type=nt))
+
+            print(f"Processing {len(keep_neuron_id)} neurons of type {neuron_type}")
+        else:
+            keep_neuron_id = None
 
         self.make_figures_directory()
 
@@ -373,14 +386,23 @@ class SnuddaPlotSpikeRaster2:
             fig = plt.figure(figsize=fig_size)
             ax = fig.add_subplot()
         
-        pop_members = OrderedDict()
-        pop_spikes = OrderedDict()
+        pop_members = dict()
+        pop_spikes = dict()
 
         if np.issubdtype(type(population_id), np.integer):
             population_id = np.array([population_id])
 
         for pid in population_id:
-            pop_members[pid] = self.snudda_load.get_population_unit_members(pid)
+            members = self.snudda_load.get_population_unit_members(pid)
+
+            if keep_neuron_id is not None:
+                members = np.array(list(set(members) & keep_neuron_id))
+
+            if len(members) == 0:
+                # No members, skip it
+                continue
+
+            pop_members[pid] = members
 
             spikes = self.snudda_simulation_load.get_spikes(pop_members[pid])
             pop_spikes[pid] = self.snudda_simulation_load.merge_spikes(spikes)[:, 0]
@@ -388,8 +410,14 @@ class SnuddaPlotSpikeRaster2:
         if end_time is None:
             end_time = self.snudda_simulation_load.get_time()[-1]
 
-        bins = np.arange(skip_time, end_time+bin_size/2, bin_size)
-        weights = [np.full(y.shape, 1/(len(x)*bin_size)) for x, y in zip(pop_members.values(), pop_spikes.values())]
+        try:
+            bins = np.arange(skip_time, end_time+bin_size/2, bin_size)
+            weights = [np.full(y.shape, 1/(len(x)*bin_size)) for x, y in zip(pop_members.values(), pop_spikes.values())]
+        except:
+            import traceback
+            print(traceback.format_exc())
+            import pdb
+            pdb.set_trace()
 
         if label_text is None:
             label_text = ""
