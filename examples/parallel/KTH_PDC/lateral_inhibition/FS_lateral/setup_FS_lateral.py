@@ -29,11 +29,11 @@ si.define_striatum(num_dSPN=0, num_iSPN=0, num_FS=n_FS, num_LTS=0, num_ChIN=0,
 print("Adding population units")
 
 # The centre of the cube is [0.00475, 0.004, 0.00775]. num_neurons is optional
-si.add_population_unit_density(structure_name="Striatum", neuron_types=["dSPN", "iSPN"], 
+si.add_population_unit_density(structure_name="Striatum", neuron_types=["FS"], 
                                unit_centre=np.array([0.00475, 0.004, 0.00775]) -np.array([0, 0, 0e-6]),
                                probability_function="(d < 300e-6) * 1", num_neurons=50)
-si.add_population_unit_density(structure_name="Striatum", neuron_types=["dSPN", "iSPN"], 
-                               unit_centre=np.array([0.00475, 0.004, 0.00775]) -np.array([0, 0, -100e-6]),
+si.add_population_unit_density(structure_name="Striatum", neuron_types=["FS"], 
+                               unit_centre=np.array([0.00475, 0.004, 0.00775]) -np.array([0, 0, -0e-6]),
                                probability_function="(d > 300e-6) * (d < 550e-6) * 1 ", num_neurons=500)
 
 print("Writing json")
