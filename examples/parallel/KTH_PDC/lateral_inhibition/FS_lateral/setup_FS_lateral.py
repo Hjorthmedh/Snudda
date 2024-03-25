@@ -34,7 +34,7 @@ si.add_population_unit_density(structure_name="Striatum", neuron_types=["FS"],
                                probability_function="(d < 300e-6) * 1", num_neurons=50)
 si.add_population_unit_density(structure_name="Striatum", neuron_types=["FS"], 
                                unit_centre=np.array([0.00475, 0.004, 0.00775]) -np.array([0, 0, -0e-6]),
-                               probability_function="(d > 300e-6) * (d < 550e-6) * 1 ", num_neurons=500)
+                               probability_function="(d > 300e-6) * 1 * (d < 550e-6)", num_neurons=500)
 
 print("Writing json")
 
