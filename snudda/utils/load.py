@@ -999,17 +999,49 @@ class SnuddaLoad(object):
 
     ############################################################################
 
-    def create_connection_matrix(self, sparse_matrix=True):
+    def create_connection_matrix(self, sparse_matrix=True, connection_type="synapses"):
 
         if sparse_matrix:
             connection_matrix = sparse.lil_matrix((self.data["num_neurons"], self.data["num_neurons"]), dtype=np.int16)
         else:
             connection_matrix = np.zeros((self.data["num_neurons"], self.data["num_neurons"]), dtype=np.int16)
 
-        for syn_row in self.data["synapses"]:
+        for syn_row in self.data[connection_type]:
             connection_matrix[syn_row[0], syn_row[1]] += 1
 
         return connection_matrix
+
+    def find_neighbours(self, neuron_id, connection_matrix=None, exclude_parent=True):
+
+        if connection_matrix is None:
+            connection_matrix = self.create_connection_matrix(sparse_matrix=False, connection_type="synapses")
+
+        pre_neighbours = set(np.where(np.sum(connection_matrix[:, list(neuron_id)], axis=1))[0])
+        post_neighbours = set(np.where(np.sum(connection_matrix[list(neuron_id), :], axis=0))[0])
+
+        if exclude_parent:
+            parent_id = set(neuron_id)
+            pre_neighbours -= parent_id
+            post_neighbours -= parent_id
+
+        return pre_neighbours, post_neighbours
+
+    def find_neighbours_gap_junctions(self, neuron_id, connection_matrix=None, exclude_parent=True):
+
+        if connection_matrix is None:
+            connection_matrix = self.create_connection_matrix(sparse_matrix=False, connection_type="gap_junctions")
+
+        # This matrix should be symmetric!
+        pre_neighbours = set(np.where(np.sum(connection_matrix[:, list(neuron_id)], axis=1))[0])
+        post_neighbours = set(np.where(np.sum(connection_matrix[list(neuron_id), :], axis=0))[0])
+
+        neighbours = pre_neighbours | post_neighbours
+
+        if exclude_parent:
+            parent_id = set(neuron_id)
+            neighbours -= parent_id
+
+        return neighbours
 
     def create_distance_matrix(self, neuron_id=None, pre_id=None, post_id=None):
 

@@ -451,6 +451,70 @@ class SnuddaPlotSpikeRaster2:
 
         return ax
 
+    # Use this to plot a histogram for an arbitrary group of neurons specified with neuron_id
+    def plot_group_spike_histogram(self, neuron_id=None,
+                                    skip_time=0, end_time=None, fig_size=None, bin_size=50e-3,
+                                    fig_file=None, ax=None, label_text=None, show_figure=True, save_figure=True, colour=None,
+                                    linestyle="-", legend_loc="best"):
+
+        self.make_figures_directory()
+
+        plt.rcParams.update({'font.size': 24,
+                             'xtick.labelsize': 20,
+                             'ytick.labelsize': 20,
+                             'legend.loc': legend_loc})
+
+        if ax is None:
+            fig = plt.figure(figsize=fig_size)
+            ax = fig.add_subplot()
+
+        spikes = self.snudda_simulation_load.get_spikes(neuron_id)
+        spikes = self.snudda_simulation_load.merge_spikes(spikes)[:, 0]
+
+        if end_time is None:
+            end_time = self.snudda_simulation_load.get_time()[-1]
+
+        bins = np.arange(skip_time, end_time + bin_size / 2, bin_size)
+        weights = 1 / (len(neuron_id) * bin_size)
+
+        if label_text is None:
+            label_text = ""
+
+        try:
+            N, bins, patches = ax.hist(x=spikes, bins=bins, weights=np.full(spikes.shape, weights), linewidth=3, linestyle=linestyle,
+                                       histtype="step", color=colour,
+                                       label=label_text)
+        except:
+            import traceback
+            print(traceback.format_exc())
+            import pdb
+            pdb.set_trace()
+
+        if type(colour) == list:
+            for patch, col in zip(patches, colour):
+                patch[0].set_facecolor(col)
+
+        plt.xlabel("Time (s)", fontsize=20)
+        plt.ylabel("Frequency (Hz)", fontsize=20)
+        ax.legend()
+
+        if fig_file is None:
+            fig_file = os.path.join(self.figure_path,
+                                    f"spike-frequency-for-group.pdf")
+        else:
+            fig_file = os.path.join(self.figure_path, fig_file)
+
+        if save_figure:
+            print(f"Saving figure {fig_file}")
+            plt.tight_layout()
+            plt.savefig(fig_file, dpi=300)
+
+        if show_figure:
+            plt.ion()
+            plt.show()
+
+        return ax
+
     def plot_spike_raster(self, type_order=None, skip_time=0, end_time=None, fig_size=None, fig_file=None,
                           time_range=None):
 
@@ -644,7 +708,6 @@ class SnuddaPlotSpikeRaster2:
         ax.set_ylim(0, 250)
 
         plt.show()
-
 
 
 if __name__ == "__main__":
