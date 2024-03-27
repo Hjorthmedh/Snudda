@@ -357,7 +357,7 @@ class SnuddaPlotSpikeRaster2:
     def plot_spike_histogram(self, population_id=None, neuron_type=None,
                              skip_time=0, end_time=None, fig_size=None, bin_size=50e-3,
                              fig_file=None, ax=None, label_text=None, show_figure=True, save_figure=True, colour=None,
-                             linestyle="-", legend_loc="best"):
+                             linestyle="-", legend_loc="best", title=None):
 
         if population_id is None:
             population_id = self.snudda_load.get_neuron_population_units(return_set=True)
@@ -434,6 +434,9 @@ class SnuddaPlotSpikeRaster2:
         plt.ylabel("Frequency (Hz)", fontsize=20)
         ax.legend()
 
+        if title:
+            plt.title(title)
+
         if fig_file is None:
             fig_file = os.path.join(self.figure_path,
                                     f"spike-frequency-pop-units{'-'.join([f'{x}' for x in pop_members.keys()])}.pdf")
@@ -455,7 +458,7 @@ class SnuddaPlotSpikeRaster2:
     def plot_group_spike_histogram(self, neuron_id=None,
                                     skip_time=0, end_time=None, fig_size=None, bin_size=50e-3,
                                     fig_file=None, ax=None, label_text=None, show_figure=True, save_figure=True, colour=None,
-                                    linestyle="-", legend_loc="best"):
+                                    linestyle="-", legend_loc="best", title=None):
 
         self.make_figures_directory()
 
@@ -497,6 +500,9 @@ class SnuddaPlotSpikeRaster2:
         plt.xlabel("Time (s)", fontsize=20)
         plt.ylabel("Frequency (Hz)", fontsize=20)
         ax.legend()
+
+        if title:
+            plt.title(title)
 
         if fig_file is None:
             fig_file = os.path.join(self.figure_path,
