@@ -4,7 +4,7 @@
             "generator" : "poisson",
             "start" : [0],
             "end" :   [20],
-            "frequency" : [3],
+            "frequency" : [2],
             "population_unit_id" : 0
         },
 
@@ -20,7 +20,7 @@
             "generator" : "poisson",
             "start" : [0, 15],
             "end" :   [15, 20],
-            "frequency" : [3, 10],
+            "frequency" : [2, 10],
             "population_unit_id" : 2
         }
     }	

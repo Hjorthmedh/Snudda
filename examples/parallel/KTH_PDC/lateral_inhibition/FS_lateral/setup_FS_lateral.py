@@ -15,11 +15,11 @@ snudda_data = "../../../../../../BasalGangliaData/data/"
 print(f"Network_path = {network_path}, snudda data = {snudda_data}")
 
 
-duration=18
+duration=20
 
 import snudda.init
 
-n_FS = 1000   # 1.3% of total population, obs need to set density correctly below!
+n_FS = 5000 # 1000   # 1.3% of total population, obs need to set density correctly below!
 
 print("Starting SnuddaInit")
 si = snudda.init.SnuddaInit(network_path=network_path, snudda_data=snudda_data, random_seed=12345, honor_stay_inside=False)
