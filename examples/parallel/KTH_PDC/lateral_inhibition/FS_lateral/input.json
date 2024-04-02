@@ -1,0 +1,27 @@
+{
+    "FS": {
+        "cortical:0" : {
+            "generator" : "poisson",
+            "start" : [0],
+            "end" :   [20],
+            "frequency" : [2],
+            "population_unit_id" : 0
+        },
+
+        "cortical:1" : {
+            "generator" : "poisson",
+            "start" : [0, 5, 10, 15],
+            "end" :   [5, 10, 15, 20],
+            "frequency" : [0, 5, 10, 0],
+            "population_unit_id" : 1
+        },
+
+        "cortical:2" : {
+            "generator" : "poisson",
+            "start" : [0, 15],
+            "end" :   [15, 20],
+            "frequency" : [2, 10],
+            "population_unit_id" : 2
+        }
+    }	
+}
