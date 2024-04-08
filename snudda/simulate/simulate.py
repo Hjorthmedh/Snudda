@@ -431,14 +431,14 @@ class SnuddaSimulate(object):
         # We need to load all the synapse parameters
         self.synapse_parameters = dict()
 
-        for (preType, postType) in self.network_info["connectivity_distributions"]:
+        for (pre_type, post_type) in self.network_info["connectivity_distributions"]:
 
-            syn_data = self.network_info["connectivity_distributions"][preType, postType]
+            syn_data = self.network_info["connectivity_distributions"][pre_type, post_type]
 
-            for synType in syn_data:
+            for syn_type in syn_data:
 
-                synapse_type_id = syn_data[synType]["channel_model_id"]
-                info_dict = syn_data[synType]
+                synapse_type_id = syn_data[syn_type]["channel_model_id"]
+                info_dict = syn_data[syn_type]
 
                 if synapse_type_id == 3:
                     # Gap junctions, skip parameters
@@ -454,7 +454,7 @@ class SnuddaSimulate(object):
                         eval_str = f"self.sim.neuron.h.{mod_file}"
                         channel_module = eval(eval_str)  # If this fails, check that NEURON modules are compiled
                     else:
-                        self.write_log(f"Empty mod_file field for {preType} -> {postType} synapses. This channel is IGNORED.", force_print=True)
+                        self.write_log(f"Empty mod_file field for {pre_type} -> {post_type} synapses. This channel is IGNORED.", force_print=True)
                         channel_module = None
 
                     # These are not variables to set in the mod_file
@@ -465,7 +465,7 @@ class SnuddaSimulate(object):
                         del channel_param_dict["parameter_file"]
 
                 else:
-                    assert False, (f"No channel module specified for {preType}->{postType} synapses, "
+                    assert False, (f"No channel module specified for {pre_type}->{post_type} synapses, "
                                    f"type ID={synapse_type_id}")
 
                 if "parameter_file" in info_dict["channel_parameters"] \
