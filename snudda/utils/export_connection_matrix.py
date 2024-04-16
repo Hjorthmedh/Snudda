@@ -49,13 +49,15 @@ class SnuddaExportConnectionMatrix(object):
             for idx, (x, y) in enumerate(zip(x_pos, y_pos)):
                 sparse_data[idx, :] = [x, y, self.con_mat[x, y]]
 
-            np.savetxt(self.out_file, sparse_data, delimiter=",", fmt="%d")
+            # np.savetxt(self.out_file, sparse_data, delimiter=",", fmt="%d")
+            np.save(self.out_file, sparse_data.astype(np.int32))
 
             # Test to verify
             for row in sparse_data:
                 assert self.con_mat[row[0], row[1]] == row[2]
         else:
-            np.savetxt(self.out_file, self.con_mat, delimiter=",", fmt="%d")
+            np.save(self.out_file, self.con_mat.astype(np.int32))
+            # np.savetxt(self.out_file, self.con_mat, delimiter=",", fmt="%d")
 
         print("Writing " + self.out_file_meta)
         with open(self.out_file_meta, "w") as f_out_meta:
@@ -123,9 +125,10 @@ class SnuddaExportConnectionMatrix(object):
             self.plot_matrix(axon_dend_distance, hide_nan=True)
 
         save_matrix = axon_dend_distance.copy()
-        save_matrix[np.isnan(save_matrix)] = -1
+        save_matrix[np.isnan(save_matrix)] = np.inf
 
-        np.savetxt(delay_file, save_matrix, delimiter=",", fmt="%d")
+        # np.savetxt(delay_file, save_matrix, delimiter=",", fmt="%d")
+        np.save(delay_file, save_matrix.astype(np.float32))
 
     ############################################################################
 
@@ -139,7 +142,9 @@ class SnuddaExportConnectionMatrix(object):
         if plot:
             self.plot_matrix(dist_matrix)
 
-        np.savetxt(dist_file, dist_matrix, delimiter=",", fmt="%d")
+        np.save(dist_file, dist_matrix.astype(np.float32))
+
+        # np.savetxt(dist_file, dist_matrix, delimiter=",", fmt="%d")
 
     ############################################################################
 
