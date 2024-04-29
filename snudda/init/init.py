@@ -833,6 +833,29 @@ class SnuddaInit(object):
             self.network_data["regions"][structure_name]["population_units"]["unit_id"].append(unit_id)
             self.network_data["regions"][structure_name]["population_units"]["neuron_types"].append(neuron_types)
 
+    def add_population_unit_mesh(self, structure_name, neuron_types, mesh_file, fraction_of_neurons=1.0, unit_id=None):
+
+        if "mesh" not in self.network_data["regions"][structure_name]["population_units"]:
+            self.network_data["regions"][structure_name]["population_units"]["method"] = "mesh"
+            self.network_data["regions"][structure_name]["population_units"]["mesh_file"] = [mesh_file]
+            self.network_data["regions"][structure_name]["population_units"]["fraction_of_neurons"] = [fraction_of_neurons]
+            self.network_data["regions"][structure_name]["population_units"]["unit_id"] = [unit_id]
+            self.network_data["regions"][structure_name]["population_units"]["neuron_types"] = [neuron_types]
+            self.network_data["regions"][structure_name]["population_units"]["structure"] = structure_name
+        else:
+            old_method = self.network_data["regions"][structure_name]["population_units"]["method"]
+
+            if old_method != "mesh":
+                raise ValueError(f"{structure_name} population unit, expected method 'mesh' found '{old_method}', "
+                                 f"you cant mix methods for a structure.")
+
+            self.network_data["regions"][structure_name]["population_units"]["mesh_file"].append(mesh_file)
+            self.network_data["regions"][structure_name]["population_units"]["fraction_of_neurons"].append(fraction_of_neurons)
+            self.network_data["regions"][structure_name]["population_units"]["unit_id"].append(unit_id)
+            self.network_data["regions"][structure_name]["population_units"]["neuron_types"].append(neuron_types)
+
+
+
     # Helper function, returns next free unit_id and sets up data structures (user can also choose own unit_id
     # but it must be unique and not already used
     def setup_population_unit(self, region_name, unit_id=None):

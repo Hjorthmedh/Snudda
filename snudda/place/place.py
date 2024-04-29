@@ -25,8 +25,7 @@ from scipy.interpolate import griddata
 
 from snudda.utils.snudda_path import get_snudda_data
 from snudda.neurons.neuron_prototype import NeuronPrototype
-# from snudda.place.region_mesh import RegionMesh
-from snudda.place.region_mesh_redux import NeuronPlacer
+from snudda.place.region_mesh_redux import NeuronPlacer, RegionMeshRedux
 
 from snudda.place.rotation import SnuddaRotate
 from snudda.utils.snudda_path import snudda_parse_path, snudda_path_exists, snudda_simplify_path
@@ -1107,7 +1106,8 @@ class SnuddaPlace(object):
         """
 
         method_lookup = {"random": self.random_labeling,
-                         "radial_density": self.population_unit_density_labeling}
+                         "radial_density": self.population_unit_density_labeling,
+                         "mesh": self.population_unit_mesh}
 
         for region_name in self.config["regions"]:
             if "population_units" in self.config["regions"][region_name]:
@@ -1284,6 +1284,42 @@ class SnuddaPlace(object):
                         self.population_units[0] = np.sort(np.array(list(set(self.population_units[0]).union(remove_nid))))
                     else:
                         self.population_units[0] = remove_nid
+
+    def population_unit_mesh(self, population_unit_info, neuron_id):
+
+        unit_id = population_unit_info["unit_id"]
+        mesh_file = population_unit_info["mesh_file"]
+        fraction_of_neurons = population_unit_info["fraction_of_neurons"]
+        neuron_types = population_unit_info["neuron_types"]  # list of neuron types that belong to this population unit
+        structure_name = population_unit_info["structure"]
+
+        pos = np.hstack([self.neurons[nid].pos for nid in neuron_id])
+        model_neuron_types = [self.neurons[nid].name.split("_")[0] for nid in neuron_id]
+
+        import pdb
+        pdb.set_trace()
+
+        member_probability = np.zeros(shape=(pos.shape[0], len(mesh_file)))
+
+        for idx, (mf, frac, nts) in enumerate(zip(mesh_file, fraction_of_neurons, neuron_types)):
+
+            # This checks if neurons are of the types that are included in population unit
+            has_nt = np.array([n in nts for n in model_neuron_types], dtype=bool)
+
+            rm = RegionMeshRedux(mf)
+            member_probability[:, idx] = np.logical_and(rm.check_inside(pos), has_nt) * frac
+
+        # If the probability sums to more than 1, then normalise it, otherwise keep smaller
+        member_probability = np.divide(member_probability, np.max(1, member_probability))
+
+        # Also, we need to add population unit 0 as an option, since choice needs P_sum = 1
+        full_member_probability = np.zeros(shape=(member_probability.shape[0], member_probability.shape[1]+1))
+        full_member_probability[:, :-1] = member_probability
+        full_member_probability[:, -1] = 1 - np.sum(member_probability, axis=1)
+        all_unit_id = list(unit_id).append(0)
+
+        for idx, (nid, P) in zip(neuron_id, full_member_probability):
+            self.population_unit[nid] = self.random_generator.choice(all_unit_id, P=P)
 
     ############################################################################
 
