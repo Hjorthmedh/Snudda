@@ -8,6 +8,7 @@ Here is a collection of Jupyter Notebooks, some of the workflows are split over 
 * [simple_network_parallel](simple_network_parallel.ipynb) how to use ipyparallel when running Snudda
 * [custom_slice_example](custom_slice_example.ipynb) shows how to create custom slice and define your own connectivity rules for neuron types.
 * [population_unit_network](population_unit_network.ipynb) how to define population units.
+* [population_unit_mesh](population_unit_mesh.ipynb) how to define population units specified by volume meshes.
 * [example_of_density_function](example_of_density_function.ipynb) how to specify density variations using a function of (x,y,z) in a volume.
 * [example_of_neuron_rotations](example_of_neuron_rotations.ipynb) shows how to rotate neurons based on position.
 * [bend_morphologies](bend_morphologies.ipynb) shows how to make the neurons bend the axons and dendrites at the edge of the mesh, to keep them constrained to the volume.
