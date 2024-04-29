@@ -1287,17 +1287,16 @@ class SnuddaPlace(object):
 
     def population_unit_mesh(self, population_unit_info, neuron_id):
 
+        self.init_population_units()  # This initialises population unit labelling if not already allocated
+
         unit_id = population_unit_info["unit_id"]
         mesh_file = population_unit_info["mesh_file"]
         fraction_of_neurons = population_unit_info["fraction_of_neurons"]
         neuron_types = population_unit_info["neuron_types"]  # list of neuron types that belong to this population unit
         structure_name = population_unit_info["structure"]
 
-        pos = np.hstack([self.neurons[nid].pos for nid in neuron_id])
+        pos = np.vstack([self.neurons[nid].position for nid in neuron_id])
         model_neuron_types = [self.neurons[nid].name.split("_")[0] for nid in neuron_id]
-
-        import pdb
-        pdb.set_trace()
 
         member_probability = np.zeros(shape=(pos.shape[0], len(mesh_file)))
 
@@ -1310,16 +1309,21 @@ class SnuddaPlace(object):
             member_probability[:, idx] = np.logical_and(rm.check_inside(pos), has_nt) * frac
 
         # If the probability sums to more than 1, then normalise it, otherwise keep smaller
-        member_probability = np.divide(member_probability, np.max(1, member_probability))
+        member_probability = np.divide(member_probability, np.maximum(1, member_probability))
 
         # Also, we need to add population unit 0 as an option, since choice needs P_sum = 1
         full_member_probability = np.zeros(shape=(member_probability.shape[0], member_probability.shape[1]+1))
         full_member_probability[:, :-1] = member_probability
         full_member_probability[:, -1] = 1 - np.sum(member_probability, axis=1)
-        all_unit_id = list(unit_id).append(0)
+        all_unit_id = unit_id + [0]
 
-        for idx, (nid, P) in zip(neuron_id, full_member_probability):
-            self.population_unit[nid] = self.random_generator.choice(all_unit_id, P=P)
+        for idx, (nid, P) in enumerate(zip(neuron_id, full_member_probability)):
+
+            uid = self.random_generator.choice(all_unit_id, p=P)
+            self.population_unit[nid] = uid
+
+            if uid > 0:
+                self.population_units[uid].append(nid)
 
     ############################################################################
 

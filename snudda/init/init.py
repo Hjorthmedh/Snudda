@@ -835,7 +835,12 @@ class SnuddaInit(object):
 
     def add_population_unit_mesh(self, structure_name, neuron_types, mesh_file, fraction_of_neurons=1.0, unit_id=None):
 
-        if "mesh" not in self.network_data["regions"][structure_name]["population_units"]:
+        if type(neuron_types) != list:
+            neuron_types = [neuron_types]
+
+        unit_id = self.setup_population_unit(region_name=structure_name, unit_id=unit_id)
+
+        if "method" not in self.network_data["regions"][structure_name]["population_units"]:
             self.network_data["regions"][structure_name]["population_units"]["method"] = "mesh"
             self.network_data["regions"][structure_name]["population_units"]["mesh_file"] = [mesh_file]
             self.network_data["regions"][structure_name]["population_units"]["fraction_of_neurons"] = [fraction_of_neurons]
