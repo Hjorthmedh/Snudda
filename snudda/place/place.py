@@ -1314,7 +1314,7 @@ class SnuddaPlace(object):
         # Also, we need to add population unit 0 as an option, since choice needs P_sum = 1
         full_member_probability = np.zeros(shape=(member_probability.shape[0], member_probability.shape[1]+1))
         full_member_probability[:, :-1] = member_probability
-        full_member_probability[:, -1] = 1 - np.sum(member_probability, axis=1)
+        full_member_probability[:, -1] = np.maximum(1 - np.sum(member_probability, axis=1), 0)
         all_unit_id = unit_id + [0]
 
         for idx, (nid, P) in enumerate(zip(neuron_id, full_member_probability)):
