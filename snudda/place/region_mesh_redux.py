@@ -134,7 +134,12 @@ class NeuronPlacer:
             if putative_density:
                 n_putative_points = int(np.ceil(np.prod(self.cube_side)*putative_density*1e9))
             else:
-                n_putative_points = int(np.ceil(np.prod(self.cube_side) * (1/self.d_min) ** 3))
+
+                # n_putative_points = np.min(int(np.ceil(np.prod(self.cube_side) * (1/self.d_min) ** 3)), 1000000)
+                n_putative_points = np.min(int(np.ceil(np.prod(self.cube_side) * 200e3*1e9)), 1000000)
+
+                print(f"No n_putative_points and putative_density, setting {n_putative_points = }"
+                      f"\n(this must be larger than the number of neurons you want to place)")
         else:
             # We need to compenate n_putative_points for fact that we sample points outside volume also
             n_putative_points *= np.prod(self.cube_side) / self.region_mesh.volume

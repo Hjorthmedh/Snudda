@@ -140,8 +140,7 @@ class NeuronModel(ephys.models.CellModel):
                 continue
 
             seclist_loc = \
-                ephys.locations.NrnSeclistLocation(section_list,
-                                                   seclist_name=section_list)
+                ephys.locations.NrnSeclistLocation(section_list, seclist_name=section_list)
             for channel in channels:
                 mechanisms.append(ephys.mechanisms.NrnMODMechanism(
                     name='%s.%s' % (channel, section_list),
