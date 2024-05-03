@@ -1309,8 +1309,8 @@ class SnuddaPlace(object):
             member_probability[:, idx] = np.logical_and(rm.check_inside(pos), has_nt) * frac
 
         # If the probability sums to more than 1, then normalise it, otherwise keep smaller
-        member_probability = np.divide(member_probability, np.maximum(1, member_probability))
-
+        member_probability = np.divide(member_probability, np.maximum(1, np.sum(member_probability, axis =1).reshape(len(member_probability),1)))
+        
         # Also, we need to add population unit 0 as an option, since choice needs P_sum = 1
         full_member_probability = np.zeros(shape=(member_probability.shape[0], member_probability.shape[1]+1))
         full_member_probability[:, :-1] = member_probability
