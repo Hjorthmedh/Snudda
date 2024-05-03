@@ -1317,6 +1317,11 @@ class SnuddaPlace(object):
         full_member_probability[:, -1] = np.maximum(1 - np.sum(member_probability, axis=1), 0)
         all_unit_id = unit_id + [0]
 
+        # Normalise to 1
+        row_sums = np.sum(full_member_probability, axis=1)
+        row_sums = row_sums[:, np.newaxis]
+        full_member_probability = full_member_probability / row_sums
+
         for idx, (nid, P) in enumerate(zip(neuron_id, full_member_probability)):
 
             uid = self.random_generator.choice(all_unit_id, p=P)
