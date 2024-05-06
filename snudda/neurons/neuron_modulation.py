@@ -1,10 +1,9 @@
 import neuron.crxd as rxd
-from snudda.neurons.neuron_model_extended import NeuronModel
 
 
 class NeuronModulation:
 
-    def __init__(self, neuron: NeuronModel):
+    def __init__(self, neuron):
 
         self.neuron = neuron
         self.internal_compartments = None
