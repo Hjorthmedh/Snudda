@@ -31,6 +31,7 @@ class NeuroModulation:
         self.simulation = simulation
         self.neuron_internal_compartments = dict()
         self.species = dict()
+        self.rates = dict()
 
         # rxd.options.enable.extracellular = True
 
@@ -50,6 +51,8 @@ class NeuroModulation:
 
         neuron = self.simulation.neurons[neuron_id]
 
+        self.simulation
+
         if neuron_id not in self.neuron_internal_compartments:
             self.neuron_internal_compartments[neuron_id] = rxd.Region(neuron.icell.all, nrn_region='i')
 
@@ -60,6 +63,18 @@ class NeuroModulation:
                                                             d=diffusion_constant,
                                                             initial=initial_conc)
 
+    def add_decay_internal(self, neuron_id, species_name, decay_rate, reaction_name):
+
+        if neuron_id not in self.rates:
+            self.rates[neuron_id] = dict()
+
+        if species_name not in self.rates[neuron_id]:
+            self.rates[neuron_id][species_name] = dict()
+
+        if reaction_name in self.rates[neuron_id][species_name]:
+            raise KeyError(f"{reaction_name} already specified for ")
+
+        rxd.Rate(DA, -0.01 * DA)
 
 
 

@@ -8,7 +8,7 @@ from collections import OrderedDict
 import bluepyopt.ephys as ephys
 
 from snudda.neurons.neuron_prototype import NeuronPrototype
-
+from snudda.neurons.neuron_modulation import NeuronModulation
 
 class NeuronModel(ephys.models.CellModel):
     """ Extended NeuronModel for simulation.
@@ -106,6 +106,10 @@ class NeuronModel(ephys.models.CellModel):
                 params = params + mod_params
             else:
                 print(f"Warning! No modulation key specified, ignoring {modulation_file}")
+
+            self.modulation = NeuronModulation()
+        else:
+            self.modulation = None
 
         super(NeuronModel, self).__init__(name=cell_name, morph=morph,
                                           mechs=mechs, params=params)
