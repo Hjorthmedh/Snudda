@@ -107,7 +107,7 @@ class NeuronModel(ephys.models.CellModel):
             else:
                 print(f"Warning! No modulation key specified, ignoring {modulation_file}")
 
-            self.modulation = NeuronModulation()
+            self.modulation = NeuronModulation(neuron=self)
         else:
             self.modulation = None
 
