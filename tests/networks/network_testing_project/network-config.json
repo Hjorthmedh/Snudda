@@ -18,20 +18,6 @@
                 "d_min": 1.5e-05,
                 "mesh_file": "networks/network_testing_project/mesh/volume_A.obj"
             },
-            "neurons": {
-                "dSPN": {
-                    "num_neurons": 20,
-                    "neuron_type": "neuron",
-                    "rotation_mode": "random",
-                    "volume_id": "VolumeA",
-                    "neuron_path": {
-                        "dSPN_0": "/home/hjorth/HBP/Snudda/snudda/data/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508",
-                        "dSPN_1": "/home/hjorth/HBP/Snudda/snudda/data/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521",
-                        "dSPN_2": "/home/hjorth/HBP/Snudda/snudda/data/neurons/striatum/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503",
-                        "dSPN_3": "/home/hjorth/HBP/Snudda/snudda/data/neurons/striatum/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521"
-                    }
-                }
-            },
             "connectivity": {
                 "dSPN,iSPN": {
                     "GABA": {
@@ -97,6 +83,20 @@
                         }
                     }
                 }
+            },
+            "neurons": {
+                "dSPN": {
+                    "num_neurons": 20,
+                    "neuron_type": "neuron",
+                    "rotation_mode": "random",
+                    "volume_id": "VolumeA",
+                    "neuron_path": {
+                        "dSPN_0": "/home/hjorth/HBP/Snudda/snudda/data/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508",
+                        "dSPN_1": "/home/hjorth/HBP/Snudda/snudda/data/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521",
+                        "dSPN_2": "/home/hjorth/HBP/Snudda/snudda/data/neurons/striatum/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503",
+                        "dSPN_3": "/home/hjorth/HBP/Snudda/snudda/data/neurons/striatum/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521"
+                    }
+                }
             }
         },
         "VolumeB": {
@@ -104,20 +104,6 @@
                 "type": "mesh",
                 "d_min": 1.5e-05,
                 "mesh_file": "networks/network_testing_project/mesh/volume_B.obj"
-            },
-            "neurons": {
-                "iSPN": {
-                    "num_neurons": 20,
-                    "neuron_type": "neuron",
-                    "rotation_mode": "random",
-                    "volume_id": "VolumeB",
-                    "neuron_path": {
-                        "iSPN_0": "/home/hjorth/HBP/Snudda/snudda/data/neurons/striatum/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611",
-                        "iSPN_1": "/home/hjorth/HBP/Snudda/snudda/data/neurons/striatum/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603",
-                        "iSPN_2": "/home/hjorth/HBP/Snudda/snudda/data/neurons/striatum/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527",
-                        "iSPN_3": "/home/hjorth/HBP/Snudda/snudda/data/neurons/striatum/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529"
-                    }
-                }
             },
             "connectivity": {
                 "iSPN,iSPN": {
@@ -149,6 +135,20 @@
                             "dist_pruning": "1-exp(-(0.4*d/60e-6)**2)",
                             "cluster_pruning": false
                         }
+                    }
+                }
+            },
+            "neurons": {
+                "iSPN": {
+                    "num_neurons": 20,
+                    "neuron_type": "neuron",
+                    "rotation_mode": "random",
+                    "volume_id": "VolumeB",
+                    "neuron_path": {
+                        "iSPN_0": "/home/hjorth/HBP/Snudda/snudda/data/neurons/striatum/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611",
+                        "iSPN_1": "/home/hjorth/HBP/Snudda/snudda/data/neurons/striatum/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603",
+                        "iSPN_2": "/home/hjorth/HBP/Snudda/snudda/data/neurons/striatum/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527",
+                        "iSPN_3": "/home/hjorth/HBP/Snudda/snudda/data/neurons/striatum/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529"
                     }
                 }
             }
