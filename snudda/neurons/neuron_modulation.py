@@ -89,7 +89,7 @@ class NeuronModulation:
         syn_link = self.neuron.simulate.setpointer(ref_concentration, f"{species_name}_conc", synapse)
         self.synapse_links.append(syn_link)
 
-    def from_json(self, config_path: str):
+    def load_json(self, config_path: str):
 
         with open(config_path, "r") as f:
             self.config_data = json.load(f)
@@ -107,8 +107,10 @@ class NeuronModulation:
                                    compartment=regions, charge=charge)
 
         # Black magic, setup the species variables
-        species_name = ",".join(self.species.keys())
-        eval(f"{species_name} = self.get_species({species_name})")
+        species_name_vars = ",".join(self.species.keys())
+        species_name_str = "','".join(self.species.keys())
+
+        exec(f"{species_name_vars} = self.get_species('{species_name_str}')")
 
         for rate_name, rate_data in self.config_data.get("rates", {}).items():
             if rate_name not in self.species:
@@ -117,7 +119,7 @@ class NeuronModulation:
             right_side = eval(rate_data["rate"])
 
             self.add_rate(species_name=rate_name,
-                          left_side=self.get_species(rate_name),
+                          left_side=self.get_species(rate_name)[0],
                           right_side=right_side,
                           region_list=rate_data["regions"])
 
