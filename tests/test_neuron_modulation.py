@@ -8,7 +8,7 @@ class NeuromodulationTestCase(unittest.TestCase):
 
     def setUp(self):
 
-        self.neuron_path = "validation/ballanddoublestick_rxd"
+        self.neuron_path = "validation/dspn_rxd"
 
         self.snudda = Snudda(network_path="networks/network_rxd")
         self.snudda.init_tiny(neuron_paths=self.neuron_path,
@@ -20,7 +20,7 @@ class NeuromodulationTestCase(unittest.TestCase):
 
         self.sim = self.snudda.simulate()
 
-    def test_something(self):
+    def test_reaction(self):
 
         n = self.sim.neurons[0]
         from snudda.neurons.neuron_modulation import NeuronModulation
@@ -29,8 +29,8 @@ class NeuromodulationTestCase(unittest.TestCase):
         config = os.path.join(self.neuron_path, "reaction_diffusion.json")
         nm.load_json(config_path=config)
 
-        import pdb
-        pdb.set_trace()
+        # TODO: Verify that RxD is setup correctly
+        # TODO: Integrate code into simulate.py
 
         self.assertEqual(True, True)  # add assertion here
 

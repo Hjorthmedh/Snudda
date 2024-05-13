@@ -76,11 +76,17 @@ class NeuronModulation:
         if not overwrite and reaction_name in self.reactions:
             raise KeyError(f"Reaction {reaction_name} is already defined in neuron {self.neuron.name}")
 
-        self.reactions[reaction_name] = rxd.Reaction(reactant_sum=left_side,
-                                                     product_sum=right_side,
-                                                     forward_rate=forward_rate,
-                                                     backward_rate=backward_rate,
-                                                     regions=self.get_neuron_regions(region_list))
+        reaction_dict = dict()
+
+        for region_name in region_list:
+            reaction_dict[region_name] = rxd.Reaction(left_side,
+                                                      right_side,
+                                                      forward_rate,
+                                                      backward_rate,
+                                                      regions=self.compartments[region_name])
+
+        if len(reaction_dict) > 0:
+            self.reactions[reaction_name] = reaction_dict
 
     def link_synapse(self, sim, species_name, synapse):
 
