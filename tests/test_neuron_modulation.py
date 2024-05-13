@@ -16,10 +16,14 @@ class NeuromodulationTestCase(unittest.TestCase):
 
         # Check why file size is so large, and why it is so slow to generate!
 
-        self.snudda.simulate()
+        self.sim = self.snudda.simulate()
 
     def test_something(self):
         self.assertEqual(True, True)  # add assertion here
+
+    def tearDown(self):
+        # Remember to clear old neuron, for next unit test!
+        self.sim.clear_neuron()
 
 
 if __name__ == '__main__':

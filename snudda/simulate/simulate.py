@@ -2026,6 +2026,12 @@ class SnuddaSimulate(object):
         if self is not None:
             self.clear_neuron()
 
+        if self.log_file is not None:
+            try:
+                self.log_file.close()
+            except:
+                pass
+
     def clear_neuron(self):
 
         if self.pc is not None:

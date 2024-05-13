@@ -19,26 +19,6 @@
                 "mesh_file": "networks/network_testing_input/mesh/Striatum-cube-mesh-5e-05.obj",
                 "n_putative_points": 30
             },
-            "neurons": {
-                "FS": {
-                    "num_neurons": 5,
-                    "neuron_type": "neuron",
-                    "rotation_mode": "random",
-                    "volume_id": "Striatum",
-                    "neuron_path": {
-                        "FS_0": "/home/hjorth/HBP/Snudda/tests/validation/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312"
-                    }
-                },
-                "dSPN": {
-                    "num_neurons": 5,
-                    "neuron_type": "neuron",
-                    "rotation_mode": "random",
-                    "volume_id": "Striatum",
-                    "neuron_path": {
-                        "dSPN_0": "/home/hjorth/HBP/Snudda/tests/validation/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508"
-                    }
-                }
-            },
             "connectivity": {
                 "FS,FS": {
                     "GABA": {
@@ -486,6 +466,26 @@
                             "dist_pruning": null,
                             "cluster_pruning": false
                         }
+                    }
+                }
+            },
+            "neurons": {
+                "FS": {
+                    "num_neurons": 5,
+                    "neuron_type": "neuron",
+                    "rotation_mode": "random",
+                    "volume_id": "Striatum",
+                    "neuron_path": {
+                        "FS_0": "/home/hjorth/HBP/Snudda/tests/validation/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312"
+                    }
+                },
+                "dSPN": {
+                    "num_neurons": 5,
+                    "neuron_type": "neuron",
+                    "rotation_mode": "random",
+                    "volume_id": "Striatum",
+                    "neuron_path": {
+                        "dSPN_0": "/home/hjorth/HBP/Snudda/tests/validation/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508"
                     }
                 }
             },

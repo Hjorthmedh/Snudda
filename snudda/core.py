@@ -895,6 +895,9 @@ class Snudda(object):
         if sim.pc.id() == 0:
             print(f"Program run time: {stop - start:.1f}s")
 
+        # OBS! You want to do sim.clear_neuron() after the simulation if you need
+        #      to setup another neuron simulation afterwards.
+
         # sim.plot()
         return sim
 
