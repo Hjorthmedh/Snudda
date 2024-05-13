@@ -89,6 +89,10 @@ class NeuronModulation:
             self.reactions[reaction_name] = reaction_dict
 
     def link_synapse(self, sim, species_name, synapse):
+        # Note to self:
+        # DA.nodes[0].include_flux(SYNAPSE_POINT_PROCESS, 'SYNAPSE_FLUX_VARIABLE')
+        raise DeprecationWarning("")
+
 
         segment = synapse.get_segment()
         ref_concentration = self.species[species_name].nodes(segment)._ref_concentration
