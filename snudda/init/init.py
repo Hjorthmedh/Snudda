@@ -434,7 +434,7 @@ class SnuddaInit(object):
                     rotation_mode="random",
                     stay_inside=False,
                     k_dist=30e-6,
-                    n_random=5,
+                    n_random=5,  # Used for bending morphologies
                     max_angle=0.1):
 
         if num_neurons is not None and num_neurons <= 0:
@@ -541,8 +541,24 @@ class SnuddaInit(object):
         # First check how many unique cells we hava available, then we
         # calculate how many of each to use in simulation
         n_ind = len(neuron_file_list)
+
+        if n_ind == 0:
+            # Check if the current neuron_dir path contains a single swc file...
+            full_neuron_path = snudda_parse_path(neuron_dir, self.snudda_data)
+
+            has_morphology_dir = os.path.isdir(os.path.join(full_neuron_path, "morphology"))
+            dir_list2 = sorted(glob.glob(os.path.join(full_neuron_path, "*.swc")))
+
+            if not has_morphology_dir and len(dir_list2) != 1:
+                raise ValueError(f"The directory neuron_dir should either contain directories with neurons, "
+                                 f"or point to a neuron directory directly (with a morphology subdirectory, "
+                                 f"or exactly one SWC file). {neuron_dir = }, {dir_list2 = }")
+
+            neuron_file_list = [(name, full_neuron_path)]
+            n_ind = len(neuron_file_list)
+
         assert n_ind > 0, \
-            f"No swc morphologies found in {neuron_dir}.\nObs, each morphology should have its own subdirectory."
+            f"No swc morphologies found in '{neuron_dir}'.\nObs, each morphology should have its own subdirectory."
 
         # Add the neurons to config
         neuron_dict = dict()

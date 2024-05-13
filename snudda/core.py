@@ -166,6 +166,47 @@ class Snudda(object):
 
     ############################################################################
 
+    def init_tiny(self, neuron_paths, neuron_names, number_of_neurons,
+                  connection_config=None, random_seed=None, density=80500, d_min=15e-6):
+
+        """
+            network_path : Network path
+
+        """
+
+        from snudda.init.init import SnuddaInit
+        from snudda.place import create_cube_mesh
+
+        n_total = np.sum(number_of_neurons)
+
+        si = SnuddaInit(network_path=self.network_path,
+                        connection_override_file=connection_config,
+                        random_seed=random_seed)
+
+        si.define_structure(struct_name="Cube",
+                            struct_mesh="cube",
+                            d_min=d_min,
+                            struct_centre=(0.0, 0.0, 0.0),
+                            side_len=(n_total/density)**(1/3)*1e-3,
+                            num_neurons=n_total,
+                            n_putative_points=n_total*4)
+
+        if isinstance(neuron_paths, str):
+            neuron_paths = [neuron_paths]
+
+        if isinstance(neuron_names, str):
+            neuron_names = [neuron_names]
+
+        if isinstance(number_of_neurons, int):
+            number_of_neurons = [int(number_of_neurons / len(neuron_paths)) for x in neuron_names]
+
+        for path, name, cnt in zip(neuron_paths, neuron_names, number_of_neurons):
+            si.add_neurons(name=name, neuron_dir=path, region_name="Cube", num_neurons=cnt)
+
+        si.write_json()
+
+    ############################################################################
+
     def import_config_wrapper(self, args):
 
         self.import_config(network_config_file=args.config_file,
@@ -697,7 +738,9 @@ class Snudda(object):
             network_file = os.path.join(self.network_path, "network-synapses.hdf5")
 
         if input_file is None:
-            input_file = os.path.join(self.network_path, "input-spikes.hdf5")
+            putative_input_file = os.path.join(self.network_path, "input-spikes.hdf5")
+            if os.path.isfile(putative_input_file):
+                input_file = putative_input_file
 
         if output_file is None:
             output_file = os.path.join(self.network_path, "simulation", "output.hdf5")

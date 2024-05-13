@@ -1,0 +1,46 @@
+{
+    "species": {
+	"A":{
+	    "inital_concentration": 0.5,
+	    "diffusion_constant": 0,
+	    "charge": 0,
+	    "regions": ["soma_internal", "dendrites_internal"],
+	    "atol_scale": None,
+	    "ecs_boundary_conditions": None,
+	    "represents": "DA",	    
+	},
+	"B":{
+	    "inital_concentration": 0.7,
+	    "diffusion_constant": 0,
+	    "charge": 0,
+	    "regions": ["soma_internal", "dendrites_internal"],
+	    "atol_scale": None,
+	    "ecs_boundary_conditions": None,
+	    "represents": "DA",	    
+	},
+	"AB":{
+	    "inital_concentration": 0.1,
+	    "diffusion_constant": 0,
+	    "charge": 0,
+	    "regions": ["soma_internal", "dendrites_internal"],
+	    "atol_scale": None,
+	    "ecs_boundary_conditions": None,
+	    "represents": "DA",	    
+	}
+	
+    },
+    "rates": {
+	"A": {
+	    "rate": "-0.1*A",
+	    "regions": ["soma_internal", "dendrites_internal"]
+    },
+    "reactions": {
+	"my_reaction_1": {
+	    "reactants": "A + B",
+	    "products": "AB",
+	    "forward_rate": 1,
+	    "backward_rate": 0.5,
+	    "regions": ["soma_internal", "dendrites_internal"]
+	}
+    }
+}

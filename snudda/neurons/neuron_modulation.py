@@ -2,6 +2,7 @@ import neuron.crxd as rxd
 import json
 from itertools import chain
 
+
 class NeuronModulation:
 
     def __init__(self, neuron):
@@ -61,7 +62,7 @@ class NeuronModulation:
         if not overwrite and species_name in self.rates:
             raise KeyError(f"Reaction {species_name} is already defined in neuron {self.neuron.name}")
 
-        self.rates[species_name] = rxd.rate(left_side, right_side, regions=self.get_neuron_regions(region_list))
+        self.rates[species_name] = rxd.Rate(left_side, right_side, regions=self.get_neuron_regions(region_list))
 
     def get_neuron_regions(self, region_list):
 
@@ -75,11 +76,11 @@ class NeuronModulation:
         if not overwrite and reaction_name in self.reactions:
             raise KeyError(f"Reaction {reaction_name} is already defined in neuron {self.neuron.name}")
 
-        self.reaction[reaction_name] = rxd.reaction(reactant_sum=left_side,
-                                                    product_sum=right_side,
-                                                    forward_rate=forward_rate,
-                                                    backward_rate=backward_rate,
-                                                    regions=self.get_neuron_regions(region_list))
+        self.reactions[reaction_name] = rxd.Reaction(reactant_sum=left_side,
+                                                     product_sum=right_side,
+                                                     forward_rate=forward_rate,
+                                                     backward_rate=backward_rate,
+                                                     regions=self.get_neuron_regions(region_list))
 
     def link_synapse(self, sim, species_name, synapse):
 
@@ -130,4 +131,3 @@ class NeuronModulation:
                               forward_rate=reaction_data["forward_rate"],
                               backward_rate=reaction_data["backward_rate"],
                               region_list=reaction_data["regions"])
-    pass
