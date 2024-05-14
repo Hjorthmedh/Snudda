@@ -1,7 +1,7 @@
 {
     "species": {
 	"A":{
-	    "inital_concentration": 0.5,
+	    "initial_concentration": 0.5,
 	    "diffusion_constant": 0,
 	    "charge": 0,
 	    "regions": ["soma_internal", "dend_internal"],
@@ -10,7 +10,7 @@
 	    "represents": "DA"   
 	},
 	"B":{
-	    "inital_concentration": 0.7,
+	    "initial_concentration": 0.7,
 	    "diffusion_constant": 0,
 	    "charge": 0,
 	    "regions": ["soma_internal", "dend_internal"],
@@ -19,7 +19,7 @@
 	    "represents": "DA"	    
 	},
 	"AB":{
-	    "inital_concentration": 0.1,
+	    "initial_concentration": 0.1,
 	    "diffusion_constant": 0,
 	    "charge": 0,
 	    "regions": ["soma_internal", "dend_internal"],
@@ -31,7 +31,7 @@
     },
     "rates": {
 	"A": {
-	    "rates": ["-0.1*A", "-0.1*A"],
+	    "rates": ["-0.01*A", "-0.01*A"],
 	    "regions": ["soma_internal", "dend_internal"]
 	}
     },
@@ -39,7 +39,7 @@
 	"my_reaction_1": {
 	    "reactants": "A + B",
 	    "products": "AB",
-	    "forward_rate": 1,
+	    "forward_rate": 10,
 	    "backward_rate": 0.5,
 	    "regions": ["soma_internal", "dend_internal"]
 	}

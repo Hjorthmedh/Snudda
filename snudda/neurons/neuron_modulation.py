@@ -103,7 +103,6 @@ class NeuronModulation:
         # DA.nodes[0].include_flux(SYNAPSE_POINT_PROCESS, 'SYNAPSE_FLUX_VARIABLE')
         raise DeprecationWarning("")
 
-
         segment = synapse.get_segment()
         ref_concentration = self.species[species_name].nodes(segment)._ref_concentration
         syn_link = self.neuron.simulate.setpointer(ref_concentration, f"{species_name}_conc", synapse)

@@ -1551,11 +1551,27 @@ class SnuddaSimulate(object):
 
         return syn_ctr
 
-    def add_rxd_recording(self, species, neuron_id, region, sec_type, sec_id):
+    def add_rxd_concentration_recording(self, species, neuron_id, region, sec_type, sec_id, sec_x):
 
-        self.neurons[neuron_id].modulation.species
+        if self.neurons[neuron_id].modulation is None:
+            raise ValueError(f"No modulation specified for neuron {self.neurons[neuron_id].name} ({neuron_id})")
 
-        pass
+        segment = getattr(self.neurons[neuron_id].icell, sec_type)[sec_id](sec_x)
+
+        conc_ref = self.neurons[neuron_id].modulation.species[species][region].nodes(segment)._ref_concentration
+
+        vector = self.sim.neuron.h.Vector()
+        vector.record(conc_ref)
+
+        self.record.register_compartment_data(neuron_id=neuron_id,
+                                              data_type=species,
+                                              data=vector,
+                                              sec_id=sec_id, sec_x=sec_x)
+
+        if self.record.time is None:
+            t_save = self.sim.neuron.h.Vector()
+            t_save.record(self.sim.neuron.h._ref_t)
+            self.record.register_time(time=t_save)
 
     ############################################################################
 
@@ -1576,10 +1592,6 @@ class SnuddaSimulate(object):
             if self.sim_info is not None and "hold_voltage" in self.sim_info:
                 hold_v = self.sim_info["hold_voltage"]
 
-        self.setup_print_sim_time(t)
-
-        start_time = timeit.default_timer()
-
         # If we want to use a non-default initialisation voltage, we need to
         # explicitly set: h.v_init
         # self.sim.neuron.h.v_init = -78
@@ -1597,8 +1609,12 @@ class SnuddaSimulate(object):
         # Asked on neuron, check answer:
         # https://www.neuron.yale.edu/phpBB/viewtopic.php?f=2&t=4161&p=18021
 
+        self.setup_print_sim_time(t)
+        start_time = timeit.default_timer()
+
         # Make sure all processes are synchronised
         self.pc.barrier()
+
         self.write_log(f"Running simulation for {t / 1000} s", force_print=True)
         self.sim.run(t, dt=0.025)
         self.pc.barrier()
