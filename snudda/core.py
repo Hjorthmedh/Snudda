@@ -829,7 +829,7 @@ class Snudda(object):
             return  # We do not run simulation when exporting to core neuron
 
         sim.check_memory_status()
-        if t_sim > 0:
+        if t_sim is None or t_sim > 0:
             print(f"Running simulation for {t_sim} ms.")
             sim.run(t_sim)  # In milliseconds
 

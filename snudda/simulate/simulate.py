@@ -1551,6 +1551,12 @@ class SnuddaSimulate(object):
 
         return syn_ctr
 
+    def add_rxd_recording(self, species, neuron_id, region, sec_type, sec_id):
+
+        self.neurons[neuron_id].modulation.species
+
+        pass
+
     ############################################################################
 
     def run(self, t=None, hold_v=None):
