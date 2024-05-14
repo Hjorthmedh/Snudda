@@ -82,21 +82,19 @@ class NeuronModulation:
 
         return chain(*regions)
 
-    def add_reaction(self, reaction_name, left_side, right_side, forward_rate, backward_rate, region_list, overwrite=False):
-        if not overwrite and reaction_name in self.reactions:
+    def add_reaction(self, reaction_name, left_side, right_side, forward_rate, backward_rate, region_name, overwrite=False):
+
+        if reaction_name not in self.reactions:
+            self.reactions[reaction_name] = dict()
+
+        if not overwrite and region_name in self.reactions[reaction_name]:
             raise KeyError(f"Reaction {reaction_name} is already defined in neuron {self.neuron.name}")
 
-        reaction_dict = dict()
-
-        for region_name in region_list:
-            reaction_dict[region_name] = rxd.Reaction(left_side,
-                                                      right_side,
-                                                      forward_rate,
-                                                      backward_rate,
-                                                      regions=self.compartments[region_name])
-
-        if len(reaction_dict) > 0:
-            self.reactions[reaction_name] = reaction_dict
+        self.reactions[reaction_name][region_name] = rxd.Reaction(left_side,
+                                                                  right_side,
+                                                                  forward_rate,
+                                                                  backward_rate,
+                                                                  regions=region_name)
 
     def link_synapse(self, sim, species_name, synapse):
         # Note to self:
@@ -148,12 +146,16 @@ class NeuronModulation:
                               region_name=region)
 
         for reaction_name, reaction_data in self.config_data.get("reactions", {}).items():
-            left_side = eval(reaction_data["reactants"])
-            right_side = eval(reaction_data["products"])
 
-            self.add_reaction(reaction_name=reaction_name,
-                              left_side=left_side,
-                              right_side=right_side,
-                              forward_rate=reaction_data["forward_rate"],
-                              backward_rate=reaction_data["backward_rate"],
-                              region_list=reaction_data["regions"])
+            for region, rate in zip(rate_data["regions"], rates):
+                exec(f"{species_name_vars} = self.get_species('{species_name_str}', region_name=region)")
+
+                left_side = eval(reaction_data["reactants"])
+                right_side = eval(reaction_data["products"])
+
+                self.add_reaction(reaction_name=reaction_name,
+                                  left_side=left_side,
+                                  right_side=right_side,
+                                  forward_rate=reaction_data["forward_rate"],
+                                  backward_rate=reaction_data["backward_rate"],
+                                  region_name=region)
