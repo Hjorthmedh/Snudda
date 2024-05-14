@@ -6,7 +6,7 @@ from itertools import chain
 
 class NeuronModulation:
 
-    def __init__(self, neuron):
+    def __init__(self, neuron, config_file=None):
 
         self.neuron = neuron
         self.compartments = dict()
@@ -15,6 +15,7 @@ class NeuronModulation:
         self.reactions = dict()
         self.synapse_links = []
         self.config_data = {}
+        self.config_file = config_file
 
         self.build = {"soma_internal": lambda neuron_dummy: self.set_default_compartments("soma", nrn_region="i"),
                       "dend_internal": lambda neuron_dummy: self.set_default_compartments("dend", nrn_region="i"),
@@ -108,7 +109,10 @@ class NeuronModulation:
         syn_link = self.neuron.simulate.setpointer(ref_concentration, f"{species_name}_conc", synapse)
         self.synapse_links.append(syn_link)
 
-    def load_json(self, config_path: str):
+    def load_json(self, config_path=None):
+
+        if config_path is None:
+            config_path = self.config_file
 
         with open(config_path, "r") as f:
             self.config_data = json.load(f)

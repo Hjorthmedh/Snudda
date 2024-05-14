@@ -106,7 +106,7 @@ class NeuronModel(ephys.models.CellModel):
         if modulation_file:
             # modulation_key is currently not used (deprecated?) or will we find a use for it in future
             self.modulation = NeuronModulation(neuron=self)
-            self.modulation.load_json(config_path=modulation_file)
+            self.modulation.config_file = modulation_file
         else:
             self.modulation = None
 
@@ -436,6 +436,9 @@ class NeuronModel(ephys.models.CellModel):
             mechanism.instantiate(sim=sim, icell=self.icell)
         for param in self.params.values():
             param.instantiate(sim=sim, icell=self.icell)
+
+        if self.modulation:
+            self.modulation.load_json()
 
     ############################################################################
 

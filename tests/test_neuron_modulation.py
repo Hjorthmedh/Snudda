@@ -18,21 +18,14 @@ class NeuromodulationTestCase(unittest.TestCase):
 
         # Check why file size is so large, and why it is so slow to generate!
 
-        self.sim = self.snudda.simulate(time=0)
+        self.sim = self.snudda.simulate(time=1)
 
     def test_reaction(self):
 
         n = self.sim.neurons[0]
-        from snudda.neurons.neuron_modulation import NeuronModulation
-
-        nm = NeuronModulation(neuron=n)
-        config = os.path.join(self.neuron_path, "reaction_diffusion.json")
-        nm.load_json(config_path=config)
 
         # TODO: Verify that RxD is setup correctly
         # TODO: Integrate code into simulate.py
-
-        self.sim.run(0.5)
 
         self.assertEqual(True, True)  # add assertion here
 
