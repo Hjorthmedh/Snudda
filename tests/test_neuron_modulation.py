@@ -32,9 +32,6 @@ class NeuromodulationTestCase(unittest.TestCase):
         # TODO: Verify that RxD is setup correctly
         # TODO: Integrate code into simulate.py
 
-        import pdb
-        pdb.set_trace()
-
         self.sim.run(0.5)
 
         self.assertEqual(True, True)  # add assertion here

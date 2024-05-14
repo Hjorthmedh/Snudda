@@ -528,7 +528,7 @@ class SnuddaSimulate(object):
 
             param = os.path.join(neuron_path, "parameters.json")
             mech = os.path.join(neuron_path, "mechanisms.json")
-            modulation = os.path.join(neuron_path, "modulation.json")
+            modulation = os.path.join(neuron_path, "reaction_diffusion.json")
 
             if not os.path.isfile(modulation):
                 modulation = None
@@ -563,6 +563,8 @@ class SnuddaSimulate(object):
                 # A real neuron (not a virtual neuron that just provides input)
                 parameter_key = self.network_info["neurons"][ID]["parameter_key"]
                 morphology_key = self.network_info["neurons"][ID]["morphology_key"]
+
+                # TODO: Modulation key currently has no USE -- deprecated? Remove?
                 modulation_key = self.network_info["neurons"][ID]["modulation_key"]
 
                 self.neurons[ID] = NeuronModel(param_file=param,

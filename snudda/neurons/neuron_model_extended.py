@@ -10,6 +10,7 @@ import bluepyopt.ephys as ephys
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.neurons.neuron_modulation import NeuronModulation
 
+
 class NeuronModel(ephys.models.CellModel):
     """ Extended NeuronModel for simulation.
 
@@ -41,7 +42,7 @@ class NeuronModel(ephys.models.CellModel):
             param_file: Path to parameter file
             modulation_file: Path to neuromodulation parameter file
             parameter_id: ID of parameter set
-            morphology_id: ID of morphology set
+            morphology_id: ID of morphology set -- DEPRECATED
             modulation_id: ID of neuromodulation parameter set
             parameter_key (str): parameter key for lookup in parameter.json
             morphology_key (str): morphology key, together with parameter_key lookup in meta.json
@@ -99,20 +100,16 @@ class NeuronModel(ephys.models.CellModel):
         mechs = self.define_mechanisms(mechanism_config=mech_file)
         params = self.define_parameters(param_file, parameter_id, parameter_key)
 
-        if modulation_file:
-            if modulation_key:
-                mod_params = self.define_parameters(parameter_config=modulation_file,
-                                                    parameter_key=modulation_key)
-                params = params + mod_params
-            else:
-                print(f"Warning! No modulation key specified, ignoring {modulation_file}")
+        super(NeuronModel, self).__init__(name=cell_name, morph=morph,
+                                          mechs=mechs, params=params)
 
+        if modulation_file:
+            # modulation_key is currently not used (deprecated?) or will we find a use for it in future
             self.modulation = NeuronModulation(neuron=self)
+            self.modulation.load_json(config_path=modulation_file)
         else:
             self.modulation = None
 
-        super(NeuronModel, self).__init__(name=cell_name, morph=morph,
-                                          mechs=mechs, params=params)
         self.syn_list = []
         self.section_lookup = None
 

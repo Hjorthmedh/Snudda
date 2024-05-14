@@ -1,3 +1,4 @@
+import os
 import neuron.crxd as rxd
 import json
 from itertools import chain
@@ -94,7 +95,7 @@ class NeuronModulation:
                                                                   right_side,
                                                                   forward_rate,
                                                                   backward_rate,
-                                                                  regions=region_name)
+                                                                  regions=self.compartments[region_name])
 
     def link_synapse(self, sim, species_name, synapse):
         # Note to self:
