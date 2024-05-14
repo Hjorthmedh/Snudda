@@ -33,7 +33,8 @@ else:
         "psutil",
         "numexpr>=2.7.3",
         "numba>=0.56.4",
-        "wheel"
+        "wheel",
+        "open3d"
         # "igraph"
     ]
     
