@@ -189,7 +189,7 @@ class Snudda(object):
                             struct_centre=(0.0, 0.0, 0.0),
                             side_len=(n_total/density)**(1/3)*1e-3,
                             num_neurons=n_total,
-                            n_putative_points=n_total*4)
+                            n_putative_points=n_total*5)
 
         if isinstance(neuron_paths, str):
             neuron_paths = [neuron_paths]
@@ -885,11 +885,14 @@ class Snudda(object):
             return  # We do not run simulation when exporting to core neuron
 
         sim.check_memory_status()
-        print(f"Running simulation for {t_sim} ms.")
-        sim.run(t_sim)  # In milliseconds
+        if t_sim > 0:
+            print(f"Running simulation for {t_sim} ms.")
+            sim.run(t_sim)  # In milliseconds
 
-        print("Simulation done, saving output")
-        sim.write_output()
+            print("Simulation done, saving output")
+            sim.write_output()
+        else:
+            print(f"Time set to {t_sim} ms. No simulation run.")
 
         stop = timeit.default_timer()
         if sim.pc.id() == 0:

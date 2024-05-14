@@ -18,7 +18,7 @@ class NeuromodulationTestCase(unittest.TestCase):
 
         # Check why file size is so large, and why it is so slow to generate!
 
-        self.sim = self.snudda.simulate()
+        self.sim = self.snudda.simulate(time=0)
 
     def test_reaction(self):
 
@@ -31,6 +31,11 @@ class NeuromodulationTestCase(unittest.TestCase):
 
         # TODO: Verify that RxD is setup correctly
         # TODO: Integrate code into simulate.py
+
+        import pdb
+        pdb.set_trace()
+
+        self.sim.run(0.5)
 
         self.assertEqual(True, True)  # add assertion here
 

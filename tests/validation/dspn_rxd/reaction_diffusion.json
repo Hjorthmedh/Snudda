@@ -31,7 +31,7 @@
     },
     "rates": {
 	"A": {
-	    "rate": "-0.1*A",
+	    "rates": ["-0.1*A", "-0.1*A"],
 	    "regions": ["soma_internal", "dend_internal"]
 	}
     },

@@ -36,33 +36,43 @@ class NeuronModulation:
                           charge=0,
                           compartment=("soma_internal", "dend_internal")):
 
+        if species_name not in self.species:
+            self.species[species_name] = dict()
+
         for comp in compartment:
             if comp not in self.compartments:
                 self.compartments[comp] = self.build[comp](self.neuron)
 
-            # TODO: Add atol_scale etc...
-            self.species[species_name] = rxd.Species(self.compartments[comp],
-                                                     d=diffusion_constant,
-                                                     initial=initial_conc,
-                                                     charge=charge)
+            if comp in self.species[species_name]:
+                raise ValueError(f"{species_name = } already defined for {comp = }")
 
-    def get_species(self, *species):
+            # TODO: Add atol_scale etc...
+            self.species[species_name][comp] = rxd.Species(self.compartments[comp],
+                                                           d=diffusion_constant,
+                                                           initial=initial_conc,
+                                                           charge=charge)
+
+    def get_species(self, *species, region_name):
         """ Example usage:
          a, b, c = self.neurons[123].modulation.get_species('A', 'B', 'C')
          """
-        return [self.species[x] for x in species]
+        return [self.species[x][region_name] for x in species]
 
     def add_decay(self, species_name, decay_rate):
 
         species = self.species[species_name]
         self.rates[f"decay_{species_name}"] = rxd.rate(species, -decay_rate*species)
 
-    def add_rate(self, species_name, left_side, right_side, region_list, overwrite=False):
+    def add_rate(self, species_name, left_side, right_side, region_name, overwrite=False):
 
-        if not overwrite and species_name in self.rates:
+        if species_name not in self.rates:
+            self.rates[species_name] = dict()
+
+        if not overwrite and region_name in self.rates[species_name]:
             raise KeyError(f"Reaction {species_name} is already defined in neuron {self.neuron.name}")
 
-        self.rates[species_name] = rxd.Rate(left_side, right_side, regions=self.get_neuron_regions(region_list))
+        self.rates[species_name][region_name] = rxd.Rate(left_side, right_side,
+                                                         regions=self.compartments[region_name])
 
     def get_neuron_regions(self, region_list):
 
@@ -120,18 +130,22 @@ class NeuronModulation:
         species_name_vars = ",".join(self.species.keys())
         species_name_str = "','".join(self.species.keys())
 
-        exec(f"{species_name_vars} = self.get_species('{species_name_str}')")
-
         for rate_name, rate_data in self.config_data.get("rates", {}).items():
             if rate_name not in self.species:
                 raise ValueError(f"Species {rate_name} is not defined. Available: {self.species.keys()}")
 
-            right_side = eval(rate_data["rate"])
+            rates = rate_data["rates"]
+            if isinstance(rates, str) and len(rate_data["regions"]) > 1:
+                rates = [rates for x in rate_data["regions"]]
 
-            self.add_rate(species_name=rate_name,
-                          left_side=self.get_species(rate_name)[0],
-                          right_side=right_side,
-                          region_list=rate_data["regions"])
+            for region, rate in zip(rate_data["regions"], rates):
+                exec(f"{species_name_vars} = self.get_species('{species_name_str}', region_name=region)")
+                right_side = eval(rate)
+
+                self.add_rate(species_name=rate_name,
+                              left_side=self.get_species(rate_name, region_name=region)[0],
+                              right_side=right_side,
+                              region_name=region)
 
         for reaction_name, reaction_data in self.config_data.get("reactions", {}).items():
             left_side = eval(reaction_data["reactants"])
