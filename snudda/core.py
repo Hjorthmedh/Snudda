@@ -691,7 +691,7 @@ class Snudda(object):
 
         Example:
             snudda simulate [--networkFile NETWORK_FILE] [--inputFile INPUT_FILE] [--time TIME]
-            [--spikesOut SPIKES_OUT] [--neuromodulation NEUROMODULATION] [--noVolt] [--disableGJ]
+            [--spikesOut SPIKES_OUT] [--noVolt] [--disableGJ]
             [-mechdir MECH_DIR] [--profile] [--verbose] [--exportCoreNeuron] path
         """
 
@@ -701,7 +701,7 @@ class Snudda(object):
                             output_file=args.output_file, snudda_data=args.snudda_data,
                             time=args.time,
                             mech_dir=args.mech_dir,
-                            neuromodulation=args.neuromodulation,
+                            # neuromodulation=args.neuromodulation,
                             disable_synapses=args.disable_synapses,
                             disable_gj=args.disable_gj,
                             record_volt=args.record_volt,
@@ -719,7 +719,7 @@ class Snudda(object):
                  snudda_data=None,
                  time=None,
                  mech_dir=None,
-                 neuromodulation=None,
+                 # neuromodulation=None,
                  disable_synapses=None,
                  disable_gj=False,
                  record_volt=True,
@@ -764,15 +764,6 @@ class Snudda(object):
             mech_dir = os.path.realpath(snudda_path.snudda_parse_path(os.path.join("$DATA", "neurons", "mechanisms"),
                                                                       snudda_data))
 
-            if neuromodulation is not None:
-                # read neuromod file and determine if it is replay or adaptive, then if and import the correct one
-                with open(neuromodulation, "r") as f:
-                    neuromod_dict = json.load(f, object_pairs_hook=OrderedDict)
-
-                if "adaptive" in neuromod_dict["type"]:
-                    mech_dir = os.path.realpath(snudda_path.snudda_parse_path(os.path.join("$DATA", "neurons",
-                                                                                           "mechanisms_ptr"),
-                                                                              snudda_data=snudda_data))
         self.compile_mechanisms(mech_dir=mech_dir)
 
         save_dir = os.path.join(os.path.dirname(network_file), "simulation")
@@ -800,66 +791,19 @@ class Snudda(object):
             print(f"Creating directory {log_dir}")
             os.makedirs(log_dir, exist_ok=True)
 
-        if neuromodulation is not None:
+        from snudda.simulate.simulate import SnuddaSimulate
 
-            # read neuromod file and determine if it is replay or adaptive, then if and import the correct one
-
-            with open(neuromodulation, 'r') as neuromod_f:
-                neuromod_dict = json.load(neuromod_f, object_pairs_hook=OrderedDict)
-
-            if 'type' not in neuromod_dict:
-                print(f"Neuromodulation is not defined correctly in {neuromodulation} : 'type' is missing. "
-                      f"Did you specify the correct file?")
-                sys.exit(-1)
-
-            elif 'replay' in neuromod_dict['type']:
-                from snudda.neuromodulation.neuromodulation import SnuddaSimulateNeuromodulation
-
-                sim = SnuddaSimulateNeuromodulation(network_file=network_file,
-                                                    input_file=input_file,
-                                                    output_file=output_file,
-                                                    disable_gap_junctions=disable_gj,
-                                                    disable_synapses=disable_synapses,
-                                                    log_file=log_file,
-                                                    simulation_config=simulation_config,
-                                                    verbose=verbose)
-
-                sim.setup()
-                sim.add_external_input()
-                sim.apply_neuromodulation(neuromod_dict)
-                sim.neuromodulation_network_wide()
-
-            elif 'adaptive' in neuromod_dict['type']:
-                from snudda.neuromodulation.neuromodulation_synapse import SnuddaSimulateNeuromodulationSynapse
-
-                sim = SnuddaSimulateNeuromodulationSynapse(network_file=network_file,
-                                                           input_file=input_file,
-                                                           output_file=output_file,
-                                                           disable_gap_junctions=disable_gj,
-                                                           disable_synapses=disable_synapses,
-                                                           log_file=log_file,
-                                                           neuromodulator_description=neuromod_dict,
-                                                           simulation_config=simulation_config,
-                                                           verbose=verbose)
-
-                sim.setup()
-                sim.add_external_input()
-
-        else:
-
-            from snudda.simulate.simulate import SnuddaSimulate
-
-            # Simulate is deterministic, no random seed.
-            sim = SnuddaSimulate(network_file=network_file,
-                                 input_file=input_file,
-                                 output_file=output_file,
-                                 disable_gap_junctions=disable_gj,
-                                 disable_synapses=disable_synapses,
-                                 log_file=log_file,
-                                 simulation_config=simulation_config,
-                                 verbose=verbose)
-            sim.setup()
-            sim.add_external_input()
+        # Simulate is deterministic, no random seed.
+        sim = SnuddaSimulate(network_file=network_file,
+                             input_file=input_file,
+                             output_file=output_file,
+                             disable_gap_junctions=disable_gj,
+                             disable_synapses=disable_synapses,
+                             log_file=log_file,
+                             simulation_config=simulation_config,
+                             verbose=verbose)
+        sim.setup()
+        sim.add_external_input()
 
         sim.check_memory_status()
 
