@@ -2144,7 +2144,7 @@ class SnuddaInput(object):
 
                 # TODO: Calculate the correct x,y,z and distance to soma
                 x = y = z = dist_to_soma = np.zeros((len(sec_id),))
-                input_loc = [(x, y, z), np.array(sec_id), np.array(sec_x), dist_to_soma]
+                input_loc = np.array([(x, y, z), np.array(sec_id), np.array(sec_x), dist_to_soma])
 
             else:
 

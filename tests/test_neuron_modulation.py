@@ -1,5 +1,6 @@
 import unittest
 import os
+import numpy as np
 from snudda.simulate import SnuddaSimulate
 from snudda import Snudda
 from snudda.utils import SnuddaLoadNetworkSimulation
@@ -63,6 +64,29 @@ class NeuromodulationTestCase(unittest.TestCase):
         self.assertTrue(data_a[0][0][-1] < 0.5)
         self.assertTrue(data_b[0][0][-1] < 0.7)
         self.assertTrue(data_ab[0][0][-1] > 0.1)
+
+        da = data_a[0][0]
+        db = data_b[0][0]
+        dab = data_ab[0][0]
+
+        self.plot_ractants(time, np.hstack([da, db, dab]), legend=["A", "B", "AB"])
+
+    def plot_ractants(self, time, data, legend, filename=None):
+        import matplotlib.pyplot as plt
+        plt.figure()
+        plt.plot(time, data, label=legend)
+        plt.xlabel("Time (s)")
+        plt.ylabel("Concentration")
+        plt.legend()
+
+        if filename is None:
+            filename = "concentration.pdf"
+
+        plt.savefig(filename, dpi=300)
+        plt.ion()
+        plt.show()
+
+
 
     def tearDown(self):
         # Remember to clear old neuron, for next unit test!
