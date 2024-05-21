@@ -1,0 +1,95 @@
+#!/bin/bash -l
+#SBATCH --partition=main
+#SBATCH -o log/Simulate-%j-output.txt
+#SBATCH -e log/Simulate-%j-error.txt
+#SBATCH -t 8:59:00
+#SBATCH --time-min=6:59:00
+#SBATCH -J Simulate
+#SBATCH -A naiss2023-5-231
+#SBATCH --nodes=60
+#SBATCH --tasks-per-node=50
+#SBATCH --mail-type=ALL
+
+# 2024-02-16: 40 nodes worked, had 28% free... trying increasing to 45 nodes
+# 2024-03-01: 60 nodes, 50 workers worked...
+
+# You need to point this as the directory where you created the network in
+#NETWORK_DIR=/cfs/klemming/home/${USER:0:1}/$USER/Snudda/examples/parallel/KTH_PDC/networks/test_10k
+NETWORK_DIR=../networks/sten_5_SPN_FS_LTS
+
+SIMULATION_CONFIG_WITH_SYNAPSES=experiment_config_sten_5-with-synapses-A.json
+SIMULATION_CONFIG_NO_SYNAPSES=experiment_config_sten_5-no-synapses-A.json
+
+
+# NETWORK_WITH_SYNAPSES_OUTPUT=$NETWORK_DIR/simulation/output-with-synapses-sten_1.hdf5
+# NETWORK_NO_SYNAPSES_OUTPUT=$NETWORK_DIR/simulation/output-no-synapses-sten_1.hdf5
+
+
+export N_WORKERS=$SLURM_NTASKS
+
+module load snic-env
+source $HOME/Snudda/snudda_env/bin/activate
+SNUDDA_DIR=/cfs/klemming/home/"${USER:0:1}"/$USER/Snudda
+
+# If the BasalGangliaData directory exists, then use that for our data
+if [[ -d "/cfs/klemming/home/${USER:0:1}/$USER/BasalGangliaData/data" ]]; then
+    export SNUDDA_DATA="/cfs/klemming/home/${USER:0:1}/$USER/BasalGangliaData/data"
+    echo "Setting SNUDDA_DATA to $SNUDDA_DATA"
+    rm mechanisms
+    ln -s $SNUDDA_DATA/neurons/mechanisms/ mechanisms
+else
+    echo "SNUDDA_DATA environment variable not changed (may be empty): $SNUDDA_DATA"
+    rm mechanisms
+    ln -s ../../../../snudda/data/neurons/mechanisms/
+fi
+
+
+NETWORK_INFO_FILE=$NETWORK_DIR/network-synapses.hdf5
+# NETWORK_INFO_FILE=$NETWORK_DIR/network-synapses-minimal.hdf5
+NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
+# NETWORK_VOLTAGE_FILE=$NETWORK_DIR/simulation/voltage-trace-${SLURM_JOBID}.txt
+
+
+
+echo "Network dir: "$NETWORK_DIR
+
+export PATH=$SNUDDA_DIR/snudda_env/bin/:$PATH
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CRAY_LD_LIBRARY_PATH
+export PYTHONPATH=$SNUDDA_DIR/snudda_env/lib/python3.9/
+
+##############
+
+rm -r x86_64
+
+export CXX=CC
+export CC=cc
+export FC=ftn
+export MPICC=cc
+export MPICXX=CC
+
+CC --version
+
+echo "About to run nrnivmodl"
+which nrnivmodl
+
+# srun -n nrnivmodl mechanisms/
+
+srun -n 1 nrnivmodl -incflags "-lltdl=/usr/lib64/libltdl.so.7 -lreadline=/lib64/libreadline.so.7 -lncurses=/lib64/libncurses.so.6.1" -loadflags "-DLTDL_LIBRARY=/usr/lib64/libltdl.so.7 -DREADLINE_LIBRARY=/lib64/libreadline.so.7 -DNCURSES_LIBRARY=/lib64/libncurses.so.6.1" mechanisms/
+
+# GJ disabled
+# srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 3.5 --voltOut $NETWORK_VOLTAGE_FILE
+
+# GJ active
+# srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 18 --outputFile $NETWORK_WITH_SYNAPSES_OUTPUT
+
+# srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 18 --disableSyn --outputFile $NETWORK_NO_SYNAPSES_OUTPUT
+
+
+# Changed to using the simulation_config
+
+srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py dummy_file dummy_file --simulation_config $SIMULATION_CONFIG_WITH_SYNAPSES
+
+srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py dummy_file dummy_file --simulation_config $SIMULATION_CONFIG_NO_SYNAPSES
+
+
+# srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 5 --noVolt
