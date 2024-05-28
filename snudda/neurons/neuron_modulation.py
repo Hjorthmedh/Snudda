@@ -24,6 +24,11 @@ class NeuronModulation:
                       "dend_external": lambda neuron_dummy: self.set_default_compartments("dend", nrn_region="o"),
                       "axon_external": lambda neuron_dummy: self.set_default_compartments("axon", nrn_region="o") }
 
+    def __del__(self):
+
+        # Clear old rxd objects -- this avoids segfault for unittests
+        rxd.rxd.byeworld()
+
     def set_default_compartments(self, compartment, nrn_region="i"):
         if compartment == "axon":
             section_list = self.neuron.icell.axon

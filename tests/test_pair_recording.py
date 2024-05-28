@@ -6,14 +6,10 @@ from snudda.simulate.pair_recording import PairRecording
 from snudda.utils.load import SnuddaLoad
 from snudda.utils.load_network_simulation import SnuddaLoadNetworkSimulation
 
-import neuron
-
 
 class PairRecordingTestCase(unittest.TestCase):
 
     def setUp(self):
-
-        print(f"Running NEURON version {neuron.__version__}")
 
         if os.path.dirname(__file__):
             os.chdir(os.path.dirname(__file__))
