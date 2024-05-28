@@ -18,7 +18,7 @@
 	    "ecs_boundary_conditions": null,
 	    "represents": "DA"	    
 	},
-	"AB":{
+	"cAMP":{
 	    "initial_concentration": 0.1,
 	    "diffusion_constant": 0,
 	    "charge": 0,
@@ -38,7 +38,7 @@
     "reactions": {
 	"my_reaction_1": {
 	    "reactants": "A + B",
-	    "products": "AB",
+	    "products": "cAMP",
 	    "forward_rate": 10,
 	    "backward_rate": 0.5,
 	    "regions": ["soma_internal", "dend_internal"]

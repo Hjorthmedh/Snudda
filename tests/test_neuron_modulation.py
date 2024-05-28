@@ -10,7 +10,14 @@ class NeuromodulationTestCase(unittest.TestCase):
 
     def setUp(self):
 
-        self.neuron_path = "validation/dspn_rxd"
+        test_path = "test_project"
+        if os.path.isdir(test_path):
+            import shutil
+            shutil.rmtree(test_path)
+        os.mkdir(test_path)
+        os.chdir(test_path)
+
+        self.neuron_path = "../validation/dspn_rxd"
         self.network_path = "networks/network_rxd"
 
         self.snudda = Snudda(network_path=self.network_path)
@@ -21,7 +28,10 @@ class NeuromodulationTestCase(unittest.TestCase):
 
         # Check why file size is so large, and why it is so slow to generate!
 
-        self.sim = self.snudda.simulate(time=0)
+        mech_dir = "../validation/mechanisms_rxd"
+        self.snudda.compile_mechanisms(mech_dir=mech_dir)
+
+        self.sim = self.snudda.simulate(time=0)  #, mech_dir=mech_dir)
 
     def test_reaction(self):
 
@@ -91,6 +101,7 @@ class NeuromodulationTestCase(unittest.TestCase):
     def tearDown(self):
         # Remember to clear old neuron, for next unit test!
         self.sim.clear_neuron()
+        os.chdir("..")
 
 
 if __name__ == '__main__':

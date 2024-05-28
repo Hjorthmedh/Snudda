@@ -1,0 +1,29 @@
+{
+    "Striatum": {
+	"num_neurons": 10,
+	"volume": {
+	    "mesh_file": "config/mesh/cube-mesh-5e-05.obj",
+	    "d_min": 1.5e-5,
+	    "num_putative_points": 1000,
+	    "random_seed": 123456,
+	    "!density": {
+		"my_neuron": {
+		    "density_function": "abs(x)"
+		}
+	    },
+	    "!neuron_orientation": {
+		"my_neuron": {
+		    "rotation_mode": "vector_field",
+		    "rotation_field_file": "my_rotation_file.json"
+		}
+	    }
+	},
+	"neurons": ["neurons/dspn.json",
+		    "neurons/ispn.json",
+		    "!neurons/fs.json",
+		    "!neurons/chin.json",
+		    "!neurons/lts.json"],
+	"connectivity": ["$SNUDDA_DATA/connectivity/striatum/striatum-connectivity.json"],
+	"!populations": "pop1.json"
+    }
+}
