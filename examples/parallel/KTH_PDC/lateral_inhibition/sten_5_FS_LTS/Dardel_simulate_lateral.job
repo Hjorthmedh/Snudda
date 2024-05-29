@@ -10,6 +10,8 @@
 #SBATCH --tasks-per-node=50
 #SBATCH --mail-type=ALL
 
+# Remember to make sure special file is called from the right location
+
 # 2024-02-16: 40 nodes worked, had 28% free... trying increasing to 45 nodes
 # 2024-03-01: 60 nodes, 50 workers worked...
 
@@ -55,11 +57,9 @@ echo "Network dir: "$NETWORK_DIR
 
 export PATH=$SNUDDA_DIR/snudda_env/bin/:$PATH
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CRAY_LD_LIBRARY_PATH
-export PYTHONPATH=$SNUDDA_DIR/snudda_env/lib/python3.9/
+export PYTHONPATH=$SNUDDA_DIR/snudda_env/lib/python3.11/
 
 ##############
-
-rm -r x86_64
 
 export CXX=CC
 export CC=cc
@@ -68,6 +68,8 @@ export MPICC=cc
 export MPICXX=CC
 
 CC --version
+
+rm -r x86_64
 
 echo "About to run nrnivmodl"
 which nrnivmodl
@@ -87,9 +89,9 @@ srun -n 1 nrnivmodl -incflags "-lltdl=/usr/lib64/libltdl.so.7 -lreadline=/lib64/
 
 # Changed to using the simulation_config
 
-srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py dummy_file dummy_file --simulation_config $SIMULATION_CONFIG_WITH_SYNAPSES
+srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/lateral_inhibition/sten_5_FS_LTS/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py dummy_file dummy_file --simulation_config $SIMULATION_CONFIG_WITH_SYNAPSES
 
-srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py dummy_file dummy_file --simulation_config $SIMULATION_CONFIG_NO_SYNAPSES
+srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/lateral_inhibition/sten_5_FS_LTS/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py dummy_file dummy_file --simulation_config $SIMULATION_CONFIG_NO_SYNAPSES
 
 
 # srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 5 --noVolt
