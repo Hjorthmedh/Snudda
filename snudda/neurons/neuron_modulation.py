@@ -108,8 +108,8 @@ class NeuronModulation:
     def link_synapse(self, species_name, region: str, synapse, flux_variable: str):
         # region: "soma_internal", "soma_external", "dend_internal", "dend_external"
 
-        #import pdb
-        #pdb.set_trace()
+        import pdb
+        pdb.set_trace()
 
         self.species[species_name][region].nodes(synapse.get_segment()).include_flux(synapse, flux_variable)
 
