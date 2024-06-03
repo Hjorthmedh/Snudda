@@ -15,7 +15,6 @@ class NeuronModulation:
         self.species = dict()
         self.rates = dict()
         self.reactions = dict()
-        self.synapse_links = []
         self.config_data = {}
         self.config_file = config_file
 
@@ -106,15 +105,8 @@ class NeuronModulation:
                                                                   backward_rate,
                                                                   regions=self.compartments[region_name])
 
-    def link_synapse(self, sim, species_name, synapse):
-        # Note to self:
-        # DA.nodes[0].include_flux(SYNAPSE_POINT_PROCESS, 'SYNAPSE_FLUX_VARIABLE')
-        raise DeprecationWarning("")
-
-        segment = synapse.get_segment()
-        ref_concentration = self.species[species_name].nodes(segment)._ref_concentration
-        syn_link = self.neuron.simulate.setpointer(ref_concentration, f"{species_name}_conc", synapse)
-        self.synapse_links.append(syn_link)
+    def link_synapse(self, species_name, synapse, flux_variable: str):
+        self.species[species_name].nodes(synapse.get_segment()).include_flux(synapse, flux_variable)
 
     def load_json(self, config_path=None):
 

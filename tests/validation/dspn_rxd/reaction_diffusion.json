@@ -1,7 +1,7 @@
 {
     "species": {
-	"A":{
-	    "initial_concentration": 0.5,
+	"DA":{
+	    "initial_concentration": 0,
 	    "diffusion_constant": 0,
 	    "charge": 0,
 	    "regions": ["soma_internal", "dend_internal"],
@@ -29,15 +29,15 @@
 	}
 	
     },
-    "rates": {
-	"A": {
-	    "rates": ["-0.001*A", "-0.0001*A"],
+    "!rates": {
+	"DA": {
+	    "rates": ["-0.001*DA", "-0.0001*DA"],
 	    "regions": ["soma_internal", "dend_internal"]
 	}
     },
-    "reactions": {
+    "!reactions": {
 	"my_reaction_1": {
-	    "reactants": "A + B",
+	    "reactants": "DA + B",
 	    "products": "PKA",
 	    "forward_rate": 0.01,
 	    "backward_rate": 0.0005,

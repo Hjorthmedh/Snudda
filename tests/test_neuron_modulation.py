@@ -37,7 +37,7 @@ class NeuromodulationTestCase(unittest.TestCase):
 
         n = self.sim.neurons[0]
 
-        self.sim.add_rxd_concentration_recording(species="A", neuron_id=0,
+        self.sim.add_rxd_concentration_recording(species="DA", neuron_id=0,
                                                  region="soma_internal",
                                                  sec_type="soma",
                                                  sec_id=0,
@@ -75,6 +75,26 @@ class NeuromodulationTestCase(unittest.TestCase):
                                         sec_id=0,
                                         sec_x=0.5)
 
+        # Add DA synapse
+
+        #da_syn = h.DASyn(soma(0.5))
+        mod_file = "DASyn"
+        eval_str = f"self.sim.sim.neuron.h.{mod_file}"
+        channel_module = eval(eval_str)
+
+        da_syn = self.sim.get_external_input_synapse(channel_module=channel_module,
+                                                     section=self.sim.neurons[0].icell.soma[0],
+                                                     section_x=0.5)
+        da_syn.tau = 1
+
+        net_stim = self.sim.sim.neuron.h.NetStim()
+        net_stim.number = 100
+        net_stim.start = 300
+        net_stim.interval = 5
+
+        nc = self.sim.sim.neuron.h.NetCon(net_stim, da_syn)
+        nc.weight[0] = 1000_000_000_000_000.0
+
         self.sim.run(t=1000)
 
         output_file = os.path.join(self.network_path, "simulation", "output-2.hdf5")
@@ -83,7 +103,7 @@ class NeuromodulationTestCase(unittest.TestCase):
 
         nd = SnuddaLoadNetworkSimulation(output_file)
         time = nd.get_time()
-        data_a = nd.get_data("A", 0)
+        data_a = nd.get_data("DA", 0)
         data_b = nd.get_data("B", 0)
         data_ab = nd.get_data("PKA", 0)
 
@@ -92,9 +112,9 @@ class NeuromodulationTestCase(unittest.TestCase):
         data_voltage = nd.get_data("voltage", 0)[0][0]
         data_pka = nd.get_data("membrane.PKAi", 0)[0][0]
 
-        self.assertAlmostEqual(data_a[0][0][0], 0.5, 10)
-        self.assertAlmostEqual(data_b[0][0][0], 0.7, 10)
-        self.assertAlmostEqual(data_ab[0][0][0], 0.1, 10)
+        self.assertTrue(np.max(np.abs(data_a[0][0][0] - 0)) < 1e-7)
+        self.assertTrue(np.max(np.abs(data_b[0][0][0] - 0.7)) < 1e-7)
+        self.assertTrue(np.max(np.abs(data_ab[0][0][0] - 0.1)) < 1e-7)
 
         #self.assertTrue(data_a[0][0][-1] < data_a[0][0][0])
         #self.assertTrue(data_b[0][0][-1] < data_b[0][0][0])
@@ -105,7 +125,7 @@ class NeuromodulationTestCase(unittest.TestCase):
         db = data_b[0][0]
         dab = data_ab[0][0]
 
-        self.plot_data(time, np.hstack([da, db, dab]), legend=["A", "B", "PKA"],
+        self.plot_data(time, np.hstack([da, db, dab]), legend=["DA", "B", "PKA"],
                        ylabel="Concentration", filename="concentration.png")
 
         # Plot the voltage and KIR modulation
