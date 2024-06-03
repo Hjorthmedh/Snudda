@@ -1,3 +1,5 @@
+# TODO: Add ability for synapses to affect rxd concentration
+
 import os
 import neuron.crxd as rxd
 import json
@@ -57,7 +59,8 @@ class NeuronModulation:
             self.species[species_name][comp] = rxd.Species(self.compartments[comp],
                                                            d=diffusion_constant,
                                                            initial=initial_conc,
-                                                           charge=charge)
+                                                           charge=charge,
+                                                           name=species_name)
 
     def get_species(self, *species, region_name):
         """ Example usage:
