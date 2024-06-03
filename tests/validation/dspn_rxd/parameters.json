@@ -49,6 +49,6 @@
         "type": "range",
         "sectionlist": "all",
         "dist_type": "uniform",
-        "value": 1e-4
+        "value": 1e-3
     }    
 ]
