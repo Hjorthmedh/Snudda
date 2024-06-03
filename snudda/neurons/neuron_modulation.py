@@ -105,8 +105,13 @@ class NeuronModulation:
                                                                   backward_rate,
                                                                   regions=self.compartments[region_name])
 
-    def link_synapse(self, species_name, synapse, flux_variable: str):
-        self.species[species_name].nodes(synapse.get_segment()).include_flux(synapse, flux_variable)
+    def link_synapse(self, species_name, region: str, synapse, flux_variable: str):
+        # region: "soma_internal", "soma_external", "dend_internal", "dend_external"
+
+        #import pdb
+        #pdb.set_trace()
+
+        self.species[species_name][region].nodes(synapse.get_segment()).include_flux(synapse, flux_variable)
 
     def load_json(self, config_path=None):
 

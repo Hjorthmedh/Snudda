@@ -93,7 +93,12 @@ class NeuromodulationTestCase(unittest.TestCase):
         net_stim.interval = 5
 
         nc = self.sim.sim.neuron.h.NetCon(net_stim, da_syn)
-        nc.weight[0] = 1000_000_000_000_000.0
+        nc.weight[0] = 1000_000_000_000_000.0   #units : molecules/ms
+
+        self.sim.neurons[0].modulation.link_synapse(species_name="DA",
+                                                    region="soma_internal",
+                                                    synapse=da_syn,
+                                                    flux_variable="open")
 
         self.sim.run(t=1000)
 
