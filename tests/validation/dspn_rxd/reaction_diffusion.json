@@ -29,13 +29,13 @@
 	}
 	
     },
-    "!rates": {
+    "rates": {
 	"DA": {
 	    "rates": ["-0.001*DA", "-0.0001*DA"],
 	    "regions": ["soma_internal", "dend_internal"]
 	}
     },
-    "!reactions": {
+    "reactions": {
 	"my_reaction_1": {
 	    "reactants": "DA + B",
 	    "products": "PKA",
