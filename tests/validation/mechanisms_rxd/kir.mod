@@ -4,7 +4,7 @@ TITLE Non-inactivating inwardly rectifying potassium current (Kir2.3)
 NEURON {
     SUFFIX kir
     USEION k READ ek WRITE ik
-    USEION cAMP READ cAMPi VALENCE 0
+    USEION PKA READ PKAi VALENCE 0
 
     RANGE gbar, gk, ik, shift
     RANGE  mod_pka_g_min, mod_pka_g_max, mod_pka_g_half, mod_pka_g_slope		     
@@ -36,7 +36,7 @@ ASSIGNED {
     gk (S/cm2)
     minf
     mtau (ms)
-    cAMPi (mM)
+    PKAi (mM)
     modulation_factor (1)
 }
 
@@ -44,7 +44,7 @@ STATE { m }
 
 BREAKPOINT {
     SOLVE states METHOD cnexp
-    modulation_factor=modulation(cAMPi, mod_pka_g_min, mod_pka_g_max, mod_pka_g_half, mod_pka_g_slope)	   
+    modulation_factor=modulation(PKAi, mod_pka_g_min, mod_pka_g_max, mod_pka_g_half, mod_pka_g_slope)	   
     gk = gbar*m*modulation_factor
     ik = gk*(v-ek)
 }

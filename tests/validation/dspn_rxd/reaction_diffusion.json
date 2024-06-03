@@ -18,7 +18,7 @@
 	    "ecs_boundary_conditions": null,
 	    "represents": "DA"	    
 	},
-	"cAMP":{
+	"PKA":{
 	    "initial_concentration": 0.1,
 	    "diffusion_constant": 0,
 	    "charge": 0,
@@ -31,16 +31,16 @@
     },
     "rates": {
 	"A": {
-	    "rates": ["-0.01*A", "-0.01*A"],
+	    "rates": ["-0.001*A", "-0.0001*A"],
 	    "regions": ["soma_internal", "dend_internal"]
 	}
     },
     "reactions": {
 	"my_reaction_1": {
 	    "reactants": "A + B",
-	    "products": "cAMP",
-	    "forward_rate": 10,
-	    "backward_rate": 0.5,
+	    "products": "PKA",
+	    "forward_rate": 0.01,
+	    "backward_rate": 0.0005,
 	    "regions": ["soma_internal", "dend_internal"]
 	}
     }

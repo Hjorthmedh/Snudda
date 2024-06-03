@@ -23,7 +23,8 @@ class NeuromodulationTestCase(unittest.TestCase):
         self.snudda = Snudda(network_path=self.network_path)
         self.snudda.init_tiny(neuron_paths=self.neuron_path,
                               neuron_names="neuron_1",
-                              number_of_neurons=[10])
+                              number_of_neurons=[10],
+                              random_seed=123456)
         self.snudda.create_network()
 
         # Check why file size is so large, and why it is so slow to generate!
@@ -48,11 +49,31 @@ class NeuromodulationTestCase(unittest.TestCase):
                                                  sec_id=0,
                                                  sec_x=0.5)
 
-        self.sim.add_rxd_concentration_recording(species="AB", neuron_id=0,
+        self.sim.add_rxd_concentration_recording(species="PKA", neuron_id=0,
                                                  region="soma_internal",
                                                  sec_type="soma",
                                                  sec_id=0,
                                                  sec_x=0.5)
+
+        self.sim.add_density_mechanism_recording(density_mechanism="kir",
+                                                 variable="modulation_factor",
+                                                 neuron_id=0,
+                                                 sec_type="soma",
+                                                 sec_id=0,
+                                                 sec_x=0.5)
+
+        self.sim.add_density_mechanism_recording(density_mechanism="kir",
+                                                 variable="m",
+                                                 neuron_id=0,
+                                                 sec_type="soma",
+                                                 sec_id=0,
+                                                 sec_x=0.5)
+
+        self.sim.add_membrane_recording(variable="PKAi",
+                                        neuron_id=0,
+                                        sec_type="soma",
+                                        sec_id=0,
+                                        sec_x=0.5)
 
         self.sim.run(t=1000)
 
@@ -64,7 +85,12 @@ class NeuromodulationTestCase(unittest.TestCase):
         time = nd.get_time()
         data_a = nd.get_data("A", 0)
         data_b = nd.get_data("B", 0)
-        data_ab = nd.get_data("AB", 0)
+        data_ab = nd.get_data("PKA", 0)
+
+        data_kir_modulation_factor = nd.get_data("kir.modulation_factor", 0)[0][0]
+        data_kir_m = nd.get_data("kir.m", 0)[0][0]
+        data_voltage = nd.get_data("voltage", 0)[0][0]
+        data_pka = nd.get_data("membrane.PKAi", 0)[0][0]
 
         self.assertAlmostEqual(data_a[0][0][0], 0.5, 10)
         self.assertAlmostEqual(data_b[0][0][0], 0.7, 10)
@@ -74,28 +100,40 @@ class NeuromodulationTestCase(unittest.TestCase):
         self.assertTrue(data_b[0][0][-1] < 0.7)
         self.assertTrue(data_ab[0][0][-1] > 0.1)
 
+        # Plot A, B, PKA activity
         da = data_a[0][0]
         db = data_b[0][0]
         dab = data_ab[0][0]
 
-        self.plot_ractants(time, np.hstack([da, db, dab]), legend=["A", "B", "AB"])
+        self.plot_data(time, np.hstack([da, db, dab]), legend=["A", "B", "PKA"],
+                       ylabel="Concentration", filename="concentration.png")
 
-    def plot_ractants(self, time, data, legend, filename=None):
+        # Plot the voltage and KIR modulation
+        self.plot_data(time, np.hstack([data_kir_modulation_factor,
+                                        data_kir_m, data_pka]),
+                       legend=["kir_mod_factor", "kir_m", "membrane.pka"],
+                       filename="kir_activation.png")
+
+        self.plot_data(time, data_voltage,
+                       legend=["voltage"],
+                       filename="voltage.png")
+
+    def plot_data(self, time, data, legend, filename=None, ylabel=None):
         import matplotlib.pyplot as plt
         plt.figure()
         plt.plot(time, data, label=legend)
         plt.xlabel("Time (s)")
-        plt.ylabel("Concentration")
+        plt.ylabel(ylabel)
         plt.legend()
 
-        if filename is None:
-            filename = "concentration.pdf"
+        if filename is not None:
+            plt.savefig(filename, dpi=300)
 
-        plt.savefig(filename, dpi=300)
         plt.ion()
         plt.show()
 
-
+    def plot_kir_data(self):
+        pass
 
     def tearDown(self):
         # Remember to clear old neuron, for next unit test!

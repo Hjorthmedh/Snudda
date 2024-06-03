@@ -671,7 +671,7 @@ class Snudda(object):
                           f"and retry simulation.")
                     sys.exit(-1)
 
-                print(f"Loading {os.path.abspath(mech_path)}")
+                print(f"Loading mechanisms from '{os.path.abspath(mech_path)}'")
                 h.nrn_load_dll(mech_path)
 
             except:

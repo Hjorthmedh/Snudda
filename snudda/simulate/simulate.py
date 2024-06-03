@@ -1529,6 +1529,31 @@ class SnuddaSimulate(object):
             self.write_log(f"Warning: Not recording all synapse currents requested, capped at max_synapses={max_synapses}",
                            force_print=True)
 
+    def add_density_mechanism_recording(self, density_mechanism, variable, neuron_id, sec_type, sec_id, sec_x):
+
+        segment = getattr(self.neurons[neuron_id].icell, sec_type)[sec_id](sec_x)
+        mech = getattr(segment, density_mechanism)
+        var = getattr(mech, f"_ref_{variable}")
+        data = self.sim.neuron.h.Vector().record(var)
+
+        self.record.register_compartment_data(data_type=f"{density_mechanism}.{variable}",
+                                              neuron_id=neuron_id,
+                                              data=data,
+                                              sec_id=sec_id,
+                                              sec_x=sec_x)
+
+    def add_membrane_recording(self, variable, neuron_id, sec_type, sec_id, sec_x):
+
+        segment = getattr(self.neurons[neuron_id].icell, sec_type)[sec_id](sec_x)
+        var = getattr(segment, f"_ref_{variable}")
+        data = self.sim.neuron.h.Vector().record(var)
+
+        self.record.register_compartment_data(data_type=f"membrane.{variable}",
+                                              neuron_id=neuron_id,
+                                              data=data,
+                                              sec_id=sec_id,
+                                              sec_x=sec_x)
+
     def add_synapse_current_recording(self, source_id, dest_id):
 
         assert (source_id, dest_id) in self.synapse_dict, f"No synapse between {source_id} and {dest_id}"
