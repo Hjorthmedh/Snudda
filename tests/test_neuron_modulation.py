@@ -29,9 +29,8 @@ class NeuromodulationTestCase(unittest.TestCase):
         # Check why file size is so large, and why it is so slow to generate!
 
         mech_dir = "../validation/mechanisms_rxd"
-        self.snudda.compile_mechanisms(mech_dir=mech_dir)
-
-        self.sim = self.snudda.simulate(time=0)  #, mech_dir=mech_dir)
+        # self.snudda.compile_mechanisms(mech_dir=mech_dir)
+        self.sim = self.snudda.simulate(time=0, mech_dir=mech_dir)
 
     def test_reaction(self):
 

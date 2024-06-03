@@ -659,17 +659,21 @@ class Snudda(object):
 
             try:
                 if os.path.exists("nrnmech.dll"):
-                    h.nrn_load_dll("nrnmech.dll")
+                    mech_path = "nrnmech.dll"
                 elif os.path.exists("x86_64"):
-                    h.nrn_load_dll("x86_64/.libs/libnrnmech.so")
+                    mech_path = "x86_64/.libs/libnrnmech.so"
                 elif os.path.exists("aarch64"):
-                    h.nrn_load_dll("aarch64/.libs/libnrnmech.so")
+                    mech_path = "aarch64/.libs/libnrnmech.so"
                 elif os.path.exists("arm64"):
-                    h.nrn_load_dll("arm64/.libs/libnrnmech.so")
+                    mech_path = "arm64/.libs/libnrnmech.so"
                 else:
                     print(f"Could not find compiled mechanisms. Compile using 'nrnivmodl {mech_dir}' "
                           f"and retry simulation.")
                     sys.exit(-1)
+
+                print(f"Loading {os.path.abspath(mech_path)}")
+                h.nrn_load_dll(mech_path)
+
             except:
                 import traceback
                 print(f"Error while loading mechanisms:\n{traceback.format_exc()}")
