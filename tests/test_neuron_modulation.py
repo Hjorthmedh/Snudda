@@ -5,6 +5,13 @@ from snudda.simulate import SnuddaSimulate
 from snudda import Snudda
 from snudda.utils import SnuddaLoadNetworkSimulation
 
+# TODO: Write example that uses Anu's SBML Dopamine cascade
+# https://www.ebi.ac.uk/biomodels/BIOMD0000000636#Files
+# Skriv SBML --> vårt json format, converter
+# https://modeldb.science/237653?tab=2&file=Beskow/speedy_reduced2.mod
+#
+# Use: https://github.com/sbmlteam/libsbml
+
 
 class NeuromodulationTestCase(unittest.TestCase):
 
