@@ -81,14 +81,8 @@ class ReadSBML:
             reaction_id = reaction.getName()
             reactants = " + ".join([id_to_name[reactant.getSpecies()] for reactant in reaction.getListOfReactants()])
             products = " + ".join([id_to_name[product.getSpecies()] for product in reaction.getListOfProducts()])
-            forward_rate = reaction.getKineticLaw().getParameter(
-                'kf').getValue() if reaction.getKineticLaw().getParameter('kf') else None
-            backward_rate = reaction.getKineticLaw().getParameter(
-                'kr').getValue() if reaction.getKineticLaw().getParameter('kr') else None
-            regions = ["soma_internal", "dend_internal"]  # Assuming these regions
 
-            import pdb
-            pdb.set_trace()
+            forward_rate, backward_rate = self.extract_rates(reaction, model, global_parameters)
 
             reactions_data[reaction_id] = {
                 "reactants": reactants,
@@ -103,6 +97,58 @@ class ReadSBML:
             "species": species_data,
             "reactions": reactions_data
         }
+
+    def extract_rates(self, reaction, model, global_parameters):
+
+        # TODO: Check that we can handle cAMP ** 2
+
+        compartment_list = [x.getId() for x in model.getListOfCompartments()]
+        species_list = [x.getId() for x in model.getListOfSpecies()]
+
+        print(f"{reaction.getKineticLaw().getFormula()}")
+
+        # This function takes a reaction and attempts to extract the forward and backward rates
+        current_expression = reaction.getKineticLaw().getMath()
+        operator = current_expression.getOperatorName()
+
+        if operator == "times" and current_expression.getLeftChild().getName() in compartment_list:
+            print(f"Removing volume {current_expression.getLeftChild().getName()}")
+            current_expression = current_expression.getRightChild()
+
+        operator = current_expression.getOperatorName()
+
+        if operator == "minus":
+            # We have both forward and backward rate to extract
+            forward_rate = self._get_rate_helper(current_expression.getLeftChild(), global_parameters, compartment_list)
+            backward_rate = self._get_rate_helper(current_expression.getRightChild(), global_parameters, compartment_list)
+
+        else:
+            # import pdb
+            # pdb.set_trace()
+            forward_rate = self._get_rate_helper(current_expression, global_parameters, compartment_list)
+            backward_rate = None
+
+        print(f"{forward_rate =}, {backward_rate =}")
+
+        return forward_rate, backward_rate
+
+    def _get_rate_helper(self, expression, global_parameters, compartment_list):
+
+        while expression.getOperatorName() == "times":
+            left_child = expression.getLeftChild()
+
+            # If the left child is a volume, then take the right child instead, and end the loop
+            if left_child.getName() in compartment_list:
+                expression = expression.getRightChild()
+                break
+
+            print(f"Removing: {expression.getRightChild().getName()}")
+            expression = left_child
+
+        rate_name = expression.getName()
+        rate = global_parameters[rate_name]
+
+        return rate
 
     def write(self, out_file=None):
 
