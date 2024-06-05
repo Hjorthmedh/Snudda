@@ -180,7 +180,6 @@ class Snudda(object):
         n_total = np.sum(number_of_neurons)
 
         si = SnuddaInit(network_path=self.network_path,
-                        connection_override_file=connection_config,
                         random_seed=random_seed)
 
         si.define_structure(struct_name="Cube",
@@ -190,6 +189,8 @@ class Snudda(object):
                             side_len=(n_total/density)**(1/3)*1e-3,
                             num_neurons=n_total,
                             n_putative_points=n_total*5)
+
+        si.replace_connectivity(connection_file=connection_config)
 
         if isinstance(neuron_paths, str):
             neuron_paths = [neuron_paths]

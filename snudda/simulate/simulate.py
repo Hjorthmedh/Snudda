@@ -1101,10 +1101,10 @@ class SnuddaSimulate(object):
 
             flux_variable = par_set["RxD"]["flux_variable"]
 
-            self.sim.neurons[cell_id_dest].modulation.link_synapse(species_name=species_name,
-                                                                   region=region,
-                                                                   synapse=syn,
-                                                                   flux_variable=flux_variable)
+            self.neurons[cell_id_dest].modulation.link_synapse(species_name=species_name,
+                                                               region=region,
+                                                               synapse=syn,
+                                                               flux_variable=flux_variable)
 
         if axon_dist is not None:
             # axon dist is in micrometer, want delay in ms
