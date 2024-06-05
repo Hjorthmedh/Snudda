@@ -287,8 +287,8 @@ class NeuronModel(ephys.models.CellModel):
     # Neuron_morphology defines sectionID, these must match what this returns
     # so that they point to the same compartment.
     #
-    # Soma is 0
-    # axons are negative values (currently all set to -1) in Neuron_morphology
+    # Soma is -1
+    # axons are negative values (-2, -3, ..) in Neuron_morphology
     # dendrites are 1,2,3,4,5... ie one higher than what Neuron internally
     # uses to index the dendrites (due to us wanting to include soma)
 

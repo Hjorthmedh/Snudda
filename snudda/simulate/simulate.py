@@ -1058,7 +1058,7 @@ class SnuddaSimulate(object):
 
             par_set = par_data[par_id]
             for par in par_set:
-                if par == "expdata" or par == "cond":
+                if par == "expdata" or par == "cond" or par == "RxD":
                     # expdata is not a parameter, and cond we take from synapse matrix
                     continue
 
@@ -1088,6 +1088,23 @@ class SnuddaSimulate(object):
                     print(tstr)
                     import pdb
                     pdb.set_trace()
+
+        if "RxD" in par_set:
+            species_name = par_set["RxD"]["species_name"]
+            region = par_set["RxD"]["region"]
+
+            if region in ("internal", "external"):
+                if section_id == -1:
+                    region = f"soma_{region}"
+                else:
+                    region = f"dend_{region}"
+
+            flux_variable = par_set["RxD"]["flux_variable"]
+
+            self.sim.neurons[cell_id_dest].modulation.link_synapse(species_name=species_name,
+                                                                   region=region,
+                                                                   synapse=syn,
+                                                                   flux_variable=flux_variable)
 
         if axon_dist is not None:
             # axon dist is in micrometer, want delay in ms
