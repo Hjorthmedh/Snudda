@@ -2,6 +2,7 @@
 import os
 import json
 import libsbml
+import numpy as np
 
 
 class ReadSBML:
@@ -79,10 +80,10 @@ class ReadSBML:
         reactions_data = {}
         for reaction in model.getListOfReactions():
             reaction_id = reaction.getName()
-            reactants = " + ".join([f"{reactant.getStoichiometry()} * {id_to_name[reactant.getSpecies()]}"
+            reactants = " + ".join([f"{self.get_stoichiometry(reactant)} * {id_to_name[reactant.getSpecies()]}"
                                     if reactant.getStoichiometry() != 1 else id_to_name[reactant.getSpecies()]
                                    for reactant in reaction.getListOfReactants()])
-            products = " + ".join([f"{product.getStoichiometry()} *{id_to_name[product.getSpecies()]}"
+            products = " + ".join([f"{self.get_stoichiometry(product)} * {id_to_name[product.getSpecies()]}"
                                    if product.getStoichiometry() != 1 else id_to_name[product.getSpecies()]
                                    for product in reaction.getListOfProducts()])
 
@@ -102,8 +103,16 @@ class ReadSBML:
             "reactions": reactions_data
         }
 
-    def get_stoichiometry(self, species_iterator):
-        reaction_str = " + ".join([])
+    def get_stoichiometry(self, reactant):
+        factor = reactant.getStoichiometry()
+
+        factor_int = int(np.round(factor))
+
+        if np.abs(factor_int - factor) > 1e-8:
+            raise ValueError(f"Error, rounding reactant incorrectly ({reactant}): {factor} -> {factor_int}")
+
+        return factor_int
+
 
     def extract_rates(self, reaction, model, global_parameters):
 

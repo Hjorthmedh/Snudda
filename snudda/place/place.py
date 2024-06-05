@@ -1305,7 +1305,7 @@ class SnuddaPlace(object):
             # This checks if neurons are of the types that are included in population unit
             has_nt = np.array([n in nts for n in model_neuron_types], dtype=bool)
 
-            rm = RegionMeshRedux(mf)
+            rm = RegionMeshRedux(mf, verbose=self.verbose)
             member_probability[:, idx] = np.logical_and(rm.check_inside(pos), has_nt) * frac
 
         # If the probability sums to more than 1, then normalise it, otherwise keep smaller

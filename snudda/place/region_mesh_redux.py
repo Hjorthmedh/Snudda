@@ -7,10 +7,11 @@ from numba import jit
 
 class RegionMeshRedux:
 
-    def __init__(self, mesh_path):
+    def __init__(self, mesh_path, verbose=False):
 
         self.mesh_path = mesh_path
         self.mesh = o3d.io.read_triangle_mesh(mesh_path)
+        self.verbose = verbose
 
         # Convert from micrometers to meters to get SI units
         scale_factor = 1e-6
@@ -102,7 +103,7 @@ class RegionMeshRedux:
 class NeuronPlacer:
 
     def __init__(self, mesh_path: str, d_min: float, random_seed=None, rng=None,
-                 n_putative_points=None, putative_density=None):
+                 n_putative_points=None, putative_density=None, verbose=False):
 
         """ Args:
             mesh_path (str): Path to wavefront obj file
@@ -111,7 +112,8 @@ class NeuronPlacer:
             rng: Numpy rng object, either rng or random_seed is given
             n_putative_points (int): Number of putative positions to place within volume (before d_min filtering)"""
 
-        self.region_mesh = RegionMeshRedux(mesh_path=mesh_path)
+        self.verbose = verbose
+        self.region_mesh = RegionMeshRedux(mesh_path=mesh_path, verbose=verbose)
         self.d_min = d_min
         self.density_functions = dict()
 
@@ -235,13 +237,16 @@ class NeuronPlacer:
 
         points = np.delete(points, remove_idx, axis=0)
 
-        print(f"n_points = {points.shape[0]}, previous close_pairs = {len(close_pairs)}")
+        if self.verbose:
+            print(f"n_points = {points.shape[0]}, previous close_pairs = {len(close_pairs)}")
 
         return points, False
 
     def remove_outside(self, points):
 
-        print(f"Filtering {points.shape[0]} points..")
+        if self.verbose:
+            print(f"Filtering {points.shape[0]} points..")
+
         # keep_flag = self.region_mesh.point_inside(points=points)
         keep_flag = self.region_mesh.check_inside(points=points)
 
@@ -299,11 +304,6 @@ class NeuronPlacer:
 
         return neuron_positions
 
-
-class NeuronBender:
-
-    def __init__(self):
-        pass
 
 # Goal for today:
 # - Function that returns N positions that are not within d_min of each other

@@ -99,6 +99,9 @@ class NeuronModulation:
         if not overwrite and region_name in self.reactions[reaction_name]:
             raise KeyError(f"Reaction {reaction_name} is already defined in neuron {self.neuron.name}")
 
+        if backward_rate is None:
+            backward_rate = 0
+
         self.reactions[reaction_name][region_name] = rxd.Reaction(left_side,
                                                                   right_side,
                                                                   forward_rate,
@@ -153,7 +156,19 @@ class NeuronModulation:
 
         for reaction_name, reaction_data in self.config_data.get("reactions", {}).items():
 
-            for region, rate in zip(rate_data["regions"], rates):
+            forward_rates = reaction_data["forward_rate"]
+            backward_rates = reaction_data["backward_rate"]
+
+            if not isinstance(forward_rates, (tuple, list)):
+                forward_rates = [forward_rates] * len(reaction_data["regions"])
+
+            if not isinstance(backward_rates, (tuple, list)):
+                backward_rates = [backward_rates] * len(reaction_data["regions"])
+
+            if not ( len(reaction_data["regions"]) == len(forward_rates) == len(backward_rates)):
+                raise ValueError(f"{reaction_data} incompatible lengths for regions, forward and backward rates")
+
+            for region, forward_rate, backward_rate in zip(reaction_data["regions"], forward_rates, backward_rates):
                 exec(f"{species_name_vars} = self.get_species('{species_name_str}', region_name=region)")
 
                 left_side = eval(reaction_data["reactants"])
@@ -162,6 +177,6 @@ class NeuronModulation:
                 self.add_reaction(reaction_name=reaction_name,
                                   left_side=left_side,
                                   right_side=right_side,
-                                  forward_rate=reaction_data["forward_rate"],
-                                  backward_rate=reaction_data["backward_rate"],
+                                  forward_rate=forward_rate,
+                                  backward_rate=backward_rate,
                                   region_name=region)

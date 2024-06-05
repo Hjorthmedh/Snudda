@@ -413,7 +413,7 @@
             ]
         },
         "revreaction_10": {
-            "reactants": "PDE10 + 2.0 * cAMP",
+            "reactants": "PDE10 + 2 * cAMP",
             "products": "PDE10c",
             "forward_rate": 1e-06,
             "backward_rate": 1.0,
