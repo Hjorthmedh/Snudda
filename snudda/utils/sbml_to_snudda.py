@@ -79,8 +79,15 @@ class ReadSBML:
         reactions_data = {}
         for reaction in model.getListOfReactions():
             reaction_id = reaction.getName()
-            reactants = " + ".join([id_to_name[reactant.getSpecies()] for reactant in reaction.getListOfReactants()])
-            products = " + ".join([id_to_name[product.getSpecies()] for product in reaction.getListOfProducts()])
+            reactants = " + ".join([f"{reactant.getStoichiometry()} * {id_to_name[reactant.getSpecies()]}"
+                                    if reactant.getStoichiometry() != 1 else id_to_name[reactant.getSpecies()]
+                                   for reactant in reaction.getListOfReactants()])
+            products = " + ".join([f"{product.getStoichiometry()} *{id_to_name[product.getSpecies()]}"
+                                   if product.getStoichiometry() != 1 else id_to_name[product.getSpecies()]
+                                   for product in reaction.getListOfProducts()])
+
+            import pdb
+            pdb.set_trace()
 
             forward_rate, backward_rate = self.extract_rates(reaction, model, global_parameters)
 
@@ -97,6 +104,9 @@ class ReadSBML:
             "species": species_data,
             "reactions": reactions_data
         }
+
+    def get_stoichiometry(self, species_iterator):
+        reaction_str = " + ".join([])
 
     def extract_rates(self, reaction, model, global_parameters):
 
@@ -123,8 +133,6 @@ class ReadSBML:
             backward_rate = self._get_rate_helper(current_expression.getRightChild(), global_parameters, compartment_list)
 
         else:
-            # import pdb
-            # pdb.set_trace()
             forward_rate = self._get_rate_helper(current_expression, global_parameters, compartment_list)
             backward_rate = None
 
