@@ -86,9 +86,6 @@ class ReadSBML:
                                    if product.getStoichiometry() != 1 else id_to_name[product.getSpecies()]
                                    for product in reaction.getListOfProducts()])
 
-            import pdb
-            pdb.set_trace()
-
             forward_rate, backward_rate = self.extract_rates(reaction, model, global_parameters)
 
             reactions_data[reaction_id] = {
@@ -172,7 +169,23 @@ class ReadSBML:
             json.dump(self.data, f, indent=4)
 
 
+def cli():
+
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Convert SBML to Snudda reaction diffusion with RxD",
+                                     formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("sbml_file", help="Input SBML file to convert")
+    parser.add_argument("json_file", help="Snudda RxD JSON output file")
+
+    args = parser.parse_args()
+
+    rs = ReadSBML(filename=args.sbml_file, out_file=args.json_file)
+
+
 if __name__ == "__main__":
+
+    cli()
 
     filename = os.path.join(os.path.dirname(__file__), "..", "..",
                             "examples", "notebooks", "neuromodulation",
