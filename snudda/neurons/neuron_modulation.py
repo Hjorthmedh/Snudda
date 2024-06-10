@@ -1,6 +1,7 @@
 # TODO: Add ability for synapses to affect rxd concentration
 
 import os
+import numpy as np
 import neuron.crxd as rxd
 import json
 from itertools import chain
@@ -17,6 +18,8 @@ class NeuronModulation:
         self.reactions = dict()
         self.config_data = {}
         self.config_file = config_file
+
+        self.node_cache = None
 
         self.build = {"soma_internal": lambda neuron_dummy: self.set_default_compartments("soma", nrn_region="i"),
                       "dend_internal": lambda neuron_dummy: self.set_default_compartments("dend", nrn_region="i"),
@@ -108,18 +111,70 @@ class NeuronModulation:
                                                                   backward_rate,
                                                                   regions=self.compartments[region_name])
 
+    def build_node_cache(self):
+
+        print(f"Build node cache")
+        self.node_cache = {}
+
+        for species_name, species_data in self.species.items():
+
+            if species_name not in self.node_cache:
+                self.node_cache[species_name] = {}
+
+            for region_name, species in species_data.items():
+
+                if region_name not in self.node_cache[species_name]:
+                    self.node_cache[species_name][region_name] = {}
+
+                # This row below might need to be sped up
+                all_nodes = species.nodes
+
+                for node in all_nodes:
+                    if node._sec._sec not in self.node_cache[species_name][region_name]:
+                         self.node_cache[species_name][region_name][node._sec._sec] = ([], [])
+
+                    self.node_cache[species_name][region_name][node._sec._sec][0].append(node)
+                    self.node_cache[species_name][region_name][node._sec._sec][1].append(node._location)
+
+                # Now we want to also extract the sec_x
+                for node_key in self.node_cache[species_name][region_name]:
+                    node_list, node_x = self.node_cache[species_name][region_name][node_key]
+                    self.node_cache[species_name][region_name][node_key] = (node_list, np.array(node_x))
+
+        print(f"Node cache built.")
+
+    def get_node_from_cache(self, species_name, seg, region_name):
+        node_list, node_x = self.node_cache[species_name][region_name][seg.sec]
+        idx = np.argmin(np.abs(node_x - seg.x))
+        return node_list[idx]
+
+    def clear_cache(self):
+        self.node_cache = None
+
     def link_synapse(self, species_name, region: str, synapse, flux_variable: str):
         # region: "soma_internal", "soma_external", "dend_internal", "dend_external"
 
-        self.species[species_name][region].nodes(synapse.get_segment())[0].include_flux(synapse, flux_variable)
+        # print(f"link_synapses {species_name}, {region}")
+
+        if self.node_cache is None:
+            self.build_node_cache()
+
+        node = self.get_node_from_cache(species_name=species_name, seg=synapse.get_segment(), region_name=region)
+        node.include_flux(synapse, flux_variable)
+
+        # self.species[species_name][region].nodes(synapse.get_segment())[0].include_flux(synapse, flux_variable)
 
     def load_json(self, config_path=None):
+
+        print(f"Parsing neuromodulation json: {config_path}")
 
         if config_path is None:
             config_path = self.config_file
 
         with open(config_path, "r") as f:
             self.config_data = json.load(f)
+
+        print(f"Parsing species")
 
         for species_name, species_data in self.config_data.get("species", {}).items():
             initial_concentration = species_data.get("initial_concentration", 0)
@@ -137,6 +192,8 @@ class NeuronModulation:
         species_name_vars = ",".join(self.species.keys())
         species_name_str = "','".join(self.species.keys())
 
+        print(f"Parsing rates.")
+
         for rate_name, rate_data in self.config_data.get("rates", {}).items():
             if rate_name not in self.species:
                 raise ValueError(f"Species {rate_name} is not defined. Available: {self.species.keys()}")
@@ -153,6 +210,8 @@ class NeuronModulation:
                               left_side=self.get_species(rate_name, region_name=region)[0],
                               right_side=right_side,
                               region_name=region)
+
+        print(f"Parsing reactions")
 
         for reaction_name, reaction_data in self.config_data.get("reactions", {}).items():
 
@@ -180,3 +239,5 @@ class NeuronModulation:
                                   forward_rate=forward_rate,
                                   backward_rate=backward_rate,
                                   region_name=region)
+
+        print(f"Parsing done.")
