@@ -17,6 +17,20 @@
         "value": -89.1
     },    
     {
+        "dist_type": "uniform",
+        "param_name": "e_pas",
+        "sectionlist": "all",
+        "type": "section",
+        "value": -65
+    },    
+    {
+        "dist_type": "uniform",
+        "param_name": "ena",
+        "sectionlist": "all",
+        "type": "section",
+        "value": 53
+    },    
+    {
         "param_name": "mod_pka_g_min_kir",
         "type": "range",
         "sectionlist": "all",
@@ -49,6 +63,36 @@
         "type": "range",
         "sectionlist": "all",
         "dist_type": "uniform",
-        "value": 1e-3
-    }    
+        "value": 1e-4
+    },
+    {
+        "param_name": "gbar_naf_ms",
+        "type": "range",
+        "sectionlist": "soma",
+        "dist_type": "uniform",
+        "value": 20
+    },
+    {
+        "param_name": "gbar_kaf_ms",
+        "type": "range",
+        "sectionlist": "soma",
+        "dist_type": "uniform",
+        "value": 1.5
+    },
+    {
+        "param_name": "gbar_kdr_ms",
+        "type": "range",
+        "sectionlist": "soma",
+        "dist_type": "uniform",
+        "value": 0.45
+    },
+    {
+        "param_name": "g_pas",
+        "type": "range",
+        "sectionlist": "all",
+        "dist_type": "uniform",
+        "value": 1e-8
+    }
+    
+        
 ]
