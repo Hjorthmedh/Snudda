@@ -794,7 +794,13 @@ class SnuddaInput(object):
                     csv_file = snudda_parse_path(input_inf["csv_file"] % neuron_id, self.snudda_data)
 
                     self.neuron_input[neuron_id][input_type]["generator"] = "csv"
+                    # csv_spikes = self.import_csv_spikes(csv_file=csv_file)
+                    # num_spike_trains = len(csv_spikes)
+                    
                     csv_spikes = self.import_csv_spikes(csv_file=csv_file)
+                    if "num_inputs" in input_inf:
+                        csv_spikes = csv_spikes[:input_inf["num_inputs"]]
+                        
                     num_spike_trains = len(csv_spikes)
 
                     self.neuron_input[neuron_id][input_type]["spikes"] = csv_spikes

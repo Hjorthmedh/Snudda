@@ -149,7 +149,8 @@ class Snudda(object):
                  "\nCall snudda init with --overwrite to override and overwrite the old data.")
 
         self.make_dir_if_needed(self.network_path)
-
+        print('Honor stay inside:')
+        print(honor_stay_inside)
         config_file = os.path.join(self.network_path, "network-config.json")
         SnuddaInit(network_path=self.network_path,
                    struct_def=struct_def,
@@ -181,12 +182,13 @@ class Snudda(object):
 
         si = SnuddaInit(network_path=self.network_path,
                         random_seed=random_seed)
-
+        side_len = (0.1*n_total/density)**(1/3)*1e-3
+        # side_len = 0.00001
         si.define_structure(struct_name=region_name,
                             struct_mesh="cube",
                             d_min=d_min,
                             struct_centre=(0.0, 0.0, 0.0),
-                            side_len=(n_total/density)**(1/3)*1e-3,
+                            side_len=side_len,
                             num_neurons=n_total,
                             n_putative_points=n_total*5)
 
@@ -236,10 +238,10 @@ class Snudda(object):
 
     ############################################################################
 
-    def create_network(self):
+    def create_network(self, honor_morphology_stay_inside=True):
 
         # This is a helper function, to create the full network
-        self.place_neurons()
+        self.place_neurons(honor_morphology_stay_inside=honor_morphology_stay_inside)
         self.detect_synapses()
         self.prune_synapses()
 
@@ -277,7 +279,7 @@ class Snudda(object):
                       ipython_timeout=120,
                       h5libver="latest",
                       verbose=False,
-                      honor_morphology_stay_inside=False):
+                      honor_morphology_stay_inside=True):
 
         if parallel is None:
             parallel = self.parallel
@@ -287,6 +289,7 @@ class Snudda(object):
 
         # self.networkPath = args.path
         print("Placing neurons")
+        print(honor_morphology_stay_inside  )
         print(f"Network path: {self.network_path}")
 
         log_file_name = os.path.join(self.network_path, "log", "place-neurons.txt")

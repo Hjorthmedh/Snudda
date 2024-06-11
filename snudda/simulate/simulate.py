@@ -523,9 +523,9 @@ class SnuddaSimulate(object):
 
             # We need to get morphology from network_info, since it can now be redefined for bent morphologies
             morph = snudda_parse_path(self.network_info["neurons"][ID]["morphology"], self.snudda_data)
-
+            print(morph)
             neuron_path = snudda_parse_path(self.network_info["neurons"][ID]["neuron_path"], self.snudda_data)
-
+            print(neuron_path)
             param = os.path.join(neuron_path, "parameters.json")
             mech = os.path.join(neuron_path, "mechanisms.json")
             modulation = os.path.join(neuron_path, "reaction_diffusion.json")
@@ -566,7 +566,7 @@ class SnuddaSimulate(object):
 
                 # TODO: Modulation key currently has no USE -- deprecated? Remove?
                 modulation_key = self.network_info["neurons"][ID]["modulation_key"]
-
+                print(morph)
                 self.neurons[ID] = NeuronModel(param_file=param,
                                                morph_path=morph,
                                                mech_file=mech,

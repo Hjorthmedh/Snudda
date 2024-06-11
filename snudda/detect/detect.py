@@ -1664,9 +1664,9 @@ class SnuddaDetect(object):
 
         inside_idx = np.where(np.sum(np.bitwise_and(0 <= vox_idx, vox_idx < self.hyper_voxel_size), axis=1) == 3)[0]
         # print(len(vox_idx[inside_idx, :]))
-        print(vox_idx[inside_idx, :])
-        print('Number of points kept: ')
-        print(len(xyz[inside_idx, :]))
+        # print(vox_idx[inside_idx, :])
+        # print('Number of points kept: ')
+        # print(len(xyz[inside_idx, :]))
         return xyz[inside_idx, :], vox_idx[inside_idx, :]
     ############################################################################
 
