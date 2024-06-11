@@ -582,6 +582,21 @@ class NeuronMorphologyExtended:
         self.axon_density_type = "xyz"
         self.axon_density = density
         self.axon_density_bounds_xyz = axon_density_bounds_xyz
+        
+    def set_axon_voxel_sparse_density(self,
+                                   n_hv):
+
+        """
+        Sets axon density
+
+        Args:
+            density: Axon density f(x,y,z), x,y,z = SWC coordinates in relative to soma
+        """
+
+        self.write_log("Only saving equation now")
+
+        self.axon_density_type = "sparse"
+        self.axon_density_hv = n_hv
 
 
 if __name__ == "__main__":

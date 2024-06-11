@@ -401,6 +401,7 @@ class SnuddaInit(object):
         updated_config = False
 
         for region_name in self.network_data["regions"].keys():
+            print(region_name)
             if region_name in connection_dict["regions"]:
                 try:
                     self.network_data["regions"][region_name]["connectivity"] = connection_dict["regions"][region_name]["connectivity"]

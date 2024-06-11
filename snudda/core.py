@@ -166,7 +166,7 @@ class Snudda(object):
 
     ############################################################################
 
-    def init_tiny(self, neuron_paths, neuron_names, number_of_neurons,
+    def init_tiny(self, region_name, neuron_paths, neuron_names, number_of_neurons,
                   connection_config=None, random_seed=None, density=80500, d_min=15e-6):
 
         """
@@ -182,7 +182,7 @@ class Snudda(object):
         si = SnuddaInit(network_path=self.network_path,
                         random_seed=random_seed)
 
-        si.define_structure(struct_name="Cube",
+        si.define_structure(struct_name=region_name,
                             struct_mesh="cube",
                             d_min=d_min,
                             struct_centre=(0.0, 0.0, 0.0),
@@ -202,7 +202,7 @@ class Snudda(object):
             number_of_neurons = [int(number_of_neurons / len(neuron_paths)) for x in neuron_names]
 
         for path, name, cnt in zip(neuron_paths, neuron_names, number_of_neurons):
-            si.add_neurons(name=name, neuron_dir=path, region_name="Cube", num_neurons=cnt)
+            si.add_neurons(name=name, neuron_dir=path, region_name=region_name, num_neurons=cnt)
 
         si.write_json()
 
@@ -809,6 +809,10 @@ class Snudda(object):
                              verbose=verbose)
         sim.setup()
         sim.add_external_input()
+        if 'VC' in str(self.network_path):
+           print('Voltage Clamping')
+           sim.add_voltage_clamp([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39], voltage = -0.07, duration= 3.0, save_i_flag=True)
+
 
         sim.check_memory_status()
 

@@ -25,6 +25,7 @@ import numexpr
 import numpy as np
 from numba import jit
 import copy
+from scipy.spatial.distance import cdist
 
 import snudda.utils.memory
 from snudda.neurons import NeuronMorphologyExtended
@@ -718,6 +719,29 @@ class SnuddaDetect(object):
                                    axon_cloud.transpose()).transpose() + neuron.position
 
             axon_loc = np.floor((axon_cloud[:, :3] - self.simulation_origo) / self.hyper_voxel_width).astype(int)
+            
+        elif neuron.axon_density_type == "sparse":
+            n_hv = int(neuron.axon_density_hv)
+            # print('Sparse Connectivity')
+        
+            rng = np.random.default_rng(seed)
+
+            # print(neuron.name)
+            # print(n_hv)
+            # n_hv = 4
+            # hyper_voxel_id = np.unique(self.get_hypervoxel_coords_and_section_id(neuron = neuron)['neuron'][:,0])
+            
+            
+            hyper_voxel_id = list(set(list(np.unique(self.get_hypervoxel_coords_and_section_id(neuron = neuron)['neuron'][:,0]))[1:2] + list(np.unique(rng.integers(low = 0, high = self.hyper_voxel_id_lookup.size,size = (n_hv,1))))))
+            #hyper_voxel_id = list(set(list(np.unique(rng.integers(low = 0, high = self.hyper_voxel_id_lookup.size,size = (n_hv,1))))))
+
+            # hyper_voxel_id = list(np.unique(rng.integers(low = 0, high = self.hyper_voxel_id_lookup.size,size = (n_hv,1))))
+            print(hyper_voxel_id)
+                
+            if axon_loc is not None:
+                inside_idx = np.sum(np.logical_and(0 <= axon_loc, axon_loc < self.hyper_voxel_id_lookup.shape), axis=1) == 3
+                hyper_voxel_id = np.unique(self.hyper_voxel_id_lookup[tuple(axon_loc[inside_idx, :].T)])
+            return hyper_voxel_id
 
         if axon_loc is not None:
             inside_idx = np.sum(np.logical_and(0 <= axon_loc, axon_loc < self.hyper_voxel_id_lookup.shape), axis=1) == 3
@@ -1478,6 +1502,11 @@ class SnuddaDetect(object):
                                                                           na_neuron["rotation"],
                                                                           na_neuron["axon_density"],
                                                                           na_neuron["axon_density_bounds_xyz"])
+                
+            elif na_neuron["axon_density_type"] == "sparse":
+                    print('SPARSE')
+                    # print(na_neuron['position'])
+                    (na_voxel_coords, na_axon_dist) = self.no_axon_points_sparse(na_neuron["position"])
             else:
                 self.write_log(f"Unknown axon_density_type: {na_neuron['axon_density_type']}\n{na_neuron}", is_error=True)
                 na_voxel_coords = np.zeros((0, 3))
@@ -1607,6 +1636,38 @@ class SnuddaDetect(object):
 
         return xyz[inside_idx, :], vox_idx[inside_idx, :]
 
+
+    def get_hyper_voxel_axon_points_sparse(self,num_points=1000):
+
+        """
+        Helper function to give points inside axon bounding box, that are inside hyper voxel
+
+        Args:
+            neuron_position (float,float,float): coordinates of neuron
+            rotation: rotation matrix
+            axon_density_bounds_xyz: boundary box for axon
+            num_points: number of points to place
+        """
+
+        vox_idx = self.hyper_voxel_rng.integers(low = 0, high = 100,size = (num_points,3))
+        
+        d = cdist(vox_idx, vox_idx)
+        keep_flag = []
+
+        for idx, distance in enumerate(d): 
+            if np.min(distance[np.nonzero(distance)]) < 5:
+                keep_flag.append(idx)
+
+        vox_idx = vox_idx[keep_flag]
+        xyz = vox_idx*self.voxel_size + self.hyper_voxel_origo
+        # vox_idx = np.floor((xyz - self.hyper_voxel_origo)/ self.voxel_size).astype(int)
+
+        inside_idx = np.where(np.sum(np.bitwise_and(0 <= vox_idx, vox_idx < self.hyper_voxel_size), axis=1) == 3)[0]
+        # print(len(vox_idx[inside_idx, :]))
+        print(vox_idx[inside_idx, :])
+        print('Number of points kept: ')
+        print(len(xyz[inside_idx, :]))
+        return xyz[inside_idx, :], vox_idx[inside_idx, :]
     ############################################################################
 
     # somaCentre and rotation of neuron
@@ -1720,6 +1781,26 @@ class SnuddaDetect(object):
             return (np.concatenate([voxIdx[picked_idx, :],
                                     voxIdxB[picked_idx_b, :]]),
                     np.concatenate([axon_dist, axon_dist_b]))
+        
+        
+    def no_axon_points_sparse(self, neuron_position):
+
+        """
+        Placing fake axon segments based on sparse distribution
+
+        """
+        npoints = 500
+        
+        # print('Sparse axon points')
+        (xyz_inside, voxIdx) = self.get_hyper_voxel_axon_points_sparse(npoints)
+        
+        axon_dist = np.sqrt(np.sum((xyz_inside) ** 2, axis=1))
+        # print('Axon dist:')
+        # print(axon_dist.shape)
+
+        # na_voxel_coords = self.hyper_voxel_rng.integers(100, size = (3000, 3))
+        # na_axon_dist  = np.sqrt(np.sum((na_voxel_coords) ** 2, axis=1))
+        return voxIdx, axon_dist
 
     ############################################################################
 
@@ -2091,7 +2172,9 @@ class SnuddaDetect(object):
                             axon_density_bounds_xyz = np.array(definition["axon_density"][2])
 
                             self.prototype_neurons[name].apply("set_axon_voxel_xyz_density", [density, axon_density_bounds_xyz])
-
+                        elif axon_density_type == "sparse":
+                            n_hv = definition["axon_density"][1]
+                            self.prototype_neurons[name].apply("set_axon_voxel_sparse_density", [n_hv])
                         else:
                             self.write_log(f"{name}: Unknown axon density type : {axon_density_type}\n"
                                            f"{definition['axon_density']}", is_error=True)
@@ -2110,8 +2193,11 @@ class SnuddaDetect(object):
         self.next_channel_model_id = 10  # Reset counter
 
         for region_name, region_data in self.config["regions"].items():
+            print()
+            print(region_name)
+            print(region_data["connectivity"])
             for name, connection_def in region_data["connectivity"].items():
-
+                
                 # This also enriches the self.config by adding channelModelID, lognormal_mu_sigma etc
                 con_def = copy.deepcopy(connection_def)
 
@@ -2338,6 +2424,8 @@ class SnuddaDetect(object):
             elif neuron_info["axon_density_type"] == "xyz":
                 neuron.set_axon_voxel_xyz_density(neuron_info["axon_density"],
                                                   neuron_info["axon_density_bounds_xyz"])
+            elif neuron_info["axon_density_type"] == "sparse":
+                neuron.set_axon_voxel_sparse_density(neuron_info["axon_density"])
 
             else:
                 raise ValueError(f"Unknown axon density: {neuron_info['axon_density_type']}")
