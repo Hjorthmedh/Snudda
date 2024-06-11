@@ -236,10 +236,10 @@ class Snudda(object):
 
     ############################################################################
 
-    def create_network(self):
+    def create_network(self, honor_morphology_stay_inside=True):
 
         # This is a helper function, to create the full network
-        self.place_neurons()
+        self.place_neurons(honor_morphology_stay_inside=honor_morphology_stay_inside)
         self.detect_synapses()
         self.prune_synapses()
 
@@ -277,7 +277,7 @@ class Snudda(object):
                       ipython_timeout=120,
                       h5libver="latest",
                       verbose=False,
-                      honor_morphology_stay_inside=False):
+                      honor_morphology_stay_inside=True):
 
         if parallel is None:
             parallel = self.parallel
