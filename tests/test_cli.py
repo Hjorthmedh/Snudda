@@ -1,4 +1,8 @@
-import unittest, os, sys, argparse, time
+import argparse
+import os
+import sys
+import time
+import unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import snudda.cli
@@ -41,8 +45,8 @@ class TestCLI(unittest.TestCase):
                 import shutil
                 shutil.rmtree(network_path)
         
-                os.mkdir(network_path)
-                os.chdir(network_path)
+            os.mkdir(network_path)
+            os.chdir(network_path)
 
         with self.subTest(stage="setup-parallel"):
             os.environ["IPYTHONDIR"] = os.path.join(os.path.abspath(os.getcwd()), ".ipython")
@@ -64,11 +68,11 @@ class TestCLI(unittest.TestCase):
             config_name = os.path.join("tiny_parallel", "network-config.json")
             cnc = SnuddaInit(struct_def={}, config_file=config_name, random_seed=123456)
             cnc.define_striatum(num_dSPN=4, num_iSPN=4, num_FS=2, num_LTS=2, num_ChIN=2,
-                                volume_type="cube")
+                                volume_type="cube", stay_inside=True)
             cnc.write_json(config_name)
 
         with self.subTest(stage="place-parallel"):
-            run_cli_command("place tiny_parallel --parallel --raytraceBorders")
+            run_cli_command("place tiny_parallel --parallel --stayInside")
 
         with self.subTest(stage="detect-parallel"):
             run_cli_command("detect tiny_parallel --parallel")
@@ -114,12 +118,7 @@ class TestCLI(unittest.TestCase):
             print(f"Running: {eval_str}")
             os.system(eval_str)
 
-            # print("---> Testing to run simulate using os.system instead")
-            # os.system("snudda simulate tiny_parallel --time 0.1 --voltOut default")
-
-
-            # For the unittest we for some reason need to load mechansism
-            # separately
+            # For the unittest we for some reason need to load mechansism separately
             from mpi4py import MPI  # This must be imported before neuron, to run parallel
             from neuron import h  # , gui
             import neuron
@@ -135,21 +134,21 @@ class TestCLI(unittest.TestCase):
                     tstr = traceback.format_exc()
                     print(tstr)
 
-            if False:
+            if os.path.exists("aarch64/.libs/libnrnmech.so"):
+                print("Manually loading libraries")
                 try:
-                    from snudda.simulate.simulate import SnuddaSimulate
-                    ss = SnuddaSimulate(network_path="tiny_parallel")
-                    ss.run(100)
-                    ss.write_spikes()
+                    h.nrn_load_dll("aarch64/.libs/libnrnmech.so")
                 except:
                     import traceback
                     tstr = traceback.format_exc()
                     print(tstr)
-                    import pdb
-                    pdb.set_trace()
-                
+
             print("Time to run simulation...")
-            run_cli_command("simulate tiny_parallel --time 0.1 --voltOut default")
+            # run_cli_command("simulate tiny_parallel --time 0.1")
+
+            # Use the simulation config interface
+            sim_config = os.path.join(os.path.dirname(__file__), "data", "sim-test-config.json")
+            run_cli_command(f"simulate tiny_parallel --simulation_config {sim_config}")
 
         os.environ["SLURM_JOBID"] = "1234"
 
@@ -190,3 +189,10 @@ class TestCLI(unittest.TestCase):
         copyfile(input_file, "tiny_serial/input.json")
         with self.subTest(stage="input"):
             run_cli_command("input tiny_serial --time 1.0 --inputFile tiny_serial/input-spikes.hdf5")
+
+    def tearDown(self) -> None:
+
+        # Exit the test directory
+        if os.path.dirname(__file__):
+            os.chdir(os.path.dirname(__file__))
+            

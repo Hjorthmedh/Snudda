@@ -6,6 +6,10 @@ import time
 class TestProject(unittest.TestCase):
 
     def setUp(self):
+
+        if os.path.dirname(__file__):
+            os.chdir(os.path.dirname(__file__))
+
         from snudda.place.create_cube_mesh import create_cube_mesh
 
         # Create cube meshes
@@ -69,6 +73,7 @@ class TestProject(unittest.TestCase):
 
         cnc.add_neuron_target(neuron_name="dSPN",
                               target_name="dSPN",
+                              region_name="VolumeA",
                               connection_type="GABA",
                               dist_pruning=SPN2SPNdistDepPruning,
                               f1=0.38, soft_max=3, mu2=2.4,
@@ -82,6 +87,7 @@ class TestProject(unittest.TestCase):
 
         cnc.add_neuron_target(neuron_name="iSPN",
                               target_name="iSPN",
+                              region_name="VolumeB",
                               connection_type="GABA",
                               dist_pruning=SPN2SPNdistDepPruning,
                               f1=0.55, soft_max=4, mu2=2.4,
@@ -167,7 +173,7 @@ class TestProject(unittest.TestCase):
         os.environ["IPYTHONDIR"] = os.path.join(os.path.abspath(os.getcwd()), ".ipython")
         os.environ["IPYTHON_PROFILE"] = "default"
         os.system("ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&")
-        time.sleep(10)
+        time.sleep(15)
 
         # Run place, detect and prune in parallel by passing rc
         from ipyparallel import Client

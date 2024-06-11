@@ -1,0 +1,62 @@
+{
+    "dSPN": {
+        "cortical:1" : {
+            "generator" : "poisson",
+            "start" : [1, 4, 7, 10, 13, 16],
+            "end" :   [3, 6, 9, 12, 15, 18],
+            "frequency" : [4, 4, 6, 6, 8, 8],
+            "population_unit_id" : 1
+        },
+
+        "cortical:2" : {
+            "generator" : "poisson",
+            "start" : [4, 10, 16],
+            "end" :   [6, 12, 18],
+            "frequency" : [10],
+            "population_unit_id" : 2
+        },
+
+        "cortical:0" : {
+            "generator" : "poisson",
+            "start" : [0],
+            "end" :   [18],
+            "frequency" : [3],
+            "population_unit_id" : 0
+        }	
+
+    },
+
+    "iSPN": {
+        "cortical:1" : {
+            "generator" : "poisson",
+            "start" : [1, 4, 7, 10, 13, 16],
+            "end" :   [3, 6, 9, 12, 15, 18],
+            "frequency" : [4, 4, 6, 6, 8, 8],
+            "population_unit_id" : 1	    
+        },
+
+        "cortical:2" : {
+            "generator" : "poisson",
+            "start" : [4, 10, 16],
+            "end" :   [6, 12, 18],
+            "frequency" : [10],
+            "population_unit_id" : 2
+        },
+        "cortical:0" : {
+            "generator" : "poisson",
+            "start" : [0],
+            "end" :   [18],
+            "frequency" : [3],
+            "population_unit_id" : 0
+        }	
+	
+    },
+    "FS": {
+        "cortical" : {
+            "generator" : "poisson",
+            "start" : [0],
+            "end" :   [18],
+            "frequency" : [2]
+        }	
+    }
+}

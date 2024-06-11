@@ -1,0 +1,49 @@
+{
+    "dSPN": {
+	"Cortical_input": {
+	    "generator": "poisson",
+	    "start": [2, 5],
+	    "end": [3, 7],
+	    "frequency": [4, 2],
+	    "conductance": 0.5e-9,
+	    "num_inputs": 20,
+	    "mod_file": "tmGlut",
+	    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))"
+	},
+	"Thalamic_input": {
+	    "generator": "poisson",
+	    "start": [2, 5],
+	    "end": [3, 7],
+	    "frequency": [4, 2],
+	    "conductance": 0.5e-9,
+	    "num_inputs": 20,
+	    "mod_file": "tmGlut",
+	    "synapse_density": "0.05*exp(-d/200e-6)"
+	}
+    },
+
+    "iSPN": {
+	"Cortical_input": {
+	    "generator": "poisson",
+	    "start": [2, 5],
+	    "end": [3, 7],
+	    "frequency": [4, 2],
+	    "conductance": 0.5e-9,
+	    "num_inputs": 20,
+	    "mod_file": "tmGlut",
+	    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))"
+	},
+	
+	"Thalamic_input": {
+	    "generator": "poisson",
+	    "start": [2, 5],
+	    "end": [3, 7],
+	    "frequency": [4, 2],
+	    "conductance": 0.5e-9,
+	    "num_inputs": 20,
+	    "mod_file": "tmGlut",
+	    "synapse_density": "0.05*exp(-d/200e-6)"
+	}
+    }    
+    
+}

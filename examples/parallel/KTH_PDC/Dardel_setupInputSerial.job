@@ -1,0 +1,15 @@
+#!/bin/bash -l
+#SBATCH --partition=main
+#SBATCH -o log/Input-%j-output.txt
+#SBATCH -e log/Input-%j-error.txt
+#SBATCH -t 0:30:00
+#SBATCH -J SnuddaInput
+#SBATCH -A snic2022-5-245
+#SBATCH --nodes=1
+#SBATCH --tasks-per-node=64
+
+module load snic-env
+
+source $HOME/Snudda/snudda_env/bin/activate
+
+srun ./Dardel_setupInputSerial.sh

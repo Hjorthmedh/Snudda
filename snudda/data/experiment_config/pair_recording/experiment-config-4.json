@@ -1,0 +1,29 @@
+{
+
+    "meta" : {
+	"simulation_duration" : 3,
+	"v_init" : -80e-3,
+	"pair_recording_output_file" : "network-output-4.hdf5",
+	"reversal_potential" : [["tmGabaA", -40e-3]]
+    },
+    
+    "current_injection" : [
+	{
+	    "neuron_id" : 0,
+	    "start" : [0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.7],
+	    "end" : [0.51, 0.61, 0.71, 0.81, 0.91, 1.01, 1.11, 1.21, 1.71],
+	    "amplitude" : 10e-9
+	},
+
+	{
+	    "neuron_id" : 1,
+	    "start" : [2.5, 2.6, 2.7, 2.8, 2.9, 2.0, 2.1, 2.2, 2.7],
+	    "end" : [2.51, 2.61, 2.71, 2.81, 2.91, 2.01, 2.11, 2.21, 2.71],
+	    "amplitude" : 10e-9
+	}
+    ],
+
+    "record_synaptic_current" : [[0, 14], [1, 0]]
+    
+	
+}

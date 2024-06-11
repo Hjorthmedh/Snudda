@@ -1,0 +1,6 @@
+spack:
+  specs:
+    # write here the Spack spec that instructs what to build for your component
+    # example: nest@3.0 +python +gsl +mpi %gcc@10.3.0
+    # what is in brackets [] below is optional and for now %arch should be %gcc@10.3.0
+    - snudda %gcc@10.3.0

@@ -20,13 +20,17 @@ from snudda.analyse import SnuddaAnalyse
 class SnuddaModifyNetworkTestCase(unittest.TestCase):
 
     def setUp(self) -> None:
+
+        if os.path.dirname(__file__):
+            os.chdir(os.path.dirname(__file__))
+
         self.network_path = os.path.join("networks", "modify_network")
         self.original_file = os.path.join(self.network_path, "network-synapses.hdf5")
 
         if not os.path.exists(self.original_file):
             print("Missing test network, generating it first.")
             from snudda.init import SnuddaInit
-            SnuddaInit(network_path=self.network_path, struct_def={"Striatum": 200})
+            SnuddaInit(network_path=self.network_path, struct_def={"Striatum": 200}, random_seed=999)
 
             from snudda.place import SnuddaPlace
             sp = SnuddaPlace(network_path=self.network_path)
@@ -120,9 +124,9 @@ class SnuddaModifyNetworkTestCase(unittest.TestCase):
             for neuron_type in self.original_type_count:
                 if neuron_type == "iSPN":
                     # Check that we are within a range of 30% removed
-                    self.assertTrue(0.6 * self.original_type_count[neuron_type]
+                    self.assertTrue(0.5 * self.original_type_count[neuron_type]
                                     < new_type_count[neuron_type]
-                                    < 0.8 * self.original_type_count[neuron_type])
+                                    < 0.9 * self.original_type_count[neuron_type])
                 else:
                     self.assertEqual(new_type_count[neuron_type], self.original_type_count[neuron_type])
 

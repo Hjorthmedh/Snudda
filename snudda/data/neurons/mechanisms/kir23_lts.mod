@@ -1,10 +1,39 @@
 TITLE Noninactivating inwardly rectifying potassium current (Kir2.3)
 
+COMMENT
+
+Neuromodulation is added as functions:
+    
+    modulationDA = 1 + modDA*(maxModDA-1)*levelDA
+
+where:
+    
+    modDA  [0]: is a switch for turning modulation on or off {1/0}
+    maxModDA [1]: is the maximum modulation for this specific channel (read from the param file)
+                    e.g. 10% increase would correspond to a factor of 1.1 (100% +10%) {0-inf}
+    levelDA  [0]: is an additional parameter for scaling modulation. 
+                Can be used simulate non static modulation by gradually changing the value from 0 to 1 {0-1}
+									
+	  Further neuromodulators can be added by for example:
+          modulationDA = 1 + modDA*(maxModDA-1)
+	  modulationACh = 1 + modACh*(maxModACh-1)
+	  ....
+
+	  etc. for other neuromodulators
+	  
+	   
+								     
+[] == default values
+{} == ranges
+    
+ENDCOMMENT
+      
 NEURON {
 
     SUFFIX kir23_lts
     USEION k READ ek WRITE ik
-    RANGE gbar, gk, ik			  
+    RANGE gbar, gk, ik
+    RANGE modACh, maxModACh, levelACh
 }
 
 UNITS {
@@ -16,7 +45,9 @@ UNITS {
 PARAMETER {
     gbar = 0.0 (S/cm2) 
     q = 1	: body temperature 35 C
-    
+    modACh = 0
+    maxModACh = 1 
+    levelACh = 0
 }
 
 ASSIGNED {
@@ -32,7 +63,7 @@ STATE { m }
 
 BREAKPOINT {
     SOLVE states METHOD cnexp
-    gk = gbar*m
+    gk = gbar*m*modulationACh()
     ik = gk*(v-ek)
 }
 
@@ -52,6 +83,12 @@ PROCEDURE rates() {
     :mtau = 1/(2*exp((v-(-106))/(-12.6))+0.086*exp((v-(-19))/47))  : Steephen (2009)
     mtau = 1/(exp((v-(-97.3))/(-12.6))+exp((v-96.3)/47))  : Steephen (2009)
     UNITSON
+}
+
+FUNCTION modulationACh() {
+    : returns modulation factor
+    
+    modulationACh = 1 + modACh*(maxModACh-1)*levelACh 
 }
 
 COMMENT

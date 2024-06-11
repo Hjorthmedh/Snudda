@@ -8,22 +8,31 @@ Here is a collection of Jupyter Notebooks, some of the workflows are split over 
 * [simple_network_parallel](simple_network_parallel.ipynb) how to use ipyparallel when running Snudda
 * [custom_slice_example](custom_slice_example.ipynb) shows how to create custom slice and define your own connectivity rules for neuron types.
 * [population_unit_network](population_unit_network.ipynb) how to define population units.
+* [population_unit_mesh](population_unit_mesh.ipynb) how to define population units specified by volume meshes.
 * [example_of_density_function](example_of_density_function.ipynb) how to specify density variations using a function of (x,y,z) in a volume.
 * [example_of_neuron_rotations](example_of_neuron_rotations.ipynb) shows how to rotate neurons based on position.
-* [connect_structures_example](connect_structures_example.ipynb) shows how to create neuron projections between volumes when no-axon data is available ([parallel version](connect_structures_example_parallel.ipynb)).
+* [bend_morphologies](bend_morphologies.ipynb) shows how to make the neurons bend the axons and dendrites at the edge of the mesh, to keep them constrained to the volume.
+* [connect_structures_example](connect_structures_example.ipynb) shows how to create neuron projections between volumes when no-axon data is available ([parallel version](connect_structures_example_parallel.ipynb)). There is also an [alternative version](connect_structures_example_projection_detection.ipynb) that places axon voxels randomly within the projection zone and then applies touch detection.
+* [composite axon example](ProjectionExample/composite_axon_projections.ipynb) shows how to create neuron projections between (or within) volumes using separate axon morphologies (.swc-files).
+* [virtual_neurons](VirtualNeurons/VirtualNeurons.ipynb) shows how to only simulate the core of a volume of neurons, by turning the outer neurons to virtual neurons that spike at predetermined times. This is useful to avoid edge effects in your simulations.
 
+* [Advanced region creation](StriatumExample/CreateStriatum.ipynb) that shows how regions can be specified using multiple files.
 
 ## Input creation
 * [input_generation_example_1](input_generation_example_1.ipynb) generate constant Poisson input (uses [simple_network_creation](simple_network_creation.ipynb))
 * [input_generation_example_2_frequency_vectors](input_generation_example_2_frequency_vectors.ipynb) define Poisson input with multiple start/stop times (uses [simple_network_creation](simple_network_creation.ipynb)).
 * [input_generation_example_3_correlation](input_generation_example_3_correlation.ipynb) finer control in input targeting (uses [population_unit_network](population_unit_network.ipynb))
 * [input_tuning_example](input_tuning_example.ipynb) explore what input number and frequency are good neurons, e.g to avoid depolarisation block.
-
+* [Advanced input tuning](../parallel/KTH_PDC/input_tuning/) using the Dardel super computer. Here both background and signal level are optimised, and the result is written to meta.json in BasalGangliaData.
+* [input_frequency](InputFrequency/InputFrequency.ipynb) time varying input frequency example
+* [basal_ganglia_data_input](Input-generation-using-BasalGangliaData.ipynb) builds upon the input tuned in BasalGangliaData.
 
 ## Striatum example
 * [striatum_example](striatum_example.ipynb) creates a small striatal network, increase number of neurons for the full version.
 * [striatum_example_simulate](striatum_example_simulate.ipynb) sets up input and simulates the [striatum_example](striatum_example.ipynb) network.
-* [striatum_example_plot](striatum_example_plot.ipynb) plots spike raster from [striatum_example_simulate](striatum_example_simulate.ipynb). Figure 4 in Methods paper has a larger version.
+
+## Complete Snudda example for EBRAINS
+* [Create custom network](EBRAINS/CreateMicrocircuit.ipynb) with more control, and [simulate network](EBRAINS/SimulateMicrocircuitry.ipynb)
 
 
 ## Visualisation
@@ -32,4 +41,5 @@ Here is a collection of Jupyter Notebooks, some of the workflows are split over 
 
 
 ## Additional notebooks
-* [Paired current injection](network_pair_pulse_simulation.ipynb) in a simulated network
+* [Paired current injection](validation/synapses/network_pair_pulse_simulation.ipynb) in a simulated network
+* [Neuromodulation examples](https://github.com/jofrony/Neuromodulation-software/tree/main/examples) in a network

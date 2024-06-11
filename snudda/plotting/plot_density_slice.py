@@ -24,7 +24,7 @@ class PlotDensitySlice:
         if projection is None:
             projection = "3d"
 
-        n_neurons = self.sl.data["nNeurons"]
+        n_neurons = self.sl.data["num_neurons"]
 
         cell_id = self.neuron_type_lookup[neuron_type]
         ok_mask = np.zeros((n_neurons,), dtype=int)

@@ -1,0 +1,59 @@
+{
+    "network_path": "network_testing_degeneration/B", 
+    "random_seed": {
+        "masterseed": 1234,
+        "init": 2906597030,
+        "place": 1602421836,
+        "detect": 216676975,
+        "prune": 2698621808,
+        "input": 507409703,
+        "simulate": 2825158027
+    },
+    "snudda_data" : "validation/ballanddoublestick_degenerated",
+    "regions": {
+	"TestStriatum": {
+	    "volume": {
+		"type": "mesh",
+		"d_min": 1e-5,
+		"mesh_file": "mesh/simple_mesh.obj",
+		"num_putative_points": 5000
+	    },
+	    "connectivity": {
+		"ballanddoublestick,ballanddoublestick": {
+		    "GABA": {
+			"conductance": [1.1e-9, 1.5e-9],
+			"pruning": {
+			    "f1": 1,
+			    "soft_max": 5,
+			    "mu2": null,
+			    "a3": 1,
+			    "dist_pruning": null
+			}
+		    },
+		    "gap_junction": {
+			"conductance": [5e-10, 1e-10],
+			"channel_parameters": null,
+			"pruning": {
+			    "f1": 1,
+			    "soft_max": 8,
+			    "mu2": null,
+			    "a3": 1.0,
+			    "dist_pruning": null
+			}
+		    }
+		}
+	    },
+	    "neurons": {
+		"ballanddoublestick": {
+		    "neuron_path": {
+		    	"ballanddoublestick_0": "$SNUDDA_DATA/"
+		    },
+		    "num_neurons": 21,
+		    "neuron_type": "neuron",
+		    "rotation_mode": "",
+		    "volume_id": "TestStriatum"
+		}
+	    }
+	}
+    }
+}

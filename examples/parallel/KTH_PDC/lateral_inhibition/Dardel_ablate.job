@@ -1,0 +1,40 @@
+#!/bin/bash -l
+#SBATCH --partition=main
+#SBATCH -o log/Simulate-%j-output.txt
+#SBATCH -e log/Simulate-%j-error.txt
+#SBATCH -t 0:29:00
+#SBATCH -J Simulate
+#SBATCH -A naiss2023-5-231
+#SBATCH --nodes=1
+#SBATCH --tasks-per-node=128
+#SBATCH --mail-type=ALL
+
+export N_WORKERS=$SLURM_NTASKS
+
+module load snic-env
+source $HOME/Snudda/snudda_env/bin/activate
+SNUDDA_DIR=/cfs/klemming/home/"${USER:0:1}"/$USER/Snudda
+
+# If the BasalGangliaData directory exists, then use that for our data
+if [[ -d "/cfs/klemming/home/${USER:0:1}/$USER/BasalGangliaData/data" ]]; then
+    export SNUDDA_DATA="/cfs/klemming/home/${USER:0:1}/$USER/BasalGangliaData/data"
+    echo "Setting SNUDDA_DATA to $SNUDDA_DATA"
+    rm mechanisms
+    ln -s $SNUDDA_DATA/neurons/mechanisms/ mechanisms
+else
+    echo "SNUDDA_DATA environment variable not changed (may be empty): $SNUDDA_DATA"
+    rm mechanisms
+    ln -s ../../../snudda/data/neurons/mechanisms/
+fi
+
+
+echo "Network dir: "$NETWORK_DIR
+
+export PATH=$SNUDDA_DIR/snudda_env/bin/:$PATH
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CRAY_LD_LIBRARY_PATH
+export PYTHONPATH=$SNUDDA_DIR/snudda_env/lib/python3.9/
+
+##############
+
+
+python ablate_network.py

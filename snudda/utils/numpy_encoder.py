@@ -17,4 +17,3 @@ class NumpyEncoder(json.JSONEncoder):
         else:
             # return super(NumpyEncoder, self).default(obj)
             return json.JSONEncoder.default(self, obj)
-

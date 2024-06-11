@@ -1,0 +1,22 @@
+{
+
+    "meta" : {
+	"simulation_duration" : 2,
+	"v_init" : -80e-3,
+	"pair_recording_voltage_file" : "network-output-5.hdf5",
+	"reversal_potential" : [["tmGabaA", -40e-3]]
+    },
+    
+    "current_injection" : [
+	{
+	    "neuron_id" : 1,
+	    "start" : [0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.7],
+	    "end" : [0.51, 0.61, 0.71, 0.81, 0.91, 1.01, 1.11, 1.21, 1.71],
+	    "amplitude" : 10e-9
+	}
+    ],
+
+    "record_synaptic_current" : [[1, 10], [1, 9]]
+    
+	
+}

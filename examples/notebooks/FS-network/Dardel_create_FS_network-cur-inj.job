@@ -1,0 +1,45 @@
+#!/bin/bash -l
+#SBATCH --partition=main
+#SBATCH -o log/create-network-cur-inj-%j-output.txt
+#SBATCH -e log/create-network-cur-inj-%j-error.txt
+#SBATCH -t 0:19:00
+#SBATCH -J Snudda
+#SBATCH -A snic2021-5-492
+#SBATCH --nodes=1
+#SBATCH --tasks-per-node=64
+
+
+echo "*************************************************************************"
+echo " "
+echo "If the network file fails to create, run interactively to create it"
+echo "See interactive-node.txt for more information, "
+echo "and use interactive-node-create-config.sh"
+echo " "
+echo "*************************************************************************"
+echo " "
+
+module load snic-env
+
+export IPYTHONDIR="/cfs/klemming/scratch/${USER:0:1}/$USER/.ipython"
+rm -r $IPYTHONDIR
+export IPYTHON_PROFILE=default
+source $HOME/Snudda/snudda_env/bin/activate
+
+# If the BasalGangliaData directory exists, then use that for our data                         
+#/cfs/klemming/scratch/${USER:0:1}/$USER/BasalGangliaData/data                                 
+
+if [[ -d "$HOME/BasalGangliaData/data" ]]; then
+    export SNUDDA_DATA="$HOME/BasalGangliaData/data"
+    echo "Setting SNUDDA_DATA to $SNUDDA_DATA"
+else
+    echo "SNUDDA_DATA environment variable not changed (may be empty): $SNUDDA_DATA"
+fi
+
+
+if [ $SLURM_PROCID -gt 0 ]; then
+    mock_string="Not main process"
+else
+    srun python3 FS_network_make_config_2-cur-inj.py 
+fi
+    
+srun ./Dardel_create_FS_network-cur-inj.sh

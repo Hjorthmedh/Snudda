@@ -2,25 +2,29 @@
     "dSPN": {
         "Ctx" : {
             "generator" : "poisson",
-            "frequency" : 1,
+	    "start" : [0, 4, 5],
+	    "end" : [4, 5, 10],
+            "frequency" : [2, 4, 2],
             "conductance" : 0.5e-9,
-            "nInputs" : 10,
-            "populationUnitCorrelation" : 0.5,
+            "num_inputs" : 20,
+            "population_unit_correlation" : [0.5, 1.0, 0.5],
             "jitter" : 0.01,	    
-            "modFile": "tmGlut"
+            "mod_file": "tmGlut"
         }
     },
 
     "iSPN": {
         "Ctx" : {
             "generator" : "poisson",
+	    "start" : [0, 5],
+	    "end" : [3, 10],	    
             "frequency" : 1,
             "conductance" : 0.5e-9,
             "nInputs" : 10,
             "jitter" : 0.01,
-            "populationUnitCorrelation" : 0.2,
-            "populationUnitID" : 1,
-            "modFile": "tmGlut"
+            "population_unit_correlation" : 0.2,
+            "population_unit_id" : 1,
+            "mod_file": "tmGlut"
         }
     }
 }

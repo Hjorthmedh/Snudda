@@ -1,0 +1,94 @@
+{
+    "dSPN": {
+	"CorticalBase" : {
+	    "generator" : "poisson",
+	    "type" : "AMPA_NMDA",
+	    "synapse_density" : "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+	    "frequency" : 2,
+	    "population_unit_correlation" : 0.0,
+	    "jitter" : 0.002,
+	    "conductance" : 5e-10,
+	    "mod_file": "tmGlut",
+	    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json",
+            "num_inputs" : {
+		"dSPN_0" : 55,
+		"dSPN_1" : 145,
+		"dSPN_2" : 185,
+		"dSPN_3" : 110
+	    }
+	},
+	"CorticalSignal" : {
+	    "generator" : "poisson",
+	    "start" : 0.300,
+	    "end" : 0.800,
+	    "type" : "AMPA_NMDA",
+	    "synapse_density" : "0.45*0.05/(1+exp(-(d-30e-6)/5e-6))",
+	    "frequency" : 20,
+	    "population_unit_correlation" : 0.0,
+	    "jitter" : 0.002,
+	    "conductance" : 5e-10,
+	    "mod_file": "tmGlut",
+	    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json",
+            "num_inputs" : {
+		"dSPN_0" : 15,
+		"dSPN_1" : 10,
+		"dSPN_2" : 20,
+		"dSPN_3" : 20 
+	    }
+	},
+	"Thalamic" : {
+	    "generator" : "poisson",	    
+	    "type" : "AMPA_NMDA",
+	    "synapse_density" : "0.05*exp(-d/200e-6)",
+	    "frequency" : 2,
+	    "population_unit_correlation" : 0.0,
+	    "jitter" : 0.01,
+	    "conductance" : 5e-10,
+	    "mod_file": "tmGlut",
+	    "parameter_file":"$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json",
+            "num_inputs" : {
+		"dSPN_0" : 65,
+		"dSPN_1" : 110,
+		"dSPN_2" : 120,
+		"dSPN_3" : 90
+	    }
+	}	
+    },
+
+    "iSPN": {
+	"CorticalBase" : {
+	    "generator" : "poisson",
+	    "type" : "AMPA_NMDA",
+	    "synapse_density": "0.75*0.052/(1+exp(-(d-30e-6)/5e-6))",
+	    "frequency" : 4,
+	    "population_unit_correlation" : 0.0,
+	    "jitter" : 0.003,
+	    "conductance" : 5e-10,
+        "mod_file":"tmGlut",
+	    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json",
+            "num_inputs" : {
+		"iSPN_0" : 70,
+		"iSPN_1" : 80,
+		"iSPN_2" : 40,
+		"iSPN_3" : 180
+	    }
+	},
+	"Thalamic" : {
+	    "generator" : "poisson",	    
+	    "type" : "AMPA_NMDA",
+	    "synapse_density" : "0.052*exp(-d/200e-6)",
+	    "frequency" : 2,
+	    "population_unit_correlation" : 0.0,
+	    "jitter" : 0.01,
+	    "conductance" : 5e-10,
+	    "mod_file": "tmGlut",
+	    "parameter_file":"$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json",
+	    "num_inputs" : {
+		"iSPN_0" : 60,
+		"iSPN_1" : 65,
+		"iSPN_2" : 40 ,
+		"iSPN_3" : 100
+	    }
+	}	
+    }    
+}

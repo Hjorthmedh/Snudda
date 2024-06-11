@@ -4,11 +4,11 @@
 #
 #
 
-import numpy as np
-import sys
 import os
+import sys
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 from snudda.analyse.analyse import SnuddaAnalyse
 
@@ -17,21 +17,18 @@ class SnuddaAnalyseStriatum(SnuddaAnalyse):
 
     def __init__(self, sim_dir, volume_type="cube", side_len=300e-6):
 
+        assert os.path.exists(sim_dir), f"SnuddaAnalyseStriatum: Error {sim_dir} does not exist!"
+
         if os.path.isfile(sim_dir):
-            # We allow the user to also send in a hdf5 file as simDir...
+            # We allow the user to also send in a hdf5 file as sim_dir...
             hdf5_file = sim_dir
-            self.simDir = os.path.dirname(sim_dir)
+            self.sim_dir = os.path.dirname(sim_dir)
         else:
-            self.simDir = sim_dir
-            hdf5_file = sim_dir + "/network-synapses.hdf5"
+            assert os.path.isdir(sim_dir), f"SnuddaAnalyseStriatum: Expected sim_dir {sim_dir} to be a directory"
+            self.sim_dir = sim_dir
+            hdf5_file = os.path.join(sim_dir, "network-synapses.hdf5")
 
-            if not os.path.exists(hdf5_file):
-                alt_hdf5_file = sim_dir + "/network-connect-voxel-pruned-synapse-file.hdf5"
-
-                if os.path.exists(alt_hdf5_file):
-                    hdf5_file = alt_hdf5_file
-
-        print("Loading " + str(hdf5_file))
+        print(f"Loading {hdf5_file}")
 
         super().__init__(hdf5_file=hdf5_file, load_cache=True,
                          volume_type=volume_type,
@@ -77,7 +74,7 @@ class SnuddaAnalyseStriatum(SnuddaAnalyse):
                     continue
 
                 try:
-                    pair_id = tuple([self.allTypes.index(x) for x in pair])
+                    pair_id = tuple([self.all_types.index(x) for x in pair])
                 except:
                     import traceback
                     tstr = traceback.format_exc()
@@ -130,7 +127,7 @@ if __name__ == "__main__":
 
     if len(sys.argv) > 1:
         sim_dir = sys.argv[1]
-        print("Reading network from " + str(sim_dir))
+        print(f"Reading network from {sim_dir}")
     else:
         print("Please specify which directory the striatum network files is in")
         sys.exit(-1)
@@ -152,6 +149,8 @@ if __name__ == "__main__":
     # import pdb
     # pdb.set_trace()
 
+    dump_connection_data_to_file = os.path.join(sim_dir, "connection_data.json")
+
     nas.plot_synapse_cum_dist_summary(pair_list=[("dSPN", "ChIN"),
                                                  ("iSPN", "ChIN"),
                                                  ("LTS", "ChIN")])
@@ -169,32 +168,36 @@ if __name__ == "__main__":
                                                  ("ChIN", "iSPN")])
 
     if plotHenrike:
-        yMaxH = None  # 0.5
+        y_max_H = None  # 0.5
 
-        nas.plot_connection_probability("dSPN", "iSPN", 
-                                        dist_3d=dist3D, 
-                                        exp_max_dist=[50e-6, 100e-6], 
+        nas.plot_connection_probability("dSPN", "iSPN",
+                                        dist_3d=dist3D,
+                                        exp_max_dist=[50e-6, 100e-6],
                                         exp_data=[3 / 47.0, 3 / 66.0],
                                         exp_data_detailed=[(3, 47), (3, 66)],
-                                        y_max=yMaxH)
-        nas.plot_connection_probability("dSPN", "dSPN", 
-                                        dist_3d=dist3D, 
-                                        exp_max_dist=[50e-6, 100e-6], 
+                                        y_max=y_max_H,
+                                        dump_data_to_file=dump_connection_data_to_file)
+        nas.plot_connection_probability("dSPN", "dSPN",
+                                        dist_3d=dist3D,
+                                        exp_max_dist=[50e-6, 100e-6],
                                         exp_data=[5 / 19.0, 3 / 43.0],
                                         exp_data_detailed=[(5, 19), (3, 43)],
-                                        y_max=yMaxH)
-        nas.plot_connection_probability("iSPN", "dSPN", 
-                                        dist_3d=dist3D, 
-                                        exp_max_dist=[50e-6, 100e-6], 
+                                        y_max=y_max_H,
+                                        dump_data_to_file=dump_connection_data_to_file)
+        nas.plot_connection_probability("iSPN", "dSPN",
+                                        dist_3d=dist3D,
+                                        exp_max_dist=[50e-6, 100e-6],
                                         exp_data=[13 / 47.0, 10 / 80.0],
                                         exp_data_detailed=[(13, 47), (10, 80)],
-                                        y_max=yMaxH)
+                                        y_max=y_max_H,
+                                        dump_data_to_file=dump_connection_data_to_file)
         nas.plot_connection_probability("iSPN", "iSPN",
                                         dist_3d=dist3D,
                                         exp_max_dist=[50e-6, 100e-6],
                                         exp_data=[14 / 39.0, 7 / 31.0],
                                         exp_data_detailed=[(14, 39), (7, 31)],
-                                        y_max=yMaxH)
+                                        y_max=y_max_H,
+                                        dump_data_to_file=dump_connection_data_to_file)
 
     nas.plot_num_synapses_per_pair("dSPN", "dSPN")
     nas.plot_num_synapses_per_pair("dSPN", "iSPN")
@@ -223,14 +226,16 @@ if __name__ == "__main__":
                                         exp_max_dist=[100e-6, 150e-6, 250e-6],
                                         exp_data=[6 / 9.0, 21 / 54.0, 27 / 77.0],
                                         exp_data_detailed=[(6, 9), (21, 54), (27, 77)],
-                                        y_max=None)
+                                        y_max=None,
+                                        dump_data_to_file=dump_connection_data_to_file)
 
         nas.plot_connection_probability("FS", "dSPN",
                                         dist_3d=dist3D,
                                         exp_max_dist=[100e-6, 150e-6, 250e-6],
                                         exp_data=[8 / 9.0, 29 / 48.0, 48 / 90.0],
                                         exp_data_detailed=[(8, 9), (29, 48), (48, 90)],
-                                        y_max=None)
+                                        y_max=None,
+                                        dump_data_to_file=dump_connection_data_to_file)
 
         nas.plot_num_synapses_per_pair("FS", "dSPN")
         nas.plot_num_synapses_per_pair("FS", "iSPN")
@@ -242,17 +247,20 @@ if __name__ == "__main__":
                                         dist_3d=dist3D,
                                         exp_max_dist=[250e-6],
                                         exp_data=[7 / 12.0],
-                                        exp_data_detailed=[(7, 12)])
+                                        exp_data_detailed=[(7, 12)],
+                                        dump_data_to_file=dump_connection_data_to_file)
 
         nas.plot_num_synapses_per_pair("FS", "FS")
 
         # Koos & Tepper 1999, 2/6
+        # McKeon, ... , Matheur 2022, 6/78 -- coupling 0.0006 to 0.0789
         nas.plot_connection_probability("FS", "FS",
                                         dist_3d=dist3D,
                                         connection_type="gapjunctions",
-                                        exp_max_dist=[250e-6, 250e-6],
-                                        exp_data=[2 / 6.0, 3 / 7.0],
-                                        exp_data_detailed=[(2, 6), (3, 7)], )
+                                        exp_max_dist=[200e-6, 250e-6, 250e-6],
+                                        exp_data=[6/78.0, 2 / 6.0, 3 / 7.0],
+                                        exp_data_detailed=[(6, 78), (2, 6), (3, 7)],
+                                        dump_data_to_file=dump_connection_data_to_file)
 
         nas.plot_num_synapses_per_pair("FS", "FS", connection_type="gapjunctions")
 
@@ -282,14 +290,16 @@ if __name__ == "__main__":
                                         exp_max_dist=[250e-6],
                                         exp_data=[2 / 60.0],
                                         exp_data_detailed=[(2, 60)],
-                                        x_max=500)
+                                        x_max=500,
+                                        dump_data_to_file=dump_connection_data_to_file)
 
         nas.plot_connection_probability("LTS", "iSPN",
                                         dist_3d=dist3D,
                                         exp_max_dist=[250e-6],
                                         exp_data=[2 / 60.0],
                                         exp_data_detailed=[(2, 60)],
-                                        x_max=500)
+                                        x_max=500,
+                                        dump_data_to_file=dump_connection_data_to_file)
 
         # Silberberg et al 2013, 2/12 FS-> LTS connected --- distance??
         # Voltage deflection... 0.5mV and 0.8mV
@@ -299,7 +309,8 @@ if __name__ == "__main__":
                                         dist_3d=dist3D,
                                         exp_max_dist=[250e-6],
                                         exp_data=[2.0 / 12],
-                                        exp_data_detailed=[(2, 12)])
+                                        exp_data_detailed=[(2, 12)],
+                                        dump_data_to_file=dump_connection_data_to_file)
 
         nas.plot_num_synapses_per_pair("LTS", "dSPN")
         nas.plot_num_synapses_per_pair("LTS", "iSPN")
@@ -320,22 +331,26 @@ if __name__ == "__main__":
     nas.plot_num_synapses_per_pair("ChIN", "LTS")
 
     nas.plot_connection_probability("ChIN", "LTS",
-                                    dist_3d=dist3D)
+                                    dist_3d=dist3D,
+                                    dump_data_to_file=dump_connection_data_to_file)
 
     # Janicova 2015?? --- distance??!
     nas.plot_connection_probability("ChIN", "iSPN",
                                     dist_3d=dist3D,
                                     exp_max_dist=[250e-6],
-                                    exp_data=[0.05])
+                                    exp_data=[0.05],
+                                    dump_data_to_file=dump_connection_data_to_file)
 
     nas.plot_connection_probability("ChIN", "dSPN",
                                     dist_3d=dist3D,
                                     exp_max_dist=[250e-6],
-                                    exp_data=[0.05])
+                                    exp_data=[0.05],
+                                    dump_data_to_file=dump_connection_data_to_file)
 
     if True:
         nas.plot_connection_probability("LTS", "ChIN",
-                                        dist_3d=dist3D)
+                                        dist_3d=dist3D,
+                                        dump_data_to_file=dump_connection_data_to_file)
 
         # ALSO ADD GAP JUNCTIONS PLOT!!!
         # No exp data for this -- Gittis,...,Kreitzer 2010 (p2228) -- 7/12 (and 3/4 reciprocal) -- distance?
@@ -375,7 +390,8 @@ if __name__ == "__main__":
 
         nas.plot_connection_probability("ChIN", "FS",
                                         dist_3d=dist3D,
-                                        y_max=None)
+                                        y_max=None,
+                                        dump_data_to_file=dump_connection_data_to_file)
 
         # A MS neuron receives 1e4 assymetrical synapses (Kincaid et al 1998),
         # and 2500 symmetrical synapses (Ingham et al 1998). Symmetrical synapses
@@ -396,9 +412,11 @@ if __name__ == "__main__":
         # så är 200 MS aktiva, om 75% av ChIN känner av MS input
         # (1-p)^200 = 0.25 --> 0.7 %
         nas.plot_connection_probability("dSPN", "ChIN",
-                                        dist_3d=dist3D)
+                                        dist_3d=dist3D,
+                                        dump_data_to_file=dump_connection_data_to_file)
         nas.plot_connection_probability("iSPN", "ChIN",
-                                        dist_3d=dist3D)
+                                        dist_3d=dist3D,
+                                        dump_data_to_file=dump_connection_data_to_file)
 
         # nas.nearestPreNeighbourDistance("LTS","dSPN")
         # nas.nearestPreNeighbourDistance("LTS","iSPN")
@@ -422,4 +440,4 @@ if __name__ == "__main__":
         nas.plot_incoming_connections(neuron_type="ChIN", pre_type="dSPN")
         nas.plot_incoming_connections(neuron_type="ChIN", pre_type="iSPN")
 
-    nas.plot_synapse_dist(density_flag=True)
+    # nas.plot_synapse_dist(density_flag=True)

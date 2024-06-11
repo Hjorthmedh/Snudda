@@ -1,20 +1,47 @@
 import os
 import h5py
 import numpy as np
+import json
 
+from snudda.utils.snudda_path import get_snudda_data
+from snudda.utils.snudda_path import snudda_parse_path
 from snudda.utils import SnuddaLoad
-from snudda.neurons.neuron_morphology import NeuronMorphology
+from snudda.neurons.neuron_morphology_extended import NeuronMorphologyExtended
 from snudda.neurons.neuron_prototype import NeuronPrototype
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 
 class SnuddaPlotInputLocations:
 
-    def __init__(self, network_path):
+    def __init__(self, network_path=None, network_file=None, input_file=None, snudda_data=None,
+                 plot_in_origo=False):
+
+        if not network_path:
+            if network_file:
+                network_path = os.path.dirname(network_file)
+            elif input_file:
+                network_path = os.path.dirname(input_file)
+            else:
+                network_path = "./"
 
         self.network_path = network_path
-        self.network_file = os.path.join(network_path, "network-synapses.hdf5")
-        self.input_file = os.path.join(network_path, "input-spikes.hdf5")
+
+        if snudda_data:
+            self.snudda_data = snudda_data
+        else:
+            self.snudda_data = get_snudda_data(network_path=self.network_path)
+
+        if network_file is None:
+            self.network_file = os.path.join(network_path, "network-synapses.hdf5")
+        else:
+            self.network_file = network_file
+
+        if input_file is None:
+            self.input_file = os.path.join(network_path, "input-spikes.hdf5")
+        else:
+            self.input_file = input_file
+            
         self.neuron_cache = dict()
 
         self.snudda_load = SnuddaLoad(self.network_file)
@@ -22,32 +49,81 @@ class SnuddaPlotInputLocations:
         if os.path.exists(self.input_file):
             self.input_data = h5py.File(self.input_file, "r")
         else:
+            print(f"No input file: {self.input_file}")
             self.input_data = None
+
+        self.input_config = None
+
+        if self.input_data is not None:
+            self.load_input_config()
+
+        self.dend_hist_cache = dict()
+
+        self.plot_in_origo = plot_in_origo
+
+    def plot_input_soma_distance(self, neuron_id, input_type, n_bins=20):
+
+        neuron_name = self.snudda_load.data["neurons"][neuron_id]["name"]
+
+        distance_to_soma = self.get_input_soma_distance(neuron_id=neuron_id, input_name=input_type)
+
+        plt.figure()
+        plt.hist(distance_to_soma*1e6, bins=n_bins)
+        plt.xlabel("Distance to soma (mum)")
+        plt.ylabel("Count")
+        plt.title(f"{neuron_name} ({neuron_id}) {distance_to_soma.size} {input_type} synapses")
+        plt.ion()
+        plt.show()
+
+        fig_name = os.path.join(self.network_path, "figures", f"Input-soma-distance-{neuron_id}-{input_type}.png")
+        plt.savefig(fig_name)
 
     def plot_neuron_inputs(self, neuron_id,
                            input_type=None,
                            show_internal_synapses=True,
-                           external_colour=None, internal_colour=None):
-
-        # TODO: Add ability to plot touch detected inputs also (use blue colour for them)
+                           external_colour=None, internal_colour=None,
+                           ax=None, neuron_colour=None,
+                           size=10,
+                           save_fig=True,
+                           dpi=300,
+                           show_figure=True,
+                           hide_axis=False,
+                           hide_grid=True,
+                           figure_size=None):
 
         coords = self.get_input_coords(neuron_id=neuron_id, input_type=input_type)
 
-        if not external_colour:
+        if external_colour is None:
             external_colour = "r"
 
-        if not internal_colour:
+        if internal_colour is None:
             internal_colour = "b"
 
         nm = self.load_neuron(neuron_id=neuron_id)
-        ax = nm.plot_neuron(soma_colour=[0, 0, 0], dend_colour=[0, 0, 0], plot_axon=False, plot_dendrite=True)
+
+        if ax is None:
+            fig = plt.figure(visible=show_figure, figsize=figure_size)
+            ax = fig.add_subplot(111, projection='3d')
+
+        if neuron_colour is None:
+            neuron_colour = np.array([0, 0, 0])
+
+        ax = nm.plot_neuron(soma_colour=neuron_colour, dend_colour=neuron_colour,
+                            plot_axon=False, plot_dendrite=True,
+                            show_plot=False, axis=ax)
 
         if len(coords) > 0:
-            ax.scatter(xs=coords[:, 0], ys=coords[:, 1], zs=coords[:, 2], c=external_colour, marker=".")
+            print(f"Plotting {len(coords)} external synapses")
+           
+            ax.scatter(xs=coords[:, 0], ys=coords[:, 1], zs=coords[:, 2],
+                       c=external_colour, marker=".", s=size)
 
         if show_internal_synapses:
             syn_coords = self.get_synapse_coords(neuron_id=neuron_id)
-            ax.scatter(xs=syn_coords[:, 0], ys=syn_coords[:, 1], zs=syn_coords[:, 2], c=internal_colour, marker=".")
+
+            if syn_coords is not None:
+                ax.scatter(xs=syn_coords[:, 0], ys=syn_coords[:, 1], zs=syn_coords[:, 2],
+                           c=internal_colour, marker=".", s=size)
 
         neuron_name = self.snudda_load.data["neurons"][neuron_id]["name"]
 
@@ -69,26 +145,186 @@ class SnuddaPlotInputLocations:
         if not os.path.exists(fig_path):
             os.mkdir(fig_path)
 
-        fig_name = os.path.join(fig_path, f_name)
-        plt.savefig(fig_name, dpi=300)
+        if hide_grid:
+            ax.grid(None)
+
+        if hide_axis:
+            ax.set_axis_off()
+
+        x_labels = [f"{x*1e6:.0f}" for x in ax.get_xticks()]
+        y_labels = [f"{y*1e6:.0f}" for y in ax.get_yticks()]
+        z_labels = [f"{z*1e6:.0f}" for z in ax.get_zticks()]
+
+        ax.set_xticklabels(x_labels)
+        ax.set_yticklabels(y_labels)
+        ax.set_zticklabels(z_labels)
+
+        ax.set_xlabel("μm", fontsize=20)
+        ax.set_ylabel("μm", fontsize=20)
+        ax.set_zlabel("μm", fontsize=20)
+
+        if save_fig:
+            fig_name = os.path.join(fig_path, f_name)
+            plt.savefig(fig_name, dpi=dpi)
+            print(f"Figure written: {fig_name}")
+
+        if show_figure:
+            fig = ax.get_figure()
+            fig.set_visible(show_figure)
+
+        return ax
 
     def get_input_locations(self, neuron_id, input_type=None):
+
+        section_id = []
+        section_x = []
 
         if not self.input_data:
             # No input data available
             return None, None
 
-        section_id = []
-        section_x = []
-
         for input_name in self.input_data["input"][str(neuron_id)]:
             if input_type and input_name != input_type:
                 continue
 
-            section_id = section_id + list(self.input_data["input"][str(neuron_id)][input_name]["sectionID"])
-            section_x = section_x + list(self.input_data["input"][str(neuron_id)][input_name]["sectionX"])
+            section_id = section_id + list(self.input_data["input"][str(neuron_id)][input_name].attrs["section_id"])
+            section_x = section_x + list(self.input_data["input"][str(neuron_id)][input_name].attrs["section_x"])
 
         return np.array(section_id), np.array(section_x)
+
+    def get_input_soma_distance(self, neuron_id, input_name=None):
+
+        distance_to_soma = []
+
+        if input_name in self.input_data["input"][str(neuron_id)]:
+            distance_to_soma += list(self.input_data["input"][str(neuron_id)][input_name].attrs["distance_to_soma"])
+
+        return np.array(distance_to_soma)
+
+    def get_input_soma_distance_summary(self, neuron_type, input_name):
+        distance_to_soma = []
+
+        neuron_id = self.snudda_load.get_neuron_id_of_type(neuron_type=neuron_type)
+
+        for nid in neuron_id:
+            distance_to_soma.append(self.get_input_soma_distance(neuron_id=nid, input_name=input_name))
+
+        distance_to_soma_all = np.concatenate(distance_to_soma)
+
+        return distance_to_soma_all
+
+    def load_input_config(self):
+
+        self.input_config = json.loads(SnuddaLoad.to_str(self.input_data["config"][()]))
+
+    def get_max_dendrite_distance(self, neuron_type):
+
+        neuron_id = self.snudda_load.get_neuron_id_of_type(neuron_type=neuron_type)
+
+        max_dist = 0
+
+        for nid in neuron_id:
+
+            swc_file = snudda_parse_path(self.snudda_load.data["neurons"][nid]["morphology"], self.snudda_data)
+            morph = NeuronMorphologyExtended(swc_filename=swc_file)
+            dist_to_soma = morph.morphology_data["neuron"].geometry[:, 4]
+            max_dist = max(np.max(dist_to_soma), max_dist)
+
+        return max_dist
+
+    def plot_input_location(self, neuron_type, input_name, n_bins=15):
+
+        import numexpr
+
+        distance_to_soma = self.get_input_soma_distance_summary(neuron_type=neuron_type, input_name=input_name)
+        max_dist = self.get_max_dendrite_distance(neuron_type=neuron_type) + 1e-6
+
+        dendrite_density = self.dendrite_density_for_type(neuron_type=neuron_type, max_dist=max_dist, num_bins=n_bins)
+
+        count, edges = np.histogram(distance_to_soma, range=(0, max_dist), bins=n_bins)
+
+        # divide by bin_width (scaled to micrometers) and divide by dendrite_density
+        norm_count = count/np.sum(count)/(max_dist*1e6/n_bins)
+
+        fig = plt.figure()
+        plt.stairs(norm_count, edges * 1e6, color="black")
+
+        plt.xlabel("Distance ($\mu$m)")
+        plt.ylabel("Normalised total density")
+
+        if neuron_type in self.input_config and input_name in self.input_config[neuron_type] \
+                and "synapse_density" in self.input_config[neuron_type][input_name]:
+
+            synapse_density = self.input_config[neuron_type][input_name]["synapse_density"]
+            d = np.linspace(0, max_dist, n_bins)
+
+            synapse_density = numexpr.evaluate(synapse_density)
+            density = np.multiply(synapse_density, dendrite_density)
+            norm_density = density / np.sum(density) / (1e6 * (d[1] - d[0]))
+
+            plt.plot(d*1e6, norm_density, 'r')
+
+        plt.ion()
+        plt.show()
+        
+        return fig
+
+    def dendrite_density_for_type(self, neuron_type, max_dist, num_bins):
+
+        neuron_id = self.snudda_load.get_neuron_id_of_type(neuron_type=neuron_type)
+        dend_hist = np.zeros((num_bins,))
+
+        for nid in neuron_id:
+            dend_hist += self.dendrite_density(neuron_id=nid, max_dist=max_dist, num_bins=num_bins)
+
+        return dend_hist
+
+    def dendrite_density(self, neuron_id, max_dist, num_bins):
+
+        morph = snudda_parse_path(self.snudda_load.data["neurons"][neuron_id]["morphology"], self.snudda_data)
+        return self.dendrite_density_helper(swc_file=morph, max_dist=max_dist, num_bins=num_bins)
+
+    def dendrite_density_helper(self, swc_file, max_dist, num_bins):
+
+        if swc_file in self.dend_hist_cache:
+            return self.dend_hist_cache[swc_file]
+
+        bin_width = max_dist / num_bins
+
+        dend_hist = np.zeros((num_bins,))
+        morph = NeuronMorphologyExtended(swc_filename=swc_file)
+
+        for sec in morph.section_iterator(section_type=3):
+            seg_len = np.linalg.norm(np.diff(sec.position, axis=0), axis=1)
+            soma_dist = sec.soma_distance
+
+            for start_dist, end_dist, comp_length in zip(soma_dist[0:-1], soma_dist[1:], seg_len):
+                bin_a = int(start_dist/bin_width)
+                bin_b = int(end_dist/bin_width)
+
+                if comp_length > bin_width:
+                    print("Tell me why")
+                    import pdb
+                    pdb.set_trace()
+
+                assert comp_length < bin_width, f"Compartment length {comp_length} > bin width {bin_width} " \
+                                                f"(try using fewer bins)"
+                assert bin_a <= bin_b, f"Internal error, assume first element in link closer to soma"
+
+                if bin_a == bin_b:
+                    dend_hist[bin_a] += comp_length
+                else:
+                    frac_a = bin_width - (start_dist % bin_width)
+                    frac_b = (end_dist % bin_width)
+
+                    assert np.abs(frac_a + frac_b - comp_length) < 1e-9, f"Internal error!"
+
+                    dend_hist[bin_a] += frac_a
+                    dend_hist[bin_b] += frac_b
+
+        self.dend_hist_cache[swc_file] = dend_hist
+
+        return dend_hist
 
     def get_input_coords(self, neuron_id, input_type=None):
 
@@ -120,10 +356,19 @@ class SnuddaPlotInputLocations:
 
         if neuron_id not in self.neuron_cache:
             neuron_info = self.snudda_load.data["neurons"][neuron_id]
-            nm = NeuronMorphology(name=neuron_info["name"],
-                                  swc_filename=neuron_info["morphology"],
-                                  position=neuron_info["position"],
-                                  rotation=neuron_info["rotation"])
+
+            prot = NeuronPrototype(neuron_path=neuron_info["neuron_path"], neuron_name=neuron_info["name"],
+                                   snudda_data=self.snudda_data)
+
+            if self.plot_in_origo:
+                position = np.zeros((3,))
+                rotation = None
+            else:
+                position = neuron_info["position"]
+                rotation = neuron_info["rotation"]
+
+            nm = prot.clone(parameter_key=neuron_info["parameter_key"], morphology_key=neuron_info["morphology_key"],
+                            position=position, rotation=rotation)
             self.neuron_cache[neuron_id] = nm
 
         return self.neuron_cache[neuron_id]
@@ -132,19 +377,70 @@ class SnuddaPlotInputLocations:
 
         synapses, synapse_coords = self.snudda_load.find_synapses(post_id=neuron_id)
 
-        assert (neuron_id == synapses[:, 1]).all(), f"Internal error, post_id should be {neuron_id} for all"
+        if synapses is None:
+            return None
+
+        assert (neuron_id == synapses[:, 1]).all(), \
+            f"Internal error, post_id should be {neuron_id} for all"
+
+        # Also get synapse coords from section id and section x
+        section_id = synapses[:, 9]
+        section_x = synapses[:, 10] * 1e-3
+
+        nm = self.load_neuron(neuron_id=neuron_id)
+        coords = np.zeros((len(section_id), 3))
+
+        for idx, (sec_id, sec_x) in enumerate(zip(section_id, section_x)):
+            coords[idx, :] = nm.get_section_coordinates(section_id=sec_id, section_x=sec_x)
+
+        dist = np.linalg.norm(coords - synapse_coords, axis=-1)
+        max_dist = 10e-6  # np.sqrt(3*(5e-6 ** 2))
+        if (dist > max_dist).any():
+            bad_idx = np.where(dist > max_dist)[0]
+            print(f"Synapse coordinates mismatch {synapse_coords[bad_idx, :]} "
+                  f"vs {coords[np.where(dist > max_dist)[0], :]}"
+                  f" (distances {dist[bad_idx]} with allowed max_dist = {max_dist}) "
+                  f" (section id {section_id[bad_idx]}, {section_x[bad_idx]}")
+
+            ####
+            pos_idx = np.where(np.logical_or(nm.morphology_data["neuron"].section_data[:, 2] == 3,
+                                             nm.morphology_data["neuron"].section_data[:, 2] == 1))[0]
+            dend_pos = nm.morphology_data["neuron"].geometry[pos_idx, :3]
+
+            for syn_c, sec_id_mat, sec_x_mat, s_dist, syn_row in zip(synapse_coords, section_id, section_x, dist, synapses):
+
+                syn_dist = np.linalg.norm(dend_pos - syn_c, axis=1)
+                c_idx = np.argmin(syn_dist)
+                closest_idx = pos_idx[c_idx]
+                sec_id, sec_x = nm.morphology_data["neuron"].section_data[closest_idx, :2]
+
+                syn_voxels = syn_row[2:5]
+                if s_dist > max_dist:
+                    print(f"Synapse at {sec_id_mat} ({sec_x_mat:.3f}) dist {s_dist:.2g} has closer location {sec_id} ({sec_x/1e3:.3f}) dist {syn_dist[c_idx]:.2g} (syn_voxels {syn_voxels})")
+
+            # import pdb
+            # pdb.set_trace()
+            ####
+
         pre_id = synapses[:, 0]
 
         if pre_type:
             pre_id_list = self.snudda_load.get_neuron_id_of_type(pre_type=pre_type)
 
-        return synapse_coords
+            keep_idx = []
+            for idx, pid in enumerate(pre_id):
+                if pid in pre_id_list:
+                    keep_idx.append(idx)
+
+            coords = coords[idx, :]
+
+        return coords
 
 
 def plot_input_location_cli():
 
     import argparse
-    parser = argparse.ArgumentParser("Plot input locations")
+    parser = argparse.ArgumentParser("plot_input_locations")
     parser.add_argument("networkPath", help="Path to network directory")
     parser.add_argument("neuronID", help="NeuronID to inspect", type=int)
     parser.add_argument("--inputType", help="Input type to show (default all)", default=None, type=str)

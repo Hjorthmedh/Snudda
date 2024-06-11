@@ -14,15 +14,14 @@ import os
 import sys
 
 import h5py
-import numpy as np
-import time
 import numexpr
+import numpy as np
+
 
 # TODO: Check that no population unit list needs to be remapped also, this is old code that was just refactored...
 
 
 class SnuddaCut(object):
-
     """ Cuts part of the volume, to simulate creating a slice of tissue, or other cut. """
 
     def __init__(self, network_file, cut_equation="z>0",
@@ -33,14 +32,13 @@ class SnuddaCut(object):
 
         Args:
             network_file (str): Path to network file
-            cut_equation (str): Cut equation, e.g. "z>0"
+            cut_equation (str): Cut equation, e.g. "z>0" the neurons fullfilling equation are kept
             out_file_name (str): Path to new network file
             plot_only (bool): Only create a plot of cut
             show_plot (bool): Show plot on screen
         """
 
         self.cut_equation = cut_equation
-
         self.h5libver = "latest"
         self.h5driver = "sec2"
         self.in_file = None
@@ -63,7 +61,7 @@ class SnuddaCut(object):
             sys.exit(0)
 
         self.setup_output_file(self.out_file_name)
-        self.write_cut_slice(self.cut_equation_lambda)
+        self.write_cut_slice(self.cut_equation_lambda, self.out_file_name, print_remapping=False)
 
         self.plot_cut(include_synapses=True, include_gap_junctions=True,
                       show_plot=show_plot)
@@ -77,13 +75,15 @@ class SnuddaCut(object):
     # TODO: Split this function, so that one writes slice, but requires info about what to write
     #       while other function determines what we should keep/remove
 
-    def write_cut_slice(self, cut_equation_lambda):
+    def write_cut_slice(self, cut_equation_lambda, out_file_name=None, print_remapping=False):
 
         """ Write cut slice to file.
 
         Args:
             cut_equation_lambda : lamba function with cut equation
         """
+
+        """ Write network to hdf5 file: output_file_name """
 
         # Remove the neurons from the data
         soma_keep_flag = self.soma_inside(cut_equation_lambda)
@@ -95,13 +95,28 @@ class SnuddaCut(object):
             print("No somas left, aborting!")
             sys.exit(-1)
 
-        print(f"Keeping {num_soma_keep} out of {len(soma_keep_flag)}" 
-              "neurons (the others have soma outside of cut plane)")
+        print(f"Keeping {num_soma_keep} out of {len(soma_keep_flag)}"
+              " neurons (the others have soma outside of cut plane)")
 
-        # We need to remap neuronID in the synapses and gap junction matrix
+        # We need to remap neuron_id in the synapses and gap junction matrix
+        remapping_file = f"{out_file_name}-remapping.txt"
         remap_id = dict([])
-        for new_id, old_id in enumerate(soma_keep_id):
-            remap_id[old_id] = new_id
+        with open(remapping_file, "w") as f:
+            for new_id, old_id in enumerate(soma_keep_id):
+                remap_id[old_id] = new_id
+                f.write(f"{old_id}, {new_id}\n")
+            
+        if print_remapping:
+            print("\nRemapping neurons:")
+            for new_id, old_id in enumerate(soma_keep_id):
+                assert remap_id[old_id] == new_id, f"Internal error with remap_id"
+                if old_id == new_id:
+                    print(f"{old_id} the same")
+                else:
+                    print(f"{old_id} -> {new_id}")
+            print("")
+
+
 
         # TODO: Write unit test, that takes a connection matrix, notes how some of the cells are connected
         #       then does cut / ablation, and then verifies that those cells are still connected the same way, if left
@@ -111,9 +126,17 @@ class SnuddaCut(object):
         network_group = self.out_file.create_group("network")
         neuron_group = network_group.create_group("neurons")
 
+        if len(self.in_file["network/neurons/extra_axons/parent_neuron"][()]) > 0:
+            # To implement this we need to only keep the axons that have parent neurons that are still there
+            raise NotImplemented("extra_axons currently not supported by cut.py")
+
         for var_name in self.in_file["network/neurons"]:
 
             data = self.in_file[f"network/neurons/{var_name}"]
+
+            if type(data) == h5py._hl.group.Group:
+                self.in_file.copy(f"network/neurons/{var_name}", neuron_group)
+                continue
 
             if len(data.shape) == 0:
                 # Scalar data, just copy
@@ -130,14 +153,14 @@ class SnuddaCut(object):
                 print("writeCutSlice: Only handle 0D, 1D and 2D data, update code!")
                 sys.exit(-1)
 
-            if var_name == "neuronID":
+            if var_name == "neuron_id":
                 # We need to remap
                 neuron_group.create_dataset(var_name, data_shape, data.dtype,
                                             [remap_id[data[x]] for x in soma_keep_id],
                                             compression=data.compression)
 
                 # Double check that it is OK, should be in order after
-                assert (np.diff(neuron_group["neuronID"][()]) == 1).all(), \
+                assert (np.diff(neuron_group["neuron_id"][()]) == 1).all(), \
                     "Problem with neuron remapping!"
 
             else:
@@ -160,10 +183,10 @@ class SnuddaCut(object):
                                                          data_type="synapses")
 
             # Lastly deal with gap junctions
-            keep_gj_flag = self.synapses_inside(cut_equation_lambda, data_type="gapJunctions")
+            keep_gj_flag = self.synapses_inside(cut_equation_lambda, data_type="gap_junctions")
             keep_gj_flag = self.filter_neurons_synapses(soma_remove_id,
                                                         keep_flag=keep_gj_flag,
-                                                        data_type="gapJunctions")
+                                                        data_type="gap_junctions")
 
             num_syn = np.sum(keep_syn_flag)
             num_synapses = np.zeros((1,), dtype=np.uint64) + num_syn
@@ -171,40 +194,36 @@ class SnuddaCut(object):
             num_gj = np.sum(keep_gj_flag)
             num_gap_junctions = np.zeros((1,), dtype=np.uint64) + num_gj
 
-            network_group.create_dataset("nSynapses", data=num_synapses, dtype=np.uint64)
-            network_group.create_dataset("nGapJunctions", data=num_gap_junctions,
+            network_group.create_dataset("num_synapses", data=num_synapses, dtype=np.uint64)
+            network_group.create_dataset("num_gap_junctions", data=num_gap_junctions,
                                          dtype=np.uint64)
 
-            # TODO: !!!! might need to handle chunk size differently based on size...
-
-            syn_mat = self.in_file["network/synapses"]
-            gj_mat = self.in_file["network/gapJunctions"]
+            syn_mat = self.in_file["network/synapses"][()].copy()
+            gj_mat = self.in_file["network/gap_junctions"][()].copy()
 
             print("Copying synapses and gap junctions")
 
-            network_group.create_dataset("synapses", dtype=np.int32, shape=(num_syn, syn_mat.shape[1]),
-                                         chunks=syn_mat.chunks, maxshape=(None, syn_mat.shape[1]),
-                                         compression=syn_mat.compression)
-
-            network_group.create_dataset("gapJunctions", dtype=np.int32, shape=(num_gj, gj_mat.shape[1]),
-                                         chunks=gj_mat.chunks, maxshape=(None, gj_mat.shape[1]),
-                                         compression=gj_mat.compression)
-
             for idx, row_idx in enumerate(np.where(keep_syn_flag)[0]):
-                # We need to remap the neuronID if some neurons have been removed!!
-                row = syn_mat[row_idx, :]
-                row[0] = remap_id[row[0]]
-                row[1] = remap_id[row[1]]
-                network_group["synapses"][idx, :] = row
+                # We need to remap the neuron_id if some neurons have been removed!!
+                syn_mat[row_idx, 0] = remap_id[syn_mat[row_idx, 0]]
+                syn_mat[row_idx, 1] = remap_id[syn_mat[row_idx, 1]]
+
+            network_group.create_dataset("synapses", 
+                                         data=syn_mat[np.where(keep_syn_flag)[0], :],
+                                         dtype=np.int32, 
+                                         compression="gzip")
 
             print(f"Keeping {num_syn} synapses (out of {syn_mat.shape[0]})")
 
             for idx, row_idx in enumerate(np.where(keep_gj_flag)[0]):
-                # We need to remap the neuronID if some neurons have been removed!!
-                row = gj_mat[row_idx, :]
-                row[0] = remap_id[row[0]]
-                row[1] = remap_id[row[1]]
-                network_group["gapJunctions"][idx, :] = row
+                # We need to remap the neuron_id if some neurons have been removed!!
+                gj_mat[row_idx, 0] = remap_id[gj_mat[row_idx, 0]]
+                gj_mat[row_idx, 1] = remap_id[gj_mat[row_idx, 1]]
+                
+            network_group.create_dataset("gap_junctions",
+                                         data=gj_mat[np.where(keep_gj_flag)[0], :],
+                                         dtype=np.int32, 
+                                         compression="gzip")
 
             print(f"Keeping {num_gj}  gap junctions (out of {gj_mat.shape[0]})")
 
@@ -228,23 +247,22 @@ class SnuddaCut(object):
 
     def synapses_inside(self, cut_equation_lambda, data_type="synapses"):
 
-
         """ Check if synapses are inside cut_equation_lambda. Returns a numpy bool array.
 
         Args:
             cut_equation_lambda : lambda function representing cut
-            data_type : e.g. 'synapses' or 'gapJunctions'
+            data_type : e.g. 'synapses' or 'gap_junctions'
         """
 
-        voxel_size = self.in_file["meta/voxelSize"][()]
-        sim_origo = self.in_file["meta/simulationOrigo"][()]
+        voxel_size = self.in_file["meta/voxel_size"][()]
+        sim_origo = self.in_file["meta/simulation_origo"][()]
 
         if data_type == "synapses":
             pos = self.in_file["network/synapses"][:, 2:5] * voxel_size + sim_origo
-        elif data_type == "gapJunctions":
-            pos = self.in_file["network/gapJunctions"][:, 6:9] * voxel_size + sim_origo
+        elif data_type == "gap_junctions":
+            pos = self.in_file["network/gap_junctions"][:, 6:9] * voxel_size + sim_origo
         else:
-            print(f"filterNeuronsSynapses: Unknown data_type: {data_type} (valid are 'synapses' or 'gapJunctions'")
+            print(f"filterNeuronsSynapses: Unknown data_type: {data_type} (valid are 'synapses' or 'gap_junctions'")
             sys.exit(-1)
 
         inside_flag = np.array([cut_equation_lambda(x, y, z) for x, y, z in pos], dtype=bool)
@@ -253,43 +271,47 @@ class SnuddaCut(object):
 
     ############################################################################
 
-    # Returns the row numbers that do not contain the neuronID, ie filters
-    # the synapses belonging to neuronID out...
+    # Returns the row numbers that do not contain the neuron_id, ie filters
+    # the synapses belonging to neuron_id out...
 
-    # dataType = "synapses" or "gapJunctions"
+    # dataType = "synapses" or "gap_junctions"
 
     def filter_neurons_synapses(self, neuron_id, keep_flag=None, data_type="synapses"):
 
-        """ Filter synapse matrix, to only keep those synapses that belong to neuronID.
+        """ Filter synapse matrix, to only keep those synapses that belong to neuron_id.
 
         Args:
-            neuron_id : Neuron ID to keep
+            neuron_id : Neuron ID to remove
             keep_flag : Which synapses are available to pick from
-            data_type : "synapses" or "gapJunctions"
+            data_type : "synapses" or "gap_junctions"
 
         Returns:
             keep_flag : bool array with which synapses to keep
         """
+        print(f"filtering {data_type}")
+        num_neurons = self.in_file["network/neurons/neuron_id"].shape[0]
+        neuron_keep_flag = np.ones((num_neurons,),dtype=bool)
+        for nid in neuron_id:
+            neuron_keep_flag[nid] = False
 
         if data_type == "synapses":
             data_str = "network/synapses"
-        elif data_type == "gapJunctions":
-            data_str = "network/gapJunctions"
+        elif data_type == "gap_junctions":
+            data_str = "network/gap_junctions"
         else:
-            print(f"filter_neurons_synapses: Unknown data_type: {data_type} (valid are 'synapses', 'gapJunctions'")
+            print(f"filter_neurons_synapses: Unknown data_type: {data_type} (valid are 'synapses', 'gap_junctions'")
             sys.exit(-1)
 
         if keep_flag is None:
             keep_flag = np.ones((self.in_file[data_str].shape[0],), dtype=bool)
 
-        src_id = self.in_file[data_str][:, 0]
-        dest_id = self.in_file[data_str][:, 1]
+        source_id = self.in_file[data_str][:, 0]
+        destination_id = self.in_file[data_str][:, 1]
 
-        # This will be very slow for large networks, should be done smarter if a bottleneck
-        for n_id in neuron_id:
-            keep_flag = np.logical_and(keep_flag,
-                                       np.logical_and(src_id != n_id, dest_id != n_id))
+        for idx, (src_id, dest_id) in enumerate(zip(source_id, destination_id)):
+            keep_flag[idx] = neuron_keep_flag[src_id] and neuron_keep_flag[dest_id]
 
+        print(f"filtering of {data_type} done")
         return keep_flag
 
     ############################################################################
@@ -317,6 +339,7 @@ class SnuddaCut(object):
         if "config" in self.out_file:
             self.in_file.copy("config", self.out_file)
 
+        self.in_file.copy("config", self.out_file)
         self.in_file.copy("meta", self.out_file)
 
         if "morphologies" in self.in_file:
@@ -337,27 +360,27 @@ class SnuddaCut(object):
             show_plot (bool) : Plot, or just write to file?
         """
 
-        if "voxelSize" not in self.in_file["meta"]:
+        if "voxel_size" not in self.in_file["meta"]:
             print("plot_cut currently works after detect has been done, not plotting place files.")
             return
 
         print("Plotting verification figure")
 
-        voxel_size = self.in_file["meta/voxelSize"][()]
-        sim_origo = self.in_file["meta/simulationOrigo"][()]
+        voxel_size = self.in_file["meta/voxel_size"][()]
+        sim_origo = self.in_file["meta/simulation_origo"][()]
 
         in_pos = self.in_file["network/neurons/position"][()]
         in_syn = self.in_file["network/synapses"][:, 2:5] * voxel_size + sim_origo
-        in_gj = self.in_file["network/gapJunctions"][:, 6:9] * voxel_size + sim_origo
+        in_gj = self.in_file["network/gap_junctions"][:, 6:9] * voxel_size + sim_origo
 
         if self.out_file is not None:
             # Just double check that they match
-            assert self.out_file["meta/voxelSize"][()] == voxel_size
-            assert (self.out_file["meta/simulationOrigo"][()] == sim_origo).all()
+            assert self.out_file["meta/voxel_size"][()] == voxel_size
+            assert (self.out_file["meta/simulation_origo"][()] == sim_origo).all()
 
             out_pos = self.out_file["network/neurons/position"][()]
             out_syn = self.out_file["network/synapses"][:, 2:5] * voxel_size + sim_origo
-            out_gj = self.out_file["network/gapJunctions"][:, 6:9] * voxel_size + sim_origo
+            out_gj = self.out_file["network/gap_junctions"][:, 6:9] * voxel_size + sim_origo
 
         import matplotlib.pyplot as plt
         from mpl_toolkits.mplot3d import Axes3D
@@ -391,6 +414,7 @@ class SnuddaCut(object):
 
         if show_plot:
             plt.show()
+            print("close figure to exit program!")
 
     ############################################################################
 
@@ -421,3 +445,4 @@ if __name__ == "__main__":
                    cut_equation=args.cutEquation,
                    plot_only=args.plotOnly,
                    show_plot=showPlot)
+

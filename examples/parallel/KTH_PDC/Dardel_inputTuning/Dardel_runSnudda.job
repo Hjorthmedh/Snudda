@@ -1,0 +1,22 @@
+#!/bin/bash -l
+#SBATCH --partition=main
+#SBATCH -t 0:30:00
+#SBATCH -J runSnudda
+#SBATCH -A snic2021-5-492
+#SBATCH --nodes=1
+#SBATCH --tasks-per-node=128
+
+#old  2020-5-636, 2021-5-492 
+#Previous 5 nodes 5 tasks-per-note
+module load snic-env
+#export IPYTHONDIR="/cfs/klemming/scratch/${USER:0:1}/$USER/Projects/SnuddaProj03/.ipython"
+export IPYTHONDIR="/cfs/klemming/scratch/${USER:0:1}/$USER/.ipython"
+rm -r $IPYTHONDIR
+export IPYTHON_PROFILE=mpi
+source ../../../../../snudda_env/bin/activate
+
+chmod +x Beskow_runSnudda.sh
+#./Beskow_runSnudda.sh PD0
+#./Beskow_runSnudda.sh PD1
+./Beskow_runSnudda.sh PD2
+#./Beskow_runSnudda.sh PD3

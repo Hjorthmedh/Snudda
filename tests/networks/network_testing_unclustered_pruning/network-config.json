@@ -1,0 +1,48 @@
+{
+    "random_seed": {
+        "masterseed": 1234,
+        "init": 2906597030,
+        "place": 1602421836,
+        "detect": 216676975,
+        "prune": 2698621808,
+        "input": 507409703,
+        "simulate": 2825158027
+    },
+    "regions": {
+	"TestStriatum": {
+	    "volume": {
+		"type": "mesh",
+		"d_min": 1e-5,
+		"mesh_file": "mesh/simple_mesh.obj",
+		"mesh_bin_width": 5e-5
+	    },
+	
+	    "connectivity": {
+		"ballandstick,ballandstick": {
+		    "GABA": {
+			"conductance": [1.1e-9, 1.5e-9],
+			"pruning": {
+			    "f1": 0.3,
+			    "soft_max": 5,
+			    "mu2": null,
+			    "a3": 1,
+			    "dist_pruning": null,
+			    "cluster_pruning": false
+			}
+		    }
+		}
+	    },
+	    "neurons": {
+		"ballandstick": {
+		    "neuron_path": {
+			"ballandstick_0":  "validation/ballandstick/"
+		    },
+		    "num_neurons": 8,
+		    "neuron_type": "neuron",
+		    "rotation_mode": "",
+		    "volume_id": "TestStriatum"
+		}
+	    }
+	}
+    }
+}

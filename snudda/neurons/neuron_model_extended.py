@@ -1,20 +1,23 @@
 """ Based on BluePyOpt exampel code by Werner van Geit, 
 modified by Johannes Hjorth """
 
-import os
 import json
+import os
 from collections import OrderedDict
-
-import numpy as np
 
 import bluepyopt.ephys as ephys
 
 from snudda.neurons.neuron_prototype import NeuronPrototype
+from snudda.neurons.neuron_modulation import NeuronModulation
 
 
 class NeuronModel(ephys.models.CellModel):
+    """ Extended NeuronModel for simulation.
 
-    """ Extended NeuronModel for simulation. """
+        Note that the paths are here assumed to be absolute, ie SNUDDA_DATA is not replaced, that should be done
+        before calling this class.
+
+    """
 
     def __init__(self,
                  cell_name="Unknown",
@@ -39,13 +42,16 @@ class NeuronModel(ephys.models.CellModel):
             param_file: Path to parameter file
             modulation_file: Path to neuromodulation parameter file
             parameter_id: ID of parameter set
-            morphology_id: ID of morphology set
+            morphology_id: ID of morphology set -- DEPRECATED
             modulation_id: ID of neuromodulation parameter set
             parameter_key (str): parameter key for lookup in parameter.json
             morphology_key (str): morphology key, together with parameter_key lookup in meta.json
             modulation_key (str): modulation key, lookup in modulation.json
 
         """
+
+        # OBS, modulation_id is not used. morphology_id, parameter_id and modulation_id will be deprecated
+        # at some point. Key usage is preferred (less risk of mixing models)
 
         self.name = cell_name
         self.type = cell_name.split('_')[0]
@@ -54,42 +60,56 @@ class NeuronModel(ephys.models.CellModel):
         self.script_dir = os.path.dirname(__file__)
         self.config_dir = os.path.join(self.script_dir, 'config')
 
-        morph_file = None
-        if parameter_key is not None and morphology_key is not None and param_file is not None:
-            meta_file = os.path.join(os.path.dirname(param_file), "meta.json")
-            if os.path.isfile(meta_file):
-                with open(meta_file, "r") as f:
-                    meta_data = json.load(f, object_pairs_hook=OrderedDict)
-                    morph_file = os.path.join(morph_path, meta_data[parameter_key][morphology_key]["morphology"])
+        if os.path.isfile(morph_path):
+            # If morph_path is a swc file, use it directly
+            morph_file = morph_path
+        else:
+            # Figure out what file in the morphology path we should use
 
-        if not morph_file:
-            # We now allow multiple variations of morphologies for a given neuron name, so here NeuronPrototype
-            # is used to acquire the actual morphology file we will use for this particular neuron
-            # based on parameter_id and morphology_id.
-            neuron_prototype = NeuronPrototype(neuron_name=cell_name,
-                                               neuron_path=None,
-                                               morphology_path=morph_path,
-                                               parameter_path=param_file,
-                                               mechanism_path=mech_file,
-                                               modulation_path=modulation_file)
+            morph_file = None
+            if parameter_key is not None and morphology_key is not None and param_file is not None:
+                meta_file = os.path.join(os.path.dirname(param_file), "meta.json")
+                if os.path.isfile(meta_file):
+                    with open(meta_file, "r") as f:
+                        meta_data = json.load(f, object_pairs_hook=OrderedDict)
+                        morph_file = os.path.join(morph_path, meta_data[parameter_key][morphology_key]["morphology"])
 
-            morph_file = neuron_prototype.get_morphology(parameter_id=parameter_id, morphology_id=morphology_id,
-                                                         parameter_key=parameter_key, morphology_key=morphology_key)
+            if not morph_file:
+                # We now allow multiple variations of morphologies for a given neuron name, so here NeuronPrototype
+                # is used to acquire the actual morphology file we will use for this particular neuron
+                # based on parameter_id and morphology_id.
+                neuron_prototype = NeuronPrototype(neuron_name=cell_name,
+                                                   neuron_path=None,
+                                                   morphology_path=morph_path,
+                                                   parameter_path=param_file,
+                                                   mechanism_path=mech_file,
+                                                   modulation_path=modulation_file)
 
-        assert morph_file, (f"Neuron {cell_name} with morph_path = {morph_path} ({morphology_id}, "
-                            f"parameter_path = {param_file} ({parameter_id}) "
-                            f"has morph_file = {morph_file} (Should not be None)")
+                morph_file, _ = neuron_prototype.get_morphology(parameter_id=parameter_id,
+                                                                morphology_id=morphology_id,
+                                                                parameter_key=parameter_key,
+                                                                morphology_key=morphology_key)
+
+            assert morph_file, (f"Neuron {cell_name} with morph_path = {morph_path} ({morphology_id}, "
+                                f"parameter_path = {param_file} ({parameter_id}) "
+                                f"has morph_file = {morph_file} (Should not be None)")
+
+        self.morph_file = morph_file
 
         morph = self.define_morphology(replace_axon=True, morph_file=morph_file)
         mechs = self.define_mechanisms(mechanism_config=mech_file)
         params = self.define_parameters(param_file, parameter_id, parameter_key)
 
-        if modulation_file is not None:
-            mod_params = self.define_parameters(modulation_file, modulation_id, modulation_key)
-            params = params + mod_params
-
         super(NeuronModel, self).__init__(name=cell_name, morph=morph,
                                           mechs=mechs, params=params)
+
+        if modulation_file:
+            # modulation_key is currently not used (deprecated?) or will we find a use for it in future
+            self.modulation = NeuronModulation(neuron=self)
+            self.modulation.config_file = modulation_file
+        else:
+            self.modulation = None
+
         self.syn_list = []
         self.section_lookup = None
 
@@ -108,12 +128,9 @@ class NeuronModel(ephys.models.CellModel):
 
         if "modpath" in mech_definitions:
             mod_path = os.path.join(self.script_dir, mech_definitions["modpath"])
-            print("mod_path set to " + mod_path + " (not yet implemented)")
+            print(f"mod_path set to {mod_path} (not yet implemented)")
         else:
             mod_path = None
-
-        # import pdb
-        # pdb.set_trace()
 
         mechanisms = []
         for section_list in mech_definitions:
@@ -124,8 +141,7 @@ class NeuronModel(ephys.models.CellModel):
                 continue
 
             seclist_loc = \
-                ephys.locations.NrnSeclistLocation(section_list,
-                                                   seclist_name=section_list)
+                ephys.locations.NrnSeclistLocation(section_list, seclist_name=section_list)
             for channel in channels:
                 mechanisms.append(ephys.mechanisms.NrnMODMechanism(
                     name='%s.%s' % (channel, section_list),
@@ -176,7 +192,10 @@ class NeuronModel(ephys.models.CellModel):
                 p_config = param_configs[par_key]
 
         elif type(param_configs) == list and type(param_configs[0]) == list:
+            # Parameter ID no longer exists, we default to parameter_id = 0
             # This is old fallback code, for old version format of parameters.json, remove in the future.
+            print("Warning: Old format of parameter config, using parameter_id = 0.")
+            parameter_id = 0
             num_params = len(param_configs)
             p_config = param_configs[parameter_id % num_params]
         else:
@@ -195,9 +214,7 @@ class NeuronModel(ephys.models.CellModel):
                 bounds = param_config['bounds']
                 value = None
             else:
-                raise Exception(
-                    'Parameter config has to have bounds or value: %s'
-                    % param_config)
+                raise Exception(f"Parameter config has to have bounds or value: {param_config}")
 
             if param_config['type'] == 'global':
                 parameters.append(
@@ -241,12 +258,7 @@ class NeuronModel(ephys.models.CellModel):
                             bounds=bounds,
                             locations=[seclist_loc]))
             else:
-                raise Exception(
-                    'Param config type has to be global, section or range: %s' %
-                    param_config)
-
-            # import pdb
-            # pdb.set_trace()
+                raise Exception(f"Param config type has to be global, section or range: {param_config}")
 
         return parameters
 
@@ -265,8 +277,6 @@ class NeuronModel(ephys.models.CellModel):
 
         assert (morph_file is not None)
 
-        # print("Using morphology: " + morph_file)
-
         return ephys.morphologies.NrnFileMorphology(morph_file, do_replace_axon=replace_axon)
 
     # OLD BUGFIX FOR segment pop
@@ -277,10 +287,24 @@ class NeuronModel(ephys.models.CellModel):
     # Neuron_morphology defines sectionID, these must match what this returns
     # so that they point to the same compartment.
     #
-    # Soma is 0
-    # axons are negative values (currently all set to -1) in Neuron_morphology
+    # Soma is -1
+    # axons are negative values (-2, -3, ..) in Neuron_morphology
     # dendrites are 1,2,3,4,5... ie one higher than what Neuron internally
     # uses to index the dendrites (due to us wanting to include soma)
+
+    def build_section_lookup(self):
+
+        self.section_lookup = dict([])
+
+        # Soma is -1
+        self.section_lookup[-1] = self.icell.soma[0]
+
+        for ic, c in enumerate(self.icell.dend):
+            self.section_lookup[ic] = c
+
+        # Negative numbers for axon
+        for ic, c in enumerate(self.icell.axon):
+            self.section_lookup[-ic - 2] = c
 
     def map_id_to_compartment(self, section_id):
 
@@ -290,32 +314,22 @@ class NeuronModel(ephys.models.CellModel):
         Neuron_morphology defines sectionID, these must match what this returns
         so that they point to the same compartment.
 
-        Soma is 0
-        axons are negative values (currently all set to -1) in Neuron_morphology
-        dendrites are 1,2,3,4,5... ie one higher than what Neuron internally
-        uses to index the dendrites (due to us wanting to include soma)
+        Soma is -1
+        axons are negative values (currently all set to -2) in Neuron_morphology
+        dendrites are 0, 1,2,3,4,5...
 
         """
 
         if self.section_lookup is None:
+            self.build_section_lookup()
 
-            self.section_lookup = dict([])
-
-            # Soma is zero
-            self.section_lookup[0] = self.icell.soma[0]
-
-            # Dendrites are consequtive numbers starting from 1
-            # Ie neurons dend(0) is in pos 1, dend(99) is in pos 100
-            # This so we dont need to special treat soma (pos 0)
-
-            for ic, c in enumerate(self.icell.dend):
-                self.section_lookup[ic + 1] = c
-
-            # Negative numbers for axon
-            for ic, c in enumerate(self.icell.axon):
-                self.section_lookup[-ic - 1] = c
-
-        sec = [self.section_lookup[x] for x in section_id]
+        try:
+            sec = [self.section_lookup[x] for x in section_id]
+        except:
+            import traceback
+            print(traceback.format_exc())
+            import pdb
+            pdb.set_trace()
 
         return sec
 
@@ -422,6 +436,9 @@ class NeuronModel(ephys.models.CellModel):
             mechanism.instantiate(sim=sim, icell=self.icell)
         for param in self.params.values():
             param.instantiate(sim=sim, icell=self.icell)
+
+        if self.modulation:
+            self.modulation.load_json()
 
     ############################################################################
 

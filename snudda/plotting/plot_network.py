@@ -1,14 +1,17 @@
 import os
 import numpy as np
+
+from snudda.neurons.morphology_data import MorphologyData
+from snudda.plotting.plot_spike_raster_v2 import SnuddaPlotSpikeRaster2
+from snudda.utils.snudda_path import get_snudda_data, snudda_parse_path
+from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.utils.load import SnuddaLoad
 import matplotlib.pyplot as plt
-
-from snudda.neurons.neuron_morphology import NeuronMorphology
 
 
 class PlotNetwork(object):
 
-    def __init__(self, network):
+    def __init__(self, network, snudda_data=None):
 
         if os.path.isdir(network):
             network_file = os.path.join(network, "network-synapses.hdf5")
@@ -19,7 +22,10 @@ class PlotNetwork(object):
         self.network_path = os.path.dirname(self.network_file)
 
         self.sl = SnuddaLoad(self.network_file)
+        self.snudda_data = get_snudda_data(snudda_data=snudda_data,
+                                           network_path=self.network_path)
         self.prototype_neurons = dict()
+        self.extra_axon_cache = dict()
 
     def close(self):
         self.sl.close()
@@ -28,26 +34,27 @@ class PlotNetwork(object):
              neuron_id_list=None, filter_synapses_pre_id_list=None,
              title=None, title_pad=None, show_axis=True,
              elev_azim=None, fig_name=None, dpi=600,
-             colour_population_unit=False):
+             colour_population_unit=False,
+             colour_neuron_type=True):
 
         if type(plot_axon) == bool:
-            plot_axon = np.ones((self.sl.data["nNeurons"],), dtype=bool) * plot_axon
+            plot_axon = np.ones((self.sl.data["num_neurons"],), dtype=bool) * plot_axon
 
         if type(plot_dendrite) == bool:
-            plot_dendrite = np.ones((self.sl.data["nNeurons"],), dtype=bool) * plot_dendrite
+            plot_dendrite = np.ones((self.sl.data["num_neurons"],), dtype=bool) * plot_dendrite
 
         assert len(plot_axon) == len(plot_dendrite) == len(self.sl.data["neurons"])
 
         fig = plt.figure(figsize=(6, 6.5))
-        ax = fig.gca(projection='3d')
+        ax = plt.axes(projection='3d')
 
-        if "simulationOrigo" in self.sl.data:
-            simulation_origo = self.sl.data["simulationOrigo"]
+        if "simulation_origo" in self.sl.data:
+            simulation_origo = self.sl.data["simulation_origo"]
         else:
             simulation_origo = np.array([0, 0, 0])
 
-        if "populationUnit" in self.sl.data and colour_population_unit:
-            population_unit = self.sl.data["populationUnit"]
+        if "population_unit" in self.sl.data and colour_population_unit:
+            population_unit = self.sl.data["population_unit"]
             pop_units = sorted(list(set(population_unit)))
             cmap = plt.get_cmap('tab20', len(pop_units))
             colour_lookup_helper = dict()
@@ -62,25 +69,34 @@ class PlotNetwork(object):
         else:
             colour_lookup = lambda x: 'black'
 
+        if colour_neuron_type:
+            colour_lookup_helper = dict()
+
+            for nid in self.sl.get_neuron_id():
+                colour_lookup_helper[nid] = SnuddaPlotSpikeRaster2.get_colours(self.sl.data["neurons"][nid]["type"])
+
+            colour_lookup = lambda x: colour_lookup_helper[x]
+
         # Plot neurons
         for neuron_info, pa, pd in zip(self.sl.data["neurons"], plot_axon, plot_dendrite):
 
             if neuron_id_list:
-                # We only plot certain neuronID
-                if neuron_info["neuronID"] not in neuron_id_list:
+                # We only plot certain neuron_id
+                if neuron_info["neuron_id"] not in neuron_id_list:
                     continue
 
-            soma_colour = colour_lookup(neuron_info["neuronID"])
+            soma_colour = colour_lookup(neuron_info["neuron_id"])
             neuron = self.load_neuron(neuron_info)
+
             neuron.plot_neuron(axis=ax,
                                plot_axon=pa,
                                plot_dendrite=pd,
                                soma_colour=soma_colour,
-                               axon_colour="darksalmon",  #"maroon",
-                               dend_colour="silver")   # Can also write colours as (0, 0, 0) -- rgb
+                               axon_colour=None,  #"darksalmon",  #"maroon",
+                               dend_colour=None)  #"silver")   # Can also write colours as (0, 0, 0) -- rgb
 
         # Plot synapses
-        if plot_synapses and "synapseCoords" in self.sl.data:
+        if plot_synapses and "synapse_coords" in self.sl.data and self.sl.data["synapse_coords"].size > 0:
 
             if neuron_id_list:
                 post_id = self.sl.data["synapses"][:, 1]
@@ -102,19 +118,22 @@ class PlotNetwork(object):
 
                 keep_idx = np.where(keep_flag)[0]
 
-                x = self.sl.data["synapseCoords"][:, 0][keep_idx]
-                y = self.sl.data["synapseCoords"][:, 1][keep_idx]
-                z = self.sl.data["synapseCoords"][:, 2][keep_idx]
+                x = self.sl.data["synapse_coords"][:, 0][keep_idx]
+                y = self.sl.data["synapse_coords"][:, 1][keep_idx]
+                z = self.sl.data["synapse_coords"][:, 2][keep_idx]
+
+                plt.figtext(0.5, 0.20, f"{keep_idx.size} synapses", ha="center", fontsize=18)
 
             else:
-                x = self.sl.data["synapseCoords"][:, 0]
-                y = self.sl.data["synapseCoords"][:, 1]
-                z = self.sl.data["synapseCoords"][:, 2]
+                x = self.sl.data["synapse_coords"][:, 0]
+                y = self.sl.data["synapse_coords"][:, 1]
+                z = self.sl.data["synapse_coords"][:, 2]
 
-            ax.scatter(x, y, z, color=(0.1, 0.1, 0.1))
+            ax.scatter(x, y, z, color=(1, 0, 0))
 
-            plt.figtext(0.5, 0.20, f"{self.sl.data['nSynapses']} synapses", ha="center", fontsize=18)
-            
+            if neuron_id_list is None:
+                plt.figtext(0.5, 0.20, f"{self.sl.data['num_synapses']} synapses", ha="center", fontsize=18)
+
         if elev_azim:
             ax.view_init(elev_azim[0], elev_azim[1])
 
@@ -141,6 +160,7 @@ class PlotNetwork(object):
             if not os.path.exists(os.path.dirname(fig_path)):
                 os.mkdir(os.path.dirname(fig_path))
             plt.savefig(fig_path, dpi=dpi, bbox_inches="tight")
+            print(f"Writing figure: {fig_path}")
 
         plt.ion()
         plt.show()
@@ -158,42 +178,81 @@ class PlotNetwork(object):
         neuron_name = neuron_info["name"]
 
         if neuron_name not in self.prototype_neurons:
-            self.prototype_neurons[neuron_name] = NeuronMorphology(name=neuron_name,
-                                                                   swc_filename=neuron_info["morphology"])
+            self.prototype_neurons[neuron_name] = NeuronPrototype(neuron_name=neuron_info["name"],
+                                                                  neuron_path=neuron_info["neuron_path"],
+                                                                  snudda_data=self.snudda_data,
+                                                                  load_morphology=True,
+                                                                  virtual_neuron=False)
 
-        neuron = self.prototype_neurons[neuron_name].clone()
-        neuron.place(rotation=neuron_info["rotation"],
-                     position=neuron_info["position"])
+        morph_path = snudda_parse_path(neuron_info["morphology"], self.snudda_data)
+        if os.path.isfile(morph_path):
+            morphology_path = morph_path
+        else:
+            morphology_path = None  # Get morpholog automatically from morphology_key
+
+        neuron = self.prototype_neurons[neuron_name].clone(position=neuron_info["position"],
+                                                           rotation=neuron_info["rotation"],
+                                                           parameter_key=neuron_info["parameter_key"],
+                                                           morphology_key=neuron_info["morphology_key"],
+                                                           modulation_key=neuron_info["modulation_key"],
+                                                           morphology_path=morphology_path)
+
+        if "extra_axons" in neuron_info:
+            for axon_name, axon_info in neuron_info["extra_axons"].items():
+
+                if axon_info["morphology"] not in self.extra_axon_cache:
+                    self.extra_axon_cache[axon_info["morphology"]] = MorphologyData(swc_file=axon_info["morphology"],
+                                                                                    parent_tree_info=None,
+                                                                                    snudda_data=self.snudda_data)
+
+                neuron.add_morphology(swc_file=axon_info["morphology"],
+                                      name=axon_name,
+                                      position=axon_info["position"],
+                                      rotation=axon_info["rotation"],
+                                      morphology_data=self.extra_axon_cache[axon_info["morphology"]])
 
         return neuron
 
-    def plot_populations(self):
+    def plot_populations(self, unmarked_alpha=0.3):
 
         fig = plt.figure(figsize=(6, 6.5))
-        ax = fig.gca(projection='3d')
+        ax = plt.axes(projection='3d')
 
-        assert "populationUnit" in self.sl.data
+        assert "population_unit" in self.sl.data
 
-        population_unit = self.sl.data["populationUnit"]
+        population_unit = self.sl.data["population_unit"]
         pop_units = sorted(list(set(population_unit)))
-        cmap = plt.get_cmap('tab20', len(pop_units))
+        cmap = plt.get_cmap('tab20', len(pop_units)+1)
         neuron_colours = []
-        alphas = []
 
         for idx, pu in enumerate(population_unit):
             if pu > 0:
                 neuron_colours.append(list(cmap(pu)))
-                alphas.append(1)
             else:
-                neuron_colours.append([0.7, 0.7, 0.7, 1.0])
-                alphas.append(0.05)
+                neuron_colours.append([0.6, 0.6, 0.6, 1.0])
 
         neuron_colours = np.array(neuron_colours)
-        positions = self.sl.data["neuronPositions"]
+        positions = self.sl.data["neuron_positions"]
 
-        ax.scatter(positions[:, 0], positions[:, 1], positions[:, 2], c=neuron_colours, marker='o', s=20,alpha=alphas)
+        pop_unit_idx = np.where(population_unit > 0)[0]
+        unmarked_idx = np.where(population_unit == 0)[0]
+
+        ax.scatter(positions[pop_unit_idx, 0], positions[pop_unit_idx, 1], positions[pop_unit_idx, 2],
+                   c=neuron_colours[pop_unit_idx, :], marker='o', s=20, alpha=1)
+
+        ax.scatter(positions[unmarked_idx, 0], positions[unmarked_idx, 1], positions[unmarked_idx, 2],
+                   c=neuron_colours[unmarked_idx, :], marker='o', s=20, alpha=unmarked_alpha)
+
+        # ax.scatter(positions[:, 0], positions[:, 1], positions[:, 2], c=neuron_colours, marker='o', s=20,alpha=alphas)
 
         self.equal_axis(ax)
+
+        ax.set_xlabel("x")
+        ax.set_ylabel("y")
+        ax.set_zlabel("z")
+
+        for pop in pop_units:
+            print(f"Population unit {pop} has {len(np.where(population_unit == pop)[0])} neurons")
 
     def equal_axis(self, ax):
 
@@ -217,27 +276,25 @@ def snudda_plot_network_cli():
     from argparse import ArgumentParser
     parser = ArgumentParser(description="Plot snudda network from file (hdf5)")
     parser.add_argument("networkFile", help="Network file (hdf5)", type=str)
-    parser.add_argument("--neuronID", help="List of Neuron ID to show", type=list, default=None)
+    parser.add_argument("--neuronID", "--nid", help="List of Neuron ID to show", type=int, default=None, nargs="+",
+                        dest="neuron_id_list")
     parser.add_argument("--showAxons", help="Show Axons of neurons", action="store_true")
     parser.add_argument("--showDendrites", help="Show dendrites of neurons", action="store_true")
     parser.add_argument("--showSynapses", help="Show synapses of neurons", action="store_true")
-    parser.add_argument("--filterSynapsesPreID", help="Only show synapses from pre ID neurons", type=list, default=None)
+    parser.add_argument("--preID", help="Only show synapses from pre ID neurons",
+                        dest="pre_id_list",
+                        nargs="+", type=int, default=None)
+    parser.add_argument("--wait", action="store_true")
     args = parser.parse_args()
 
-    if args.neuronID:
-        neuron_id_list = [int(x) for x in args.neuronID]
-    else:
-        neuron_id_list = None
-
-    if args.filterSynapsesPreID:
-        pre_id_list = [int(x) for x in args.filterSynapsesPreID]
-    else:
-        pre_id_list = None
-
     pn = PlotNetwork(args.networkFile)
-    pn.plot(fig_name="network-plot.png", neuron_id_list=neuron_id_list,
+    pn.plot(fig_name="network-plot.png", neuron_id_list=args.neuron_id_list,
             plot_axon=args.showAxons, plot_dendrite=args.showDendrites, plot_synapses=args.showSynapses,
-            filter_synapses_pre_id_list=pre_id_list)
+            filter_synapses_pre_id_list=args.pre_id_list)
+
+    if args.wait:
+        input("Press any key to exit")
+
 
 if __name__ == "__main__":
     snudda_plot_network_cli()

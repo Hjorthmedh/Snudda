@@ -1,0 +1,47 @@
+{
+    "random_seed": {
+        "init": 2070518032,
+        "place": 413205643,
+        "detect": 2274757216,
+        "project": 2709762772,
+        "prune": 2576423592,
+        "input": 3963962559,
+        "simulate": 1092818469
+    },
+    "regions": {
+	"Striatum": {
+	    "volume": {
+		"type": "mesh",
+		"d_min": 1.5e-05,
+		"mesh_file": "networks/pair_recording_test/mesh/Striatum-cube-mesh-0.00010749824478388102.obj",
+		"num_putative_points": 1000
+            },
+    
+	    "connectivity": {},
+    
+	    "neurons": {
+		"FS": {
+		    "neuron_path": {
+			"FS_0": "validation/striatum-var/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20210210/"
+		    },
+		    "num_neurons": 2,
+		    "hoc": null,
+		    "neuron_type": "neuron",
+		    "rotation_mode": "random",
+		    "volume_id": "Striatum"
+		},
+		"dSPN": {
+		    "neuron_path": {
+			"dSPN_0": "validation/striatum-var/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20211026/",
+			"dSPN_1": "validation/striatum-var/dspn/str-dspn-e150917_c9_D1-mWT-1215MSN03-v20211026/"
+		    },
+		    "num_neurons": [2, 2],
+		    "hoc": null,
+		    "neuron_type": "neuron",
+		    "rotation_mode": "random",
+		    "volume_id": "Striatum"
+		}
+	    }
+	}
+    }
+}

@@ -4,6 +4,8 @@ import sys
 import json
 import numpy as np
 
+from snudda import SnuddaLoad
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from snudda.init.init import SnuddaInit
@@ -15,6 +17,7 @@ class TestPlace(unittest.TestCase):
     def setUp(self):
         if os.path.dirname(__file__):
             os.chdir(os.path.dirname(__file__))
+
         print(f"Current directory (detect): {os.path.dirname(os.path.realpath(__file__))}")
 
         neuron_dir = os.path.join(os.path.dirname(__file__), "validation")
@@ -32,26 +35,27 @@ class TestPlace(unittest.TestCase):
         with open(self.config_file, "r") as f:
             config_data = json.load(f)
 
-        self.assertTrue("RandomSeed" in config_data)
-        self.assertTrue(config_data["RandomSeed"]["masterseed"] == 1234)
-        self.assertTrue(config_data["RandomSeed"]["init"] == 2906597030)
-        self.assertTrue(config_data["RandomSeed"]["place"] == 1602421836)
-        self.assertTrue(config_data["RandomSeed"]["detect"] == 216676975)
-        self.assertTrue(config_data["RandomSeed"]["project"] == 2698621808)
-        self.assertTrue(config_data["RandomSeed"]["prune"] == 507409703)
-        self.assertTrue(config_data["RandomSeed"]["input"] == 2825158027)
-        self.assertTrue(config_data["RandomSeed"]["simulate"] == 3613074)
+        self.assertTrue("random_seed" in config_data)
+        self.assertTrue(config_data["random_seed"]["master_seed"] == 1234)
+        self.assertTrue(config_data["random_seed"]["init"] == 2906597030)
+        self.assertTrue(config_data["random_seed"]["place"] == 1602421836)
+        self.assertTrue(config_data["random_seed"]["detect"] == 216676975)
+        self.assertTrue(config_data["random_seed"]["project"] == 2698621808)
+        self.assertTrue(config_data["random_seed"]["prune"] == 507409703)
+        self.assertTrue(config_data["random_seed"]["input"] == 2825158027)
+        self.assertTrue(config_data["random_seed"]["simulate"] == 3613074)
 
-        self.assertTrue("Volume" in config_data)
-        self.assertTrue("Connectivity" in config_data)
-        self.assertTrue("Neurons" in config_data)
+        self.assertTrue("regions" in config_data)
+        self.assertTrue("Striatum" in config_data["regions"])
 
-        for neuron in config_data["Neurons"]:
-            self.assertTrue("morphology" in config_data["Neurons"][neuron])
-            self.assertTrue("parameters" in config_data["Neurons"][neuron])
-            self.assertTrue("mechanisms" in config_data["Neurons"][neuron])
-            self.assertTrue("modulation" in config_data["Neurons"][neuron])
-            self.assertTrue("num" in config_data["Neurons"][neuron])
+        self.assertTrue("connectivity" in config_data["regions"]["Striatum"])
+        self.assertTrue("neurons" in config_data["regions"]["Striatum"])
+
+        for neuron in config_data["regions"]["Striatum"]["neurons"]:
+            self.assertTrue("neuron_path" in config_data["regions"]["Striatum"]["neurons"][neuron])
+            self.assertTrue("num_neurons" in config_data["regions"]["Striatum"]["neurons"][neuron])
+            self.assertTrue("neuron_type" in config_data["regions"]["Striatum"]["neurons"][neuron])
+            self.assertTrue("volume_id" in config_data["regions"]["Striatum"]["neurons"][neuron])
 
     def test_place(self):
 
@@ -90,7 +94,7 @@ class TestPlace(unittest.TestCase):
     def test_population_units(self, stage="place-pop-unit-random"):
 
         network_path = os.path.join(os.path.dirname(__file__), "networks", "network_place_pop_unit_random")
-        cnc = SnuddaInit(struct_def={}, network_path=network_path)
+        cnc = SnuddaInit(struct_def={}, network_path=network_path, random_seed=123457)
         cnc.define_striatum(num_dSPN=1000, num_iSPN=1000, num_FS=20, num_LTS=0, num_ChIN=0,
                             volume_type="cube")
         cnc.add_population_unit_random(structure_name="Striatum", neuron_types=["dSPN", "iSPN"],
@@ -108,6 +112,18 @@ class TestPlace(unittest.TestCase):
         npn = SnuddaPlace(network_path=network_path, h5libver="latest", verbose=True)
         npn.parse_config()
         npn.write_data()
+
+        network_file = os.path.join(network_path, "network-neuron-positions.hdf5")
+        sl = SnuddaLoad(network_file)
+
+        pop_units = sl.get_neuron_population_units()
+        neuron_types = sl.get_neuron_types()
+
+        self.assertTrue(np.abs(np.sum(pop_units == 1) - 2000*0.5) < 50)  # 50% of dSPN, iSPN should be pop unit 1
+        self.assertTrue(np.abs(np.sum(pop_units == 2) - 2000*0.2) < 50)  # 20% should be pop unit 1
+        self.assertTrue(np.abs(np.sum(pop_units == 3) - 1000*0.3) < 35)  # 30% of dSPN should be pop unit 1
+        self.assertTrue(np.abs(np.sum(pop_units == 4) - 1000*0.15) < 35)  # 15% of iSPN should be pop unit 1
+        self.assertTrue(np.abs(np.sum(pop_units == 10) - 1000*0.15) < 35)  # 15% of iSPN should be pop unit 1
 
 
 if __name__ == '__main__':

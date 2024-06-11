@@ -1,6 +1,7 @@
 import numpy as np
 import h5py
 import os
+import json
 from collections import OrderedDict
 import matplotlib.pyplot as plt
 from matplotlib import cm
@@ -13,6 +14,7 @@ class PlotInput(object):
     def __init__(self, input_file, network_path=None):
 
         self.input_data = None
+        self.config = None
 
         if input_file:
             self.load_input(input_file)
@@ -20,7 +22,11 @@ class PlotInput(object):
         if not network_path:
             network_path = os.path.dirname(input_file)
 
-        network_file = os.path.join(network_path, "network-synapses.hdf5")
+        if os.path.isfile(network_path):
+            network_file = network_path
+            network_path = os.path.dirname(network_path)
+        else:
+            network_file = os.path.join(network_path, "network-synapses.hdf5")
 
         if os.path.exists(network_file):
             self.network_info = SnuddaLoad(network_file)
@@ -28,8 +34,13 @@ class PlotInput(object):
             print(f"Specify a network_path with a network file, to get neuron type in figure")
             self.network_info = None
 
+    def close(self):
+        print(f"Closing {self.input_data.filename}")
+        self.input_data.close()
+
     def load_input(self, input_file):
         self.input_data = h5py.File(input_file, "r")
+        self.config = json.loads(self.input_data["config"][()])
 
     def extract_input(self, input_target):
 
@@ -76,7 +87,7 @@ class PlotInput(object):
 
         neuron_id = self.network_info.get_population_unit_members(population_unit_id)
 
-        assert np.array([self.network_info.data["populationUnit"][x] == population_unit_id for x in neuron_id]).all()
+        assert np.array([self.network_info.data["population_unit"][x] == population_unit_id for x in neuron_id]).all()
 
         if neuron_type:
             neuron_id2 = self.network_info.get_neuron_id_of_type(neuron_type)
@@ -92,7 +103,7 @@ class PlotInput(object):
             print(f"No neurons with population id {population_unit_id}")
             return
 
-        assert np.array([self.network_info.data["populationUnit"][int(x)] == population_unit_id
+        assert np.array([self.network_info.data["population_unit"][int(x)] == population_unit_id
                          for x in target_id]).all()
 
         self.plot_input_to_target(target_id, fig_size=fig_size)
@@ -123,11 +134,20 @@ class PlotInput(object):
             for input_type in data:
 
                 y_pos_start = y_pos
+
+                spikes_x = []
+                spikes_y = []
+
                 for spike_train in data[input_type]:
                     idx = np.where(spike_train > 0)[0]
-                    plt.scatter(spike_train[idx], y_pos * np.ones((len(idx),)),
-                                color=colours(input_ctr), marker='.', s=7)
+                    spikes_x.append(spike_train[idx].flatten())
+                    spikes_y.append((y_pos * np.ones((len(idx),))).flatten())
+                    #plt.scatter(spike_train[idx], y_pos * np.ones((len(idx),)),
+                    #            color=colours(input_ctr), marker='.', s=7)
                     y_pos += 1
+
+                plt.scatter(np.concatenate(spikes_x), np.concatenate(spikes_y),
+                            color=colours(input_ctr), marker='.', s=4)
 
                 y_pos_avg = (y_pos + y_pos_start)/2
                 ytick_pos.append(y_pos_avg)

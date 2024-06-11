@@ -9,10 +9,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: Set up Python 3.7
+    - name: Set up Python 3.9
       uses: actions/setup-python@v1
       with:
-        python-version: 3.7
+        python-version: 3.9
     - uses: actions/cache@v1
       with :
         path: ~/.cache/pip
@@ -23,11 +23,14 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install openmpi-bin libopenmpi-dev
-    - name: Install NEURON
-      run: |
-        wget https://neuron.yale.edu/ftp/neuron/versions/v7.7/7.7.2/nrn-7.7.2.x86_64-linux-py-37-36-35-27.deb
-        sudo dpkg -i nrn-7.7.2.x86_64-linux-py-37-36-35-27.deb
-        export PYTHONPATH=/usr/local/nrn/lib/python
+        
+# No longer needed to compile NEURON manually for unit test.
+#    - name: Install NEURON
+#      run: |
+#        wget https://neuron.yale.edu/ftp/neuron/versions/v7.7/7.7.2/nrn-7.7.2.x86_64-linux-py-37-36-35-27.deb
+#        sudo dpkg -i nrn-7.7.2.x86_64-linux-py-37-36-35-27.deb
+#        export PYTHONPATH=/usr/local/nrn/lib/python
+
         # python -c "help('modules')"
         # echo "PYTHONPATH=$PYTHONPATH"
         # echo "/usr/local/nrn contains:"
@@ -37,6 +40,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install coverage
+        pip install wheel	
         pip install -e .  # Install snudda as package on the build system.
     - name: Run unittests and code coverage
       run: |

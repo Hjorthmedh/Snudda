@@ -1,0 +1,146 @@
+{
+    "network_path": "networks/network_testing_projection_detection",
+    "snudda_data": null,
+    "random_seed": {
+        "master_seed": 123,
+        "init": 693650678,
+        "place": 2973253328,
+        "detect": 387799215,
+        "project": 2723177262,
+        "prune": 1950554525,
+        "input": 2259100799,
+        "simulate": 3240087069
+    },
+    "regions": {
+        "VolumeA": {
+            "volume": {
+                "type": "mesh",
+                "d_min": 1.5e-05,
+                "mesh_file": "networks/network_testing_projection_detection/mesh/volume_A.obj"
+            },
+            "connectivity": {
+                "dSPN,iSPN": {
+                    "GABA": {
+                        "conductance": [
+                            5e-09,
+                            0
+                        ],
+                        "channel_parameters": {
+                            "mod_file": "tmGlutA"
+                        },
+                        "cluster_size": 1,
+                        "cluster_spread": null,
+                        "pruning": {
+                            "f1": null,
+                            "soft_max": null,
+                            "mu2": null,
+                            "a3": null,
+                            "dist_pruning": null,
+                            "cluster_pruning": false
+                        },
+                        "projection_config_file": "data/ExampleProjectionDetection.json"
+                    }
+                },
+                "dSPN,dSPN": {
+                    "GABA": {
+                        "conductance": [
+                            2.4e-10,
+                            1e-10
+                        ],
+                        "channel_parameters": {
+                            "tau1": [
+                                0.0013,
+                                1000.0
+                            ],
+                            "tau2": [
+                                0.0124,
+                                1000.0
+                            ],
+                            "failRate": 0.7,
+                            "parameter_file": "$DATA/synapses/striatum/PlanertFitting-DD-tmgaba-fit.json",
+                            "mod_file": "tmGabaA"
+                        },
+                        "cluster_size": 1,
+                        "cluster_spread": null,
+                        "pruning": {
+                            "f1": 0.38,
+                            "soft_max": 3,
+                            "mu2": 2.4,
+                            "a3": 1.0,
+                            "dist_pruning": "1-exp(-(0.4*d/60e-6)**2)",
+                            "cluster_pruning": false
+                        }
+                    }
+                }
+            },
+            "neurons": {
+                "dSPN": {
+                    "num_neurons": 20,
+                    "neuron_type": "neuron",
+                    "rotation_mode": "random",
+                    "volume_id": "VolumeA",
+                    "neuron_path": {
+                        "dSPN_0": "/home/hjorth/HBP/Snudda/snudda/data/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508",
+                        "dSPN_1": "/home/hjorth/HBP/Snudda/snudda/data/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20190521",
+                        "dSPN_2": "/home/hjorth/HBP/Snudda/snudda/data/neurons/striatum/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20190503",
+                        "dSPN_3": "/home/hjorth/HBP/Snudda/snudda/data/neurons/striatum/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521"
+                    }
+                }
+            }
+        },
+        "VolumeB": {
+            "volume": {
+                "type": "mesh",
+                "d_min": 1.5e-05,
+                "mesh_file": "networks/network_testing_projection_detection/mesh/volume_B.obj"
+            },
+            "connectivity": {
+                "iSPN,iSPN": {
+                    "GABA": {
+                        "conductance": [
+                            2.4e-10,
+                            1e-10
+                        ],
+                        "channel_parameters": {
+                            "tau1": [
+                                0.0013,
+                                1000.0
+                            ],
+                            "tau2": [
+                                0.0124,
+                                1000.0
+                            ],
+                            "failRate": 0.4,
+                            "parameter_file": "$DATA/synapses/striatum/PlanertFitting-II-tmgaba-fit.json",
+                            "mod_file": "tmGabaA"
+                        },
+                        "cluster_size": 1,
+                        "cluster_spread": null,
+                        "pruning": {
+                            "f1": 0.55,
+                            "soft_max": 4,
+                            "mu2": 2.4,
+                            "a3": 1.0,
+                            "dist_pruning": "1-exp(-(0.4*d/60e-6)**2)",
+                            "cluster_pruning": false
+                        }
+                    }
+                }
+            },
+            "neurons": {
+                "iSPN": {
+                    "num_neurons": 20,
+                    "neuron_type": "neuron",
+                    "rotation_mode": "random",
+                    "volume_id": "VolumeB",
+                    "neuron_path": {
+                        "iSPN_0": "/home/hjorth/HBP/Snudda/snudda/data/neurons/striatum/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20190611",
+                        "iSPN_1": "/home/hjorth/HBP/Snudda/snudda/data/neurons/striatum/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20190603",
+                        "iSPN_2": "/home/hjorth/HBP/Snudda/snudda/data/neurons/striatum/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20190527",
+                        "iSPN_3": "/home/hjorth/HBP/Snudda/snudda/data/neurons/striatum/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20190529"
+                    }
+                }
+            }
+        }
+    }
+}

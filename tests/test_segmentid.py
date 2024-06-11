@@ -9,7 +9,7 @@ from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
 
 import bluepyopt.ephys as ephys
 from snudda.neurons.neuron_model_extended import NeuronModel
-from snudda.neurons.neuron_morphology import NeuronMorphology
+from snudda.neurons.neuron_morphology_extended import NeuronMorphologyExtended
 
 
 class SegmentIdTestCase(unittest.TestCase):
@@ -25,6 +25,10 @@ class SegmentIdTestCase(unittest.TestCase):
     """
 
     def setUp(self) -> None:
+
+        if os.path.dirname(__file__):
+            os.chdir(os.path.dirname(__file__))
+
         self.sim = NrnSimulatorParallel(cvode_active=False)
 
     def test_segment_id_numbering(self, morph_file=None):
@@ -35,13 +39,16 @@ class SegmentIdTestCase(unittest.TestCase):
             return
 
         print(f"Loading neuron {morph_file}")
-        snudda_neuron = NeuronMorphology(name="fs", swc_filename=morph_file, use_cache=False)
+        snudda_neuron = NeuronMorphologyExtended(name="aneuron", swc_filename=morph_file) # -- , use_cache=False) -- not implemented at the moment
+
+        soma_position = snudda_neuron.morphology_data["neuron"].sections[1][0].position
+        self.assertTrue((soma_position == 0).all(), f"Soma should be centered for {morph_file}.")
 
         # Load morphology into NEURON
         neuron_model = NeuronModel(param_file=os.path.join("data", "fake-parameters.json"),
                                    morph_path=morph_file,
                                    mech_file=os.path.join("data", "fake-mechanisms.json"),
-                                   cell_name="fs",
+                                   cell_name="aneuron",
                                    modulation_file=None,
                                    parameter_id=0,
                                    modulation_id=0)
@@ -50,46 +57,51 @@ class SegmentIdTestCase(unittest.TestCase):
 
         ax = None
 
-        for link, sec_id, sec_x, dend_sec \
-            in zip(snudda_neuron.dend_links,
-                   snudda_neuron.dend_sec_id,
-                   snudda_neuron.dend_sec_x,
-                   neuron_model.map_id_to_compartment(section_id=snudda_neuron.dend_sec_id)):
+        for sec in snudda_neuron.morphology_data["neuron"].sections[3].values():
 
-            assert sec_id > 0, f"sec id {sec_id}, for dendrites should be > 0"
-
-            # Coordinates of segment in snudda NeuronMorphology -- convert to natural units micrometers for NEURON
-            x0, y0, z0 = snudda_neuron.dend[link[0], :3] * 1e6
-            x1, y1, z1 = snudda_neuron.dend[link[1], :3] * 1e6
-
-            # Coordinates of segment in NEURON
-
-            n_points = int(dend_sec.n3d())
-            arc_dist = np.array([dend_sec.arc3d(x) for x in range(0, n_points)])
+            neuron_sec = neuron_model.map_id_to_compartment(section_id=[sec.section_id])[0]
+            n_points = int(neuron_sec.n3d())
+            arc_dist = np.array([neuron_sec.arc3d(x) for x in range(0, n_points)])
             norm_arc_dist = arc_dist / arc_dist[-1]
 
-            # Find closest point
-            closest_idx0 = np.argmin(np.abs(norm_arc_dist - sec_x[0]))
-            closest_idx1 = np.argmin(np.abs(norm_arc_dist - sec_x[1]))
+            if sec.parent_section_type == 1:
+                # NEURON sometimes keeps the segments inside the soma, we take them away, so allow for a slightly bigger
+                # error on the sections connecting to the soma.
+                error_cutoff = 10
+            else:
+                error_cutoff = 6
 
-            x0_ref = dend_sec.x3d(closest_idx0)
-            y0_ref = dend_sec.y3d(closest_idx0)
-            z0_ref = dend_sec.z3d(closest_idx0)
+            for sec_x, pos in zip(sec.section_x, sec.position * 1e6):
+                closest_idx = np.argmin(np.abs(norm_arc_dist - sec_x))
 
-            x1_ref = dend_sec.x3d(closest_idx1)
-            y1_ref = dend_sec.y3d(closest_idx1)
-            z1_ref = dend_sec.z3d(closest_idx1)
+                x_ref = neuron_sec.x3d(closest_idx)
+                y_ref = neuron_sec.y3d(closest_idx)
+                z_ref = neuron_sec.z3d(closest_idx)
 
-            error_cutoff = 10
+                x, y, z = pos
 
-            self.assertTrue(np.linalg.norm([x0-x0_ref, y0-y0_ref, z0-z0_ref]) < error_cutoff
-                             and np.linalg.norm([x1-x1_ref, y1-y1_ref, z1-z1_ref]) < error_cutoff,
-                            (f"Error when parsing {morph_file}\n"
-                             f"Snudda morphology sec_id {sec_id}, sec_x {sec_x[0]} to {sec_x[1]} "
-                             f"xyz = {x0}, {y0}, {z0} to {x1}, {y1}, {z1}\n"
-                             f"NEURON coords {x0_ref}, {y0_ref}, {z0_ref} to {x1_ref}, {y1_ref}, {z1_ref}\n"
-                             f"Distance: {np.linalg.norm([x0-x0_ref, y0-y0_ref, z0-z0_ref])} "
-                             f"and {np.linalg.norm([x1-x1_ref, y1-y1_ref, z1-z1_ref])}"))
+                comp_dist = np.linalg.norm([x - x_ref, y - y_ref, z - z_ref])
+
+                if comp_dist >= error_cutoff:
+                    closest_sec, closest_sec_x, min_dist = self.find_closest_point_on_neuron(neuron_model, synapse_xyz=pos)
+                else:
+                    # We dont need to compute these... so skip, since OK distance, faster
+                    closest_sec, closest_sec_x, min_dist = None, None, None
+
+                try:
+                    self.assertLess(comp_dist, error_cutoff,
+                                    f"Error parsing {morph_file}. Snudda sec_id {sec.section_id}, sec_x {sec_x} has xyz = {pos}\n"
+                                    f"NEURON sec_id {sec.section_id}, sec_x {norm_arc_dist[closest_idx]} has xyz = {x_ref}, {y_ref}, {z_ref}\n"
+                                    f"Distance: {np.linalg.norm([x - x_ref, y - y_ref, z - z_ref])} micrometer"
+                                    f"\nParent section id : {sec.parent_section_id}"
+                                    f"\nParent point idx : {sec.parent_point_idx}"
+
+                                    f"\nClosest section instead is {closest_sec} (x: {closest_sec_x} -- distance {min_dist}")
+                except:
+                    import traceback
+                    print(traceback.format_exc())
+                    import pdb
+                    pdb.set_trace()
 
     def test_neurons_in_folder(self, neuron_dir=None):
 
@@ -120,14 +132,40 @@ class SegmentIdTestCase(unittest.TestCase):
 
     def test_all_dir(self):
 
-        neuron_dirs = [snudda_parse_path(os.path.join("$SNUDDA_DATA", "neurons", "striatum", "dspn")),
-                       snudda_parse_path(os.path.join("$SNUDDA_DATA", "neurons", "striatum", "ispn")),
-                       snudda_parse_path(os.path.join("$SNUDDA_DATA", "neurons", "striatum", "fs")),
-                       snudda_parse_path(os.path.join("$SNUDDA_DATA", "neurons", "striatum", "lts")),
+        neuron_dirs = [snudda_parse_path(os.path.join("$SNUDDA_DATA", "neurons", "striatum", "dspn"), snudda_data=None),
+                       snudda_parse_path(os.path.join("$SNUDDA_DATA", "neurons", "striatum", "ispn"), snudda_data=None),
+                       snudda_parse_path(os.path.join("$SNUDDA_DATA", "neurons", "striatum", "fs"), snudda_data=None),
+                       snudda_parse_path(os.path.join("$SNUDDA_DATA", "neurons", "striatum", "lts"), snudda_data=None),
                        ]
 
         for neuron_dir in neuron_dirs:
             self.test_neurons_in_folder(neuron_dir=neuron_dir)
+
+    def find_closest_point_on_neuron(self, neuron_model, synapse_xyz):
+
+        min_dist = np.inf
+        closest_sec = None
+        closest_sec_x = None
+
+        for sec in neuron_model.icell.dend:
+            # Extract all coordinates
+            n_points = int(neuron.h.n3d(sec=sec))
+            xyz = np.zeros((n_points, 3))
+            for i in range(0, n_points):
+                xyz[i, 0] = neuron.h.x3d(i, sec=sec)
+                xyz[i, 1] = neuron.h.y3d(i, sec=sec)
+                xyz[i, 2] = neuron.h.z3d(i, sec=sec)
+
+            # xyz = np.transpose(np.matmul(neuron_rotation, np.transpose(xyz)))
+            d = np.linalg.norm(xyz-synapse_xyz, axis=1)
+            d_min_idx = np.argmin(d)
+
+            if d[d_min_idx] < min_dist:
+                min_dist = d[d_min_idx]
+                closest_sec = sec
+                closest_sec_x = sec.arc3d(d_min_idx) / sec.arc3d(n_points-1)
+
+        return closest_sec, closest_sec_x, min_dist
 
 
 if __name__ == '__main__':

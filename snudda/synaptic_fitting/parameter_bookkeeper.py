@@ -5,6 +5,7 @@ import heapq
 import numpy as np
 import json
 import datetime
+import copy
 
 from snudda.utils.numpy_encoder import  NumpyEncoder
 
@@ -17,7 +18,7 @@ class ParameterBookkeeper:
         self.old_iter = 0
 
         if old_book:
-            self.book = old_book.copy()
+            self.book = copy.deepcopy(old_book)
             heapq.heapify(self.book)
         else:
             self.book = []
@@ -34,6 +35,8 @@ class ParameterBookkeeper:
         data["section_id"] = section_id
         data["section_x"] = section_x
         data["error"] = error
+
+        assert error >= 0, f"Error should be positive: error given {error}"
 
         if dt is not None:
             data["dt"] = dt
@@ -60,7 +63,9 @@ class ParameterBookkeeper:
 
     def merge(self, *other_books):
 
+        # We need to heapify the returned list before we use it as a heap again
         self.book = list(heapq.merge(self.book, *other_books))
+        heapq.heapify(self.book)
 
         # We need to remove surplus elements
         book_len = len(self.book)

@@ -4,7 +4,6 @@ from psutil import virtual_memory
 
 
 def memory_status():
-
     """ Returns memory status. Tuple (memory available, memory total) """
 
     mem = virtual_memory()

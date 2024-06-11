@@ -29,17 +29,14 @@
 import os
 import sys
 
-from snudda.simulate.simulate import SnuddaSimulate
-from snudda.utils.load import SnuddaLoad
-from snudda.init.init import SnuddaInit
-from snudda import Snudda
-
-import numpy as np
-
 import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
 
-import neuron
+from snudda import Snudda
+from snudda.init.init import SnuddaInit
+from snudda.simulate.simulate import SnuddaSimulate
+from snudda.utils.load import SnuddaLoad
 
 
 class SnuddaModelCurrentInjections(object):
@@ -179,7 +176,7 @@ class SnuddaModelCurrentInjections(object):
             self.simulate_network_chuhma2011(sim_name)
 
         elif sim_type == "Straub2016FS" or sim_type == "Straub2016LTS":
-            self.simulateNetworkStraub2016(sim_name, sim_type)
+            self.simulate_network_straub_2016(sim_name, sim_type)
 
         elif sim_type == "Szydlowski2013":
             self.simulate_network_szydlowski_2013(sim_name)
@@ -210,6 +207,8 @@ class SnuddaModelCurrentInjections(object):
                                              log_file=log_file,
                                              disable_gap_junctions=True)
 
+            self.snudda_sim.setup()
+
         # Get neuronID of neurons that will get artificial stimulation
         stim_id = [x["neuronID"] for x in self.snudda_sim.network_info["neurons"] if "SPN" in x["type"]]
 
@@ -233,7 +232,7 @@ class SnuddaModelCurrentInjections(object):
 
     ############################################################################
 
-    def simulateNetworkStraub2016(self, sim_name, sim_type):
+    def simulate_network_straub_2016(self, sim_name, sim_type):
 
         if self.snudda_sim is None:
             log_file = os.path.join(sim_name, "log", "simlog.txt")
@@ -250,7 +249,7 @@ class SnuddaModelCurrentInjections(object):
         elif sim_type == "Straub2016LTS":
             stim_id = [x["neuronID"] for x in self.snudda_sim.network_info["neurons"] if "LTS" in x["type"]]
         else:
-            print(f"simulateNetworkStraub2016: Unknown simType : {sim_type}")
+            print(f"simulate_network_straub_2016: Unknown sim_type : {sim_type}")
             sys.exit(-1)
 
         measure_id = [x["neuronID"] for x in self.snudda_sim.network_info["neurons"]
@@ -289,6 +288,8 @@ class SnuddaModelCurrentInjections(object):
                                              log_file=log_file,
                                              disable_gap_junctions=True)
 
+            self.snudda_sim.setup()
+
         # Set up stimulation protocol
         for n_id in stim_id:
             self.snudda_sim.add_current_injection(neuron_id=n_id,
@@ -305,20 +306,22 @@ class SnuddaModelCurrentInjections(object):
         # Also add voltage recording for debugging reasons
         save_voltage = True  # False #True
         if save_voltage:
-            self.snudda_sim.add_recording(cell_id=stim_id)
+            self.snudda_sim.add_volt_recording(cell_id=stim_id)
 
         self.set_gaba_rev(self.gaba_rev)
 
         self.snudda_sim.run(self.sim_end * 1e3)
 
-        self.current_file = os.path.join(sim_name, f"{sim_type}-network-stimulation-current.txt")
+        # self.current_file = os.path.join(sim_name, f"{sim_type}-network-stimulation-current.txt")
 
-        self.snudda_sim.write_current(self.current_file)
+        self.snudda_sim.write_output()
 
-        if save_voltage:
-            voltage_file = os.path.join(sim_name,  f"{sim_type}-network-stimulation-voltage.txt")
-
-            self.snudda_sim.write_voltage(voltage_file)
+        # self.snudda_sim.write_current(self.current_file)
+        #
+        # if save_voltage:
+        #     voltage_file = os.path.join(sim_name,  f"{sim_type}-network-stimulation-voltage.txt")
+        #
+        #    self.snudda_sim.write_voltage_OLD(voltage_file)
 
     ############################################################################
 
@@ -336,9 +339,9 @@ class SnuddaModelCurrentInjections(object):
 
         args = FakeArgs()
 
-        sn.place_neurons(args)
-        sn.touch_detection(args)
-        sn.prune_synapses(args)
+        sn.place_neurons_wrapper(args)
+        sn.detect_synapses_wrapper(args)
+        sn.prune_synapses_wrapper(args)
 
     ############################################################################
 

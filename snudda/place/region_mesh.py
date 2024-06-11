@@ -1,17 +1,16 @@
+import os
+import pickle
+import re
 import sys
+import timeit
 
 import numpy as np
 import scipy
-from scipy import ndimage
 from numba import jit
-import re
-import os
-import pickle
-import timeit
+from scipy import ndimage
 
 
 class RegionMesh(object):
-
     """ Handles neuron placement within a 3D mesh. """
 
     def __init__(self, filename, d_view=None, role="master",
@@ -19,6 +18,9 @@ class RegionMesh(object):
                  d_min=15e-6, bin_width=1e-4,
                  logfile_name=None, log_file=None,
                  random_seed=112, verbose=False):
+
+        raise DeprecationWarning("Old version")
+        assert False
 
         """
         Constructor.
@@ -31,7 +33,7 @@ class RegionMesh(object):
             pickle_version (int) : Which version of pickle to use? (-1 latest)
             raytrace_borders (bool) : Raytrace positions in border regions? Slower, but more accurate.
             d_min (float) : Closest distance between soma
-            bin_width (float) : Mesh size
+            bin_width (float) : Mesh size in meters
             logfile_name (str) : Path to logfile
             log_file : File pointer to log file
             random_seed (int) : Random seed value
@@ -43,6 +45,7 @@ class RegionMesh(object):
 
         self.role = role
         self.workers_initialised = False
+        self.cache_file_version = 1.11
 
         self.verbose = verbose
         self.close_log_file = False
@@ -114,8 +117,8 @@ class RegionMesh(object):
         self.next_neuron_type = 1
         self.reject_ctr = None
 
-        # Used or set by setup_voxel_list
-        self.max_neurons_voxel = int(np.ceil(300000*(self.bin_width/1e-3)**3))  # We assume no more than 300k neurons per mm3
+        # Used or set by setup_voxel_list, we assume no more than 300k neurons per mm3
+        self.max_neurons_per_voxel = int(np.ceil(300000 * (self.bin_width / 1e-3) ** 3))
         self.voxel_next_neuron = None
         self.voxel_neurons = None
 
@@ -136,6 +139,8 @@ class RegionMesh(object):
         # binWidth 2.5e-4 (577) --> 6.2 % border voxels
         # binWidth 1e-4 (8090s) --> 2.7 % border voxels
         # binWidth 0.5e-4 (??? s) --> ?? % border voxels
+
+        assert os.path.exists(filename), f"Mesh file {filename} missing"
 
         self.filename = filename
         self.cache_file = f"{filename}-{int(1e6 * self.bin_width)}{rt_str}-cache.pickle"
@@ -198,8 +203,8 @@ class RegionMesh(object):
             dx = np.linalg.norm(coord2 - coord1)
             dy = np.linalg.norm(coord3 - coord1)
 
-            nx = int(2 * np.ceil(dx / self.bin_width)) + 1
-            ny = int(2 * np.ceil(dy / self.bin_width)) + 1
+            nx = int(10 * np.ceil(dx / self.bin_width)) + 11
+            ny = int(10 * np.ceil(dy / self.bin_width)) + 11
 
             max_num = max(max_num, max(nx, ny))
 
@@ -209,7 +214,7 @@ class RegionMesh(object):
                     ic = np.floor((x_point - self.min_coord) / self.bin_width)
                     self.voxel_mask_border[int(ic[0]), int(ic[1]), int(ic[2])] = 1
 
-        self.write_log(f"maxN = {max_num}")
+        self.write_log(f"max_num = {max_num}")
 
     def __del__(self):
         if self.close_log_file:
@@ -232,10 +237,10 @@ class RegionMesh(object):
         self.write_log("Setting up parallel")
 
         assert self.role == "master", \
-            "setupParallel should only be called by master"
+            "setup_parallel should only be called by master"
 
         if self.workers_initialised:
-            self.write_log("setupParallel: workers already initialised")
+            self.write_log("setup_parallel: workers already initialised")
             return
 
         with d_view.sync_imports():
@@ -246,14 +251,17 @@ class RegionMesh(object):
             d_view.push({"filename": self.filename}, block=True)
 
             if self.logfile_name is not None:
-                engine_log_file = [self.logfile_name + "-"
-                                   + str(x) for x in range(0, len(d_view))]
+                engine_log_file = [f"{self.logfile_name}-{x}" for x in range(0, len(d_view))]
             else:
                 engine_log_file = [[] for x in range(0, len(d_view))]
 
             d_view.scatter('logfile_name', engine_log_file, block=True)
+            d_view.push({"raytrace_borders": self.raytrace_borders,
+                         "d_min": self.d_min,
+                         "bin_width": self.bin_width})
 
-            cmd_str = "sm = RegionMesh(filename=filename,role='worker',logfile_name=logfile_name[0])"
+            cmd_str = ("sm = RegionMesh(filename=filename, role='worker', logfile_name=logfile_name[0],"
+                       "raytrace_borders=raytrace_borders, d_min=d_min, bin_width=bin_width)")
 
             d_view.execute(cmd_str, block=True)
             self.write_log("Worker RegionMesh setup done.")
@@ -262,9 +270,9 @@ class RegionMesh(object):
             import uuid
             import traceback
             tstr = traceback.format_exc()
-            tmp = open("save/tmp-striatum-mesh-log-file-" + str(uuid.uuid4()), 'w')
-            tmp.write("Exception: " + str(e))
-            tmp.write("Trace:" + tstr)
+            tmp = open(os.path.join("save", f"tmp-striatum-mesh-log-file-{uuid.uuid4()}"), 'w')
+            tmp.write(f"Exception: {e}")
+            tmp.write(f"Trace: {tstr}")
             tmp.close()
             self.write_log(tstr, is_error=True)
             import pdb
@@ -314,6 +322,8 @@ class RegionMesh(object):
         self.voxel_mask_inner = data["voxelMaskInner"]
         self.voxel_mask_border = data["voxelMaskBorder"]
 
+        assert self.cache_file_version == data["version"], f"Old mesh cache version."
+
         self.point_out = self.max_coord + np.array([1e-1, 1e-2, 1e-3])
         # self.point_out = self.max_coord + 1e-2
 
@@ -348,6 +358,7 @@ class RegionMesh(object):
         data["padding"] = self.padding
         data["binWidth"] = self.bin_width
         data["raytraceBorders"] = self.raytrace_borders
+        data["version"] = self.cache_file_version
 
         self.write_log(f"Saving mesh cache file {self.cache_file}")
         with open(self.cache_file, 'wb') as f:
@@ -410,7 +421,7 @@ class RegionMesh(object):
                 self.mesh_vec[ir, :] = row
 
             for ir, row in enumerate(all_faces):
-                self.mesh_faces[ir,] = row
+                self.mesh_faces[ir, ] = row
 
             for ir, row in enumerate(all_norm):
                 self.mesh_norm[ir, :] = row
@@ -464,15 +475,14 @@ class RegionMesh(object):
         if self.role == "master":
             self.setup_parallel()
 
-        self.min_coord = np.floor((np.min(self.mesh_vec, axis=0)
-                                   - self.padding) / self.bin_width) * self.bin_width
-        self.max_coord = np.ceil((np.max(self.mesh_vec, axis=0)
-                                  + self.padding) / self.bin_width) * self.bin_width
+        self.min_coord = np.floor((np.min(self.mesh_vec, axis=0) - self.padding) / self.bin_width) * self.bin_width
+        self.max_coord = np.ceil((np.max(self.mesh_vec, axis=0) + self.padding) / self.bin_width) * self.bin_width
 
-        self.num_bins = np.array(np.ceil((self.max_coord - self.min_coord) / self.bin_width + 1),
-                                 dtype=int)
+        self.num_bins = np.array(np.ceil((self.max_coord - self.min_coord) / self.bin_width + 1), dtype=int)
 
         self.write_log(f"Voxel mask: {self.num_bins[0]} x {self.num_bins[1]} x {self.num_bins[2]}")
+        self.write_log(f"min coord: {self.min_coord}, max coord {self.max_coord},"
+                       f"\npadding {self.padding}, bin width {self.bin_width}")
 
         self.voxel_mask_inner = np.zeros(self.num_bins, dtype=bool)
         self.voxel_mask_border = np.zeros(self.num_bins, dtype=bool)
@@ -495,6 +505,10 @@ class RegionMesh(object):
         if self.role == "master":
             # This should only be done by master
 
+            if np.prod(self.num_bins) > 1e6:
+                self.write_log(f"Calculating {np.prod(self.num_bins)} voxels. Size warning, check mesh size.",
+                               force_print=True)
+
             if self.d_view is None:
 
                 # No workers, do all work ourselves
@@ -511,15 +525,15 @@ class RegionMesh(object):
 
                 self.d_view.scatter("x_range", all_x, block=True)
                 self.write_log("Starting parallel job")
-                self.d_view.execute("innerMask = sm._voxel_mask_helper(x_range)", block=True)
+                self.d_view.execute("inner_mask = sm._voxel_mask_helper(x_range)", block=True)
                 self.write_log("Gathering results")
-                inner_mask = self.d_view.gather("innerMask", block=True)
+                inner_mask = self.d_view.gather("inner_mask", block=True)
 
                 for m in inner_mask:
                     self.voxel_mask_inner = np.logical_or(self.voxel_mask_inner, m)
 
-        self.write_log(f"Fraction of border voxels: " 
-                       f"{np.sum(self.voxel_mask_border)/np.prod(self.voxel_mask_border.shape)}")
+        self.write_log(f"Fraction of border voxels: "
+                       f"{np.sum(self.voxel_mask_border) / np.prod(self.voxel_mask_border.shape)}")
 
         self.save_cache()
 
@@ -551,7 +565,7 @@ class RegionMesh(object):
 
     def _voxel_mask_helper(self, x_range):
 
-        """ Helper function. """
+        """ Helper function. Determine if voxels are inner our outer."""
 
         try:
 
@@ -716,14 +730,6 @@ class RegionMesh(object):
 
         intersect_count = np.sum((0 <= r) * (r <= 1) * (0 <= s) * (s <= 1) * (0 <= t) * (s + t <= 1))
 
-        # print(f"{point} intersection count {intersect_count}")
-
-        # if np.random.uniform() < 0.05:
-        #     if (np.mod(intersect_count, 2) == 1) != self.ray_casting_OLD(point):
-        #         print(f"New function differs from old for point {point}... check why")
-        #         import pdb
-        #         pdb.set_trace()
-
         return np.mod(intersect_count, 2) == 1
 
     ############################################################################
@@ -805,7 +811,7 @@ class RegionMesh(object):
 
         self.voxel_next_neuron = np.zeros(self.num_bins, dtype=int)
         self.voxel_neurons = np.zeros((self.num_bins[0], self.num_bins[1],
-                                       self.num_bins[2], self.max_neurons_voxel, 3))
+                                       self.num_bins[2], self.max_neurons_per_voxel, 3))
 
     ############################################################################
 
@@ -822,26 +828,22 @@ class RegionMesh(object):
 
         if np.sum(self.voxel_mask_border):
             # If we do raytracing then the border exists
-            self.voxel_mask_padding = np.copy(self.voxel_mask_border)
-
-            self.voxel_mask_padding = \
-                scipy.ndimage.binary_dilation(self.voxel_mask_padding,
-                                              structure=s,
-                                              iterations=n_dist)
+            dilated_mask = scipy.ndimage.binary_dilation(self.voxel_mask_border,
+                                                         structure=s,
+                                                         iterations=n_dist)
         else:
             # No ray tracing, we need to create a padding region
 
             dilated_mask = scipy.ndimage.binary_dilation(self.voxel_mask_inner,
                                                          structure=s,
                                                          iterations=n_dist)
-            self.voxel_mask_padding = \
-                np.logical_xor(dilated_mask, self.voxel_mask_inner)
+
+        self.voxel_mask_padding = np.logical_and(dilated_mask, ~self.voxel_mask_inner)
 
     ############################################################################
 
     def check_padding_zone(self, coords):
 
-        # TODO: Check/remember why min was taken here :)
         idx = np.array(np.floor((coords - self.min_coord) / self.bin_width), dtype=int)
 
         return self.voxel_mask_padding[idx[0], idx[1], idx[2]]
@@ -894,7 +896,7 @@ class RegionMesh(object):
 
         # If this is not fulfilled, then we need to update the range values below
         assert 2 * d_min < self.bin_width, \
-            "2*dMin (2 * " + str(d_min) + ") must be smaller than binWidth (" + str(self.bin_width) + ")"
+            f"2*d_min (2 * {d_min}) must be smaller than bin_width ({self.bin_width})"
 
         if neuron_type in self.neuron_types:
             neuron_type_id = self.neuron_types[neuron_type]
@@ -956,8 +958,7 @@ class RegionMesh(object):
 
             # Check that we are not too close to existing points
             # Only check the neighbouring voxels, to speed things up
-            voxel_idx = np.array(np.floor((putative_loc - self.min_coord)
-                                          / self.bin_width), dtype=int)
+            voxel_idx = np.array(np.floor((putative_loc - self.min_coord) / self.bin_width), dtype=int)
 
             # Density check is fast, do that to get an early rejection if needed
             # TODO: When a function is defined it is relatively fast, but when griddata is used
@@ -975,6 +976,10 @@ class RegionMesh(object):
                 self.density_total_n_sample[neuron_type] += 1
 
                 try:
+                    # We are sampling the densities, to see how much of the density mass is in
+                    # the current voxel compared to the total density mass in all voxels together
+                    # That should tell us what fraction of all the neurons placed of that type
+                    # should be in this particular voxel
                     n_expected = (self.density_voxel_sum[neuron_type][vx, vy, vz]
                                   / self.density_total_sum[neuron_type]
                                   * (self.placed_total[neuron_type] + 1))
@@ -1037,8 +1042,8 @@ class RegionMesh(object):
 
                 if self.voxel_next_neuron[vox_idx[0], vox_idx[1], vox_idx[2]] > 0:
                     tmp = self.voxel_neurons[vox_idx[0], vox_idx[1], vox_idx[2],
-                                             0:self.voxel_next_neuron[vox_idx[0], vox_idx[1], vox_idx[2]],
-                                             :] - putative_loc
+                          0:self.voxel_next_neuron[vox_idx[0], vox_idx[1], vox_idx[2]],
+                          :] - putative_loc
 
                     min_dist2 = min(min_dist2, np.min(np.sum(np.square(tmp), axis=1)))
 
@@ -1063,11 +1068,12 @@ class RegionMesh(object):
                 # lots of distance comparisons
                 try:
                     self.voxel_neurons[voxel_idx[0], voxel_idx[1], voxel_idx[2],
-                                       self.voxel_next_neuron[voxel_idx[0], voxel_idx[1], voxel_idx[2]], :] = putative_loc
+                                       self.voxel_next_neuron[voxel_idx[0], voxel_idx[1], voxel_idx[2]],
+                                       :] = putative_loc
                     self.voxel_next_neuron[voxel_idx[0], voxel_idx[1], voxel_idx[2]] += 1
                 except:
-                    self.write_log(f"If you see this error you probably need to increase " 
-                                   f"self.max_neurons_voxel={self.max_neurons_voxel}")
+                    self.write_log(f"If you see this error you probably need to increase "
+                                   f"self.max_neurons_per_voxel={self.max_neurons_per_voxel}", is_error=True)
                     import traceback
                     tstr = traceback.format_exc()
                     print(tstr)
@@ -1342,7 +1348,7 @@ class RegionMesh(object):
 
         xc = (self.neuron_coords[bad_idx, :] - self.min_coord) % self.bin_width
         ax.scatter(xc[:, 0], xc[:, 1], xc[:, 2], 'black')
-        plt.title("Bad neuron locations: " + str(xc.shape[0]))
+        plt.title(f"Bad neuron locations: {xc.shape[0]}")
         plt.axis('tight')
         plt.xlabel('X')
         plt.ylabel('Y')
@@ -1352,10 +1358,10 @@ class RegionMesh(object):
         plt.pause(0.001)
 
         try:
-            assert self.d_min <= np.min(min_dist), "dMin criteria not fulfilled: " \
-                                                  + str(np.min(min_dist)) + " < dMin = " + str(self.d_min)
+            assert self.d_min <= np.min(min_dist), \
+                f"d_min criteria not fulfilled: {np.min(min_dist)} < d_min = {self.d_min}"
         except:
-            self.write_log("dMin not fulfilled")
+            self.write_log(f"d_min criteria not fulfilled: {np.min(min_dist)} < d_min = {self.d_min}")
             import pdb
             pdb.set_trace()
 
@@ -1375,7 +1381,7 @@ class RegionMesh(object):
 
         for i in range(0, 1000):
             test_point = np.random.uniform(0, 1e-6, 3) \
-                        + np.array([0, 0, 0]) * 1e-6
+                         + np.array([0, 0, 0]) * 1e-6
 
             # testPoint = np.array([0.5,0.61,0.5])*1e-6
 
@@ -1395,7 +1401,7 @@ class RegionMesh(object):
 
     ############################################################################
 
-    def write_log(self, text, flush=True, is_error=False):  # Change flush to False in future, debug
+    def write_log(self, text, flush=True, is_error=False, force_print=False):  # Change flush to False in future, debug
 
         """
         Writes to log file. Use setup_log first. Text is only written to screen if self.verbose=True,
@@ -1412,7 +1418,7 @@ class RegionMesh(object):
             if flush:
                 self.logfile.flush()
 
-        if self.verbose or is_error:
+        if self.verbose or is_error or force_print:
             print(text)
 
     ############################################################################
@@ -1437,11 +1443,11 @@ if __name__ == "__main__":
         rc = Client(profile=os.getenv('IPYTHON_PROFILE'),
                     # sshserver='127.0.0.1',
                     debug=False)
-        print('Client IDs: ' + str(rc.ids))
+        print(f"Client IDs: {rc.ids}")
 
         # http://davidmasad.com/blog/simulation-with-ipyparallel/
         # http://people.duke.edu/~ccc14/sta-663-2016/19C_IPyParallel.html
-        print("Client IDs: " + str(rc.ids))
+        print(f"Client IDs: {rc.ids}")
         d_view = rc.direct_view(targets='all')  # rc[:] # Direct view into clients
     else:
         print("No IPYTHON_PROFILE enviroment variable set, running in serial")
@@ -1460,9 +1466,9 @@ if __name__ == "__main__":
     nNeurons = 1730000
     neuronPos = sm.place_neurons(nNeurons)
     # sm.verify_d_min()
-    sm.plot_neurons(pdf_name="figures/striatum-fig-somas.png")
+    sm.plot_neurons(pdf_name=os.path.join("figures", "striatum-fig-somas.png"))
 
-    sm.plot_struct(pdf_name="figures/striatum-fig-struct.png")
+    sm.plot_struct(pdf_name=os.path.join("figures", "striatum-fig-struct.png"))
 
     # sm.testPlot()
     # sm.testPlotCached()

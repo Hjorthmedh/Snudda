@@ -1,0 +1,134 @@
+{
+    "dSPN": {
+	"CorticalBase" : {
+	    "generator" : "frequency_function",
+	    "type" : "AMPA_NMDA",
+	    "synapse_density" : "50*1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+	    "frequency" : "2*t",
+	    "population_unit_correlation" : 0.0,
+	    "jitter" : 0.002,
+	    "conductance" : 0.5e-9,
+	    "mod_file": "tmGlut",
+	    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+	},
+	"CorticalSignal" : {
+	    "generator" : "frequency_function",
+	    "start" : [2.0,5.0,7.0],
+	    "end" : [3.0, 6.0, 8.0],
+	    "type" : "AMPA_NMDA",
+	    "synapse_density" : "0.45*0.05/(1+exp(-(d-30e-6)/5e-6))",
+	    "num_inputs": 2000,
+	    "num_soma_synapses": 10,
+	    "cluster_size" : 3,
+	    "cluster_spread" : 30e-6,
+	    "frequency" : ["1", "20*t", "3"],
+	    "population_unit_correlation" : 0.9,
+	    "population_unit_correlationFraction" : [0.5, 0.6, 0.7],
+	    "jitter" : 0.0,
+	    "conductance" : 0.5e-9,
+	    "mod_file": "tmGlut",
+	    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+	},
+	"Thalamic" : {
+	    "generator" : "frequency_function",	    
+	    "type" : "AMPA_NMDA",
+	    "synapse_density" : "20*0.05*exp(-d/200e-6)",
+	    "frequency" : "1",
+	    "population_unit_correlation" : 0.0,
+	    "jitter" : 0.01,
+	    "conductance" : 0.5e-9,
+	    "mod_file": "tmGlut",
+	    "parameter_file":"$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+	}	
+    },
+
+    "iSPN": {
+	"CorticalBase" : {
+	    "generator" : "frequency_function",
+	    "type" : "AMPA_NMDA",
+	    "synapse_density": "0.75*0.052/(1+exp(-(d-30e-6)/5e-6))",
+	    "num_inputs": 1000,
+	    "frequency" : "1",
+	    "population_unit_correlation" : 0.3,
+	    "jitter" : 0.003,
+	    "conductance" : 0.5e-9,
+        "mod_file":"tmGlut",
+	    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+	},
+	"CorticalSignal" : {
+	    "generator" : "frequency_function",
+	    "start" : [2.0, 4.0, 6.0],
+	    "end" : [2.5, 4.5, 6.5],
+	    "type" : "AMPA_NMDA",
+	    "synapse_density": "0.3*0.052/(1+exp(-(d-30e-6)/5e-6))",
+	    "num_inputs" : 3000,
+	    "cluster_size" : 3,
+	    "frequency" : "1",
+	    "population_unit_correlation" : 0.9,
+	    "jitter" : 0.003,
+	    "conductance" : 0.5e-9,
+        "mod_file":"tmGlut",
+	    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+	},
+	"Thalamic" : {
+	    "generator" : "frequency_function",	    
+	    "type" : "AMPA_NMDA",
+	    "synapse_density" : "0.052*exp(-d/200e-6)",
+	    "frequency" : "1",
+	    "population_unit_correlation" : 0.0,
+	    "jitter" : 0.01,
+	    "conductance" : 0.5e-9,
+	    "mod_file": "tmGlut",
+	    "parameter_file":"$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+	}	
+    },
+
+    
+    "FS": {
+	"Cortical" : {
+	    "generator" : "frequency_function",	    
+	    "type" : "AMPA_NMDA",
+	    "synapse_density": "50*0.092*(1-exp(-d/200e-6))",	    
+	    "frequency" : "10*t",
+	    "add_mother_spikes" : [0.2, 0.3, 0.45],
+	    "population_unit_correlation" : 1,
+	    "jitter" : 0.0,
+	    "conductance" : 1.5e-9,	    
+	    "mod_file": "tmGlut",
+	    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-FS.json"
+	},
+	"CorticalSignal" : {
+	    "generator" : "frequency_function",
+	    "start" : [2.0, 4.0, 7.0],
+	    "end" : [2.5, 4.5, 7.5],
+	    "type" : "AMPA_NMDA",
+	    "synapse_density": "50*0.038*(1-exp(-d/200e-6))",
+	    "frequency" : ["10*t", "10", "100"],
+	    "population_unit_correlation" : 0.6,
+	    "jitter" : 0.003,
+	    "conductance" : 1.5e-9,
+	    "mod_file":"tmGlut",
+	    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-FS.json"
+	},
+	"Thalamic" : {
+	    "generator" : "poisson",	    
+	    "type" : "AMPA_NMDA",
+	    "synapse_density" : "0.073*exp(-d/200e-6)",	    
+	    "frequency" : 0,
+	    "set_mother_spikes" : [0.1, 0.2, 0.3],
+	    "population_unit_correlation" : 1.0,
+	    "jitter" : 0.0,	    
+	    "conductance" : 1.5e-9,	    
+	    "mod_file":"tmGlut",
+	    "parameter_file":"$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-FS.json",
+	    "num_inputs" : {
+		"FS_0" : 2000,
+		"FS_1" : 3000,
+		"FS_2" : 1300,
+		"FS_3" : 1800
+	    }
+	}
+
+    }
+    
+}

@@ -1,0 +1,53 @@
+{
+
+    "meta" : {
+	"experiment_name" : "PairRecordingUnitTest",
+	"simulation_duration" : 1,
+	"v_hold" : -80e-3,
+	"pair_recording_output_file" : "pair-recording-simulation.hdf5",
+	"reversal_potential" : [["tmGabaA", -65e-3]],
+	"neuron_subset" : "prepost"
+    },
+    
+    "current_injection" : [
+	{
+	    "neuron_id" : 0,
+	    "start" : [0],
+	    "end" : [1],
+	    "requested_frequency" : 20
+	},
+	{
+	    "neuron_id" : 1,
+	    "start" : [0],
+	    "end" : [1],
+	    "requested_frequency" : 20
+	},
+	{
+	    "neuron_id" : 2,
+	    "start" : [0],
+	    "end" : [1],
+	    "requested_frequency" : 20
+	},
+	{
+	    "neuron_id" : 3,
+	    "start" : [0],
+	    "end" : [1],
+	    "requested_frequency" : 10
+	},
+	{
+	    "neuron_id" : 4,
+	    "start" : [0],
+	    "end" : [1],
+	    "requested_frequency" : 20
+	},
+	{
+	    "neuron_id" : 5,
+	    "start" : [0],
+	    "end" : [1],
+	    "requested_frequency" : 20
+	}
+    ],
+
+    "record_synaptic_current" : []
+	
+}

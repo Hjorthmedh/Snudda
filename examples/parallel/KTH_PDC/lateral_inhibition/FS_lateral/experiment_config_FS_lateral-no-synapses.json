@@ -1,0 +1,11 @@
+{
+    "network_file": "../networks/FS_lateral/network-synapses.hdf5",
+    "input_file": "../networks/FS_lateral/input-spikes.hdf5",
+    "output_file": "../networks/FS_lateral/simulation/output-no-synapses-FS_lateral-A.hdf5",
+    "log_file": "../networks/FS_lateral/log/network-simulation-no-synapses-log-4A.txt",
+    "sample_dt": 0.01,
+    "time": 20.0,
+    "disable_synapses": true,
+    "record_all_soma": true,
+    "!record_all_compartments": [0, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 5500, 6000, 6500, 7000, 7500]
+}

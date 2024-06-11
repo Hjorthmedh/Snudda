@@ -1,10 +1,10 @@
-import unittest
 import os
 import sys
+import unittest
 import numpy as np
 
-from snudda.place.create_cube_mesh import create_cube_mesh
 from snudda.detect.detect import SnuddaDetect
+from snudda.place.create_cube_mesh import create_cube_mesh
 from snudda.place.place import SnuddaPlace
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -29,9 +29,7 @@ class TestDetect(unittest.TestCase):
 
         #  TODO: If d_view is None code run sin serial, add test parallel
         sp = SnuddaPlace(config_file=config_file, d_view=None, verbose=True)
-
-        sp.parse_config()
-        sp.write_data(position_file)
+        sp.place()
 
         # We want to load in the ball and stick neuron that has 20 micrometer soma diameter, and axon (along y-axis),
         # and dendrite along (x-axis) out to 100 micrometer distance from centre of soma.
@@ -42,7 +40,7 @@ class TestDetect(unittest.TestCase):
 
     def test_detect(self):
 
-        neuron_positions = np.array([[0, 20, 0],    # Postsynaptiska
+        neuron_positions = np.array([[0, 20, 0],  # Postsynaptiska
                                      [0, 40, 0],
                                      [0, 60, 0],
                                      [0, 80, 0],
@@ -52,7 +50,7 @@ class TestDetect(unittest.TestCase):
                                      [0, 160, 0],
                                      [0, 180, 0],
                                      [0, 200, 0],
-                                     [20, 0, 0],    # Presynaptiska
+                                     [20, 0, 0],  # Presynaptiska
                                      [40, 0, 0],
                                      [60, 0, 0],
                                      [80, 0, 0],
@@ -63,30 +61,30 @@ class TestDetect(unittest.TestCase):
                                      [180, 0, 0],
                                      [200, 0, 0],
                                      [100, 100, -40],  # To get a gap junction
-                                     ])*1e-6
+                                     ]) * 1e-6
 
         for idx, pos in enumerate(neuron_positions):
             self.sd.neurons[idx]["position"] = pos
 
-        ang = -np.pi/2
+        ang = -np.pi / 2
         R_x = np.array([[1, 0, 0],
                         [0, np.cos(ang), -np.sin(ang)],
                         [0, np.sin(ang), np.cos(ang)]])
 
-        ang = np.pi/2
+        ang = np.pi / 2
         R_y = np.array([[np.cos(ang), 0, np.sin(ang)],
                         [0, 1, 0],
                         [-np.sin(ang), 0, np.cos(ang)]])
 
-        ang = -np.pi/2
+        ang = -np.pi / 2
         R_gj = np.array([[np.cos(ang), 0, np.sin(ang)],
                          [0, 1, 0],
                          [-np.sin(ang), 0, np.cos(ang)]])
 
-        for idx in range(0, 10):    # Post synaptic neurons
+        for idx in range(0, 10):  # Post synaptic neurons
             self.sd.neurons[idx]["rotation"] = R_x
 
-        for idx in range(10, 20):   # Presynaptic neurons
+        for idx in range(10, 20):  # Presynaptic neurons
             self.sd.neurons[idx]["rotation"] = R_y
 
         self.sd.neurons[20]["rotation"] = R_gj
@@ -101,7 +99,7 @@ class TestDetect(unittest.TestCase):
         if not os.path.exists(fig_path):
             os.mkdir(fig_path)
 
-        if False:   # Set to True to include plot
+        if False:  # Set to True to include plot
             self.sd.plot_hyper_voxel(plot_neurons=True, fig_file_name="touch-detection-validation")
 
         # TODO: Also add tests for soma-axon synapses
@@ -111,32 +109,32 @@ class TestDetect(unittest.TestCase):
             self.assertEqual(self.sd.hyper_voxel_gap_junction_ctr, 1)
             self.assertTrue((self.sd.hyper_voxel_gap_junctions[0, 0:2] == [4, 20]).all())
             self.assertTrue(self.compare_voxels_to_coordinates(self.sd.hyper_voxel_gap_junctions[0, 6:9],
-                                                               np.array([100, 100, 0])*1e-6))
+                                                               np.array([100, 100, 0]) * 1e-6))
         with self.subTest(stage="synapses_check"):
             print(f"synapse ctr {self.sd.hyper_voxel_synapse_ctr}")
 
             self.assertEqual(self.sd.hyper_voxel_synapse_ctr, 101)
 
-            for pre_id in range(0, 10):
-                for post_id in range(10, 20):
+            for post_id in range(0, 10):
+                for pre_id in range(10, 20):
                     self.assertEqual(self.check_neuron_pair_has_synapse(pre_id, post_id), 1)
 
-            for pre_id in range(0, 10):
-                for post_id in range(0, 10):
+            for post_id in range(0, 10):
+                for pre_id in range(0, 10):
                     self.assertFalse(self.check_neuron_pair_has_synapse(pre_id, post_id))
 
-            for pre_id in range(10, 20):
-                for post_id in range(10, 20):
+            for post_id in range(10, 20):
+                for pre_id in range(10, 20):
                     self.assertFalse(self.check_neuron_pair_has_synapse(pre_id, post_id))
 
         with self.subTest(stage="synapse_sorting_check"):
             syn = self.sd.hyper_voxel_synapses[:self.sd.hyper_voxel_synapse_ctr, :2]
-            syn_order = syn[:, 1]*len(self.sd.neurons) + syn[:, 0]
+            syn_order = syn[:, 1] * len(self.sd.neurons) + syn[:, 0]
             self.assertTrue((np.diff(syn_order) >= 0).all())
 
         with self.subTest(stage="gap_junction_sorting_check"):
             gj = self.sd.hyper_voxel_gap_junctions[:self.sd.hyper_voxel_gap_junction_ctr, :2]
-            gj_order = gj[:, 1]*len(self.sd.neurons) + gj[:, 0]
+            gj_order = gj[:, 1] * len(self.sd.neurons) + gj[:, 0]
             self.assertTrue((np.diff(gj_order) >= 0).all())
 
         with self.subTest(stage="synapse_conductance_check"):
@@ -184,9 +182,9 @@ class TestDetect(unittest.TestCase):
 
         connections = dict()
 
-        for synapse_row in self.sd.hyper_voxel_synapses[0:self.sd.hyper_voxel_synapse_ctr,:]:
+        for synapse_row in self.sd.hyper_voxel_synapses[0:self.sd.hyper_voxel_synapse_ctr, :]:
 
-            loc = (synapse_row[1], synapse_row[0])
+            loc = (synapse_row[0], synapse_row[1])
             if loc in connections:
                 connections[loc] += 1
             else:
@@ -211,7 +209,7 @@ class TestDetect(unittest.TestCase):
         # id 0-9 connecting to id 10-19, connection angle is 0-45 degrees
         # id 20 is 4 micrometer and parallel to another dendrite, no intersection
 
-        neuron_positions = np.array([[0, 0, 0],    # Postsynaptiska
+        neuron_positions = np.array([[0, 0, 0],  # Postsynaptiska
                                      [10, 10, 15],
                                      [20, 20, 30],
                                      [30, 30, 45],
@@ -221,7 +219,7 @@ class TestDetect(unittest.TestCase):
                                      [70, 70, 105],
                                      [80, 80, 120],
                                      [90, 90, 135],
-                                     [50, -100, 0],    # Presynaptiska
+                                     [50, -100, 0],  # Presynaptiska
                                      [60, -90, 15],
                                      [70, -80, 30],
                                      [80, -70, 45],
@@ -232,25 +230,25 @@ class TestDetect(unittest.TestCase):
                                      [130, -20, 120],
                                      [140, -10, 135],
                                      [230, 0, 4],  # 4 micrometers from first neuron
-                                     ])*1e-6
+                                     ]) * 1e-6
 
         for idx, pos in enumerate(neuron_positions):
             self.sd.neurons[idx]["position"] = pos
 
-        ang = -np.pi/2
+        ang = -np.pi / 2
         R_x = np.array([[1, 0, 0],
                         [0, np.cos(ang), -np.sin(ang)],
                         [0, np.sin(ang), np.cos(ang)]])
 
-        ang = np.pi/2
+        ang = np.pi / 2
         R_y = np.array([[np.cos(ang), 0, np.sin(ang)],
                         [0, 1, 0],
                         [-np.sin(ang), 0, np.cos(ang)]])
 
-        for idx in range(0, 10):    # Post synaptic neurons
+        for idx in range(0, 10):  # Post synaptic neurons
             self.sd.neurons[idx]["rotation"] = R_x
 
-        for idx, ang in zip(range(10, 20), np.linspace(0, -np.pi/4, 10)):   # Presynaptic neurons
+        for idx, ang in zip(range(10, 20), np.linspace(0, -np.pi / 4, 10)):  # Presynaptic neurons
 
             R_z = np.array([[np.cos(ang), -np.sin(ang), 0],
                             [np.sin(ang), np.cos(ang), 0],
@@ -272,7 +270,7 @@ class TestDetect(unittest.TestCase):
         synapse_voxel_loc = self.sd.hyper_voxel_synapses[:self.sd.hyper_voxel_synapse_ctr, 2:5]
         synapse_coords = synapse_voxel_loc * self.sd.voxel_size + self.sd.hyper_voxel_origo
 
-        if False:   # Set to True to include plot
+        if False:  # Set to True to include plot
             self.sd.plot_hyper_voxel(plot_neurons=True, fig_file_name="axon_dend_intersection_angle_0_45")
 
         with self.subTest(stage="synapses_check"):
@@ -283,13 +281,16 @@ class TestDetect(unittest.TestCase):
             self.assertTrue(self.sd.hyper_voxel_synapse_ctr >= 10)
 
             # Verify that all pairs are connected
-            for pre_id in range(0, 10):
-                post_id = pre_id + 10
+            for post_id in range(0, 10):
+                pre_id = post_id + 10
                 self.assertTrue(1 <= self.check_neuron_pair_has_synapse(pre_id, post_id) <= 2)
+
+    # TODO: Gör ett test som distriburerar alla sections till sina respektive hypervoxlar,
+    #       sen tvinga en touch detection som ignorerar den infon och tar med allt
+    #       och se om några section id finns med som inte finns med i listorna...
 
 
 if __name__ == '__main__':
     unittest.main()
 
 # python3 -m unittest test_detect
-    

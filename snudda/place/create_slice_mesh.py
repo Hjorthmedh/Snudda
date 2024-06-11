@@ -1,4 +1,5 @@
 import os
+
 import numpy as np
 
 
@@ -8,7 +9,6 @@ def create_slice_mesh(file_name,
                       y_len=500e-6,
                       z_len=150e-6,
                       description=None):
-
     """
     Create a slice mesh in wavefront format.
 

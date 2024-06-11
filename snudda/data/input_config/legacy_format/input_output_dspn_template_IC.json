@@ -1,0 +1,21 @@
+{
+    "dspn": {
+	"CorticalSignal" : {
+	    "generator" : "poisson",
+	    "start" : [2.0, 4.0, 6.0],
+	    "end" : [2.5, 4.5, 6.5],
+	    "type" : "AMPA_NMDA",
+	    "synapseDensity": "0.45*0.05/(1+exp(-(d-30e-6)/5e-6))",
+	    "frequency" : 3,
+	    "populationUnitCorrelation" : 0,
+	    "jitter" : 0.000,
+	    "conductance" : 5.0e-10,
+        "modFile":"tmGlut",
+	    "parameterFile": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json",
+		"nInputs" : {
+		"dspn" : 100
+	    }
+	}	
+    }
+    
+}

@@ -1,14 +1,10 @@
-from collections import OrderedDict
+import json
 
 import numpy as np
-import json
 from scipy.interpolate import griddata
-
-from snudda.neurons.neuron_morphology import NeuronMorphology
 
 
 class SnuddaRotate:
-
     """ Rotation object. """
 
     def __init__(self, config_file=None):
@@ -27,31 +23,30 @@ class SnuddaRotate:
             self.parse_config_file(config_file=config_file)
 
     def parse_config_file(self, config_file):
-        """ Parse config_file, sets self.rotation_lookup """
 
         with open(config_file, "r") as f:
-            self.config = json.load(f, object_pairs_hook=OrderedDict)
+            self.config = json.load(f)
 
         # Parse the config
-        for volume_name in self.config["Volume"]:
-            if "neuronOrientation" in self.config["Volume"][volume_name]:
-                for neuron_type in self.config["Volume"][volume_name]["neuronOrientation"]:
+        for region_name, region_data in self.config["regions"].items():
 
-                    orientation_info = self.config["Volume"][volume_name]["neuronOrientation"][neuron_type]
-                    rotation_mode = orientation_info["rotationMode"]
-                    rotation_field_file = orientation_info["rotationFieldFile"] if "rotationFieldFile" \
-                                                                                   in orientation_info else None
+            if "neuron_orientation" in region_data["volume"]:
+                for neuron_type in region_data["volume"]["neuron_orientation"]:
+
+                    orientation_info = region_data["volume"]["neuron_orientation"][neuron_type]
+                    rotation_mode = orientation_info["rotation_mode"]
+                    rotation_field_file = orientation_info["rotation_field_file"] if "rotation_field_file" in orientation_info else None
                     if rotation_field_file:
-                        position, rotation = self.load_rotation_field(rotation_field_file, volume_name)
+                        position, rotation = self.load_rotation_field(rotation_field_file, region_name)
                     else:
                         position, rotation = None, None
 
-                    self.rotation_lookup[volume_name, neuron_type] = (rotation_mode, position, rotation)
+                    self.rotation_lookup[region_name, neuron_type] = (rotation_mode, position, rotation)
 
     @staticmethod
     def random_z_rotate(rng):
         """ Helper method, rotate around z-axis (of SWC coordinates)"""
-        ang = 2*np.pi*rng.uniform()
+        ang = 2 * np.pi * rng.uniform()
 
         return np.array([[np.cos(ang), -np.sin(ang), 0],
                          [np.sin(ang), np.cos(ang), 0],
@@ -66,13 +61,13 @@ class SnuddaRotate:
             rotation_mode, field_position, field_rotation = "random", None, None
 
         if not rotation_mode or rotation_mode.lower() == "none":
-            rotation_matrices = [np.eye]*neuron_positions.shape[0]
+            rotation_matrices = [np.eye] * neuron_positions.shape[0]
 
         elif rotation_mode in ["random", "default"]:
-            rotation_matrices = [NeuronMorphology.rand_rotation_matrix(rand_nums=rng.random(size=(3,)))
+            rotation_matrices = [self.rand_rotation_matrix(rand_nums=rng.random(size=(3,)))
                                  for x in range(0, neuron_positions.shape[0])]
 
-        elif "vectorField" in rotation_mode:
+        elif "vector_field" in rotation_mode:
             rotation_vectors = griddata(points=field_position,
                                         values=field_rotation,
                                         xi=neuron_positions, method="linear")
@@ -82,7 +77,7 @@ class SnuddaRotate:
                  f"is neuron position outside the field?\nNeuron positions: {neuron_positions}"
                  f" (must be inside convex hull of the field's positions points)")
 
-            if rotation_mode == "vectorFieldAndZ":
+            if rotation_mode == "vector_field_and_z":
                 rotation_matrices = [np.matmul(SnuddaRotate.rotation_matrix_from_vectors(np.array([0, 0, 1]), rv),
                                                self.random_z_rotate(rng))
                                      for rv in rotation_vectors]
@@ -133,11 +128,11 @@ class SnuddaRotate:
         """ Loads rotation field for volumne_name from rotation_field_file """
 
         with open(rotation_field_file, "r") as f:
-            rotation_field_data = json.load(f, object_pairs_hook=OrderedDict)
+            rotation_field_data = json.load(f)
 
         if volume_name in rotation_field_data:
             assert "position" in rotation_field_data[volume_name] \
-                and "rotation" in rotation_field_data[volume_name], \
+                   and "rotation" in rotation_field_data[volume_name], \
                 f"Missing position and/or rotation tag in volume {volume_name}"
 
             return np.array(rotation_field_data[volume_name]["position"]) * 1e-6, \
@@ -146,3 +141,45 @@ class SnuddaRotate:
         else:
             print(f"No volume name, assuming position and rotation is for {volume_name}")
             return np.array(rotation_field_data["position"]) * 1e-6, np.array(rotation_field_data["rotation"])
+
+    @staticmethod
+    def rand_rotation_matrix(deflection=1.0, rand_nums=None, rng=None):
+        """
+        Creates a random rotation matrix.
+
+        deflection: the magnitude of the rotation. For 0, no rotation; for 1, competely random
+        rotation. Small deflection => small perturbation.
+        rand_nums: 3 random numbers in the range [0, 1]. If `None`, they will be auto-generated.
+        """
+
+        # from http://www.realtimerendering.com/resources/GraphicsGems/gemsiii/rand_rotation.c
+
+        if rand_nums is None:
+            if rng is not None:
+                rand_nums = rng.uniform(size=(3,))
+            else:
+                rand_nums = np.random.uniform(size=(3,))
+
+        theta, phi, z = rand_nums
+
+        theta = theta * 2.0 * deflection * np.pi  # Rotation about the pole (Z).
+        phi = phi * 2.0 * np.pi  # For direction of pole deflection.
+        z = z * 2.0 * deflection  # For magnitude of pole deflection.
+
+        # Compute a vector V used for distributing points over the sphere
+        # via the reflection I - V Transpose(V).  This formulation of V
+        # will guarantee that if x[1] and x[2] are uniformly distributed,
+        # the reflected points will be uniform on the sphere.  Note that V
+        # has length sqrt(2) to eliminate the 2 in the Householder matrix.
+
+        r = np.sqrt(z)
+        vv = (np.sin(phi) * r, np.cos(phi) * r, np.sqrt(2.0 - z))
+
+        st = np.sin(theta)
+        ct = np.cos(theta)
+
+        rr = np.array(((ct, st, 0), (-st, ct, 0), (0, 0, 1)))
+
+        # Construct the rotation matrix  ( V Transpose(V) - I ) R.
+        mm = (np.outer(vv, vv) - np.eye(3)).dot(rr)
+        return mm

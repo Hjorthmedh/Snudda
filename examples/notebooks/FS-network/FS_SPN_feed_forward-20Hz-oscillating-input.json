@@ -1,0 +1,43 @@
+{
+    "FS": {
+        "CtxSignal" : {
+            "generator" : "frequency_function",
+            "start" : 2,
+            "end" : 10,
+            "synapse_density" : "0.45*0.05/(1+exp(-(d-30e-6)/5e-6))",
+            "frequency" : "5 * (((t -0.01) % (1/20)) < (0.3 * 1/20))",
+            "num_inputs" : 100,
+            "conductance" : 0.5e-9,
+            "population_unit_correlation" : 0.8,
+	    "population_unit_id" : 1,
+            "jitter" : 0,        
+            "mod-file": "tmGlut",
+	    "parameter_list": { "nmda_ratio" : 0}
+        },
+	"cortical_background" : {
+            "generator" : "poisson",
+            "frequency" : 2, 
+	    "parameter_list": { "nmda_ratio" : 0}
+        }	
+    },
+    "dSPN": {
+	"cortical_background" : {
+	    "generator" : "poisson",
+	    "frequency" : 2
+	},
+	"thalamic_background" : {
+	    "generator" : "poisson",
+	    "frequency" : 2
+	}
+    },
+    "iSPN": {
+	"cortical_background" : {
+	    "generator" : "poisson",
+	    "frequency" : 2
+	},
+	"thalamic_background" : {
+	    "generator" : "poisson",
+	    "frequency" : 2
+	}
+   }
+}

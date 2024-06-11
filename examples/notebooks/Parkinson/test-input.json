@@ -1,0 +1,76 @@
+{
+    "FS" : {
+        "cortical": {
+            "conductance": 5e-10,
+            "frequency": 1.0,
+            "generator": "poisson",
+            "jitter": 0.0,
+            "mod_file": "tmGlut",
+            "num_inputs": 100,
+            "population_unit_correlation": 0.0,
+            "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+            "type": "AMPA_NMDA"
+        },
+        "thalamic": {
+            "conductance": 5e-10,
+            "frequency": 1.0,
+            "generator": "poisson",
+            "jitter": 0.0,
+            "mod_file": "tmGlut",
+            "num_inputs": 100,
+            "population_unit_correlation": 0.0,
+            "synapse_density": "0.05*exp(-d/200e-6)",
+            "type": "AMPA_NMDA"
+        }
+    },
+
+    "dSPN" : {
+	"cortical": {
+            "conductance": 5e-10,
+            "frequency": 1.0,
+            "generator": "poisson",
+            "jitter": 0.0,
+            "mod_file": "tmGlut",
+            "num_inputs": 100,
+            "population_unit_correlation": 0.0,
+            "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+            "type": "AMPA_NMDA"
+        },
+        "thalamic": {
+            "conductance": 5e-10,
+            "frequency": 1.0,
+            "generator": "poisson",
+            "jitter": 0.0,
+            "mod_file": "tmGlut",
+            "num_inputs": 100,
+            "population_unit_correlation": 0.0,
+            "synapse_density": "0.05*exp(-d/200e-6)",
+            "type": "AMPA_NMDA"
+        }
+    },
+
+    "iSPN" : {
+	"cortical": {
+            "conductance": 5e-10,
+            "frequency": 1.0,
+            "generator": "poisson",
+            "jitter": 0.0,
+            "mod_file": "tmGlut",
+            "num_inputs": 100,
+            "population_unit_correlation": 0.0,
+            "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+            "type": "AMPA_NMDA"
+        },
+        "thalamic": {
+            "conductance": 5e-10,
+            "frequency": 1.0,
+            "generator": "poisson",
+            "jitter": 0.0,
+            "mod_file": "tmGlut",
+            "num_inputs": 100,
+            "population_unit_correlation": 0.0,
+            "synapse_density": "0.05*exp(-d/200e-6)",
+            "type": "AMPA_NMDA"
+        }
+    }
+}

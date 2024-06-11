@@ -20,19 +20,22 @@ if os.environ.get('READTHEDOCS') == 'True':
 else:
     print(f"READTHEDOCS = {os.environ.get('READTHEDOCS')}") 
     install_requires = [
-        "bluepyopt>=1.9.126",
-        "h5py>=3.1.0",
+        "bluepyopt>=1.11.7",
+        "h5py>=3.2.1",
         "ipyparallel>=6.3.0",
         "matplotlib>=3.3.4",
         "mpi4py>=3.0.3",
-        "numpy>=1.20.1",
-        "scipy>=1.6.1",
+         # "numpy==1.23.5",  # Numba depends on specific numpy version, so removing this line for now as numba will install its requirements
+        "scipy>=1.6.3",
         "sonata>=0.0.2",
         "pyzmq>=22.0.3",
         "setuptools",
         "psutil",
-        "argparse",
-        "numexpr"
+        "numexpr>=2.7.3",
+        "numba>=0.56.4",
+        "wheel",
+        "open3d"
+        # "igraph"
     ]
     
 setuptools.setup(
@@ -56,9 +59,11 @@ setuptools.setup(
     },
     entry_points={"console_scripts": ["snudda = snudda.cli:snudda_cli",
                                       "snudda_load = snudda.utils.load:snudda_load_cli",
-                                      "snudda_load_spike_data = snudda.utils.load_spike_data:snudda_load_spike_data_cli",
+                                      "snudda_load_simulation_data = snudda.utils.load_network_simulation:load_network_simulation_cli",
                                       "snudda_ablate_network = snudda.utils.ablate_network:snudda_ablate_network_cli",
-                                      "snudda_plot_network = snudda.plotting.plot_network:snudda_plot_network_cli" ]},
+                                      "snudda_plot_network = snudda.plotting.plot_network:snudda_plot_network_cli",
+                                      "snudda_plot_trace = snudda.plotting.plot_traces:snudda_plot_traces_cli"]},
     install_requires=install_requires,
     extras_require={"dev": ["sphinx"]},
+    setup_requires=['wheel']
 )
