@@ -25,6 +25,14 @@ DERIVATIVE state {
     open' = -open/tau
 }
 
+
+: 33000 dopamine molecules per vesicle : Omiatek, D., Bressler, A.,
+: Cans, AS. et al. The real catecholamine content of secretory vesicles
+: in the CNS revealed by electrochemical cytometry. Sci Rep 3, 1447
+: (2013). https://doi.org/10.1038/srep01447
+
+
+
 NET_RECEIVE(weight) {
     open = open + weight
 }

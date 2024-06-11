@@ -1,5 +1,10 @@
 # TODO: Add ability for synapses to affect rxd concentration
 
+# TODO: How to handle conductance for DA channel, we have that DA vesicles contain 33000 DA molecules
+#       (watch out for overflow of integers in snudda synapse matrix)
+
+# TODO: External input should also be able to release dopamine
+
 import os
 import numpy as np
 import neuron.crxd as rxd
