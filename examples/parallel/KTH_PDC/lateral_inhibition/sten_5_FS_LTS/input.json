@@ -2,26 +2,26 @@
     "dSPN": {
         "cortical" : {
             "generator" : "poisson",
-            "start" : [1, 4, 7, 10, 13, 16],
-            "end" :   [3, 6, 9, 12, 15, 18],
-            "frequency" : [4, 4, 4, 6, 6, 6]
+            "start" : [1, 4, 7, 10, 13, 16, 19, 22],
+            "end" :   [3, 6, 9, 12, 15, 18, 21, 24],
+            "frequency" : [4, 4, 4, 4, 6, 6, 6, 6]
         }
     },
 
     "iSPN": {
         "cortical" : {
             "generator" : "poisson",
-            "start" : [1, 4, 7, 10, 13, 16],
-            "end" :   [3, 6, 9, 12, 15, 18],
-            "frequency" : [4, 4, 4, 6, 6, 6]
+            "start" : [1, 4, 7, 10, 13, 16, 19, 22],
+            "end" :   [3, 6, 9, 12, 15, 18, 21, 24],
+            "frequency" : [4, 4, 4, 4, 6, 6, 6, 6]
         }
     },
 
     "FS": {
         "cortical" : {
             "generator" : "poisson",
-            "start" : [1, 7, 10, 16],
-            "end" :   [3, 9, 12, 18],
+            "start" : [4, 10, 16, 22],
+            "end" :   [6, 12, 18, 24],
             "frequency" : [10, 10, 10, 10]
         }	
     },
@@ -29,9 +29,9 @@
     "LTS": {
         "cortical_background" : {
             "generator" : "poisson",
-            "start" : [4, 7, 13, 16],
-            "end" :   [6, 9, 15, 18],
-            "frequency" : [1, 1, 1, 1]
+            "start" : [7, 10, 19, 22],
+            "end" :   [9, 12, 21, 24],
+            "frequency" : [2, 2, 2, 2]
         }	
     }
 }

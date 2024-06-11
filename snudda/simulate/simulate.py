@@ -1621,6 +1621,8 @@ class SnuddaSimulate(object):
 
         """ Run simulation. """
 
+        start_time = timeit.default_timer()
+
         if self.is_virtual_neuron.all():
             print("ALL YOUR NEURONS IN THE SIMULATION ARE VIRTUAL")
 
@@ -1652,7 +1654,6 @@ class SnuddaSimulate(object):
         # https://www.neuron.yale.edu/phpBB/viewtopic.php?f=2&t=4161&p=18021
 
         self.setup_print_sim_time(t)
-        start_time = timeit.default_timer()
 
         # Make sure all processes are synchronised
         self.pc.barrier()
@@ -2047,7 +2048,10 @@ class SnuddaSimulate(object):
 
     def _setup_print_sim_time_helper(self, t_max):
         """ Helper method for printing simulation time during execution. """
-        update_points = np.arange(t_max / 100., t_max, t_max / 100.)
+        update_points = np.array([0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09,
+                                  0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]) * t_max
+
+        # update_points = np.arange(t_max / 100., t_max, t_max / 100.)
         for t in update_points:
             h.cvode.event(t, self.print_sim_time)
 
@@ -2055,6 +2059,12 @@ class SnuddaSimulate(object):
 
     def print_sim_time(self):
         """ Helper function, to print simulation time during execution. """
+
+        if h.t == 0:
+            # Starting simulation wall clock, for estimate of time left
+            self.sim_start_time = timeit.default_timer()
+            return
+
         cur_time = timeit.default_timer()
         elapsed_time = cur_time - self.sim_start_time
         fraction_done = h.t / self.t_max
@@ -2067,8 +2077,11 @@ class SnuddaSimulate(object):
         else:
             force_print = False
 
-        self.write_log("%.0f%% done. Elapsed: %.1f s, estimated time left: %.1f s"
-                       % (fraction_done * 100, elapsed_time, time_left), force_print=force_print)
+        self.write_log(f"{fraction_done * 100:>3.0f}% done. Elapsed: {elapsed_time:.1f} s, "
+                       f"estimated time left: {time_left:.1f} s", force_print=force_print)
+
+        # self.write_log("%.0f%% done. Elapsed: %.1f s, estimated time left: %.1f s"
+        #                % (fraction_done * 100, elapsed_time, time_left), force_print=force_print)
 
     ############################################################################
 

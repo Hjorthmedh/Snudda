@@ -2,15 +2,13 @@
 #SBATCH --partition=main
 #SBATCH -o log/Simulate-%j-output.txt
 #SBATCH -e log/Simulate-%j-error.txt
-#SBATCH -t 8:59:00
-#SBATCH --time-min=6:59:00
+#SBATCH -t 9:59:00
+#SBATCH --time-min=9:59:00
 #SBATCH -J Simulate
 #SBATCH -A naiss2023-5-231
 #SBATCH --nodes=60
 #SBATCH --tasks-per-node=50
 #SBATCH --mail-type=ALL
-
-# Remember to make sure special file is called from the right location
 
 # 2024-02-16: 40 nodes worked, had 28% free... trying increasing to 45 nodes
 # 2024-03-01: 60 nodes, 50 workers worked...
@@ -69,6 +67,8 @@ export MPICXX=CC
 
 CC --version
 
+pushd $SNUDDA_DIR/examples/parallel/KTH_PDC/
+
 rm -r x86_64
 
 echo "About to run nrnivmodl"
@@ -77,6 +77,8 @@ which nrnivmodl
 # srun -n nrnivmodl mechanisms/
 
 srun -n 1 nrnivmodl -incflags "-lltdl=/usr/lib64/libltdl.so.7 -lreadline=/lib64/libreadline.so.7 -lncurses=/lib64/libncurses.so.6.1" -loadflags "-DLTDL_LIBRARY=/usr/lib64/libltdl.so.7 -DREADLINE_LIBRARY=/lib64/libreadline.so.7 -DNCURSES_LIBRARY=/lib64/libncurses.so.6.1" mechanisms/
+
+popd
 
 # GJ disabled
 # srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/x86_64/special -mpi -python $SNUDDA_DIR/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --disableGJ --time 3.5 --voltOut $NETWORK_VOLTAGE_FILE
@@ -89,9 +91,9 @@ srun -n 1 nrnivmodl -incflags "-lltdl=/usr/lib64/libltdl.so.7 -lreadline=/lib64/
 
 # Changed to using the simulation_config
 
-srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/lateral_inhibition/sten_5_FS_LTS/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py dummy_file dummy_file --simulation_config $SIMULATION_CONFIG_WITH_SYNAPSES
+srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py dummy_file dummy_file --simulation_config $SIMULATION_CONFIG_WITH_SYNAPSES
 
-srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/lateral_inhibition/sten_5_FS_LTS/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py dummy_file dummy_file --simulation_config $SIMULATION_CONFIG_NO_SYNAPSES
+srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py dummy_file dummy_file --simulation_config $SIMULATION_CONFIG_NO_SYNAPSES
 
 
 # srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 5 --noVolt

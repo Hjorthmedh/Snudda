@@ -3,9 +3,9 @@
         "Cube": {
 	    "connectivity": {
 		"neuron,neuron": {
-		    "GABA": {
+		    "DA": {
 			"conductance": [
-			    2.4e-10,
+			    2.4e5,
 			    1e-10
 			],
 			"channel_parameters": {

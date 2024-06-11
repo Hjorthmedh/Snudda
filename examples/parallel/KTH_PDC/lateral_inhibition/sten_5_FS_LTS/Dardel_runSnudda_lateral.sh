@@ -103,7 +103,7 @@ else
     
     echo ">>> Input: "`date`
     # snudda input ${JOBDIR} --parallel --time 18 --input input.json --networkFile ${JOBDIR}/network-synapses-minimal.hdf5
-    snudda input ${JOBDIR} --parallel --time 18 --input input.json --ipython_timeout 600
+    snudda input ${JOBDIR} --parallel --time 25 --input input.json --ipython_timeout 600
 
     
     #.. Shut down cluster
