@@ -153,8 +153,9 @@ class SnuddaPlace(object):
         """ Place neurons in 3D space. """
 
         self.parse_config()
-
+        print('Parsing')
         if self.morphologies_stay_inside:
+            print('AVOIDING EDGES')
             self.avoid_edges_parallel()
 
         self.write_data()
@@ -620,11 +621,11 @@ class SnuddaPlace(object):
     @staticmethod
     def avoid_edges_helper(bend_neuron_info, network_path):
 
-        # TODO: We need name, swc_file, position, rotation
+        # TODO: We need name, swc_file, position, rotationf
         # This needs to be passed, since self.neurons is not pickleable...
 
         from snudda.place.bend_morphologies import BendMorphologies
-
+        print('BENDING')
         bend_morph = dict()
         bend_morph_path = os.path.join(network_path, "modified_morphologies")
 
