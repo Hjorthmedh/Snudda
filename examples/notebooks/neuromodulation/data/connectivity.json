@@ -5,15 +5,15 @@
 		"neuron,neuron": {
 		    "DA": {
 			"conductance": [
-			    1,
+			    1e-9,
 			    1e-3
 			],
-			"weight_scale": 1e10,
 			"channel_parameters": {
 			    "RxD": {
 				"species_name": "DA",
 				"flux_variable": "open",
-				"region": "internal"
+				"region": "internal",
+				"weight_scale": 1e9				
 			    },
 			    "mod_file": "DASyn"
 			},

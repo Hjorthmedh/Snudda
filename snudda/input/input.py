@@ -334,10 +334,14 @@ class SnuddaInput(object):
                     if "parameter_list" in neuron_in and neuron_in["parameter_list"] is not None:
                         # We only need to save the synapse parameters in the file
                         syn_par_list = [x["synapse"] for x in neuron_in["parameter_list"] if "synapse" in x]
+
                         if len(syn_par_list) > 0:
                             it_group.attrs["parameter_list"] = json.dumps(syn_par_list)
 
                     it_group.attrs["parameter_id"] = neuron_in["parameter_id"].astype(np.int32)
+
+                    if "RxD" in neuron_in:
+                        it_group.attrs["RxD"] = json.dumps(neuron_in["RxD"])
 
                 else:
 
@@ -813,6 +817,9 @@ class SnuddaInput(object):
                     else:
                         synapse_density = "1"
 
+                    if "RxD" in input_inf:
+                        self.neuron_input[neuron_id][input_type]["RxD"] = input_inf["RxD"]
+
                     rng_master = np.random.default_rng(self.random_seed + neuron_id + 10072)
 
                     if "dendrite_location" in input_inf:
@@ -868,8 +875,11 @@ class SnuddaInput(object):
                     # Done for CSV input
                     continue
 
-                # These parameters are shared between "poisson" and "frequency_function"
+                # RxD info is not needed for generation, but important for simulation
+                if "RxD" in input_inf:
+                    self.neuron_input[neuron_id][input_type]["RxD"] = input_inf["RxD"]
 
+                # These parameters are shared between "poisson" and "frequency_function"
                 neuron_id_list.append(neuron_id)
                 input_type_list.append(input_type)
 
@@ -896,6 +906,7 @@ class SnuddaInput(object):
                     mod_file = None
                     parameter_file = None
                     parameter_list = None
+                    synapse_density = None
                 else:
                     assert "location" not in input_inf, \
                         "Location in input config has been replaced with synapse_density"
@@ -958,10 +969,10 @@ class SnuddaInput(object):
                     else:
                         parameter_list = None
 
-                if "synapse_density" in input_inf:
-                    synapse_density = input_inf["synapse_density"]
-                else:
-                    synapse_density = "1"
+                    if "synapse_density" in input_inf:
+                        synapse_density = input_inf["synapse_density"]
+                    else:
+                        synapse_density = "1"
 
                 synapse_density_list.append(synapse_density)
                 num_inputs_list.append(n_inp)

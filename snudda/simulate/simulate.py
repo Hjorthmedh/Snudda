@@ -1026,6 +1026,10 @@ class SnuddaSimulate(object):
             # The target neuron is a virtual neuron, do not add synapse
             return
 
+        if conductance < 0:
+            raise ValueError(f"Negative conductance found, this can be caused by specifying too large conductance values."
+                             f"Remember that the synapse matrix is 32-bit int as pico siemens")
+
         # You can not locate a point process at endpoints (position 0.0 or 1.0) if it needs an ion
         if section_dist == 0.0:
             section_dist = 0.01
@@ -1050,13 +1054,16 @@ class SnuddaSimulate(object):
 
         syn = self.get_synapse(channel_module, dend_compartment, section_dist)
 
+        weight_scale = 1
+
         if par_data is not None:
             # Picking one of the parameter sets stored in par_data
             par_id = parameter_id % len(par_data)
 
             par_set = par_data[par_id]
+
             for par in par_set:
-                if par == "expdata" or par == "cond" or par == "RxD":
+                if par in ("expdata", "cond", "RxD"):
                     # expdata is not a parameter, and cond we take from synapse matrix
                     continue
 
@@ -1087,25 +1094,27 @@ class SnuddaSimulate(object):
                     import pdb
                     pdb.set_trace()
 
-        if "RxD" in par_set:
-            species_name = par_set["RxD"]["species_name"]
-            region = par_set["RxD"]["region"]
+            if "RxD" in par_set:
+                species_name = par_set["RxD"]["species_name"]
+                region = par_set["RxD"]["region"]
 
-            if region in ("internal", "external"):
-                if section_id == -1:
-                    region = f"soma_{region}"
-                else:
-                    region = f"dend_{region}"
+                if region in ("internal", "external"):
+                    if section_id == -1:
+                        region = f"soma_{region}"
+                    else:
+                        region = f"dend_{region}"
 
-            # If you have a RxD synapse it is good idea to set weight scale, especially
-            # if your channel has valence 0, then cond variable is actually flux and needs to be in
-            # number of molecules per second.
-            flux_variable = par_set["RxD"]["flux_variable"]
+                weight_scale = par_set["RxD"].get("weight_scale", 1)
 
-            self.neurons[cell_id_dest].modulation.link_synapse(species_name=species_name,
-                                                               region=region,
-                                                               synapse=syn,
-                                                               flux_variable=flux_variable)
+                # If you have a RxD synapse it is good idea to set weight scale, especially
+                # if your channel has valence 0, then cond variable is actually flux and needs to be in
+                # number of molecules per second.
+                flux_variable = par_set["RxD"]["flux_variable"]
+
+                self.neurons[cell_id_dest].modulation.link_synapse(species_name=species_name,
+                                                                   region=region,
+                                                                   synapse=syn,
+                                                                   flux_variable=flux_variable)
 
         if axon_dist is not None:
             # axon dist is in micrometer, want delay in ms
@@ -1116,8 +1125,6 @@ class SnuddaSimulate(object):
         # Prevent garbage collection in python
         if (cell_id_source, cell_id_dest) not in self.synapse_dict:
             self.synapse_dict[cell_id_source, cell_id_dest] = []
-
-        weight_scale = par_set.get("weight_scale", 1)
 
         nc = self.pc.gid_connect(cell_id_source, syn)
         nc.weight[0] = conductance * weight_scale
@@ -1221,8 +1228,11 @@ class SnuddaSimulate(object):
                 eval_str = f"self.sim.neuron.h.{mod_file}"
                 channel_module = eval(eval_str)
 
-                for input_id, (section, section_x, param_id, n_spikes) \
+                rxd_species_name, rxd_flux_variable, rxd_region, rxd_weight_scale = self.get_rxd_external_input_parameters(neuron_input)
+
+                for input_id, (section, section_id, section_x, param_id, n_spikes) \
                         in enumerate(zip(sections,
+                                         neuron_input.attrs["section_id"],
                                          neuron_input.attrs["section_x"],
                                          neuron_input.attrs["parameter_id"],
                                          neuron_input["spikes"].attrs["num_spikes"])):
@@ -1266,6 +1276,11 @@ class SnuddaSimulate(object):
                         syn_params = param_list[param_id % len(param_list)]  # No longer need to take ["synapse"], only that part saved in hdf5
 
                         for par in syn_params:
+
+                            if par == "RxD":
+                                # RxD specific information
+                                continue
+
                             if par == "expdata":
                                 # Not a parameter
                                 continue
@@ -1285,8 +1300,38 @@ class SnuddaSimulate(object):
                             # print(f"Setting {par} to {par_value}.")
                             setattr(syn, par, par_value)
 
+                    if rxd_species_name is not None:
+                        if section_id == -1:
+                            region_name = f"soma_{rxd_region}"
+                        else:
+                            region_name = f"dend_{rxd_region}"
+
+                        self.neurons[neuron_id].modulation.link_synapse(species_name=rxd_species_name,
+                                                                        region=region_name,
+                                                                        synapse=syn,
+                                                                        flux_variable=rxd_flux_variable)
+
                     # Need to save references, otherwise they will be freed
                     self.external_stim[neuron_id, input_type].append((v, vs, nc, syn, spikes))
+
+    def get_rxd_external_input_parameters(self, neuron_input):
+
+        if "RxD" in neuron_input.attrs.keys():
+
+            rxd_dict = json.loads(neuron_input.attrs["RxD"])
+
+            species_name = rxd_dict.get("species_name")
+            flux_variable = rxd_dict.get("flux_variable")
+            region = rxd_dict.get("region")
+            weight_scale = rxd_dict.get("weight_scale", 1.0)
+
+        else:
+            species_name = None
+            flux_variable = None
+            region = None
+            weight_scale = 1.0
+
+        return species_name, flux_variable, region, weight_scale
 
     ############################################################################
 
@@ -2047,7 +2092,7 @@ class SnuddaSimulate(object):
 
     def _setup_print_sim_time_helper(self, t_max):
         """ Helper method for printing simulation time during execution. """
-        update_points = np.array([0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09,
+        update_points = np.array([0.0, 0.01, 0.02, 0.03, 0.04, 0.05,
                                   0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]) * t_max
 
         # update_points = np.arange(t_max / 100., t_max, t_max / 100.)
