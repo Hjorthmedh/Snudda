@@ -224,9 +224,7 @@ class SnuddaSimulate(object):
 
         self.virtual_neurons = {}
 
-        self.net_con_list = []  # Avoid premature garbage collection -- todo: THIS WILL BE REMOVED
-        self.synapse_list = []  # todo: THIS WILL BE REMOVED, replaced by synapse_dict
-        self.synapse_dict = dict()
+        self.synapse_dict = dict()  # Avoid premature garbage collection
         self.i_stim = []
         self.v_clamp_list = []
         self.gap_junction_list = []
@@ -1128,10 +1126,6 @@ class SnuddaSimulate(object):
 
         # This prevents garbage collection of syn and nc
         self.synapse_dict[cell_id_source, cell_id_dest].append((syn, nc, synapse_type_id, section_id))
-
-        # TODO: Johanna promised to remove these when she is ready for it.
-        self.synapse_list.append(syn)
-        self.net_con_list.append(nc)
 
         return syn
 
@@ -2126,8 +2120,6 @@ class SnuddaSimulate(object):
         self.neuron_nodes = []  # Is this used?
         self.virtual_neurons = {}
 
-        self.net_con_list = []
-        self.synapse_list = []
         self.synapse_dict = dict()
         self.i_stim = []
         self.v_clamp_list = []
