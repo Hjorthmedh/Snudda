@@ -95,7 +95,7 @@ class NeuronModel(ephys.models.CellModel):
                                 f"has morph_file = {morph_file} (Should not be None)")
 
         self.morph_file = morph_file
-
+        
         morph = self.define_morphology(replace_axon=True, morph_file=morph_file)
         mechs = self.define_mechanisms(mechanism_config=mech_file)
         params = self.define_parameters(param_file, parameter_id, parameter_key)
