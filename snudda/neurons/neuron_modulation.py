@@ -4,6 +4,7 @@
 #       (watch out for overflow of integers in snudda synapse matrix)
 
 # TODO: External input should also be able to release dopamine
+# TODO: How to handle co-release?
 
 import os
 import numpy as np

@@ -5,9 +5,10 @@
 		"neuron,neuron": {
 		    "DA": {
 			"conductance": [
-			    2.4e5,
-			    1e-10
+			    1,
+			    1e-3
 			],
+			"weight_scale": 1e10,
 			"channel_parameters": {
 			    "RxD": {
 				"species_name": "DA",

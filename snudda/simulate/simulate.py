@@ -1099,6 +1099,9 @@ class SnuddaSimulate(object):
                 else:
                     region = f"dend_{region}"
 
+            # If you have a RxD synapse it is good idea to set weight scale, especially
+            # if your channel has valence 0, then cond variable is actually flux and needs to be in
+            # number of molecules per second.
             flux_variable = par_set["RxD"]["flux_variable"]
 
             self.neurons[cell_id_dest].modulation.link_synapse(species_name=species_name,
@@ -1116,8 +1119,10 @@ class SnuddaSimulate(object):
         if (cell_id_source, cell_id_dest) not in self.synapse_dict:
             self.synapse_dict[cell_id_source, cell_id_dest] = []
 
+        weight_scale = par_set.get("weight_scale", 1)
+
         nc = self.pc.gid_connect(cell_id_source, syn)
-        nc.weight[0] = conductance
+        nc.weight[0] = conductance * weight_scale
         nc.delay = synapse_delay
         nc.threshold = self.spike_threshold
 
