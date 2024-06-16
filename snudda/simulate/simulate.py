@@ -77,7 +77,6 @@ class SnuddaSimulate(object):
             simulation_config (str, optional): Path to config file with simulation info (including network_path)
 
         """
-
         self.verbose = verbose
         self.log_file = log_file
 
@@ -625,7 +624,7 @@ class SnuddaSimulate(object):
     def connect_network(self):
 
         """ Connect neurons through synapses and gap junctions in network."""
-
+        print('CONNECTING')
         self.pc.barrier()
 
         # Add gap junctions
@@ -1690,7 +1689,7 @@ class SnuddaSimulate(object):
     ############################################################################
 
     def verify_synapse_placement(self, sec_list, sec_x_list, dest_id, voxel_coords, source_id_list=None):
-
+        self.write_log('VERIFYING')
         """ Verifies synapse placement.
 
             We want to check that voxel coords transformed to local coordinate system
@@ -1740,7 +1739,10 @@ class SnuddaSimulate(object):
                                                  np.transpose(syn_pos_nrn)))
 
         syn_mismatch = np.sqrt(np.sum((syn_pos_nrn_rot - synapse_pos) ** 2, axis=1))
-
+        print('Syn Mismatch')
+        print(syn_mismatch)
+        print(np.mean(syn_mismatch))
+        print()
         bad_threshold = 22
         num_bad = np.sum(syn_mismatch > bad_threshold)
 

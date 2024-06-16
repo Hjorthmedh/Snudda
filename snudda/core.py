@@ -889,7 +889,7 @@ class Snudda(object):
         ipython_dir = os.getenv('IPYTHONDIR')
         if not ipython_dir:
             ipython_dir = os.path.join(os.path.abspath(os.getcwd()), ".ipython")
-
+        ipython_dir = "/Users/wst/.ipython"
         self.logfile.write('Creating ipyparallel client\n')
 
         from ipyparallel import Client

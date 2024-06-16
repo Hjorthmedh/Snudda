@@ -595,6 +595,7 @@ class SnuddaPlace(object):
             # Make random permutation of neurons, to spread out the edge neurons
             unsorted_neuron_id = self.random_generator.permutation(len(bend_neuron_info))
             bend_neuron_info = [bend_neuron_info[idx] for idx in unsorted_neuron_id]
+            
 
             with self.d_view.sync_imports():
                 from snudda.place import SnuddaPlace
@@ -625,7 +626,6 @@ class SnuddaPlace(object):
         # This needs to be passed, since self.neurons is not pickleable...
 
         from snudda.place.bend_morphologies import BendMorphologies
-        print('BENDING')
         bend_morph = dict()
         bend_morph_path = os.path.join(network_path, "modified_morphologies")
 
@@ -633,9 +633,9 @@ class SnuddaPlace(object):
 
         for neuron_id, neuron_name, swc_filename, position, rotation, random_seed, volume_id, mesh_file,\
             k_dist, n_random, max_angle in bend_neuron_info:
-
+            print(mesh_file)
             if volume_id not in bend_morph:
-                bend_morph[volume_id] = BendMorphologies(region_mesh=mesh_file, rng=None)
+                bend_morph[volume_id] = BendMorphologies(region_mesh=RegionMeshRedux(mesh_file), rng=None)
 
             # Returns None if unchanged
             new_morph_name = os.path.join(bend_morph_path, f"{neuron_name}-{neuron_id}.swc")
