@@ -7,7 +7,7 @@ from numba import jit
 
 class RegionMeshRedux:
 
-    def __init__(self, mesh_path, verbose=False):
+    def __init__(self, mesh_path, volume = None, verbose=False):
 
         self.mesh_path = mesh_path
         self.mesh = o3d.io.read_triangle_mesh(mesh_path)
