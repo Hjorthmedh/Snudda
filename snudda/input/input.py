@@ -841,9 +841,16 @@ class SnuddaInput(object):
                         input_loc = [(x, y, z), np.array(sec_id), np.array(sec_x), dist_to_soma]
                     else:
                         # Automatically generate dendrite locations
-                        cluster_size = None
-                        cluster_spread = None
-
+                        if "cluster_size" in input_inf:
+                            cluster_size = input_inf["cluster_size"]
+                        else:
+                            cluster_size = None
+                        
+                        if "cluster_spread" in input_inf:
+                            cluster_spread = input_inf["cluster_spread"]
+                        else:
+                            cluster_spread = None
+                            
                         if "num_soma_synapses" in input_inf:
                             n_soma_synapses = input_inf["num_soma_synapses"]
                         else:
