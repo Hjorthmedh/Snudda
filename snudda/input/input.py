@@ -211,7 +211,6 @@ class SnuddaInput(object):
 
             # Generate the actual input spikes, and the locations
             # stored in self.neuronInput dictionary
-
             self.make_neuron_input_parallel()
 
             # Write spikes to disk, HDF5 format
@@ -272,6 +271,7 @@ class SnuddaInput(object):
                 if input_type.lower() != "virtual_neuron".lower():
 
                     neuron_in = self.neuron_input[neuron_id][input_type]
+                    neuron_in["spike_source"] = [np.sum(s) for s in neuron_in['spikes']]
 
                     spike_mat, num_spikes = self.create_spike_matrix(neuron_in["spikes"])
 
@@ -281,6 +281,9 @@ class SnuddaInput(object):
 
                     it_group = nid_group.create_group(input_type)
                     spike_set = it_group.create_dataset("spikes", data=spike_mat, compression="gzip", dtype=np.float32)
+                    loc_set = it_group.create_dataset("location", data=neuron_in["location"][0], compression="gzip", dtype=np.float32)
+                    pre_set = it_group.create_dataset("Pre_ID", data=neuron_in["spike_source"], compression="gzip", dtype=np.float32)
+
                     spike_set.attrs["num_spikes"] = num_spikes
 
                     it_group.attrs["section_id"] = neuron_in["location"][1].astype(np.int16)
@@ -798,8 +801,13 @@ class SnuddaInput(object):
                     # num_spike_trains = len(csv_spikes)
                     
                     csv_spikes = self.import_csv_spikes(csv_file=csv_file)
+                    
+                    rng_master = np.random.default_rng(self.random_seed + neuron_id + 10072)
+                    
                     if "num_inputs" in input_inf:
-                        csv_spikes = csv_spikes[:input_inf["num_inputs"]]
+                        rng_num_inputs = np.random.default_rng()
+                        num_inputs_varied = int(rng_num_inputs.normal(input_inf["num_inputs"]))
+                        csv_spikes = csv_spikes[:num_inputs_varied]
                         
                     num_spike_trains = len(csv_spikes)
 
@@ -818,8 +826,6 @@ class SnuddaInput(object):
                         synapse_density = input_inf["synapse_density"]
                     else:
                         synapse_density = "1"
-
-                    rng_master = np.random.default_rng(self.random_seed + neuron_id + 10072)
 
                     if "dendrite_location" in input_inf:
                         # User specified dendrite location
@@ -849,7 +855,8 @@ class SnuddaInput(object):
                             n_soma_synapses = 0
 
                         if n_soma_synapses > num_spike_trains:
-                            raise ValueError(f"num_soma_synapses can not be greater than the number of input trains read from CSV file")
+                            n_soma_synapses = num_spike_trains
+                            # raise ValueError(f"num_soma_synapses can not be greater than the number of input trains read from CSV file")
 
                         # We need a random seed generator for the dendrite_input_location on the master TODO: Cleanup
                         input_loc = self.dendrite_input_locations(neuron_id=neuron_id,
@@ -943,7 +950,7 @@ class SnuddaInput(object):
                                 n_inp = None
                         else:
                             n_inp = input_inf["num_inputs"]
-
+                        
                     else:
                         n_inp = None
 
@@ -971,7 +978,6 @@ class SnuddaInput(object):
 
                 synapse_density_list.append(synapse_density)
                 num_inputs_list.append(n_inp)
-
                 population_unit_id_list.append(population_unit_id)
                 conductance_list.append(cond)
 
@@ -1849,12 +1855,14 @@ class SnuddaInput(object):
                                                     get_cache_original=True)
 
         self.write_log(f"morphology = {morphology}")
-
+        
         # input_info = self.neuron_cache[neuron_name].get_input_parameters(parameter_id=parameter_id,
         #                                                                  morphology_id=morphology_id,
         #                                                                  parameter_key=parameter_key,
         #                                                                  morphology_key=morphology_key)
-
+        # print(neuron_id)
+        # print(num_spike_trains)
+        rng = np.random.default_rng()   ### No longer deterministic
         return morphology.dendrite_input_locations(synapse_density_str=synapse_density,
                                                    num_locations=num_spike_trains,
                                                    rng=rng,
@@ -2013,7 +2021,7 @@ class SnuddaInput(object):
     def make_input_helper_parallel(self, args):
 
         """ Helper function for parallel input generation."""
-
+        print('making input')
         try:
 
             neuron_id, input_type, freq, start, end, synapse_density, num_spike_trains, \
@@ -2118,7 +2126,8 @@ class SnuddaInput(object):
         time_range = (t_start, t_end)
 
         rng = np.random.default_rng(random_seed)
-
+        print('num_spike_trains')
+        print(num_spike_trains)
         if input_type.lower() == "virtual_neuron".lower():
             # This specifies activity of a virtual neuron
             conductance = None
