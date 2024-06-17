@@ -13,7 +13,7 @@ class BendMorphologies:
 
         if type(region_mesh) == str:
             region_mesh = RegionMeshRedux(mesh_path=region_mesh)
-        print(region_mesh)
+
         self.region_mesh = region_mesh
         self.rng = rng
 

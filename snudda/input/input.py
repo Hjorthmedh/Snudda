@@ -81,8 +81,11 @@ class SnuddaInput(object):
         if type(logfile) == str:
             self.logfile = open(logfile, "w")
         else:
+            log_dir = os.path.join(network_path, "log")
+            os.makedirs(log_dir, exist_ok=True)
+            logfile = open(os.path.join(log_dir, "input_generation.txt"), "w")
             self.logfile = logfile
-
+            
         self.verbose = verbose
         self.rc = rc
 
@@ -846,8 +849,16 @@ class SnuddaInput(object):
                         input_loc = [(x, y, z), np.array(sec_id), np.array(sec_x), dist_to_soma]
                     else:
                         # Automatically generate dendrite locations
-                        cluster_size = None
-                        cluster_spread = None
+                        
+                        if "cluster_size" in input_inf:
+                            cluster_size = input_inf["cluster_size"]
+                        else:
+                            cluster_size = None
+                        
+                        if "cluster_spread" in input_inf:
+                            cluster_spread = input_inf["cluster_spread"]
+                        else:
+                            cluster_spread = None
 
                         if "num_soma_synapses" in input_inf:
                             n_soma_synapses = input_inf["num_soma_synapses"]
@@ -865,7 +876,7 @@ class SnuddaInput(object):
                                                                   rng=rng_master,
                                                                   cluster_size=cluster_size,
                                                                   cluster_spread=cluster_spread)
-
+                        print(len(input_loc[0]))
                         # If there are synapses on the soma then we need to add those also
                         if n_soma_synapses > 0:
                             input_loc = self.add_soma_synapses(input_loc,
