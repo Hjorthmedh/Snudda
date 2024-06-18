@@ -29,7 +29,7 @@ class NeuromodulationTestCase(unittest.TestCase):
 
         self.snudda = Snudda(network_path=self.network_path)
         self.snudda.init_tiny(neuron_paths=self.neuron_path,
-                              neuron_names="neuron_1",
+                              neuron_names="neuron",
                               number_of_neurons=[10],
                               random_seed=123456)
         self.snudda.create_network()

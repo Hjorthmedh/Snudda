@@ -190,7 +190,8 @@ class Snudda(object):
                             num_neurons=n_total,
                             n_putative_points=n_total*5)
 
-        si.replace_connectivity(connection_file=connection_config)
+        if connection_config is not None:
+            si.replace_connectivity(connection_file=connection_config)
 
         if isinstance(neuron_paths, str):
             neuron_paths = [neuron_paths]
