@@ -2112,7 +2112,7 @@ class SnuddaSimulate(object):
         cur_time = timeit.default_timer()
         elapsed_time = cur_time - self.sim_start_time
         fraction_done = h.t / self.t_max
-        time_left = elapsed_time * ((self.t_max - h.t) / h.t)
+        time_left = np.abs(elapsed_time * ((self.t_max - h.t) / h.t))
 
         # Do not print status update too often
         if cur_time - self.last_sim_report_time > 100 or fraction_done > 0.99:
