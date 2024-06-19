@@ -2,7 +2,7 @@ TITLE Non-inactivating inwardly rectifying potassium current (Kir2.3)
 
 
 NEURON {
-    SUFFIX kir
+    SUFFIX kirrxd
     USEION k READ ek WRITE ik
     USEION PKA READ PKAi VALENCE 0
 

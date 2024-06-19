@@ -62,14 +62,14 @@ class NeuromodulationTestCase(unittest.TestCase):
                                                  sec_id=0,
                                                  sec_x=0.5)
 
-        self.sim.add_density_mechanism_recording(density_mechanism="kir",
+        self.sim.add_density_mechanism_recording(density_mechanism="kirrxd",
                                                  variable="modulation_factor",
                                                  neuron_id=0,
                                                  sec_type="soma",
                                                  sec_id=0,
                                                  sec_x=0.5)
 
-        self.sim.add_density_mechanism_recording(density_mechanism="kir",
+        self.sim.add_density_mechanism_recording(density_mechanism="kirrxd",
                                                  variable="m",
                                                  neuron_id=0,
                                                  sec_type="soma",
@@ -119,8 +119,8 @@ class NeuromodulationTestCase(unittest.TestCase):
         data_b = nd.get_data("B", 0)
         data_ab = nd.get_data("PKA", 0)
 
-        data_kir_modulation_factor = nd.get_data("kir.modulation_factor", 0)[0][0]
-        data_kir_m = nd.get_data("kir.m", 0)[0][0]
+        data_kir_modulation_factor = nd.get_data("kirrxd.modulation_factor", 0)[0][0]
+        data_kir_m = nd.get_data("kirrxd.m", 0)[0][0]
         data_voltage = nd.get_data("voltage", 0)[0][0]
         data_pka = nd.get_data("membrane.PKAi", 0)[0][0]
 

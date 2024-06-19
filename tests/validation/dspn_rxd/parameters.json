@@ -17,35 +17,35 @@
         "value": -89.1
     },    
     {
-        "param_name": "mod_pka_g_min_kir",
+        "param_name": "mod_pka_g_min_kirrxd",
         "type": "range",
         "sectionlist": "all",
         "dist_type": "uniform",
         "value": 0
     },
     {
-        "param_name": "mod_pka_g_max_kir",
+        "param_name": "mod_pka_g_max_kirrxd",
         "type": "range",
         "sectionlist": "all",
         "dist_type": "uniform",
         "value": 1
     },
     {
-        "param_name": "mod_pka_g_half_kir",
+        "param_name": "mod_pka_g_half_kirrxd",
         "type": "range",
         "sectionlist": "all",
         "dist_type": "uniform",
         "value": 0.25
     },
     {
-        "param_name": "mod_pka_g_slope_kir",
+        "param_name": "mod_pka_g_slope_kirrxd",
         "type": "range",
         "sectionlist": "all",
         "dist_type": "uniform",
         "value": 0.02
     },
     {
-        "param_name": "gbar_kir",
+        "param_name": "gbar_kirrxd",
         "type": "range",
         "sectionlist": "all",
         "dist_type": "uniform",
