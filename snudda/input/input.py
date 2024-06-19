@@ -150,6 +150,9 @@ class SnuddaInput(object):
         self.neuron_name = []
         self.neuron_type = []
 
+        self.virtual_spike_file_cache = dict()
+        self.virtual_row_mapping_cache = dict()
+
         if self.hdf5_network_file:
             self.load_network(self.hdf5_network_file)
         else:
@@ -351,6 +354,26 @@ class SnuddaInput(object):
                     try:
                         if "spike_file" in self.neuron_input[neuron_id][input_type]:
                             spike_file = self.neuron_input[neuron_id][input_type]["spike_file"]
+
+                            if spike_file in self.virtual_spike_file_cache:
+                                spike_file_data = self.virtual_spike_file_cache[spike_file]
+                            else:
+
+                                float_pattern = re.compile(r'^[-+]?[0-9]*\.?[0-9]+$')
+
+                                s_data = []
+                                with open(spike_file, "rt") as f:
+                                    for row in f:
+                                        s_data.append(np.array([float(x) for x in row.split(" ")
+                                                                if len(x) > 0 and float_pattern.match(x)]))
+
+                                self.virtual_spike_file_cache[spike_file] = s_data
+
+                                spike_file_data = s_data
+
+                        else:
+                            spike_file_data = None
+
                     except:
                         import traceback
                         print(traceback.format_exc())
@@ -364,44 +387,43 @@ class SnuddaInput(object):
 
                     if spike_row is None:
 
-                        if "row_mapping_file" in self.neuron_input[neuron_id][input_type]\
-                          and "row_mapping_data" not in self.neuron_input[neuron_id][input_type]:
-
+                        if "row_mapping_file" in self.neuron_input[neuron_id][input_type]:
                             row_mapping_file = self.neuron_input[neuron_id][input_type]["row_mapping_file"]
-                            row_mapping_data = np.loadtxt(row_mapping_file, dtype=int)
-                            row_mapping = dict()
-                            for nid, rowid in row_mapping_data:
-                                if nid in row_mapping:
-                                    print(f"Warning neuron_id {nid} appears twice in {row_mapping_file}")
-                                row_mapping[nid] = rowid
 
-                            # Save row mapping so we dont have to generate it next iteration
-                            self.neuron_input[neuron_id][input_type]["row_mapping_data"] = row_mapping
+                            if row_mapping_file in self.virtual_row_mapping_cache:
+                                row_mapping = self.virtual_row_mapping_cache[row_mapping_file]
+                            else:
 
-                        if "row_mapping_data" in self.neuron_input[neuron_id][input_type]\
-                            and neuron_id in self.neuron_input[neuron_id][input_type]["row_mapping_data"]:
+                                row_mapping_data = np.loadtxt(row_mapping_file, dtype=int)
+                                row_mapping = dict()
+                                for nid, rowid in row_mapping_data:
+                                    if nid in row_mapping:
+                                        print(f"Warning neuron_id {nid} appears twice in {row_mapping_file}")
+                                    row_mapping[nid] = rowid
+
+                                # Save row mapping so we dont have to generate it next iteration
+                                self.virtual_spike_file_cache[row_mapping_file] = row_mapping
+
+                            if neuron_id in row_mapping:
+                                spike_row = row_mapping[neuron_id]
+
+                        elif "row_mapping_data" in self.neuron_input[neuron_id][input_type]\
+                                and neuron_id in self.neuron_input[neuron_id][input_type]["row_mapping_data"]:
                             spike_row = self.neuron_input[neuron_id][input_type]["row_mapping_data"][neuron_id]
+
                         else:
                             spike_row = neuron_id
 
-                    if "spike_data" not in self.neuron_input[neuron_id][input_type]:
-                        float_pattern = re.compile(r'^[-+]?[0-9]*\.?[0-9]+$')
+                    if "spike_data" not in self.neuron_input[neuron_id][input_type]\
+                            and spike_file_data is not None:
 
-                        s_data = []
-                        with open(spike_file, "rt") as f:
-                            for row in f:
-                                s_data.append(np.array([float(x) for x in row.split(" ")
-                                                        if len(x) > 0 and float_pattern.match(x)]))
-
-                        self.neuron_input[neuron_id][input_type]["spike_data"] = s_data
-
-                    try:
-                        spikes = self.neuron_input[neuron_id][input_type]["spike_data"][spike_row]
-                    except:
-                        import traceback
-                        print(traceback.format_exc())
-                        import pdb
-                        pdb.set_trace()
+                        try:
+                            spikes = spike_file_data[spike_row]
+                        except:
+                            import traceback
+                            print(traceback.format_exc())
+                            import pdb
+                            pdb.set_trace()
 
                     # Save spikes, so check sorted can verify them.
                     # TODO: Should we skip this, if there are MANY virtual neurons -- and we run out of memory?
