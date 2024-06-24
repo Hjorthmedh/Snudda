@@ -730,6 +730,7 @@ class Snudda(object):
                  disable_gj=False,
                  record_volt=True,
                  record_all=False,
+                 sample_dt=None,
                  simulation_config=None,
                  export_core_neuron=False,
                  verbose=False):
@@ -807,6 +808,7 @@ class Snudda(object):
                              disable_synapses=disable_synapses,
                              log_file=log_file,
                              simulation_config=simulation_config,
+                             sample_dt=sample_dt,
                              verbose=verbose)
         sim.setup()
         sim.add_external_input()
