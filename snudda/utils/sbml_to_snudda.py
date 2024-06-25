@@ -196,11 +196,3 @@ if __name__ == "__main__":
 
     cli()
 
-    filename = os.path.join(os.path.dirname(__file__), "..", "..",
-                            "examples", "notebooks", "neuromodulation",
-                            "data", "MODEL_speedy_reduced2.xml")
-
-    out_file = "converted-neuromodulation-model.json"
-
-    rs = ReadSBML(filename=filename, out_file=out_file)
-
