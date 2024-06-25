@@ -45,9 +45,11 @@ class NeuronModulation:
 
         return rxd.Region(section_list, nrn_region=nrn_region)
 
-    def add_concentration(self, species_name, diffusion_constant, initial_conc,
-                          charge=0,
-                          compartment=("soma_internal", "dend_internal")):
+    def add_species(self, species_name, diffusion_constant, initial_conc,
+                    charge=0,
+                    compartment=("soma_internal", "dend_internal")):
+
+        print(f"Adding species: {species_name} to {compartment}")
 
         if species_name not in self.species:
             self.species[species_name] = dict()
@@ -79,6 +81,8 @@ class NeuronModulation:
 
     def add_rate(self, species_name, left_side, right_side, region_name, overwrite=False):
 
+        # print(f"Add rate {species_name = }, {left_side = }, {right_side = }, {region_name = }")
+
         if species_name not in self.rates:
             self.rates[species_name] = dict()
 
@@ -97,6 +101,8 @@ class NeuronModulation:
         return chain(*regions)
 
     def add_reaction(self, reaction_name, left_side, right_side, forward_rate, backward_rate, region_name, overwrite=False):
+
+        # print(f"add_reaction {reaction_name = }, {left_side = }, {right_side = }, {forward_rate = }, {backward_rate = }, {region_name = }")
 
         if reaction_name not in self.reactions:
             self.reactions[reaction_name] = dict()
@@ -146,8 +152,15 @@ class NeuronModulation:
         print(f"Node cache built.")
 
     def get_node_from_cache(self, species_name, seg, region_name):
-        node_list, node_x = self.node_cache[species_name][region_name][seg.sec]
-        idx = np.argmin(np.abs(node_x - seg.x))
+        try:
+            node_list, node_x = self.node_cache[species_name][region_name][seg.sec]
+            idx = np.argmin(np.abs(node_x - seg.x))
+        except:
+            import traceback
+            print(f"get_node_from_cache failed: {species_name = }, {seg = }, {region_name = }")
+            print(traceback.format_exc())
+            import pdb
+            pdb.set_trace()
         return node_list[idx]
 
     def clear_cache(self):
@@ -168,7 +181,7 @@ class NeuronModulation:
 
     def load_json(self, config_path=None):
 
-        print(f"Parsing neuromodulation json: {config_path}")
+        # print(f"Parsing neuromodulation json: {config_path}")
 
         if config_path is None:
             config_path = self.config_file
@@ -176,7 +189,7 @@ class NeuronModulation:
         with open(config_path, "r") as f:
             self.config_data = json.load(f)
 
-        print(f"Parsing species")
+        # print(f"Parsing species")
 
         for species_name, species_data in self.config_data.get("species", {}).items():
             initial_concentration = species_data.get("initial_concentration", 0)
@@ -185,16 +198,16 @@ class NeuronModulation:
             regions = species_data.get("regions", ("soma_internal", "dendrites_internal"))
             # TODO: Read atol_scale, ecs_boundary_boundary_conditions, represents parameters
 
-            self.add_concentration(species_name=species_name,
-                                   diffusion_constant=diffusion_constant,
-                                   initial_conc=initial_concentration,
-                                   compartment=regions, charge=charge)
+            self.add_species(species_name=species_name,
+                             diffusion_constant=diffusion_constant,
+                             initial_conc=initial_concentration,
+                             compartment=regions, charge=charge)
 
         # Black magic, setup the species variables
-        species_name_vars = ",".join(self.species.keys())
+        species_name_vars = ",".join(self.species.keys()) + ","
         species_name_str = "','".join(self.species.keys())
 
-        print(f"Parsing rates.")
+        # print(f"Parsing rates.")
 
         for rate_name, rate_data in self.config_data.get("rates", {}).items():
             if rate_name not in self.species:
@@ -206,14 +219,22 @@ class NeuronModulation:
 
             for region, rate in zip(rate_data["regions"], rates):
                 exec(f"{species_name_vars} = self.get_species('{species_name_str}', region_name=region)")
-                right_side = eval(rate)
+
+                try:
+                    right_side = eval(rate)
+                except:
+                    print(f"Problem evaluating rate {rate}")
+                    import traceback
+                    print(traceback.format_exc())
+                    import pdb
+                    pdb.set_trace()
 
                 self.add_rate(species_name=rate_name,
                               left_side=self.get_species(rate_name, region_name=region)[0],
                               right_side=right_side,
                               region_name=region)
 
-        print(f"Parsing reactions")
+        # print(f"Parsing reactions")
 
         for reaction_name, reaction_data in self.config_data.get("reactions", {}).items():
 
@@ -242,4 +263,4 @@ class NeuronModulation:
                                   backward_rate=backward_rate,
                                   region_name=region)
 
-        print(f"Parsing done.")
+        # print(f"Parsing done.")
