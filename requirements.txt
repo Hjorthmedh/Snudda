@@ -3,7 +3,7 @@ h5py >=3.2.1
 ipyparallel>=6.3.0
 matplotlib>=3.3.4
 mpi4py>=3.0.3
-numba>=0.56.4  # Optimisation
+numba==0.59.1  # Optimisation, 0.60 requires numpy 2.0 and neuron is not yet compatible
 # numpy==1.23.5   # -- numpy requirement satisfied through numba's numpy dependence
 scipy>=1.6.3
 sonata>=0.0.2
