@@ -49,7 +49,7 @@ class NeuronModulation:
                     charge=0,
                     compartment=("soma_internal", "dend_internal")):
 
-        print(f"Adding species: {species_name} to {compartment}")
+        # print(f"Adding species: {species_name} to {compartment}")
 
         if species_name not in self.species:
             self.species[species_name] = dict()
@@ -121,7 +121,7 @@ class NeuronModulation:
 
     def build_node_cache(self):
 
-        print(f"Build node cache")
+        print(f"Build node cache {self.neuron.name} ({self.neuron.icell})")
         self.node_cache = {}
 
         for species_name, species_data in self.species.items():

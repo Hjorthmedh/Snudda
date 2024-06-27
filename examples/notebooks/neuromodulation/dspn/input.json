@@ -15,7 +15,7 @@
 	    "frequency": [5, 5, 5],
 	    "num_inputs": 100,
 	    "conductance": 5e-10,
-	    "mod_file": "tmGABA",
+	    "mod_file": "tmGabaA",
 	    "parameter_file": "$DATA/synapses/striatum/PlanertFitting-DD-tmgaba-fit.json"
 	},
 	"Dopamine": {

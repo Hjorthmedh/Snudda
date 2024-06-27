@@ -588,9 +588,7 @@ class SnuddaSimulate(object):
                 self.write_log(f"Node {int(self.pc.id())} - cell {ID} {name}")
 
                 # We need to instantiate the cell
-                print(f"Instantiate... {ID}")
                 self.neurons[ID].instantiate(sim=self.sim)
-                print(f"Instantiate done ... {ID}")
                 self.set_resting_voltage(ID)
 
                 # !!! DIRTY FIX for

@@ -81,7 +81,7 @@ class InputTuning(object):
 
     def setup_network(self, neurons_path=None, num_replicas=10, neuron_types=None,
                       parameter_key=None, morphology_key=None, modulation_key=None,
-                      single_neuron_path=None):
+                      single_neuron_path=None, network_random_seed=None):
 
         if not morphology_key and not parameter_key and not modulation_key:
             all_combinations = True
@@ -100,7 +100,8 @@ class InputTuning(object):
                                                 parameter_key=parameter_key,
                                                 morphology_key=morphology_key,
                                                 modulation_key=modulation_key,
-                                                all_combinations=all_combinations)
+                                                all_combinations=all_combinations,
+                                                random_seed=network_random_seed)
 
         print(f"Writing network config file to {self.network_config_file_name}")
         with open(self.network_config_file_name, "w") as f:
@@ -1429,11 +1430,11 @@ class InputTuning(object):
                         param_key = ni["parameter_key"]
                         morph_key = ni["morphology_key"]
                         short_name = n_name[:min(10, len(n_name))]
-                        neuron_name = f"{neuron_type}_{short_name}_{param_key}_{morph_key}".replace("-", "_")
+                        neuron_name = f"{neuron_type.replace('-','_')}_{short_name}_{param_key}_{morph_key}".replace("-", "_")
                         all_neurons[neuron_name] = ni
                         neuron_ctr += 1
                 else:
-                    neuron_name = os.path.basename(os.path.dirname(neuron_info["parameters"]))
+                    neuron_name = os.path.basename(os.path.dirname(neuron_info["parameters"])).replace("-", "_")
                     neuron_ctr += 1
 
                     all_neurons[neuron_name] = neuron_info
