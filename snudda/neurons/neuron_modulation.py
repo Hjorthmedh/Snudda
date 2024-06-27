@@ -10,6 +10,7 @@ from itertools import chain
 
 
 class NeuronModulation:
+    should_update_rxd_nodes = True
 
     def __init__(self, neuron, config_file=None):
 
@@ -119,13 +120,51 @@ class NeuronModulation:
                                                                   backward_rate,
                                                                   regions=self.compartments[region_name])
 
+
+    def _get_nodes(self, species, force_update=None):
+        if force_update is None:
+            force_update = NeuronModulation.should_update_rxd_nodes
+
+        import neuron.crxd as rxd
+        import itertools
+
+        if force_update:
+            print("Forcing rxd update...", flush=True)
+            NeuronModulation.should_update_rxd_nodes = False
+
+            rxd.species._nrn_shape_update()
+            if rxd.initializer.is_initialized():
+                print("Updating node data... (takes ≈ 1 microcentury)")
+                rxd.rxd._update_node_data()
+            else:
+                rxd.initializer._do_init()
+            print("RxD update completed.")
+        else:
+            rxd.initializer._do_init()
+
+
+        species._all_intracellular_nodes = []
+        if species._intracellular_nodes:
+            for r in species._regions:
+                if r in species._intracellular_nodes:
+                    species._all_intracellular_nodes += species._intracellular_nodes[r]
+        # The first part here is for the 1D -- which doesn't keep live node objects -- the second part is for 3D
+        species._all_intracellular_nodes = [
+            nd for nd in species._all_intracellular_nodes[:] if nd.sec
+        ]
+        return rxd.nodelist.NodeList(
+            list(itertools.chain.from_iterable([s.nodes for s in species._secs]))
+            + species._all_intracellular_nodes
+            + species._extracellular_nodes
+        )
+
     def build_node_cache(self):
 
-        print(f"Build node cache {self.neuron.name} ({self.neuron.icell})")
+        print(f"Build node cache {self.neuron.name} ({self.neuron.icell})", flush=True)
         self.node_cache = {}
 
+        should_update = True
         for species_name, species_data in self.species.items():
-
             if species_name not in self.node_cache:
                 self.node_cache[species_name] = {}
 
@@ -135,7 +174,10 @@ class NeuronModulation:
                     self.node_cache[species_name][region_name] = {}
 
                 # This row below might need to be sped up
-                all_nodes = species.nodes
+                #all_nodes = species.nodes
+
+                all_nodes = self._get_nodes(species, force_update=None)
+                should_update=False
 
                 for node in all_nodes:
                     if node._sec._sec not in self.node_cache[species_name][region_name]:
@@ -149,7 +191,7 @@ class NeuronModulation:
                     node_list, node_x = self.node_cache[species_name][region_name][node_key]
                     self.node_cache[species_name][region_name][node_key] = (node_list, np.array(node_x))
 
-        print(f"Node cache built.")
+        print(f"Node cache built.", flush=True)
 
     def get_node_from_cache(self, species_name, seg, region_name):
         try:
