@@ -159,11 +159,9 @@ class NeuronModulation:
         )
 
     def build_node_cache(self):
-
         print(f"Build node cache {self.neuron.name} ({self.neuron.icell})", flush=True)
         self.node_cache = {}
 
-        should_update = True
         for species_name, species_data in self.species.items():
             if species_name not in self.node_cache:
                 self.node_cache[species_name] = {}
@@ -177,7 +175,6 @@ class NeuronModulation:
                 #all_nodes = species.nodes
 
                 all_nodes = self._get_nodes(species, force_update=None)
-                should_update=False
 
                 for node in all_nodes:
                     if node._sec._sec not in self.node_cache[species_name][region_name]:
