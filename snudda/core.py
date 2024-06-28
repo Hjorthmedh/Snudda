@@ -896,7 +896,6 @@ class Snudda(object):
         # self.rc = Client(profile=ipython_profile, url_file=u_file, timeout=120, debug=False)
         self.rc = Client(profile=ipython_profile, connection_info=u_file, timeout=timeout, debug=False)
 
-
         self.logfile.write(f'Client IDs: {self.rc.ids}')
 
         # http://davidmasad.com/blog/simulation-with-ipyparallel/

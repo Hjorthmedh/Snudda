@@ -620,6 +620,12 @@ class SnuddaSimulate(object):
                 self.check_id_recordings.append((ID, id_spikes))
                 self.record.register_spike_data(neuron_id=ID, data=t_spikes, sec_id=-1, sec_x=0.5)
 
+        # RxD is slow when doing species.nodes call, so we cache it...
+        for neuron_id in self.neuron_id:
+            if not self.network_info["neurons"][ID]["virtual_neuron"] \
+                    and self.neurons[neuron_id].modulation is not None:
+                self.neurons[neuron_id].modulation.build_node_cache()
+
     ############################################################################
 
     def connect_network(self):

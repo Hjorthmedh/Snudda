@@ -120,7 +120,6 @@ class NeuronModulation:
                                                                   backward_rate,
                                                                   regions=self.compartments[region_name])
 
-
     def _get_nodes(self, species, force_update=None):
         if force_update is None:
             force_update = NeuronModulation.should_update_rxd_nodes
@@ -141,7 +140,6 @@ class NeuronModulation:
             print("RxD update completed.")
         else:
             rxd.initializer._do_init()
-
 
         species._all_intracellular_nodes = []
         if species._intracellular_nodes:
