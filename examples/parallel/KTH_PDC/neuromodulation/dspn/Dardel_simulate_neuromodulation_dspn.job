@@ -1,0 +1,62 @@
+#!/bin/bash -l
+#SBATCH --partition=main
+#SBATCH -o log/Simulate-%j-output.txt
+#SBATCH -e log/Simulate-%j-error.txt
+#SBATCH -t 0:59:00
+#SBATCH --time-min=0:59:00
+#SBATCH -J Simulate
+#SBATCH -A naiss2023-5-231
+#SBATCH --nodes=1
+#SBATCH --tasks-per-node=50
+#SBATCH --mail-type=ALL
+
+ulimit -s unlimited
+module load snic-env
+
+source $HOME/Snudda/snudda_env/bin/activate
+SNUDDA_DIR=/cfs/klemming/home/"${USER:0:1}"/$USER/Snudda
+
+export SNUDDA_DATA="/cfs/klemming/home/${USER:0:1}/$USER/BasalGangliaData/data"
+
+rm mechanisms
+ln -s $SNUDDA_DATA/neurons/mechanisms/ mechanisms
+
+
+# Create the network
+python Dardel_setup_neuromodulation_network.py
+
+export N_WORKERS=$SLURM_NTASKS
+
+NETWORK_INFO_FILE=$NETWORK_DIR/network-synapses.hdf5
+NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
+
+echo "Network dir: "$NETWORK_DIR
+
+export PATH=$SNUDDA_DIR/snudda_env/bin/:$PATH
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CRAY_LD_LIBRARY_PATH
+export PYTHONPATH=$SNUDDA_DIR/snudda_env/lib/python3.11/
+
+export CXX=CC
+export CC=cc
+export FC=ftn
+export MPICC=cc
+export MPICXX=CC
+
+CC --version
+
+pushd $SNUDDA_DIR/examples/parallel/KTH_PDC/neuromodulation
+
+rm -r x86_64
+
+echo "About to run nrnivmodl"
+which nrnivmodl
+
+srun -n 1 nrnivmodl -incflags "-lltdl=/usr/lib64/libltdl.so.7 -lreadline=/lib64/libreadline.so.7 -lncurses=/lib64/libncurses.so.6.1" -loadflags "-DLTDL_LIBRARY=/usr/lib64/libltdl.so.7 -DREADLINE_LIBRARY=/lib64/libreadline.so.7 -DNCURSES_LIBRARY=/lib64/libncurses.so.6.1" mechanisms/
+
+popd
+
+srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/neuromodulation/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 4.5
+
+
+
+
