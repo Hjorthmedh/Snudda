@@ -17,6 +17,7 @@ class NeuronPrototype:
                  parameter_path=None,
                  mechanism_path=None,
                  modulation_path=None,
+                 reaction_diffusion_path=None,
                  snudda_data=None,
                  meta_path=None,
                  virtual_neuron=False,
@@ -82,6 +83,17 @@ class NeuronPrototype:
                 self.modulation_path = None
         else:
             self.modulation_path = None
+
+        if reaction_diffusion_path:
+            self.reaction_diffusion_path = snudda_parse_path(reaction_diffusion_path, self.snudda_data)
+        elif self.neuron_path:
+            self.reaction_diffusion_path = snudda_parse_path(os.path.join(self.neuron_path, "reaction_diffusion.json"),
+                                                             self.snudda_data)
+
+            if not os.path.exists(self.reaction_diffusion_path):
+                self.reaction_diffusion_path = None
+        else:
+            self.reaction_diffusion_path = None
 
         self.neuron_name = neuron_name
         self.parameter_info = None

@@ -808,7 +808,6 @@ class SnuddaPlace(object):
 
         return target_centres, target_rotation, axon_swc
 
-
     ############################################################################
 
     def all_neuron_positions(self):

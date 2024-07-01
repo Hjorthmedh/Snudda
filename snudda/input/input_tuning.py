@@ -81,6 +81,7 @@ class InputTuning(object):
 
     def setup_network(self, neurons_path=None, num_replicas=10, neuron_types=None,
                       parameter_key=None, morphology_key=None, modulation_key=None,
+                      reaction_diffusion_file=None,
                       single_neuron_path=None, network_random_seed=None):
 
         if not morphology_key and not parameter_key and not modulation_key:
@@ -96,6 +97,7 @@ class InputTuning(object):
                                                 snudda_data=self.snudda_data,
                                                 num_replicas=num_replicas,
                                                 neuron_types=neuron_types,
+                                                reaction_diffusion_file=reaction_diffusion_file,
                                                 single_neuron_path=single_neuron_path,
                                                 parameter_key=parameter_key,
                                                 morphology_key=morphology_key,
@@ -1372,6 +1374,7 @@ class InputTuning(object):
         # The below line is wrong, but it is FRIDAY evening so will fix it monday...
         neuron_info["neuron_path"] = snudda_simplify_path(neuron_path, self.snudda_data)
 
+        # OBS, these are not used by snudda when placing neurons, it is just for internal bookkeeping of input tuning
         neuron_info["morphology"] = snudda_simplify_path(neuron_morph, self.snudda_data)
         neuron_info["parameters"] = snudda_simplify_path(parameter_file, self.snudda_data)
         neuron_info["mechanisms"] = snudda_simplify_path(mechanism_file, self.snudda_data)
@@ -1491,6 +1494,7 @@ class InputTuning(object):
                               num_replicas=10,
                               random_seed=None,
                               neuron_types=None,
+                              reaction_diffusion_file=None,
                               single_neuron_path=None,
                               parameter_key=None,
                               morphology_key=None,
@@ -1540,6 +1544,10 @@ class InputTuning(object):
 
         else:
             neuron_def = self.gather_all_neurons(neuron_types=neuron_types, all_combinations=all_combinations)
+
+        if reaction_diffusion_file is not None:
+            for neuron_key in neuron_def.keys():
+                neuron_def[neuron_key]["reaction_diffusion"] = reaction_diffusion_file
 
         # Just generate a set of points
         region_def[vol_name]["volume"]["n_putative_points"] = max(len(neuron_def.keys())*5, 10000)

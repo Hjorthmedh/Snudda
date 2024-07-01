@@ -85,7 +85,8 @@ class NeuronModel(ephys.models.CellModel):
                                                    morphology_path=morph_path,
                                                    parameter_path=param_file,
                                                    mechanism_path=mech_file,
-                                                   modulation_path=modulation_file)
+                                                   modulation_path=modulation_file,
+                                                   reaction_diffusion_path=reaction_diffusion_file)
 
                 morph_file, _ = neuron_prototype.get_morphology(parameter_id=parameter_id,
                                                                 morphology_id=morphology_id,
@@ -102,13 +103,20 @@ class NeuronModel(ephys.models.CellModel):
         mechs = self.define_mechanisms(mechanism_config=mech_file)
         params = self.define_parameters(param_file, parameter_id, parameter_key)
 
+        if modulation_file:
+            if modulation_key:
+                mod_params = self.define_parameters(parameter_config=modulation_file,
+                                                    parameter_key=modulation_key)
+                params = params + mod_params
+            else:
+                print(f"Warning! No modulation key specified, ignoring {modulation_file}")
+
         super(NeuronModel, self).__init__(name=cell_name, morph=morph,
                                           mechs=mechs, params=params)
 
-        if modulation_file:
-            # modulation_key is currently not used (deprecated?) or will we find a use for it in future
+        if reaction_diffusion_file:
             self.modulation = NeuronModulation(neuron=self)
-            self.modulation.config_file = modulation_file
+            self.modulation.config_file = reaction_diffusion_file
         else:
             self.modulation = None
 

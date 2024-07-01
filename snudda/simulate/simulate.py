@@ -529,11 +529,28 @@ class SnuddaSimulate(object):
 
             if "modulation" in self.network_info["neurons"][ID]:
                 modulation = self.network_info["neurons"][ID]["modulation"]
-            else:
-                modulation = os.path.join(neuron_path, "reaction_diffusion.json")
 
-            if not os.path.isfile(modulation):
-                modulation = None
+                if not os.path.isfile(modulation):
+                    raise ValueError(f"Missing modulation file {modulation} "
+                                     f"for neuron {self.network_info['neurons'][ID]['name']}")
+            else:
+                modulation = os.path.join(neuron_path, "modulation.json")
+
+                if not os.path.isfile(modulation):
+                    modulation = None
+
+            if "reaction_diffusion" in self.network_info["neurons"][ID]:
+                reaction_diffusion_file = self.network_info["neurons"][ID]["reaction_diffusion"]
+
+                if not os.path.isfile(reaction_diffusion_file):
+                    raise ValueError(f"Missing RxD reaction diffusion file {reaction_diffusion_file} "
+                                     f"for neuron {self.network_info['neurons'][ID]['name']}")
+
+            else:
+                reaction_diffusion_file = os.path.join(neuron_path, "reaction_diffusion.json")
+
+                if not os.path.isfile(reaction_diffusion_file):
+                    reaction_diffusion_file = None
 
             # Obs, neurons is a dictionary
             if self.network_info["neurons"][ID]["virtual_neuron"]:
@@ -574,6 +591,7 @@ class SnuddaSimulate(object):
                                                mech_file=mech,
                                                cell_name=name,
                                                modulation_file=modulation,
+                                               reaction_diffusion_file=reaction_diffusion_file,
                                                parameter_key=parameter_key,
                                                morphology_key=morphology_key,
                                                modulation_key=modulation_key)
