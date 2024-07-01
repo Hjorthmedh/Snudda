@@ -23,6 +23,7 @@ python Dardel_setup_neuromodulation_network.py
 
 export N_WORKERS=$SLURM_NTASKS
 
+NETWORK_DIR=../networks/dspn_modulation
 NETWORK_INFO_FILE=$NETWORK_DIR/network-synapses.hdf5
 NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
 
