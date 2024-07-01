@@ -5,9 +5,9 @@
 #SBATCH -t 0:59:00
 #SBATCH --time-min=0:59:00
 #SBATCH -J Simulate
-#SBATCH -A naiss2023-5-231
+#SBATCH -A naiss2024-5-306
 #SBATCH --nodes=1
-#SBATCH --tasks-per-node=50
+#SBATCH --tasks-per-node=51
 #SBATCH --mail-type=ALL
 
 ulimit -s unlimited
@@ -17,10 +17,6 @@ source $HOME/Snudda/snudda_env/bin/activate
 SNUDDA_DIR=/cfs/klemming/home/"${USER:0:1}"/$USER/Snudda
 
 export SNUDDA_DATA="/cfs/klemming/home/${USER:0:1}/$USER/BasalGangliaData/data"
-
-rm mechanisms
-ln -s $SNUDDA_DATA/neurons/mechanisms/ mechanisms
-
 
 # Create the network
 python Dardel_setup_neuromodulation_network.py
@@ -45,6 +41,9 @@ export MPICXX=CC
 CC --version
 
 pushd $SNUDDA_DIR/examples/parallel/KTH_PDC/neuromodulation
+
+rm mechanisms
+ln -s $SNUDDA_DATA/neurons/mechanisms/ mechanisms
 
 rm -r x86_64
 
