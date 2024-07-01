@@ -25,6 +25,7 @@ class NeuronModel(ephys.models.CellModel):
                  mech_file=None,
                  param_file=None,
                  modulation_file=None,
+                 reaction_diffusion_file=None,
                  parameter_id=None,
                  morphology_id=None,
                  modulation_id=None,
@@ -41,6 +42,7 @@ class NeuronModel(ephys.models.CellModel):
             mech_file: Path to mechanism file
             param_file: Path to parameter file
             modulation_file: Path to neuromodulation parameter file
+            reaction_diffusion_file: Path to the RxD reaction diffusion file
             parameter_id: ID of parameter set
             morphology_id: ID of morphology set -- DEPRECATED
             modulation_id: ID of neuromodulation parameter set
@@ -156,12 +158,12 @@ class NeuronModel(ephys.models.CellModel):
 
     # Helper function
 
-    def define_parameters(self, parameter_config=None, parameter_id=None, parameter_key=None):
+    def define_parameters(self, parameter_config, parameter_id=None, parameter_key=None):
         """
         Define parameters based on parameter_config and parameter_id.
         If there are n parameter sets, and parameter_id is k, then the parameter set is n % k."""
 
-        assert (parameter_config is not None)
+        assert parameter_config is not None
 
         # print("Using parameter config: " + parameter_config)
 

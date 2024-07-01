@@ -526,7 +526,11 @@ class SnuddaSimulate(object):
 
             param = os.path.join(neuron_path, "parameters.json")
             mech = os.path.join(neuron_path, "mechanisms.json")
-            modulation = os.path.join(neuron_path, "reaction_diffusion.json")
+
+            if "modulation" in self.network_info["neurons"][ID]:
+                modulation = self.network_info["neurons"][ID]["modulation"]
+            else:
+                modulation = os.path.join(neuron_path, "reaction_diffusion.json")
 
             if not os.path.isfile(modulation):
                 modulation = None
