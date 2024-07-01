@@ -19,11 +19,14 @@ SNUDDA_DIR=/cfs/klemming/home/"${USER:0:1}"/$USER/Snudda
 export SNUDDA_DATA="/cfs/klemming/home/${USER:0:1}/$USER/BasalGangliaData/data"
 
 # Create the network
-python Dardel_setup_neuromodulation_network.py
 
 export N_WORKERS=$SLURM_NTASKS
 
 NETWORK_DIR=../networks/dspn_modulation
+echo "Calling Dardel_setup_neuromodulation_network.py"
+srun -n 1 -N 1 --exact --overlap --mem=0 Dardel_setup_neuromodulation_network.sh
+
+
 NETWORK_INFO_FILE=$NETWORK_DIR/network-synapses.hdf5
 NETWORK_INPUT_FILE=$NETWORK_DIR/input-spikes.hdf5
 

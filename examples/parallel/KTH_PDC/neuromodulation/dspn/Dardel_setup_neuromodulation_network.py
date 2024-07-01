@@ -5,6 +5,9 @@ from snudda.input.input_tuning import InputTuning
 snudda_data = os.getenv("SNUDDA_DATA")
 
 network_path = os.path.join("..", "networks", "dspn_modulation")
+
+print(f"Creating network in {network_path}")
+
 input_tuning = InputTuning(network_path, snudda_data=snudda_data)
 
 neurons_path = os.path.join("$DATA", "neurons", "striatum")
