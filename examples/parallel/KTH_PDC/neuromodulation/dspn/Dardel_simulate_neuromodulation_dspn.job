@@ -66,6 +66,7 @@ popd
 export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
 srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/neuromodulation/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py $NETWORK_INFO_FILE $NETWORK_INPUT_FILE --time 4.5
 
+# TODO, we need to write an experiment config update, so that we use sim.add_rxd_internal_concentration_recording_all(species="PKA", neuron_id=0)
 
 
 
