@@ -6,11 +6,12 @@ import os
 import sys
 import timeit
 
+# Now locally importing matplotlib.pyplot in functions, since Dardel (parallel computer) could not handle it
+
 # Must be run before NEURON import to run in parallel
 from mpi4py import MPI
 
 import h5py
-import matplotlib.pyplot as plt
 import numpy as np
 import copy
 
@@ -511,6 +512,8 @@ class InputTuning(object):
                              max_time, skip_time=0, label="background-inputs", show_plot=True,
                              depol_block_flag=None):
 
+        import matplotlib.pyplot as plt
+
         n_inputs_total = np.zeros((len(neuron_id),), dtype=int)
         fig_dir = os.path.join(self.network_path, "figures")
 
@@ -550,6 +553,8 @@ class InputTuning(object):
                          max_time, requested_frequency, skip_time=0,
                          label="background-inputs", show_plot=True,
                          depol_block_flag=None):
+
+        import matplotlib.pyplot as plt
 
         n_inputs_total = np.zeros((len(neuron_id),), dtype=int)
         fig_dir = os.path.join(self.network_path, "figures")
@@ -800,6 +805,8 @@ class InputTuning(object):
 
     def plot_depolarisation_blocked_neurons(self, freq_bin=10):
 
+        import matplotlib.pyplot as plt
+
         spike_data = dict()
         volt = dict()
         depolarisation_blocks = dict()
@@ -874,6 +881,8 @@ class InputTuning(object):
             plt.show()
 
     def plot_voltage_trace(self, morphology_key, parameter_key, mp_idx=None, time_range=None):
+
+        import matplotlib.pyplot as plt
 
         # Find all neurons with the morphology key, and parameter key
 
@@ -1052,6 +1061,8 @@ class InputTuning(object):
 
     def plot_volt_data(self, volt_data, show_plots=True, input_type_name=''):
 
+        import matplotlib.pyplot as plt
+
         for neuron_name in volt_data:
             fig, ax = plt.subplots()
             legend_text = []
@@ -1093,6 +1104,8 @@ class InputTuning(object):
                 plt.close()
 
     def plot_volt_vs_ninputs(self, volt_data, show_plots=True, input_type_name=''):
+
+        import matplotlib.pyplot as plt
 
         for neuron_name in volt_data:
             fig, ax = plt.subplots()
@@ -1140,6 +1153,8 @@ class InputTuning(object):
 
     def plot_frequency_data(self, frequency_data, show_plots=True, input_type_name=''):
 
+        import matplotlib.pyplot as plt
+
         for neuron_name in frequency_data:
             fig, ax = plt.subplots()
             legend_text = []
@@ -1180,6 +1195,8 @@ class InputTuning(object):
                 plt.close()
 
     def plot_frequency_data_alt(self, frequency_data, show_plots=True, input_type_name=''):
+
+        import matplotlib.pyplot as plt
 
         _freq_data = dict()
         _all_num_inputs = []
@@ -1260,6 +1277,8 @@ class InputTuning(object):
                 plt.close()
 
     def plot_verify_frequency_distribution(self, input_type="cortical"):
+
+        import matplotlib.pyplot as plt
 
         network_info, input_config, input_data, neuron_id_lookup, neuron_name_list, \
             spike_data, volt, time, depolarisation_blocks = self.load_data_helper()
@@ -1712,6 +1731,8 @@ class InputTuning(object):
 
     def plot_generated_input(self, num_bins=50):
         # This function just checks that we have reasonable spikes generated
+
+        import matplotlib.pyplot as plt
 
         input_spike_data = h5py.File(self.input_spikes_file, 'r')
         network_data = h5py.File(self.network_file, 'r')
