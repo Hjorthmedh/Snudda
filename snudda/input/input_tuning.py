@@ -1294,9 +1294,6 @@ class InputTuning(object):
         input_freq = np.array(input_config[neuron_type][input_type]["frequency"])
         output_freq_list = []
 
-        #import pdb
-        #pdb.set_trace()
-
         depol_blocked_freqs = []
         depol_blocked_lookup = dict()
 
@@ -1304,8 +1301,6 @@ class InputTuning(object):
             out_freq = []
             for start_t, end_t, in_freq in zip(start_times, end_times, input_freq):
                 n_spikes = np.sum(np.logical_and(start_t <= spike_data[neuron_id], spike_data[neuron_id] < end_t))
-                # import pdb
-                # pdb.set_trace()
                 f = n_spikes / (end_t - start_t)
                 out_freq.append(f)
 

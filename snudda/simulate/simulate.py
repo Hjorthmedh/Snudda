@@ -1687,6 +1687,17 @@ class SnuddaSimulate(object):
             t_save.record(self.sim.neuron.h._ref_t)
             self.record.register_time(time=t_save)
 
+    def add_rxd_internal_concentration_recording_all(self, species, neuron_id):
+
+        if neuron_id not in self.neuron_id:
+            return
+
+        # Add soma
+        self.add_rxd_concentration_recording(species, neuron_id, "soma_internal", "soma", -1, 0.5)
+
+        for sid, sec in enumerate(self.neurons[neuron_id].icell.dend):
+            self.add_rxd_concentration_recording(species, neuron_id, "dend_internal", "dend", -1, 0.5)
+
     ############################################################################
 
     def run(self, t=None, hold_v=None):
