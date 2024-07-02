@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# This is to prevent NEURON from trying to open display 
+unset DISPLAY
+
 export SNUDDA_DATA="$HOME/BasalGangliaData/data"
 
 JOBDIR=../networks/dspn_modulation
