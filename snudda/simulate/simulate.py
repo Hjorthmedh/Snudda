@@ -293,12 +293,29 @@ class SnuddaSimulate(object):
                 self.add_volt_recording_soma(cell_id=record_soma_cell_id)
 
             if "record_all_compartments" in self.sim_info:
+                raise DeprecationWarning("record_all_compartments depricated, please use record_voltate_all_compartments")
                 record_comp_cell_id = np.array(self.sim_info["record_all_compartments"], dtype=int)
                 self.add_volt_recording_all(cell_id=record_comp_cell_id)
 
+            if "record_voltage_all_compartments" in self.sim_info:
+                record_comp_cell_id = np.array(self.sim_info["record_voltage_all_compartments"], dtype=int)
+                self.add_volt_recording_all(cell_id=record_comp_cell_id)
+
             if "record_all_synapses" in self.sim_info:
+                raise DeprecationWarning("record_all_synapses depricated, please use record_current_all_synapses")
                 record_syn_cell_id = np.array(self.sim_info["record_all_synapses"], dtype=int)
                 self.add_synapse_current_recording_all(record_syn_cell_id)
+
+            if "record_current_all_synapses" in self.sim_info:
+                record_syn_cell_id = np.array(self.sim_info["record_current_all_synapses"], dtype=int)
+                self.add_synapse_current_recording_all(record_syn_cell_id)
+
+            if "record_rxd_species_concentration_all_compartments" in self.sim_info:
+                record_rx_species, record_rxd_neuron_id = \
+                    self.sim_info["record_rxd_species_concentration_all_compartments"]
+
+                for rxd_neuron_id in record_rxd_neuron_id:
+                    self.add_rxd_internal_concentration_recording_all(record_rx_species, rxd_neuron_id)
 
         # Do we need blocking call here, to make sure all neurons are setup
         # before we try and connect them
