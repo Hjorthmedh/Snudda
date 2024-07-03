@@ -559,8 +559,8 @@ class SnuddaSimulate(object):
                 if not os.path.isfile(modulation):
                     modulation = None
 
-            if "reaction_diffusion" in self.network_info["neurons"][ID]:
-                reaction_diffusion_file = self.network_info["neurons"][ID]["reaction_diffusion"]
+            if "reaction_diffusion_file" in self.network_info["neurons"][ID]:
+                reaction_diffusion_file = self.network_info["neurons"][ID]["reaction_diffusion_file"]
 
                 if not os.path.isfile(reaction_diffusion_file):
                     raise ValueError(f"Missing RxD reaction diffusion file {reaction_diffusion_file} "

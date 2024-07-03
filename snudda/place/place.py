@@ -189,6 +189,7 @@ class SnuddaPlace(object):
                     param_filename=None,
                     mech_filename=None,
                     modulation=None,
+                    reaction_diffusion=None,
                     name="Unnamed",
                     hoc=None,
                     volume_id=None,
@@ -209,6 +210,7 @@ class SnuddaPlace(object):
             param_filename (str): Path to parameter file
             mech_filename (str): Path to mechanism file
             modulation (str): Path to neuromodulation file
+            reaction_diffusion (str): Path to RxD reaction diffusion file
             name (str): Name of neuron population, e.g. DSPN (which will become DSPN_0, DSPN_1, etc...)
             hoc (str): Path to hoc file (currently disabled)
             volume_id (str): ID of the volume to place neurons in
@@ -234,6 +236,7 @@ class SnuddaPlace(object):
                                            parameter_path=param_filename,
                                            mechanism_path=mech_filename,
                                            modulation_path=modulation,
+                                           reaction_diffusion_path=reaction_diffusion,
                                            load_morphology=False,
                                            virtual_neuron=virtual_neuron)
 
@@ -464,7 +467,8 @@ class SnuddaPlace(object):
                 else:
                     n_neurons = num_neurons
 
-                # print(f"{n_neurons = }")
+                # RxD reaction diffusion config file
+                default_reaction_diffusion = neuron_data.get("reaction_diffusion")
 
                 parameter_key_list = SnuddaPlace.replicate_str(neuron_data.get("parameter_key"),
                                                                n_neurons, f"{neuron_type} parameter_key")
@@ -490,6 +494,13 @@ class SnuddaPlace(object):
                     if not snudda_path_exists(modulation, snudda_data=self.snudda_data):
                         modulation = None
 
+                    if default_reaction_diffusion is None:
+                        reaction_diffusion = os.path.join(neuron_path, "reaction_diffusion.json")
+                        if not snudda_path_exists(reaction_diffusion, snudda_data=self.snudda_data):
+                            reaction_diffusion = None
+                    else:
+                        reaction_diffusion = default_reaction_diffusion
+
                     if model_type == "virtual":
                         param = None
                         mech = None
@@ -504,6 +515,7 @@ class SnuddaPlace(object):
                                      param_filename=param,
                                      mech_filename=mech,
                                      modulation=modulation,
+                                     reaction_diffusion=reaction_diffusion,
                                      num_neurons=num,
                                      hoc=None,
                                      volume_id=region_name,
@@ -981,6 +993,11 @@ class SnuddaPlace(object):
                     for n in self.neurons]
         mok_str_type = 'S' + str(max(1, max([len(x) for x in mok_list])))
 
+        rd_list = [n.reaction_diffusion.encode("ascii", "ignore")
+                   if n.reaction_diffusion is not None else ""
+                   for n in self.neurons]
+        rd_str_type = 'S' + str(max(1, max([len(x) for x in rd_list])))
+
         neuron_param_key = neuron_group.create_dataset("parameter_key",
                                                        (len(self.neurons),),
                                                        pk_str_type,
@@ -996,6 +1013,10 @@ class SnuddaPlace(object):
                                                             mok_str_type,
                                                             compression="gzip")
 
+        reaction_diffusion = neuron_group.create_dataset("reaction_diffusion_file",
+                                                         (len(self.neurons),),
+                                                         rd_str_type)
+
         neuron_pos_all = np.zeros((len(self.neurons), 3))
         neuron_rot_all = np.zeros((len(self.neurons), 9))
 
@@ -1005,6 +1026,9 @@ class SnuddaPlace(object):
         neuron_morph_key_idx = []
         neuron_mod_key_list = []
         neuron_mod_key_idx = []
+
+        reacdiff_list = []
+        reacdiff_key = []
 
         for (i, n) in enumerate(self.neurons):
             neuron_pos_all[i, :] = n.position
@@ -1022,6 +1046,10 @@ class SnuddaPlace(object):
                 neuron_mod_key_list.append(n.modulation_key)
                 neuron_mod_key_idx.append(i)
 
+            if n.reaction_diffusion:
+                reacdiff_list.append(n.reaction_diffusion)
+                reacdiff_key.append(i)
+
         neuron_position[:, :] = neuron_pos_all
         neuron_rotation[:, :] = neuron_rot_all
 
@@ -1033,6 +1061,9 @@ class SnuddaPlace(object):
 
         if len(neuron_mod_key_list) > 0:
             neuron_modulation_key[neuron_mod_key_idx] = neuron_mod_key_list
+
+        if len(reacdiff_list) > 0:
+            reaction_diffusion[reacdiff_key] = reacdiff_list
 
         # Store input information
         if self.population_unit is None:
