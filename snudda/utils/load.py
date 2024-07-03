@@ -186,8 +186,9 @@ class SnuddaLoad(object):
         if "config" in f["meta"]:
             if self.verbose:
                 print("Loading config data from HDF5")
-            data["config"] = SnuddaLoad.to_str(f["meta/config"][()])
+            # data["config"] = SnuddaLoad.to_str(f["meta/config"][()])
             self.config = json.loads(f["meta/config"][()])
+            data["config"] = self.config
 
         # Added so this code can also load the position file, which
         # does not have the network group yet
