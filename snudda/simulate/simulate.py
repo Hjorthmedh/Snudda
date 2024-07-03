@@ -314,9 +314,6 @@ class SnuddaSimulate(object):
                 record_rx_species, record_rxd_neuron_id = \
                     self.sim_info["record_rxd_species_concentration_all_compartments"]
 
-                import pdb
-                pdb.set_trace()
-
                 for rxd_neuron_id in record_rxd_neuron_id:
                     self.add_rxd_internal_concentration_recording_all(record_rx_species, rxd_neuron_id)
 
