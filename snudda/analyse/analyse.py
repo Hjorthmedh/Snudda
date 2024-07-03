@@ -7,6 +7,7 @@ import sys
 import time
 import timeit
 from collections import OrderedDict
+from copy import deepcopy
 from glob import glob
 
 import h5py
@@ -81,7 +82,7 @@ class SnuddaAnalyse:
         self.snudda_data = self.network["snudda_data"]
 
         if "config" in self.network:
-            self.config = json.loads(self.network["config"], object_pairs_hook=OrderedDict)
+            self.config = deepcopy(self.network["config"])
         self.side_len = side_len
 
         self.low_memory = low_memory

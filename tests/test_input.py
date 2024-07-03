@@ -110,7 +110,7 @@ class InputTestCase(unittest.TestCase):
         si.generate()
 
         input_data = h5py.File(spike_file, 'r')
-        config_data = deepcopy(input_data["config"])
+        config_data = json.loads(input_data["config"][()])
 
         # Loop through all inputs, and verify them
 
@@ -262,7 +262,7 @@ class InputTestCase(unittest.TestCase):
         si.generate()
 
         input_data = h5py.File(spike_file, 'r')
-        config_data = deepcopy(input_data["config"])
+        config_data = json.loads(input_data["config"][()])
 
         # OBS, population unit 0 does not get any of the extra mother spikes specified
         # So we need to check FS neuron that belongs to population unit 1 or 2.
