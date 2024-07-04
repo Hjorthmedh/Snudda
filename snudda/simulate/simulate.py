@@ -311,11 +311,17 @@ class SnuddaSimulate(object):
                 self.add_synapse_current_recording_all(record_syn_cell_id)
 
             if "record_rxd_species_concentration_all_compartments" in self.sim_info:
-                record_rx_species, record_rxd_neuron_id = \
-                    self.sim_info["record_rxd_species_concentration_all_compartments"]
 
-                for rxd_neuron_id in record_rxd_neuron_id:
-                    self.add_rxd_internal_concentration_recording_all(record_rx_species, rxd_neuron_id)
+                rec_info = self.sim_info["record_rxd_species_concentration_all_compartments"]
+
+                if type(rec_info[0]) == str:
+                    # Only one species
+                    rec_info = [rec_info]
+
+                for record_rx_species, record_rxd_neuron_id in rec_info:
+                    self.write_log(f"Recording {record_rx_species} from neuron_id = {record_rxd_neuron_id}")
+                    for rxd_neuron_id in record_rxd_neuron_id:
+                        self.add_rxd_internal_concentration_recording_all(record_rx_species, rxd_neuron_id)
 
         # Do we need blocking call here, to make sure all neurons are setup
         # before we try and connect them
