@@ -7,7 +7,7 @@ from snudda.utils.load import SnuddaLoad
 
 import matplotlib.pyplot as plt
 
-from snudda.utils.load_network_simulation import SnuddaLoadNetworkSimulation
+from snudda.utils.load_network_simulation import SnuddaLoadSimulation
 
 
 class SnuddaPlotSpikeRaster2:
@@ -58,7 +58,7 @@ class SnuddaPlotSpikeRaster2:
                 f"snudda_simulation_load refers to {snudda_simulation_load.self.network_simulation_output_file_name}," \
                 f" but user passed simulation_file={simulation_file}"
         else:
-            self.snudda_simulation_load = SnuddaLoadNetworkSimulation(network_simulation_output_file=self.simulation_file)
+            self.snudda_simulation_load = SnuddaLoadSimulation(network_simulation_output_file=self.simulation_file)
 
         spike_data = self.snudda_simulation_load.merge_spikes()
 

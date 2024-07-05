@@ -9,7 +9,7 @@ from numba import jit
 from snudda.utils.load import SnuddaLoad
 
 
-class SnuddaLoadNetworkSimulation:
+class SnuddaLoadSimulation:
 
     def __init__(self, network_simulation_output_file=None,
                  network_path=None,
@@ -257,11 +257,11 @@ class SnuddaLoadNetworkSimulation:
 
             # We should only check for depolarisation block in the soma, sec_id = -1
             v_idx = np.where(sec_id_x[neuron_id][0] == -1)[0][0]
-            depol_block = SnuddaLoadNetworkSimulation.check_trace_depolarisation_block(neuron_id=neuron_id,
-                                                                                       time=time,
-                                                                                       voltage=voltage[neuron_id][:, v_idx],
-                                                                                       threshold=threshold,
-                                                                                       max_duration=max_duration)
+            depol_block = SnuddaLoadSimulation.check_trace_depolarisation_block(neuron_id=neuron_id,
+                                                                                time=time,
+                                                                                voltage=voltage[neuron_id][:, v_idx],
+                                                                                threshold=threshold,
+                                                                                max_duration=max_duration)
 
             depolarisation_block = depolarisation_block + depol_block
 
@@ -402,6 +402,13 @@ class SnuddaLoadNetworkSimulation:
                              f"{','.join([str(x) for x in self.network_simulation_file['meta_data/position'][nid,: ]])}\n")
 
 
+class SnuddaLoadNetworkSimulation (SnuddaLoadSimulation):
+
+    def __init__(self, *args, **kwargs):
+        raise DeprecationWarning("Please use SnuddaLoadSimulation instead of SnuddaLoadNetworkSimulation")
+        super(*args, **kwargs)
+
+
 def load_network_simulation_cli():
     from argparse import ArgumentParser
 
@@ -414,8 +421,8 @@ def load_network_simulation_cli():
     parser.add_argument("--skip_test", help="Do tests on simulation data", action="store_true")
     args = parser.parse_args()
 
-    slna = SnuddaLoadNetworkSimulation(network_simulation_output_file=args.data_file, verbose=args.verbose,
-                                       do_test=not args.skip_test)
+    slna = SnuddaLoadSimulation(network_simulation_output_file=args.data_file, verbose=args.verbose,
+                                do_test=not args.skip_test)
 
     if args.export_spike_file is not None:
         slna.export_to_txt(txt_file=args.export_spike_file, time_scale=args.time_scale)

@@ -9,7 +9,7 @@ from snudda.analyse.spike_time_tiling_coefficient import spike_time_tiling_coeff
 # from neo import SpikeTrain as NeoSpikeTrain
 # import quantities as pq
 
-from snudda.utils.load_network_simulation import SnuddaLoadNetworkSimulation
+from snudda.utils.load_network_simulation import SnuddaLoadSimulation
 from snudda.utils.load import SnuddaLoad
 
 
@@ -48,7 +48,7 @@ class AnalyseSpikeTrains:
         self.input_file = input_file
 
         if output_file is not None:
-            self.output_data = SnuddaLoadNetworkSimulation(network_simulation_output_file=self.output_file)
+            self.output_data = SnuddaLoadSimulation(network_simulation_output_file=self.output_file)
         else:
             self.output_data = None
 

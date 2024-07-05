@@ -21,7 +21,7 @@ from snudda.input.input import SnuddaInput
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.place.create_cube_mesh import create_cube_mesh
 from snudda.simulate.simulate import SnuddaSimulate
-from snudda.utils import SnuddaLoadNetworkSimulation
+from snudda.utils import SnuddaLoadSimulation
 from snudda.utils.load import SnuddaLoad
 from snudda.utils.snudda_path import snudda_isdir, snudda_parse_path, snudda_simplify_path, get_snudda_data
 
@@ -758,9 +758,9 @@ class InputTuning(object):
             if load_input and os.path.isfile(self.input_spikes_file[idx]):
                 input_data = h5py.File(self.input_spikes_file[idx], "r")
 
-        output_data_loader = SnuddaLoadNetworkSimulation(network_path=self.network_path,
-                                                         network_simulation_output_file=output_file,
-                                                         do_test=True, quiet_load=quiet_load)
+        output_data_loader = SnuddaLoadSimulation(network_path=self.network_path,
+                                                  network_simulation_output_file=output_file,
+                                                  do_test=True, quiet_load=quiet_load)
         spike_data = output_data_loader.get_spikes()
 
         # cell_id = output_data_loader.get_id_of_neuron_type()

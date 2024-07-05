@@ -3,7 +3,7 @@ import os
 import numpy as np
 from snudda.simulate import SnuddaSimulate
 from snudda import Snudda
-from snudda.utils import SnuddaLoadNetworkSimulation
+from snudda.utils import SnuddaLoadSimulation
 
 # TODO: Write example that uses Anu's SBML Dopamine cascade
 # https://www.ebi.ac.uk/biomodels/BIOMD0000000636#Files
@@ -115,7 +115,7 @@ class NeuromodulationTestCase(unittest.TestCase):
         self.sim.record.set_new_output_file(output_file)
         self.sim.record.write()
 
-        nd = SnuddaLoadNetworkSimulation(output_file)
+        nd = SnuddaLoadSimulation(output_file)
         time = nd.get_time()
         data_a = nd.get_data("DA", 0)
         data_b = nd.get_data("B", 0)
