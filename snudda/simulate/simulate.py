@@ -1560,6 +1560,9 @@ class SnuddaSimulate(object):
 
             for sid, sec in enumerate(self.neurons[cid].icell.dend):
 
+                assert int(sec.name().split('[')[-1].strip(']')) == sid, \
+                    f"Internal error, assumed {sid} was section id of {sec.name()}"
+
                 if centre_only_flag:
                     sec_id.append(sid)
                     sec_x.append(0.5)
@@ -1721,7 +1724,7 @@ class SnuddaSimulate(object):
         for sid, sec in enumerate(self.neurons[neuron_id].icell.dend):
             assert int(sec.name().split('[')[-1].strip(']')) == sid, \
                 f"Internal error, assumed {sid} was section id of {sec.name()}"
-            self.add_rxd_concentration_recording(species, neuron_id, "dend_internal", "dend", sec, 0.5)
+            self.add_rxd_concentration_recording(species, neuron_id, "dend_internal", "dend", sid, 0.5)
 
     ############################################################################
 
