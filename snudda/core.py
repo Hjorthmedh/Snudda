@@ -207,6 +207,8 @@ class Snudda(object):
 
         si.write_json()
 
+        return si
+
     ############################################################################
 
     def import_config_wrapper(self, args):

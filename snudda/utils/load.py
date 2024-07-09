@@ -479,7 +479,7 @@ class SnuddaLoad(object):
             n["parameter_key"] = par_key if len(par_key) > 0 else None
             n["morphology_key"] = morph_key if len(morph_key) > 0 else None
             n["modulation_key"] = mod_key if len(mod_key) > 0 else None
-            n["reaction_diffusion_file"] = reaction_diffusion_file if len(reaction_diffusion_file) > 0 else None
+            n["reaction_diffusion_file"] = SnuddaLoad.to_str(reaction_diffusion_file) if len(reaction_diffusion_file) > 0 else None
 
             n["population_unit"] = population_unit_id
 

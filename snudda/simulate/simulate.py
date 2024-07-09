@@ -563,7 +563,7 @@ class SnuddaSimulate(object):
                     modulation = None
 
             if "reaction_diffusion_file" in self.network_info["neurons"][ID]:
-                reaction_diffusion_file = self.network_info["neurons"][ID]["reaction_diffusion_file"]
+                reaction_diffusion_file = SnuddaLoad.to_str(self.network_info["neurons"][ID]["reaction_diffusion_file"])
 
                 if reaction_diffusion_file is not None and not os.path.isfile(reaction_diffusion_file):
                     raise ValueError(f"Missing RxD reaction diffusion file {reaction_diffusion_file} "
@@ -1155,7 +1155,7 @@ class SnuddaSimulate(object):
                     else:
                         region = f"dend_{region}"
 
-                weight_scale = par_set["RxD"].get("weight_scale", 1)
+                weight_scale = par_set["RxD"].get("weight_scale", 1) * 1e-6  # (to compensate for 1e6 multiplication later)
 
                 # If you have a RxD synapse it is good idea to set weight scale, especially
                 # if your channel has valence 0, then cond variable is actually flux and needs to be in
@@ -1319,7 +1319,7 @@ class SnuddaSimulate(object):
                     nc = h.NetCon(vs, syn)
 
                     nc.delay = 0.0
-                    nc.weight[0] = neuron_input.attrs["conductance"][()] * 1e6  # Neurons needs microsiemens
+                    nc.weight[0] = neuron_input.attrs["conductance"][()] * rxd_weight_scale  # Neurons needs microsiemens
                     nc.threshold = 0.1
 
                     # Get the modifications of synapse parameters, specific to this synapse
@@ -1380,7 +1380,7 @@ class SnuddaSimulate(object):
             species_name = None
             flux_variable = None
             region = None
-            weight_scale = 1.0
+            weight_scale = 1e6  # we need to do pS -> micro siemens
 
         return species_name, flux_variable, region, weight_scale
 

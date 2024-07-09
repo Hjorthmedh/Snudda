@@ -269,10 +269,16 @@ class NeuronPlacer:
 
         # k=2, since we don't want distance to point itself, but closest neighbour
         # closest_distance, _ = cKDTree(data=free_positions).query(x=free_positions, k=2)
-        closest_distance, _ = cKDTree(data=free_positions).query(x=free_positions, k=2)
+        if len(free_positions) > 1:
+            closest_distance, _ = cKDTree(data=free_positions).query(x=free_positions, k=2)
+            # Volume is proportional to distance**3, so scale probabilities to pick position by that
+            free_volume = np.power(np.mean(closest_distance[:, 1:2], axis=1), 3)
+            P_neuron = free_volume
+        else:
+            # Special case, when there is only one
+            P_neuron = [1]
+            assert neuron_density is None, "You can not specify neuron_density if there is only one free position."
 
-        # Volume is proportional to distance**3, so scale probabilities to pick position by that
-        free_volume = np.power(np.mean(closest_distance[:, 1:2], axis=1), 3)
         x, y, z = free_positions.T
 
         if neuron_density:
@@ -282,8 +288,6 @@ class NeuronPlacer:
             else:
                 P_neuron = np.multiply(neuron_density(x=x, y=y, z=z), free_volume)
             # P_neuron = numexpr.evaluate(neuron_density)
-        else:
-            P_neuron = free_volume
 
         P_neuron /= np.sum(P_neuron)
 
