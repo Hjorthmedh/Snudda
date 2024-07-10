@@ -13,7 +13,7 @@
 				"species_name": "DA",
 				"flux_variable": "open",
 				"region": "internal",
-				"weight_scale": 1e9				
+				"weight_scale": 1e16			
 			    },
 			    "mod_file": "DASyn"
 			},

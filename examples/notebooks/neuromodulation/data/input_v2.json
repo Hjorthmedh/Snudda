@@ -13,7 +13,7 @@
 	"DA" : {
             "generator" : "poisson",
             "start" : [0.1],
-            "end" : [1],
+            "end" : [0.2],
             "frequency" : [40],
             "conductance" : 0.5e-9,
             "num_inputs" : 100,
@@ -22,7 +22,7 @@
 		"species_name": "DA",
 		"flux_variable": "open",
 		"region": "internal",
-		"weight_scale": 1e9
+		"weight_scale": 1e16
 	    }
 	}
     }
