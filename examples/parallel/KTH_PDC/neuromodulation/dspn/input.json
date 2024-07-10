@@ -22,7 +22,7 @@
 	    "generator": "poisson",
 	    "type": "GABA",
 	    "start": [2, 3.5],
-	    "end": [3, 4.5],
+	    "end": [2.5, 4],
 	    "frequency": [5, 10],
 	    "num_inputs": 100,
 	    "conductance": 5e-9,
@@ -31,7 +31,7 @@
                 "species_name": "DA",
                 "flux_variable": "open",
                 "region": "internal",
-                "weight_scale": 1e23
+                "weight_scale": 1e20
             }	    
 	}
     }
