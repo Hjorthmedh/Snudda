@@ -31,7 +31,7 @@
                 "species_name": "DA",
                 "flux_variable": "open",
                 "region": "internal",
-                "weight_scale": 1e20
+                "weight_scale": 1e17
             }	    
 	}
     }
