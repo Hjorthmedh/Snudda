@@ -323,6 +323,19 @@ class SnuddaSimulate(object):
                     for rxd_neuron_id in record_rxd_neuron_id:
                         self.add_rxd_internal_concentration_recording_all(record_rx_species, rxd_neuron_id)
 
+            if "record_density_mechanism" in self.sim_info:
+                record_info = self.sim_info["record_density_mechanism"]
+
+                for (density_mechanism_name, variable_name), density_data in record_info.items():
+                    neuron_id = density_data["neuron_id"]
+                    sec_id = density_data["section_id"]
+                    sec_x = density_data["section_x"]
+
+                    self.add_density_mechanism_recording(neuron_id=neuron_id,
+                                                         sec_id=sec_id, sec_x=sec_x,
+                                                         density_mechanism_name=density_mechanism_name,
+                                                         variable_name=variable_name)
+
         # Do we need blocking call here, to make sure all neurons are setup
         # before we try and connect them
 
@@ -1691,7 +1704,46 @@ class SnuddaSimulate(object):
 
         return syn_ctr
 
-    def add_rxd_concentration_recording(self, species, neuron_id, region, sec_type, sec_id, sec_x):
+    def add_density_mechanism_recording(self, neuron_id, sec_id, sec_x, density_mechanism_name, variable_name):
+
+        """ Record density mechanism:
+
+        Args:
+            neuron_id (int) : Id of neuron
+            sec_id (list[int]) : List of section id:s for compartments
+            sec_x (list[int]) : List of section x for compartments
+            density_mechanism_name (str): Name of density mechanism, e.g. "pas"
+            variable_name (str): Variable name to record, e.g. "i" (will then read _ref_i)
+        """
+
+        if type(sec_id) == int:
+            sec_id = [sec_id]
+
+        if type(sec_x) == float:
+            sec_x = [sec_x]
+
+        reference_name = f"_ref_{variable_name}"
+
+        sections = self.neurons[neuron_id].map_id_to_compartment(sec_id)
+
+        assert len(sections) == len(sec_id) == len(sec_x), f"Length mismatch {len(sections) = }, {len(sec_id) = }, {len(sec_x) = }"
+
+        for sec, sid, sx in zip(sections, sec_id, sec_x):
+            vector = self.sim.neuron.h.Vector()
+            mech_ref = getattr(sec(sx), density_mechanism_name)
+            vector.record(getattr(mech_ref, reference_name))
+
+            # From the Snudda synapse matrix. sec_id -1 is soma, sec_id >= 0 is dendrite, sec_id <= -2 is axon
+            self.record.register_compartment_data(neuron_id=neuron_id,
+                                                  data_type=f"{density_mechanism_name}.{variable_name}", data=vector,
+                                                  sec_id=sid, sec_x=sx)
+
+        if self.record.time is None:
+            t_save = self.sim.neuron.h.Vector()
+            t_save.record(self.sim.neuron.h._ref_t)
+            self.record.register_time(time=t_save)
+
+    def add_rxd_concentration_recording(self, species: str, neuron_id: int, region, sec_type, sec_id, sec_x):
 
         if self.neurons[neuron_id].modulation is None:
             raise ValueError(f"No modulation specified for neuron {self.neurons[neuron_id].name} ({neuron_id})")
@@ -1725,6 +1777,21 @@ class SnuddaSimulate(object):
             assert int(sec.name().split('[')[-1].strip(']')) == sid, \
                 f"Internal error, assumed {sid} was section id of {sec.name()}"
             self.add_rxd_concentration_recording(species, neuron_id, "dend_internal", "dend", sid, 0.5)
+
+    def add_rxd_internal_concentration_recording_all_species(self, neuron_id):
+
+        if neuron_id not in self.neuron_id:
+            return
+
+        for species in self.neurons[neuron_id].modulation.species.keys():
+
+            # Add soma
+            self.add_rxd_concentration_recording(species, neuron_id, "soma_internal", "soma", -1, 0.5)
+
+            for sid, sec in enumerate(self.neurons[neuron_id].icell.dend):
+                assert int(sec.name().split('[')[-1].strip(']')) == sid, \
+                    f"Internal error, assumed {sid} was section id of {sec.name()}"
+                self.add_rxd_concentration_recording(species, neuron_id, "dend_internal", "dend", sid, 0.5)
 
     ############################################################################
 

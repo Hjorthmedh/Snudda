@@ -17,6 +17,7 @@
             "frequency" : [40],
             "conductance" : 0.5e-9,
             "num_inputs" : 100,
+	    "num_soma_synapses" : 10,
             "mod_file": "DASyn",
 	    "RxD": {
 		"species_name": "DA",
