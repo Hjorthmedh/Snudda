@@ -326,7 +326,8 @@ class SnuddaSimulate(object):
             if "record_density_mechanism" in self.sim_info:
                 record_info = self.sim_info["record_density_mechanism"]
 
-                for (density_mechanism_name, variable_name), density_data in record_info.items():
+                for key_name, density_data in record_info.items():
+                    density_mechanism_name, variable_name = key_name.split(".")
                     neuron_id = density_data["neuron_id"]
                     sec_id = density_data["section_id"]
                     sec_x = density_data["section_x"]
