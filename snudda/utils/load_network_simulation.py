@@ -3,7 +3,6 @@ import os
 
 import h5py
 import numpy as np
-from collections import OrderedDict
 from numba import jit
 
 from snudda.utils.load import SnuddaLoad
@@ -156,13 +155,31 @@ class SnuddaLoadSimulation:
 
         return freq_table
 
+    def list_data_types(self, neuron_id):
+        return list(self.network_simulation_file["neurons"][str(neuron_id)].keys())
+
+    def get_all_data(self, neuron_id, exclude=None, include_time=False):
+        data = dict()
+
+        for data_type in self.list_data_types(neuron_id=neuron_id):
+
+            if exclude is not None and data_type in exclude:
+                continue
+
+            data[data_type] = self.get_data(data_type=data_type, neuron_id=neuron_id)
+
+        if include_time:
+            data["time"] = self.get_time()
+
+        return data
+
     def get_data(self, data_type, neuron_id=None):
 
         """ Returns data for neuron_id """
 
-        data = OrderedDict()
-        sec_id_x = OrderedDict()
-        syn_info = OrderedDict()
+        data = dict()
+        sec_id_x = dict()
+        syn_info = dict()
 
         if neuron_id is None:
             neuron_id = self.network_simulation_file["neurons"].keys()
@@ -307,9 +324,9 @@ class SnuddaLoadSimulation:
         if pre_id is None:
             return current, sec_id_x, syn_info
 
-        filtered_current = OrderedDict()
-        filtered_sec_id_x = OrderedDict()
-        filtered_syn_info = OrderedDict()
+        filtered_current = dict()
+        filtered_sec_id_x = dict()
+        filtered_syn_info = dict()
 
         for neuron_id, info in syn_info.items():
             idx = np.where(syn_info[1] == pre_id)[0]
