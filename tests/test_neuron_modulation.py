@@ -48,40 +48,34 @@ class NeuromodulationTestCase(unittest.TestCase):
 
         self.sim.add_rxd_concentration_recording(species="DA", neuron_id=0,
                                                  region="soma_internal",
-                                                 sec_type="soma",
-                                                 sec_id=0,
+                                                 sec_id=-1,
                                                  sec_x=0.5)
 
         self.sim.add_rxd_concentration_recording(species="B", neuron_id=0,
                                                  region="soma_internal",
-                                                 sec_type="soma",
-                                                 sec_id=0,
+                                                 sec_id=-1,
                                                  sec_x=0.5)
 
         self.sim.add_rxd_concentration_recording(species="PKA", neuron_id=0,
                                                  region="soma_internal",
-                                                 sec_type="soma",
-                                                 sec_id=0,
+                                                 sec_id=-1,
                                                  sec_x=0.5)
 
         self.sim.add_density_mechanism_recording(density_mechanism="kirrxd",
                                                  variable="modulation_factor",
                                                  neuron_id=0,
-                                                 sec_type="soma",
-                                                 sec_id=0,
+                                                 sec_id=-1,
                                                  sec_x=0.5)
 
         self.sim.add_density_mechanism_recording(density_mechanism="kirrxd",
                                                  variable="m",
                                                  neuron_id=0,
-                                                 sec_type="soma",
-                                                 sec_id=0,
+                                                 sec_id=-1,
                                                  sec_x=0.5)
 
         self.sim.add_membrane_recording(variable="PKAi",
                                         neuron_id=0,
-                                        sec_type="soma",
-                                        sec_id=0,
+                                        sec_id=-1,
                                         sec_x=0.5)
 
         # Add DA synapse

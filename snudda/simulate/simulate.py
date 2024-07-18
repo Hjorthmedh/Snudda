@@ -1735,7 +1735,14 @@ class SnuddaSimulate(object):
 
         return syn_ctr
 
-    def add_rxd_concentration_recording(self, species: str, neuron_id: int, region, sec_type, sec_id, sec_x):
+    def add_rxd_concentration_recording(self, species: str, neuron_id: int, region, sec_id, sec_x):
+
+        if sec_id == -1:
+            sec_type = "soma"
+        elif sec_id >= 0:
+            sec_type = "dend"
+        else:
+            sec_type = "axon"
 
         if self.neurons[neuron_id].modulation is None:
             raise ValueError(f"No modulation specified for neuron {self.neurons[neuron_id].name} ({neuron_id})")
