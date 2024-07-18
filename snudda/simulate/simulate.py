@@ -1666,6 +1666,10 @@ class SnuddaSimulate(object):
 
     def add_density_mechanism_recording(self, density_mechanism, variable, neuron_id, sec_type, sec_id, sec_x):
 
+        if neuron_id not in self.neuron_id:
+            # The neuron is not on this worker
+            return
+
         segment = getattr(self.neurons[neuron_id].icell, sec_type)[sec_id](sec_x)
         mech = getattr(segment, density_mechanism)
         var = getattr(mech, f"_ref_{variable}")
@@ -1678,6 +1682,10 @@ class SnuddaSimulate(object):
                                               sec_x=sec_x)
 
     def add_membrane_recording(self, variable, neuron_id, sec_type, sec_id, sec_x):
+
+        if neuron_id not in self.neuron_id:
+            # The neuron is not on this worker
+            return
 
         segment = getattr(self.neurons[neuron_id].icell, sec_type)[sec_id](sec_x)
         var = getattr(segment, f"_ref_{variable}")
