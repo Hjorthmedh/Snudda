@@ -340,8 +340,8 @@ class SnuddaSimulate(object):
 
                         self.add_density_mechanism_recording(neuron_id=nid,
                                                              sec_id=sid, sec_x=sex,
-                                                             density_mechanism_name=density_mechanism_name,
-                                                             variable_name=variable_name)
+                                                             density_mechanism=density_mechanism_name,
+                                                             variable=variable_name)
 
         # Do we need blocking call here, to make sure all neurons are setup
         # before we try and connect them
@@ -1664,13 +1664,24 @@ class SnuddaSimulate(object):
             self.write_log(f"Warning: Not recording all synapse currents requested, capped at max_synapses={max_synapses}",
                            force_print=True)
 
-    def add_density_mechanism_recording(self, density_mechanism, variable, neuron_id, sec_type, sec_id, sec_x):
+    def add_density_mechanism_recording(self, density_mechanism: str, variable: str,
+                                        neuron_id: int, sec_id: int, sec_x: float):
+
+        """ Record density mechanism:
+
+        Args:
+            density_mechanism (str): Name of density mechanism, e.g. "pas"
+            variable (str): Variable name to record, e.g. "i" (will then read _ref_i)
+            neuron_id (int) : Id of neuron
+            sec_id (int) : Section id of compartment
+            sec_x (float) : Section x
+        """
 
         if neuron_id not in self.neuron_id:
             # The neuron is not on this worker
             return
 
-        segment = getattr(self.neurons[neuron_id].icell, sec_type)[sec_id](sec_x)
+        segment = self.neurons[neuron_id].map_id_to_compartment(sec_id)(sec_x)
         mech = getattr(segment, density_mechanism)
         var = getattr(mech, f"_ref_{variable}")
         data = self.sim.neuron.h.Vector().record(var)
@@ -1681,13 +1692,18 @@ class SnuddaSimulate(object):
                                               sec_id=sec_id,
                                               sec_x=sec_x)
 
-    def add_membrane_recording(self, variable, neuron_id, sec_type, sec_id, sec_x):
+        if self.record.time is None:
+            t_save = self.sim.neuron.h.Vector()
+            t_save.record(self.sim.neuron.h._ref_t)
+            self.record.register_time(time=t_save)
+
+    def add_membrane_recording(self, variable, neuron_id, sec_id, sec_x):
 
         if neuron_id not in self.neuron_id:
             # The neuron is not on this worker
             return
 
-        segment = getattr(self.neurons[neuron_id].icell, sec_type)[sec_id](sec_x)
+        segment = self.neurons[neuron_id].map_id_to_compartment(sec_id)(sec_x)
         var = getattr(segment, f"_ref_{variable}")
         data = self.sim.neuron.h.Vector().record(var)
 
@@ -1718,45 +1734,6 @@ class SnuddaSimulate(object):
             syn_ctr += 1
 
         return syn_ctr
-
-    def add_density_mechanism_recording(self, neuron_id, sec_id, sec_x, density_mechanism_name, variable_name):
-
-        """ Record density mechanism:
-
-        Args:
-            neuron_id (int) : Id of neuron
-            sec_id (list[int]) : List of section id:s for compartments
-            sec_x (list[int]) : List of section x for compartments
-            density_mechanism_name (str): Name of density mechanism, e.g. "pas"
-            variable_name (str): Variable name to record, e.g. "i" (will then read _ref_i)
-        """
-
-        if type(sec_id) == int:
-            sec_id = [sec_id]
-
-        if type(sec_x) == float:
-            sec_x = [sec_x]
-
-        reference_name = f"_ref_{variable_name}"
-
-        sections = self.neurons[neuron_id].map_id_to_compartment(sec_id)
-
-        assert len(sections) == len(sec_id) == len(sec_x), f"Length mismatch {len(sections) = }, {len(sec_id) = }, {len(sec_x) = }"
-
-        for sec, sid, sx in zip(sections, sec_id, sec_x):
-            vector = self.sim.neuron.h.Vector()
-            mech_ref = getattr(sec(sx), density_mechanism_name)
-            vector.record(getattr(mech_ref, reference_name))
-
-            # From the Snudda synapse matrix. sec_id -1 is soma, sec_id >= 0 is dendrite, sec_id <= -2 is axon
-            self.record.register_compartment_data(neuron_id=neuron_id,
-                                                  data_type=f"{density_mechanism_name}.{variable_name}", data=vector,
-                                                  sec_id=sid, sec_x=sx)
-
-        if self.record.time is None:
-            t_save = self.sim.neuron.h.Vector()
-            t_save.record(self.sim.neuron.h._ref_t)
-            self.record.register_time(time=t_save)
 
     def add_rxd_concentration_recording(self, species: str, neuron_id: int, region, sec_type, sec_id, sec_x):
 

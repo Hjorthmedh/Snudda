@@ -333,13 +333,10 @@ class NeuronModel(ephys.models.CellModel):
         if self.section_lookup is None:
             self.build_section_lookup()
 
-        try:
+        if isinstance(section_id, int):
+            sec = self.section_lookup[section_id]
+        else:
             sec = [self.section_lookup[x] for x in section_id]
-        except:
-            import traceback
-            print(traceback.format_exc())
-            import pdb
-            pdb.set_trace()
 
         return sec
 
