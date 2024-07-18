@@ -332,10 +332,16 @@ class SnuddaSimulate(object):
                     sec_id = density_data["section_id"]
                     sec_x = density_data["section_x"]
 
-                    self.add_density_mechanism_recording(neuron_id=neuron_id,
-                                                         sec_id=sec_id, sec_x=sec_x,
-                                                         density_mechanism_name=density_mechanism_name,
-                                                         variable_name=variable_name)
+                    if not (len(neuron_id) == len(sec_id) == len(sec_x)):
+                        raise ValueError(f"neuron_id, section_id and section_x must be lists of same length in experiment config.\n"
+                                         f"{record_info = }")
+
+                    for nid, sid, sex in zip(neuron_id, sec_id, sec_x):
+
+                        self.add_density_mechanism_recording(neuron_id=nid,
+                                                             sec_id=sid, sec_x=sex,
+                                                             density_mechanism_name=density_mechanism_name,
+                                                             variable_name=variable_name)
 
         # Do we need blocking call here, to make sure all neurons are setup
         # before we try and connect them
