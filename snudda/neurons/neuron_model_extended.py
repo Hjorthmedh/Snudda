@@ -180,7 +180,7 @@ class NeuronModel(ephys.models.CellModel):
 
         parameters = []
 
-        if type(param_configs) == OrderedDict:
+        if isinstance(param_configs, (OrderedDict, dict)):
             # Multiple parameters, pick one
 
             if parameter_key is not None:

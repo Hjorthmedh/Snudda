@@ -561,6 +561,8 @@ class SnuddaSimulate(object):
         for ID in self.neuron_id:
 
             name = self.network_info["neurons"][ID]["name"]
+            region = self.network_info["neurons"][ID]["volume_id"]
+
 
             # We need to get morphology from network_info, since it can now be redefined for bent morphologies
             morph = snudda_parse_path(self.network_info["neurons"][ID]["morphology"], self.snudda_data)
@@ -576,6 +578,13 @@ class SnuddaSimulate(object):
                 if not os.path.isfile(modulation):
                     raise ValueError(f"Missing modulation file {modulation} "
                                      f"for neuron {self.network_info['neurons'][ID]['name']}")
+
+            elif "modulation" in self.network_info["config"]["regions"][region]["neurons"][name]:
+                modulation = self.network_info["config"]["regions"][region]["neurons"][name]["modulation"]
+
+                if not os.path.isfile(modulation):
+                    modulation = os.path.join(neuron_path, modulation)
+
             else:
                 modulation = os.path.join(neuron_path, "modulation.json")
 
