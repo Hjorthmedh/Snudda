@@ -250,7 +250,7 @@ class NeuronModel(ephys.models.CellModel):
                 for seclist_item in section_list:
 
                     seclist_loc = ephys.locations.NrnSeclistLocation(seclist_item,
-                                                                     seclist_name=param_config['sectionlist'])
+                                                                     seclist_name=seclist_item)
 
                     name = '%s.%s' % (param_config['param_name'],
                                       seclist_item)
