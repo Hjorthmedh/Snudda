@@ -131,6 +131,10 @@ class ReadSBML:
             print(f"Removing volume {current_expression.getLeftChild().getName()}")
             current_expression = current_expression.getRightChild()
 
+        if operator == "times" and current_expression.getRightChild().getName() in compartment_list:
+            print(f"Removing volume {current_expression.getRightChild().getName()}")
+            current_expression = current_expression.getLeftChild()
+
         operator = current_expression.getOperatorName()
 
         if operator == "minus":
@@ -148,6 +152,8 @@ class ReadSBML:
 
     def _get_rate_helper(self, expression, global_parameters, compartment_list):
 
+        orig_expression = expression
+
         while expression.getOperatorName() == "times":
             left_child = expression.getLeftChild()
 
@@ -160,7 +166,14 @@ class ReadSBML:
             expression = left_child
 
         rate_name = expression.getName()
-        rate = global_parameters[rate_name]
+
+        try:
+            rate = global_parameters[rate_name]
+        except:
+            import traceback
+            print(traceback.format_exc())
+            import pdb
+            pdb.set_trace()
 
         return rate
 
