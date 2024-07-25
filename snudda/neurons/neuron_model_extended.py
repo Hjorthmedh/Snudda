@@ -238,35 +238,43 @@ class NeuronModel(ephys.models.CellModel):
                 if param_config['dist_type'] == 'uniform':
                     scaler = ephys.parameterscalers.NrnSegmentLinearScaler()
                 elif param_config['dist_type'] in ['exp', 'distance']:
-                    scaler = ephys.parameterscalers.NrnSegmentSomaDistanceScaler(
-                        distribution=param_config['dist'])
-                seclist_loc = ephys.locations.NrnSeclistLocation(
-                    param_config['sectionlist'],
-                    seclist_name=param_config['sectionlist'])
+                    scaler = ephys.parameterscalers.NrnSegmentSomaDistanceScaler(distribution=param_config['dist'])
 
-                name = '%s.%s' % (param_config['param_name'],
-                                  param_config['sectionlist'])
+                # 2024-07-23: Updated format, so that "sectionlist" is allowed to be either a string (of one section type)
+                #             or a list of strings with section types.
 
-                if param_config['type'] == 'section':
-                    parameters.append(
-                        ephys.parameters.NrnSectionParameter(
-                            name=name,
-                            param_name=param_config['param_name'],
-                            value_scaler=scaler,
-                            value=value,
-                            frozen=frozen,
-                            bounds=bounds,
-                            locations=[seclist_loc]))
-                elif param_config['type'] == 'range':
-                    parameters.append(
-                        ephys.parameters.NrnRangeParameter(
-                            name=name,
-                            param_name=param_config['param_name'],
-                            value_scaler=scaler,
-                            value=value,
-                            frozen=frozen,
-                            bounds=bounds,
-                            locations=[seclist_loc]))
+                section_list = param_config['sectionlist']
+                if not isinstance(section_list, list):
+                    section_list = [section_list]
+
+                for seclist_item in section_list:
+
+                    seclist_loc = ephys.locations.NrnSeclistLocation(seclist_item,
+                                                                     seclist_name=seclist_item)
+
+                    name = '%s.%s' % (param_config['param_name'],
+                                      seclist_item)
+
+                    if param_config['type'] == 'section':
+                        parameters.append(
+                            ephys.parameters.NrnSectionParameter(
+                                name=name,
+                                param_name=param_config['param_name'],
+                                value_scaler=scaler,
+                                value=value,
+                                frozen=frozen,
+                                bounds=bounds,
+                                locations=[seclist_loc]))
+                    elif param_config['type'] == 'range':
+                        parameters.append(
+                            ephys.parameters.NrnRangeParameter(
+                                name=name,
+                                param_name=param_config['param_name'],
+                                value_scaler=scaler,
+                                value=value,
+                                frozen=frozen,
+                                bounds=bounds,
+                                locations=[seclist_loc]))
             else:
                 raise Exception(f"Param config type has to be global, section or range: {param_config}")
 

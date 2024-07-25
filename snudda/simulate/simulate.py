@@ -561,8 +561,9 @@ class SnuddaSimulate(object):
         for ID in self.neuron_id:
 
             name = self.network_info["neurons"][ID]["name"]
-            region = self.network_info["neurons"][ID]["volume_id"]
+            neuron_type = self.network_info["neurons"][ID]["type"]
 
+            region = self.network_info["neurons"][ID]["volume_id"]
 
             # We need to get morphology from network_info, since it can now be redefined for bent morphologies
             morph = snudda_parse_path(self.network_info["neurons"][ID]["morphology"], self.snudda_data)
@@ -579,8 +580,8 @@ class SnuddaSimulate(object):
                     raise ValueError(f"Missing modulation file {modulation} "
                                      f"for neuron {self.network_info['neurons'][ID]['name']}")
 
-            elif "modulation" in self.network_info["config"]["regions"][region]["neurons"][name]:
-                modulation = self.network_info["config"]["regions"][region]["neurons"][name]["modulation"]
+            elif "modulation" in self.network_info["config"]["regions"][region]["neurons"][neuron_type]:
+                modulation = self.network_info["config"]["regions"][region]["neurons"][neuron_type]["modulation"]
 
                 if not os.path.isfile(modulation):
                     modulation = os.path.join(neuron_path, modulation)
@@ -1794,12 +1795,12 @@ class SnuddaSimulate(object):
         for species in self.neurons[neuron_id].modulation.species.keys():
 
             # Add soma
-            self.add_rxd_concentration_recording(species, neuron_id, "soma_internal", "soma", -1, 0.5)
+            self.add_rxd_concentration_recording(species, neuron_id, "soma_internal", -1, 0.5)
 
             for sid, sec in enumerate(self.neurons[neuron_id].icell.dend):
                 assert int(sec.name().split('[')[-1].strip(']')) == sid, \
                     f"Internal error, assumed {sid} was section id of {sec.name()}"
-                self.add_rxd_concentration_recording(species, neuron_id, "dend_internal", "dend", sid, 0.5)
+                self.add_rxd_concentration_recording(species, neuron_id, "dend_internal", sid, 0.5)
 
     ############################################################################
 
