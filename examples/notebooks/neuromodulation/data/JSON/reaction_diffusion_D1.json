@@ -9,7 +9,7 @@
                 "dend_internal"
             ],
             "concentration": 700.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "AC5_ATP": {
             "initial_concentration": 0.0,
@@ -20,7 +20,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "AC5_Ca": {
             "initial_concentration": 0.0,
@@ -31,7 +31,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "AC5_Ca_ATP": {
             "initial_concentration": 0.0,
@@ -42,7 +42,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "AC5_Ca_GaolfGTP": {
             "initial_concentration": 0.0,
@@ -53,7 +53,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "AC5_Ca_GaolfGTP_ATP": {
             "initial_concentration": 0.0,
@@ -64,7 +64,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "AC5_GaolfGTP": {
             "initial_concentration": 0.0,
@@ -75,7 +75,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "AC5_GaolfGTP_ATP": {
             "initial_concentration": 0.0,
@@ -86,7 +86,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "AMP": {
             "initial_concentration": 0.0,
@@ -97,7 +97,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": true
+            "boundary_condition": true
         },
         "ATP": {
             "initial_concentration": 5000000.0,
@@ -108,7 +108,7 @@
                 "dend_internal"
             ],
             "concentration": 5000000.0,
-            "boundary_conditions": true
+            "boundary_condition": true
         },
         "B56PP2A": {
             "initial_concentration": 2000.0,
@@ -119,7 +119,7 @@
                 "dend_internal"
             ],
             "concentration": 2000.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "B56PP2A_D32p75": {
             "initial_concentration": 0.0,
@@ -130,7 +130,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "B56PP2A_pARPP21": {
             "initial_concentration": 0.0,
@@ -141,7 +141,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "B56PP2Ap": {
             "initial_concentration": 0.0,
@@ -152,7 +152,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "B56PP2Ap_D32p75": {
             "initial_concentration": 0.0,
@@ -163,7 +163,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "B56PP2Ap_pARPP21": {
             "initial_concentration": 0.0,
@@ -174,7 +174,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "B72PP2A": {
             "initial_concentration": 2000.0,
@@ -185,7 +185,7 @@
                 "dend_internal"
             ],
             "concentration": 2000.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "B72PP2A_D32p34": {
             "initial_concentration": 0.0,
@@ -196,7 +196,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "B72PP2A_D32p75": {
             "initial_concentration": 0.0,
@@ -207,7 +207,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "B72PP2A_pARPP21": {
             "initial_concentration": 0.0,
@@ -218,7 +218,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "B72PP2A_Ca_D32p34": {
             "initial_concentration": 0.0,
@@ -229,7 +229,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "B72PP2A_Ca_D32p75": {
             "initial_concentration": 0.0,
@@ -240,7 +240,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "B72PP2A_Ca": {
             "initial_concentration": 0.0,
@@ -251,7 +251,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "B72PP2A_Ca_pARPP21": {
             "initial_concentration": 0.0,
@@ -262,7 +262,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "Ca": {
             "initial_concentration": 60.0,
@@ -273,7 +273,7 @@
                 "dend_internal"
             ],
             "concentration": 60.0,
-            "boundary_conditions": true
+            "boundary_condition": true
         },
         "CaM": {
             "initial_concentration": 9000.0,
@@ -284,7 +284,7 @@
                 "dend_internal"
             ],
             "concentration": 9000.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "CaM_Ca2": {
             "initial_concentration": 0.0,
@@ -295,7 +295,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "CaM_Ca4": {
             "initial_concentration": 0.0,
@@ -306,7 +306,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "CaM_Ca4_pARPP21": {
             "initial_concentration": 0.0,
@@ -317,7 +317,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "CaMKII": {
             "initial_concentration": 20000.0,
@@ -328,7 +328,7 @@
                 "dend_internal"
             ],
             "concentration": 20000.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "CaMKII_CaM_Ca4": {
             "initial_concentration": 0.0,
@@ -339,7 +339,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "CaMKII_CaM": {
             "initial_concentration": 0.0,
@@ -350,7 +350,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "CaMKII_CaM_Ca2": {
             "initial_concentration": 0.0,
@@ -361,7 +361,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "CaMKII_CaM_Ca2_psd": {
             "initial_concentration": 0.0,
@@ -372,7 +372,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "CaMKII_CaM_psd": {
             "initial_concentration": 0.0,
@@ -383,7 +383,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "CaMKII_CaM_Ca4_psd": {
             "initial_concentration": 0.0,
@@ -394,7 +394,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "CaMKII_psd": {
             "initial_concentration": 0.0,
@@ -405,7 +405,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "cAMP": {
             "initial_concentration": 0.0,
@@ -416,7 +416,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "Substrate": {
             "initial_concentration": 3000.0,
@@ -427,7 +427,7 @@
                 "dend_internal"
             ],
             "concentration": 3000.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "CDK5": {
             "initial_concentration": 1800.0,
@@ -438,7 +438,7 @@
                 "dend_internal"
             ],
             "concentration": 1800.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "CDK5_D32": {
             "initial_concentration": 0.0,
@@ -449,7 +449,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "D1R": {
             "initial_concentration": 2000.0,
@@ -460,7 +460,7 @@
                 "dend_internal"
             ],
             "concentration": 2000.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "D1R_DA": {
             "initial_concentration": 0.0,
@@ -471,7 +471,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "D1R_Golf_DA": {
             "initial_concentration": 0.0,
@@ -482,7 +482,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "D1R_Golf": {
             "initial_concentration": 0.0,
@@ -493,7 +493,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "D32p34": {
             "initial_concentration": 0.0,
@@ -504,7 +504,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "D32p75": {
             "initial_concentration": 0.0,
@@ -515,7 +515,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "D32": {
             "initial_concentration": 50000.0,
@@ -526,7 +526,7 @@
                 "dend_internal"
             ],
             "concentration": 50000.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "DA": {
             "initial_concentration": 20.0,
@@ -537,7 +537,7 @@
                 "dend_internal"
             ],
             "concentration": 20.0,
-            "boundary_conditions": true
+            "boundary_condition": false
         },
         "GaolfGDP": {
             "initial_concentration": 0.0,
@@ -548,7 +548,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "GaolfGTP": {
             "initial_concentration": 0.0,
@@ -559,7 +559,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "Gbgolf": {
             "initial_concentration": 0.0,
@@ -570,7 +570,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "Golf": {
             "initial_concentration": 2000.0,
@@ -581,7 +581,7 @@
                 "dend_internal"
             ],
             "concentration": 2000.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "pCaMKII": {
             "initial_concentration": 0.0,
@@ -592,7 +592,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "pCaMKII_CaM_Ca4": {
             "initial_concentration": 0.0,
@@ -603,7 +603,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "pCaMKII_CaM": {
             "initial_concentration": 0.0,
@@ -614,7 +614,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "pCaMKII_CaM_Ca2": {
             "initial_concentration": 0.0,
@@ -625,7 +625,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "pCaMKII_CaM_Ca2_psd": {
             "initial_concentration": 0.0,
@@ -636,7 +636,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "pCaMKII_CaM_psd": {
             "initial_concentration": 0.0,
@@ -647,7 +647,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "pCaMKII_CaM_Ca4_psd": {
             "initial_concentration": 0.0,
@@ -658,7 +658,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "pCaMKII_psd": {
             "initial_concentration": 0.0,
@@ -669,7 +669,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "pSubstrate": {
             "initial_concentration": 0.0,
@@ -680,7 +680,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "PDE4": {
             "initial_concentration": 2000.0,
@@ -691,7 +691,7 @@
                 "dend_internal"
             ],
             "concentration": 2000.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "PDE4_cAMP": {
             "initial_concentration": 0.0,
@@ -702,7 +702,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "PDE10r": {
             "initial_concentration": 700.0,
@@ -713,7 +713,7 @@
                 "dend_internal"
             ],
             "concentration": 700.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "PDE10r_cAMP": {
             "initial_concentration": 0.0,
@@ -724,7 +724,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "PDE10c": {
             "initial_concentration": 0.0,
@@ -735,7 +735,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "PDE10c_cAMP": {
             "initial_concentration": 0.0,
@@ -746,7 +746,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "PKA": {
             "initial_concentration": 1200.0,
@@ -757,7 +757,7 @@
                 "dend_internal"
             ],
             "concentration": 1200.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "PKAc": {
             "initial_concentration": 0.0,
@@ -768,7 +768,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "PKAc_B56PP2A": {
             "initial_concentration": 0.0,
@@ -779,7 +779,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "PKAc_D32": {
             "initial_concentration": 0.0,
@@ -790,7 +790,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "PKAc_ARPP21": {
             "initial_concentration": 0.0,
@@ -801,7 +801,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "PKA_Ca2MP": {
             "initial_concentration": 0.0,
@@ -812,7 +812,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "PKA_Ca4MP": {
             "initial_concentration": 0.0,
@@ -823,7 +823,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "PKAc_D32p75": {
             "initial_concentration": 0.0,
@@ -834,7 +834,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "PKAreg": {
             "initial_concentration": 0.0,
@@ -845,7 +845,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "PP1": {
             "initial_concentration": 3000.0,
@@ -856,7 +856,7 @@
                 "dend_internal"
             ],
             "concentration": 3000.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "PP1_pCaMKII_psd": {
             "initial_concentration": 0.0,
@@ -867,7 +867,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "PP1_pSubstrate": {
             "initial_concentration": 0.0,
@@ -878,7 +878,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "PP1_D32p34": {
             "initial_concentration": 0.0,
@@ -889,7 +889,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "CaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd": {
             "initial_concentration": 0.0,
@@ -900,7 +900,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "pCaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd": {
             "initial_concentration": 0.0,
@@ -911,7 +911,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "CaMKII_CaM_Ca4_CaMKII_CaM_Ca4": {
             "initial_concentration": 0.0,
@@ -922,7 +922,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "pCaMKII_CaM_Ca4_CaMKII_CaM_Ca4": {
             "initial_concentration": 0.0,
@@ -933,7 +933,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "PP2B": {
             "initial_concentration": 4000.0,
@@ -944,7 +944,7 @@
                 "dend_internal"
             ],
             "concentration": 4000.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "PP2Bc": {
             "initial_concentration": 0.0,
@@ -955,7 +955,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "PP2Bc_D32p34": {
             "initial_concentration": 0.0,
@@ -966,7 +966,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "PP2B_CaM": {
             "initial_concentration": 0.0,
@@ -977,7 +977,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "PP2B_CaM_Ca2": {
             "initial_concentration": 0.0,
@@ -988,7 +988,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "pARPP21": {
             "initial_concentration": 0.0,
@@ -999,7 +999,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "ARPP21": {
             "initial_concentration": 20000.0,
@@ -1010,7 +1010,7 @@
                 "dend_internal"
             ],
             "concentration": 20000.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "pCaMKII_psd_Substrate": {
             "initial_concentration": 0.0,
@@ -1021,7 +1021,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "pCaMKII_CaM_psd_Substrate": {
             "initial_concentration": 0.0,
@@ -1032,7 +1032,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "pCaMKII_CaM_Ca2_psd_Substrate": {
             "initial_concentration": 0.0,
@@ -1043,7 +1043,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "pCaMKII_CaM_Ca4_psd_Substrate": {
             "initial_concentration": 0.0,
@@ -1054,7 +1054,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "CaMKII_CaM_psd_Substrate": {
             "initial_concentration": 0.0,
@@ -1065,7 +1065,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "CaMKII_CaM_Ca2_psd_Substrate": {
             "initial_concentration": 0.0,
@@ -1076,7 +1076,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "CaMKII_CaM_Ca4_psd_Substrate": {
             "initial_concentration": 0.0,
@@ -1087,7 +1087,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": false
+            "boundary_condition": false
         },
         "pSubstrate_out": {
             "initial_concentration": 0.0,
@@ -1098,7 +1098,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": true
+            "boundary_condition": true
         },
         "PP1_out": {
             "initial_concentration": 0.0,
@@ -1109,7 +1109,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": true
+            "boundary_condition": true
         },
         "CaM_out": {
             "initial_concentration": 0.0,
@@ -1120,7 +1120,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": true
+            "boundary_condition": true
         },
         "D32_out": {
             "initial_concentration": 0.0,
@@ -1131,7 +1131,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_conditions": true
+            "boundary_condition": true
         }
     },
     "reactions": {

@@ -48,7 +48,10 @@ class NeuronModulation:
 
     def add_species(self, species_name, diffusion_constant, initial_conc,
                     charge=0,
-                    compartment=("soma_internal", "dend_internal")):
+                    compartment=("soma_internal", "dend_internal"),
+                    boundary_condition=False):
+
+        # boundary_condition is used when either a species concentration is fixed, or externally driven (specified)
 
         # print(f"Adding species: {species_name} to {compartment}")
 
@@ -62,12 +65,27 @@ class NeuronModulation:
             if comp in self.species[species_name]:
                 raise ValueError(f"{species_name = } already defined for {comp = }")
 
-            # TODO: Add atol_scale etc...
-            self.species[species_name][comp] = rxd.Species(self.compartments[comp],
-                                                           d=diffusion_constant,
-                                                           initial=initial_conc,
-                                                           charge=charge,
-                                                           name=species_name)
+            # boundary_condition = False  # The rxd.Parameter does not seem to work?
+
+            # if species_name == "ATP":
+            #     import pdb
+            #     pdb.set_trace()
+
+            if boundary_condition:
+                print(f"Fixing {species_name} concentration to constant {initial_conc}")
+                # The concentration is fixed
+                self.species[species_name][comp] = rxd.Parameter(self.compartments[comp],
+                                                                 name=species_name,
+                                                                 value=initial_conc,
+                                                                 charge=charge)
+            else:
+
+                # TODO: Add atol_scale etc...
+                self.species[species_name][comp] = rxd.Species(self.compartments[comp],
+                                                               d=diffusion_constant,
+                                                               initial=initial_conc,
+                                                               charge=charge,
+                                                               name=species_name)
 
     def get_species(self, *species, region_name):
         """ Example usage:
@@ -233,12 +251,15 @@ class NeuronModulation:
             diffusion_constant = species_data.get("diffusion_constant", 0)
             charge = species_data.get("charge", 0)
             regions = species_data.get("regions", ("soma_internal", "dendrites_internal"))
-            # TODO: Read atol_scale, ecs_boundary_boundary_conditions, represents parameters
+            boundary_condition = species_data.get("boundary_condition", False)
+
+            # TODO: Read atol_scale, boundary_boundary_conditions, represents parameters
 
             self.add_species(species_name=species_name,
                              diffusion_constant=diffusion_constant,
                              initial_conc=initial_concentration,
-                             compartment=regions, charge=charge)
+                             compartment=regions, charge=charge,
+                             boundary_condition=boundary_condition)
 
         # Black magic, setup the species variables
         species_name_vars = ",".join(self.species.keys()) + ","

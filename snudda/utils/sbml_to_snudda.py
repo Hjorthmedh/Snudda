@@ -54,7 +54,7 @@ class ReadSBML:
             diffusion_constant = 0  # Assuming a default value as it's not in SBML
             regions = ["soma_internal", "dend_internal"]  # Assuming these regions
             atol_scale = None  # Assuming a default value
-            ecs_boundary_conditions = species.getBoundaryCondition()  # Assuming a default value
+            boundary_condition = species.getBoundaryCondition()  # Assuming a default value
             # represents = species.getId()  # Assuming species ID represents itself
 
             species_data[species_name] = {
@@ -69,8 +69,8 @@ class ReadSBML:
             if atol_scale is not None:
                 species_data[species_name]["atol_scale"] = atol_scale
 
-            if ecs_boundary_conditions is not None:
-                species_data[species_name]["boundary_conditions"] = ecs_boundary_conditions
+            if boundary_condition is not None:
+                species_data[species_name]["boundary_condition"] = boundary_condition
 
         # Using this viewer: https://sv.insysbio.com/online/
         # We have identified that the names with "*" in them are forward and backward rates
