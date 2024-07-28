@@ -3,7 +3,7 @@ import json
 import numpy as np
 
 from snudda.utils.load import SnuddaLoad
-from snudda.utils.load_network_simulation import SnuddaLoadNetworkSimulation
+from snudda.utils.load_network_simulation import SnuddaLoadSimulation
 from snudda.utils.export_connection_matrix import SnuddaExportConnectionMatrix
 from collections import OrderedDict
 
@@ -19,7 +19,7 @@ class SnuddaAnalyseTopologyActivity:
         self.mapping_dictionary = dict()
 
     def load_simulation_data(self, data_key, simulation_output=None):
-        self.simulation_data[data_key] = SnuddaLoadNetworkSimulation(network_simulation_output_file=simulation_output)
+        self.simulation_data[data_key] = SnuddaLoadSimulation(network_simulation_output_file=simulation_output)
         self.load_mapping_file(data_key)
 
     def load_mapping_file(self, data_key):

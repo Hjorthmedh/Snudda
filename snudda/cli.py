@@ -138,10 +138,6 @@ def snudda_cli():
                                  help="Exclude voltage data, to save time and space.")
     simulate_parser.add_argument("-randomseed", "--randomseed", "--seed", default=None, help="Random seed", type=int)
 
-    simulate_parser.add_argument("--neuromodulation", type=str, default=None,
-                                 help=('replay plays back a vector of modulation level, '
-                                       'adaptive sets modulation based on spiking activity'))
-
     simulate_parser.add_argument("--disableSyn", "--disableSynapses", action="store_true", dest="disable_synapses", default=None,
                                  help="Disable synapses")
 

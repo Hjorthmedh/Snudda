@@ -103,8 +103,10 @@ class TestCLI(unittest.TestCase):
 
         with self.subTest(stage="simulate"):
             print("Running nrnivmodl:")
-            mech_dir = os.path.join(os.path.dirname(__file__), os.path.pardir,
-                                    "snudda", "data", "neurons", "mechanisms")
+            # mech_dir = os.path.join(os.path.dirname(__file__), os.path.pardir,
+            #                        "snudda", "data", "neurons", "mechanisms")
+
+            mech_dir = os.path.join("..", "validation", "mechanisms")
 
             if not os.path.exists("mechanisms"):
                 print("----> Copying mechanisms")

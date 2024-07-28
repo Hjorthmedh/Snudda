@@ -4,7 +4,7 @@ import numpy as np
 from numba import jit
 
 import matplotlib.pyplot as plt
-from snudda.utils.load_network_simulation import SnuddaLoadNetworkSimulation
+from snudda.utils.load_network_simulation import SnuddaLoadSimulation
 
 
 class PlotCrossCorrelogram:
@@ -14,7 +14,7 @@ class PlotCrossCorrelogram:
         if snudda_simulation_load:
             self.sim_data = snudda_simulation_load
         else:
-            self.sim_data = SnuddaLoadNetworkSimulation(network_simulation_output_file=simulation_file)
+            self.sim_data = SnuddaLoadSimulation(network_simulation_output_file=simulation_file)
 
     def calculate_all_pair_cross_correlogram(self, neuron_id, time_range=None, shuffle_correct=True,
                                              n_bins=101, width=50e-3):

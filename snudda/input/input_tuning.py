@@ -6,11 +6,12 @@ import os
 import sys
 import timeit
 
+# Now locally importing matplotlib.pyplot in functions, since Dardel (parallel computer) could not handle it
+
 # Must be run before NEURON import to run in parallel
 from mpi4py import MPI
 
 import h5py
-import matplotlib.pyplot as plt
 import numpy as np
 import copy
 
@@ -20,7 +21,7 @@ from snudda.input.input import SnuddaInput
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.place.create_cube_mesh import create_cube_mesh
 from snudda.simulate.simulate import SnuddaSimulate
-from snudda.utils import SnuddaLoadNetworkSimulation
+from snudda.utils import SnuddaLoadSimulation
 from snudda.utils.load import SnuddaLoad
 from snudda.utils.snudda_path import snudda_isdir, snudda_parse_path, snudda_simplify_path, get_snudda_data
 
@@ -81,7 +82,8 @@ class InputTuning(object):
 
     def setup_network(self, neurons_path=None, num_replicas=10, neuron_types=None,
                       parameter_key=None, morphology_key=None, modulation_key=None,
-                      single_neuron_path=None):
+                      reaction_diffusion_file=None,
+                      single_neuron_path=None, network_random_seed=None):
 
         if not morphology_key and not parameter_key and not modulation_key:
             all_combinations = True
@@ -96,11 +98,13 @@ class InputTuning(object):
                                                 snudda_data=self.snudda_data,
                                                 num_replicas=num_replicas,
                                                 neuron_types=neuron_types,
+                                                reaction_diffusion_file=reaction_diffusion_file,
                                                 single_neuron_path=single_neuron_path,
                                                 parameter_key=parameter_key,
                                                 morphology_key=morphology_key,
                                                 modulation_key=modulation_key,
-                                                all_combinations=all_combinations)
+                                                all_combinations=all_combinations,
+                                                random_seed=network_random_seed)
 
         print(f"Writing network config file to {self.network_config_file_name}")
         with open(self.network_config_file_name, "w") as f:
@@ -508,6 +512,8 @@ class InputTuning(object):
                              max_time, skip_time=0, label="background-inputs", show_plot=True,
                              depol_block_flag=None):
 
+        import matplotlib.pyplot as plt
+
         n_inputs_total = np.zeros((len(neuron_id),), dtype=int)
         fig_dir = os.path.join(self.network_path, "figures")
 
@@ -547,6 +553,8 @@ class InputTuning(object):
                          max_time, requested_frequency, skip_time=0,
                          label="background-inputs", show_plot=True,
                          depol_block_flag=None):
+
+        import matplotlib.pyplot as plt
 
         n_inputs_total = np.zeros((len(neuron_id),), dtype=int)
         fig_dir = os.path.join(self.network_path, "figures")
@@ -750,9 +758,9 @@ class InputTuning(object):
             if load_input and os.path.isfile(self.input_spikes_file[idx]):
                 input_data = h5py.File(self.input_spikes_file[idx], "r")
 
-        output_data_loader = SnuddaLoadNetworkSimulation(network_path=self.network_path,
-                                                         network_simulation_output_file=output_file,
-                                                         do_test=True, quiet_load=quiet_load)
+        output_data_loader = SnuddaLoadSimulation(network_path=self.network_path,
+                                                  network_simulation_output_file=output_file,
+                                                  do_test=True, quiet_load=quiet_load)
         spike_data = output_data_loader.get_spikes()
 
         # cell_id = output_data_loader.get_id_of_neuron_type()
@@ -796,6 +804,8 @@ class InputTuning(object):
         return is_blocked
 
     def plot_depolarisation_blocked_neurons(self, freq_bin=10):
+
+        import matplotlib.pyplot as plt
 
         spike_data = dict()
         volt = dict()
@@ -871,6 +881,8 @@ class InputTuning(object):
             plt.show()
 
     def plot_voltage_trace(self, morphology_key, parameter_key, mp_idx=None, time_range=None):
+
+        import matplotlib.pyplot as plt
 
         # Find all neurons with the morphology key, and parameter key
 
@@ -1049,6 +1061,8 @@ class InputTuning(object):
 
     def plot_volt_data(self, volt_data, show_plots=True, input_type_name=''):
 
+        import matplotlib.pyplot as plt
+
         for neuron_name in volt_data:
             fig, ax = plt.subplots()
             legend_text = []
@@ -1090,6 +1104,8 @@ class InputTuning(object):
                 plt.close()
 
     def plot_volt_vs_ninputs(self, volt_data, show_plots=True, input_type_name=''):
+
+        import matplotlib.pyplot as plt
 
         for neuron_name in volt_data:
             fig, ax = plt.subplots()
@@ -1137,6 +1153,8 @@ class InputTuning(object):
 
     def plot_frequency_data(self, frequency_data, show_plots=True, input_type_name=''):
 
+        import matplotlib.pyplot as plt
+
         for neuron_name in frequency_data:
             fig, ax = plt.subplots()
             legend_text = []
@@ -1177,6 +1195,8 @@ class InputTuning(object):
                 plt.close()
 
     def plot_frequency_data_alt(self, frequency_data, show_plots=True, input_type_name=''):
+
+        import matplotlib.pyplot as plt
 
         _freq_data = dict()
         _all_num_inputs = []
@@ -1258,6 +1278,8 @@ class InputTuning(object):
 
     def plot_verify_frequency_distribution(self, input_type="cortical"):
 
+        import matplotlib.pyplot as plt
+
         network_info, input_config, input_data, neuron_id_lookup, neuron_name_list, \
             spike_data, volt, time, depolarisation_blocks = self.load_data_helper()
 
@@ -1272,9 +1294,6 @@ class InputTuning(object):
         input_freq = np.array(input_config[neuron_type][input_type]["frequency"])
         output_freq_list = []
 
-        #import pdb
-        #pdb.set_trace()
-
         depol_blocked_freqs = []
         depol_blocked_lookup = dict()
 
@@ -1282,8 +1301,6 @@ class InputTuning(object):
             out_freq = []
             for start_t, end_t, in_freq in zip(start_times, end_times, input_freq):
                 n_spikes = np.sum(np.logical_and(start_t <= spike_data[neuron_id], spike_data[neuron_id] < end_t))
-                # import pdb
-                # pdb.set_trace()
                 f = n_spikes / (end_t - start_t)
                 out_freq.append(f)
 
@@ -1371,6 +1388,7 @@ class InputTuning(object):
         # The below line is wrong, but it is FRIDAY evening so will fix it monday...
         neuron_info["neuron_path"] = snudda_simplify_path(neuron_path, self.snudda_data)
 
+        # OBS, these are not used by snudda when placing neurons, it is just for internal bookkeeping of input tuning
         neuron_info["morphology"] = snudda_simplify_path(neuron_morph, self.snudda_data)
         neuron_info["parameters"] = snudda_simplify_path(parameter_file, self.snudda_data)
         neuron_info["mechanisms"] = snudda_simplify_path(mechanism_file, self.snudda_data)
@@ -1429,11 +1447,11 @@ class InputTuning(object):
                         param_key = ni["parameter_key"]
                         morph_key = ni["morphology_key"]
                         short_name = n_name[:min(10, len(n_name))]
-                        neuron_name = f"{neuron_type}_{short_name}_{param_key}_{morph_key}".replace("-", "_")
+                        neuron_name = f"{neuron_type.replace('-','_')}_{short_name}_{param_key}_{morph_key}".replace("-", "_")
                         all_neurons[neuron_name] = ni
                         neuron_ctr += 1
                 else:
-                    neuron_name = os.path.basename(os.path.dirname(neuron_info["parameters"]))
+                    neuron_name = os.path.basename(os.path.dirname(neuron_info["parameters"])).replace("-", "_")
                     neuron_ctr += 1
 
                     all_neurons[neuron_name] = neuron_info
@@ -1490,6 +1508,7 @@ class InputTuning(object):
                               num_replicas=10,
                               random_seed=None,
                               neuron_types=None,
+                              reaction_diffusion_file=None,
                               single_neuron_path=None,
                               parameter_key=None,
                               morphology_key=None,
@@ -1539,6 +1558,10 @@ class InputTuning(object):
 
         else:
             neuron_def = self.gather_all_neurons(neuron_types=neuron_types, all_combinations=all_combinations)
+
+        if reaction_diffusion_file is not None:
+            for neuron_key in neuron_def.keys():
+                neuron_def[neuron_key]["reaction_diffusion"] = reaction_diffusion_file
 
         # Just generate a set of points
         region_def[vol_name]["volume"]["n_putative_points"] = max(len(neuron_def.keys())*5, 10000)
@@ -1703,6 +1726,8 @@ class InputTuning(object):
 
     def plot_generated_input(self, num_bins=50):
         # This function just checks that we have reasonable spikes generated
+
+        import matplotlib.pyplot as plt
 
         input_spike_data = h5py.File(self.input_spikes_file, 'r')
         network_data = h5py.File(self.network_file, 'r')

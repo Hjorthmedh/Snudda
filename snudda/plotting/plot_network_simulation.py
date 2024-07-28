@@ -1,7 +1,6 @@
 #Plot control file. Currently used by batch scripts in examples/parallel.
 #Place this in snudda/plotting at a later stage
 import sys
-from snudda.plotting import PlotSpikeRaster
 from snudda.plotting import SnuddaPlotSpikeRaster2
 
 from snudda.plotting import PlotTraces

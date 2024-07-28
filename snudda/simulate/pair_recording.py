@@ -423,7 +423,6 @@ class PairRecording(SnuddaSimulate):
 
             self.gap_junctions = self.gap_junctions[keep_gj_flag, :]
 
-
     def run(self):
 
         """ Run simulation. """
@@ -562,7 +561,7 @@ class PairRecording(SnuddaSimulate):
 
         print(f"Setting {channel_name} reversal potential to {v_rev * 1e3} mV")
 
-        for syn in self.synapse_list:
+        for syn in self.synapse_dict.values():
             if channel_name == syn.hname().split("[")[0]:
                 syn.e = v_rev * 1e3
 

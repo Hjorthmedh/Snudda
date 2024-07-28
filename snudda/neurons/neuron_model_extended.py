@@ -8,6 +8,7 @@ from collections import OrderedDict
 import bluepyopt.ephys as ephys
 
 from snudda.neurons.neuron_prototype import NeuronPrototype
+from snudda.neurons.neuron_modulation import NeuronModulation
 
 
 class NeuronModel(ephys.models.CellModel):
@@ -24,6 +25,7 @@ class NeuronModel(ephys.models.CellModel):
                  mech_file=None,
                  param_file=None,
                  modulation_file=None,
+                 reaction_diffusion_file=None,
                  parameter_id=None,
                  morphology_id=None,
                  modulation_id=None,
@@ -40,8 +42,9 @@ class NeuronModel(ephys.models.CellModel):
             mech_file: Path to mechanism file
             param_file: Path to parameter file
             modulation_file: Path to neuromodulation parameter file
+            reaction_diffusion_file: Path to the RxD reaction diffusion file
             parameter_id: ID of parameter set
-            morphology_id: ID of morphology set
+            morphology_id: ID of morphology set -- DEPRECATED
             modulation_id: ID of neuromodulation parameter set
             parameter_key (str): parameter key for lookup in parameter.json
             morphology_key (str): morphology key, together with parameter_key lookup in meta.json
@@ -82,7 +85,8 @@ class NeuronModel(ephys.models.CellModel):
                                                    morphology_path=morph_path,
                                                    parameter_path=param_file,
                                                    mechanism_path=mech_file,
-                                                   modulation_path=modulation_file)
+                                                   modulation_path=modulation_file,
+                                                   reaction_diffusion_path=reaction_diffusion_file)
 
                 morph_file, _ = neuron_prototype.get_morphology(parameter_id=parameter_id,
                                                                 morphology_id=morphology_id,
@@ -109,6 +113,13 @@ class NeuronModel(ephys.models.CellModel):
 
         super(NeuronModel, self).__init__(name=cell_name, morph=morph,
                                           mechs=mechs, params=params)
+
+        if reaction_diffusion_file:
+            self.modulation = NeuronModulation(neuron=self)
+            self.modulation.config_file = reaction_diffusion_file
+        else:
+            self.modulation = None
+
         self.syn_list = []
         self.section_lookup = None
 
@@ -140,8 +151,7 @@ class NeuronModel(ephys.models.CellModel):
                 continue
 
             seclist_loc = \
-                ephys.locations.NrnSeclistLocation(section_list,
-                                                   seclist_name=section_list)
+                ephys.locations.NrnSeclistLocation(section_list, seclist_name=section_list)
             for channel in channels:
                 mechanisms.append(ephys.mechanisms.NrnMODMechanism(
                     name='%s.%s' % (channel, section_list),
@@ -156,12 +166,12 @@ class NeuronModel(ephys.models.CellModel):
 
     # Helper function
 
-    def define_parameters(self, parameter_config=None, parameter_id=None, parameter_key=None):
+    def define_parameters(self, parameter_config, parameter_id=None, parameter_key=None):
         """
         Define parameters based on parameter_config and parameter_id.
         If there are n parameter sets, and parameter_id is k, then the parameter set is n % k."""
 
-        assert (parameter_config is not None)
+        assert parameter_config is not None
 
         # print("Using parameter config: " + parameter_config)
 
@@ -170,7 +180,7 @@ class NeuronModel(ephys.models.CellModel):
 
         parameters = []
 
-        if type(param_configs) == OrderedDict:
+        if isinstance(param_configs, (OrderedDict, dict)):
             # Multiple parameters, pick one
 
             if parameter_key is not None:
@@ -228,35 +238,43 @@ class NeuronModel(ephys.models.CellModel):
                 if param_config['dist_type'] == 'uniform':
                     scaler = ephys.parameterscalers.NrnSegmentLinearScaler()
                 elif param_config['dist_type'] in ['exp', 'distance']:
-                    scaler = ephys.parameterscalers.NrnSegmentSomaDistanceScaler(
-                        distribution=param_config['dist'])
-                seclist_loc = ephys.locations.NrnSeclistLocation(
-                    param_config['sectionlist'],
-                    seclist_name=param_config['sectionlist'])
+                    scaler = ephys.parameterscalers.NrnSegmentSomaDistanceScaler(distribution=param_config['dist'])
 
-                name = '%s.%s' % (param_config['param_name'],
-                                  param_config['sectionlist'])
+                # 2024-07-23: Updated format, so that "sectionlist" is allowed to be either a string (of one section type)
+                #             or a list of strings with section types.
 
-                if param_config['type'] == 'section':
-                    parameters.append(
-                        ephys.parameters.NrnSectionParameter(
-                            name=name,
-                            param_name=param_config['param_name'],
-                            value_scaler=scaler,
-                            value=value,
-                            frozen=frozen,
-                            bounds=bounds,
-                            locations=[seclist_loc]))
-                elif param_config['type'] == 'range':
-                    parameters.append(
-                        ephys.parameters.NrnRangeParameter(
-                            name=name,
-                            param_name=param_config['param_name'],
-                            value_scaler=scaler,
-                            value=value,
-                            frozen=frozen,
-                            bounds=bounds,
-                            locations=[seclist_loc]))
+                section_list = param_config['sectionlist']
+                if not isinstance(section_list, list):
+                    section_list = [section_list]
+
+                for seclist_item in section_list:
+
+                    seclist_loc = ephys.locations.NrnSeclistLocation(seclist_item,
+                                                                     seclist_name=seclist_item)
+
+                    name = '%s.%s' % (param_config['param_name'],
+                                      seclist_item)
+
+                    if param_config['type'] == 'section':
+                        parameters.append(
+                            ephys.parameters.NrnSectionParameter(
+                                name=name,
+                                param_name=param_config['param_name'],
+                                value_scaler=scaler,
+                                value=value,
+                                frozen=frozen,
+                                bounds=bounds,
+                                locations=[seclist_loc]))
+                    elif param_config['type'] == 'range':
+                        parameters.append(
+                            ephys.parameters.NrnRangeParameter(
+                                name=name,
+                                param_name=param_config['param_name'],
+                                value_scaler=scaler,
+                                value=value,
+                                frozen=frozen,
+                                bounds=bounds,
+                                locations=[seclist_loc]))
             else:
                 raise Exception(f"Param config type has to be global, section or range: {param_config}")
 
@@ -287,8 +305,8 @@ class NeuronModel(ephys.models.CellModel):
     # Neuron_morphology defines sectionID, these must match what this returns
     # so that they point to the same compartment.
     #
-    # Soma is 0
-    # axons are negative values (currently all set to -1) in Neuron_morphology
+    # Soma is -1
+    # axons are negative values (-2, -3, ..) in Neuron_morphology
     # dendrites are 1,2,3,4,5... ie one higher than what Neuron internally
     # uses to index the dendrites (due to us wanting to include soma)
 
@@ -323,13 +341,10 @@ class NeuronModel(ephys.models.CellModel):
         if self.section_lookup is None:
             self.build_section_lookup()
 
-        try:
+        if isinstance(section_id, int):
+            sec = self.section_lookup[section_id]
+        else:
             sec = [self.section_lookup[x] for x in section_id]
-        except:
-            import traceback
-            print(traceback.format_exc())
-            import pdb
-            pdb.set_trace()
 
         return sec
 
@@ -436,6 +451,9 @@ class NeuronModel(ephys.models.CellModel):
             mechanism.instantiate(sim=sim, icell=self.icell)
         for param in self.params.values():
             param.instantiate(sim=sim, icell=self.icell)
+
+        if self.modulation:
+            self.modulation.load_json()
 
     ############################################################################
 

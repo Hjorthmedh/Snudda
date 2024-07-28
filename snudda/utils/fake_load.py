@@ -1,6 +1,8 @@
 import json
 from collections import OrderedDict
 
+from copy import deepcopy
+
 import numpy as np
 
 from snudda.utils.load import SnuddaLoad
@@ -57,4 +59,4 @@ class FakeLoad(SnuddaLoad):
             self.data["neurons"][idx]["rotation"] = np.array(self.data["neurons"][idx]["rotation"])
 
         if "config" in self.data:
-            self.config = json.loads(self.data["config"], object_pairs_hook=OrderedDict)
+            self.config = deepcopy(self.data["config"])

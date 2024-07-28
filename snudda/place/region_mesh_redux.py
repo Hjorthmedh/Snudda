@@ -7,10 +7,11 @@ from numba import jit
 
 class RegionMeshRedux:
 
-    def __init__(self, mesh_path):
+    def __init__(self, mesh_path, verbose=False):
 
         self.mesh_path = mesh_path
         self.mesh = o3d.io.read_triangle_mesh(mesh_path)
+        self.verbose = verbose
 
         # Convert from micrometers to meters to get SI units
         scale_factor = 1e-6
@@ -102,7 +103,7 @@ class RegionMeshRedux:
 class NeuronPlacer:
 
     def __init__(self, mesh_path: str, d_min: float, random_seed=None, rng=None,
-                 n_putative_points=None, putative_density=None):
+                 n_putative_points=None, putative_density=None, verbose=False):
 
         """ Args:
             mesh_path (str): Path to wavefront obj file
@@ -111,7 +112,8 @@ class NeuronPlacer:
             rng: Numpy rng object, either rng or random_seed is given
             n_putative_points (int): Number of putative positions to place within volume (before d_min filtering)"""
 
-        self.region_mesh = RegionMeshRedux(mesh_path=mesh_path)
+        self.verbose = verbose
+        self.region_mesh = RegionMeshRedux(mesh_path=mesh_path, verbose=verbose)
         self.d_min = d_min
         self.density_functions = dict()
 
@@ -134,7 +136,12 @@ class NeuronPlacer:
             if putative_density:
                 n_putative_points = int(np.ceil(np.prod(self.cube_side)*putative_density*1e9))
             else:
-                n_putative_points = int(np.ceil(np.prod(self.cube_side) * (1/self.d_min) ** 3))
+
+                # n_putative_points = min(int(np.ceil(np.prod(self.cube_side) * (1/self.d_min) ** 3)), 1000000)
+                n_putative_points = min(int(np.ceil(np.prod(self.cube_side) * 300e3*1e9)), 1000000)
+
+                print(f"No n_putative_points and putative_density, setting {n_putative_points = }"
+                      f"\n(this must be larger than the number of neurons you want to place)")
         else:
             # We need to compenate n_putative_points for fact that we sample points outside volume also
             n_putative_points *= np.prod(self.cube_side) / self.region_mesh.volume
@@ -230,13 +237,16 @@ class NeuronPlacer:
 
         points = np.delete(points, remove_idx, axis=0)
 
-        print(f"n_points = {points.shape[0]}, previous close_pairs = {len(close_pairs)}")
+        if self.verbose:
+            print(f"n_points = {points.shape[0]}, previous close_pairs = {len(close_pairs)}")
 
         return points, False
 
     def remove_outside(self, points):
 
-        print(f"Filtering {points.shape[0]} points..")
+        if self.verbose:
+            print(f"Filtering {points.shape[0]} points..")
+
         # keep_flag = self.region_mesh.point_inside(points=points)
         keep_flag = self.region_mesh.check_inside(points=points)
 
@@ -259,10 +269,16 @@ class NeuronPlacer:
 
         # k=2, since we don't want distance to point itself, but closest neighbour
         # closest_distance, _ = cKDTree(data=free_positions).query(x=free_positions, k=2)
-        closest_distance, _ = cKDTree(data=free_positions).query(x=free_positions, k=2)
+        if len(free_positions) > 1:
+            closest_distance, _ = cKDTree(data=free_positions).query(x=free_positions, k=2)
+            # Volume is proportional to distance**3, so scale probabilities to pick position by that
+            free_volume = np.power(np.mean(closest_distance[:, 1:2], axis=1), 3)
+            P_neuron = free_volume
+        else:
+            # Special case, when there is only one
+            P_neuron = [1]
+            assert neuron_density is None, "You can not specify neuron_density if there is only one free position."
 
-        # Volume is proportional to distance**3, so scale probabilities to pick position by that
-        free_volume = np.power(np.mean(closest_distance[:, 1:2], axis=1), 3)
         x, y, z = free_positions.T
 
         if neuron_density:
@@ -272,8 +288,6 @@ class NeuronPlacer:
             else:
                 P_neuron = np.multiply(neuron_density(x=x, y=y, z=z), free_volume)
             # P_neuron = numexpr.evaluate(neuron_density)
-        else:
-            P_neuron = free_volume
 
         P_neuron /= np.sum(P_neuron)
 
@@ -294,11 +308,6 @@ class NeuronPlacer:
 
         return neuron_positions
 
-
-class NeuronBender:
-
-    def __init__(self):
-        pass
 
 # Goal for today:
 # - Function that returns N positions that are not within d_min of each other

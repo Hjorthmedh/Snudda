@@ -3,6 +3,8 @@ import h5py
 import numpy as np
 import json
 
+from copy import deepcopy
+
 from snudda.utils.snudda_path import get_snudda_data
 from snudda.utils.snudda_path import snudda_parse_path
 from snudda.utils import SnuddaLoad
@@ -215,7 +217,7 @@ class SnuddaPlotInputLocations:
 
     def load_input_config(self):
 
-        self.input_config = json.loads(SnuddaLoad.to_str(self.input_data["config"][()]))
+        self.input_config = deepcopy(self.input_data["config"])
 
     def get_max_dendrite_distance(self, neuron_type):
 

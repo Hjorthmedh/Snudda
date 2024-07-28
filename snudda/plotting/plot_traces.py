@@ -7,7 +7,7 @@ import os
 import h5py
 import numpy as np
 from snudda.utils.load import SnuddaLoad
-from snudda.utils.load_network_simulation import SnuddaLoadNetworkSimulation
+from snudda.utils.load_network_simulation import SnuddaLoadSimulation
 import matplotlib.pyplot as plt
 
 import re
@@ -65,8 +65,8 @@ class PlotTraces:
             else:
                 self.input_info = None
 
-        self.output_load = SnuddaLoadNetworkSimulation(network_simulation_output_file=output_file,
-                                                       network_path=network_path)
+        self.output_load = SnuddaLoadSimulation(network_simulation_output_file=output_file,
+                                                network_path=network_path)
 
         self.voltage = self.output_load.get_voltage()
         self.time = self.output_load.get_time()

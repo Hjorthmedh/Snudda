@@ -2142,6 +2142,9 @@ class SnuddaDetect(object):
                     if "cluster_spread" not in con_def[key]:
                         con_def[key]["cluster_spread"] = 20e-3
 
+                    if "RxD" in con_def[key] and "weight_scale" not in con_def:
+                        print(f"Connection {key} uses RxD, but does not specify weight_scale set, will use default scaling 1.")
+
                 self.connectivity_distributions[pre_type, post_type] = con_def
 
     ############################################################################

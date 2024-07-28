@@ -13,6 +13,8 @@ from collections import OrderedDict
 from shutil import copyfile
 from glob import glob
 
+from copy import deepcopy
+
 import h5py
 import numpy as np
 
@@ -58,7 +60,7 @@ class ExportSonata:
             else:
                 self.input_file = None
 
-        self.network_config = json.loads(self.snudda_load.data["config"])
+        self.network_config = deepcopy(self.snudda_load.data["config"])
 
         if self.input_file:
             print(f"Using input file: {self.input_file}")

@@ -434,7 +434,7 @@ class SnuddaInit(object):
                     rotation_mode="random",
                     stay_inside=False,
                     k_dist=30e-6,
-                    n_random=5,
+                    n_random=5,  # Used for bending morphologies
                     max_angle=0.1):
 
         if num_neurons is not None and num_neurons <= 0:
@@ -541,8 +541,24 @@ class SnuddaInit(object):
         # First check how many unique cells we hava available, then we
         # calculate how many of each to use in simulation
         n_ind = len(neuron_file_list)
+
+        if n_ind == 0:
+            # Check if the current neuron_dir path contains a single swc file...
+            full_neuron_path = snudda_parse_path(neuron_dir, self.snudda_data)
+
+            has_morphology_dir = os.path.isdir(os.path.join(full_neuron_path, "morphology"))
+            dir_list2 = sorted(glob.glob(os.path.join(full_neuron_path, "*.swc")))
+
+            if not has_morphology_dir and len(dir_list2) != 1:
+                raise ValueError(f"The directory neuron_dir should either contain directories with neurons, "
+                                 f"or point to a neuron directory directly (with a morphology subdirectory, "
+                                 f"or exactly one SWC file). {neuron_dir = }, {dir_list2 = }")
+
+            neuron_file_list = [(name, full_neuron_path)]
+            n_ind = len(neuron_file_list)
+
         assert n_ind > 0, \
-            f"No swc morphologies found in {neuron_dir}.\nObs, each morphology should have its own subdirectory."
+            f"No swc morphologies found in '{neuron_dir}'.\nObs, each morphology should have its own subdirectory."
 
         # Add the neurons to config
         neuron_dict = dict()
@@ -832,6 +848,34 @@ class SnuddaInit(object):
             self.network_data["regions"][structure_name]["population_units"]["fraction_of_neurons"].append(fraction_of_neurons)
             self.network_data["regions"][structure_name]["population_units"]["unit_id"].append(unit_id)
             self.network_data["regions"][structure_name]["population_units"]["neuron_types"].append(neuron_types)
+
+    def add_population_unit_mesh(self, structure_name, neuron_types, mesh_file, fraction_of_neurons=1.0, unit_id=None):
+
+        if type(neuron_types) != list:
+            neuron_types = [neuron_types]
+
+        unit_id = self.setup_population_unit(region_name=structure_name, unit_id=unit_id)
+
+        if "method" not in self.network_data["regions"][structure_name]["population_units"]:
+            self.network_data["regions"][structure_name]["population_units"]["method"] = "mesh"
+            self.network_data["regions"][structure_name]["population_units"]["mesh_file"] = [mesh_file]
+            self.network_data["regions"][structure_name]["population_units"]["fraction_of_neurons"] = [fraction_of_neurons]
+            self.network_data["regions"][structure_name]["population_units"]["unit_id"] = [unit_id]
+            self.network_data["regions"][structure_name]["population_units"]["neuron_types"] = [neuron_types]
+            self.network_data["regions"][structure_name]["population_units"]["structure"] = structure_name
+        else:
+            old_method = self.network_data["regions"][structure_name]["population_units"]["method"]
+
+            if old_method != "mesh":
+                raise ValueError(f"{structure_name} population unit, expected method 'mesh' found '{old_method}', "
+                                 f"you cant mix methods for a structure.")
+
+            self.network_data["regions"][structure_name]["population_units"]["mesh_file"].append(mesh_file)
+            self.network_data["regions"][structure_name]["population_units"]["fraction_of_neurons"].append(fraction_of_neurons)
+            self.network_data["regions"][structure_name]["population_units"]["unit_id"].append(unit_id)
+            self.network_data["regions"][structure_name]["population_units"]["neuron_types"].append(neuron_types)
+
+
 
     # Helper function, returns next free unit_id and sets up data structures (user can also choose own unit_id
     # but it must be unique and not already used

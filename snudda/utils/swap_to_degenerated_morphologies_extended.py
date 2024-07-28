@@ -1,6 +1,7 @@
 import numpy as np
 
 import json
+from copy import deepcopy
 
 from snudda import SnuddaLoad
 from snudda.utils.swap_to_degenerated_morphologies import SwapToDegeneratedMorphologies
@@ -231,7 +232,7 @@ class SwapToDegeneratedMorphologiesExtended(SwapToDegeneratedMorphologies):
         if post_degen_pruning is None:
             post_degen_pruning = self.post_degen_pruning
 
-        config = json.loads(self.updated_network_loader.data["config"])
+        config = deepcopy(self.updated_network_loader.data["config"])
 
         # This needs to be made bigger!
         num_rows = self.old_hdf5["network/synapses"].shape[0] + self.updated_hdf5["network/synapses"].shape[0]

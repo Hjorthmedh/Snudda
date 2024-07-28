@@ -34,7 +34,7 @@ There are a number of examples for how to create and run networks on github whic
 
 https://github.com/Hjorthmedh/Snudda/tree/master/examples/notebooks
 
-## Command line examle
+## Command line example
 
 Once installed Snudda can also be run from the command line, using the snudda command. Below is a small list of the relevant commands that can be used.
 

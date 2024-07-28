@@ -1,0 +1,34 @@
+{
+    "regions": {
+        "Cube": {
+	    "connectivity": {
+		"neuron,neuron": {
+		    "DA": {
+			"conductance": [
+			    1e-9,
+			    1e-3
+			],
+			"channel_parameters": {
+			    "RxD": {
+				"species_name": "DA",
+				"flux_variable": "open",
+				"region": "internal",
+				"weight_scale": 1e16			
+			    },
+			    "mod_file": "DASyn"
+			},
+			"cluster_size": 1,
+			"cluster_spread": null,
+			"pruning": {
+			    "f1": null,
+			    "soft_max": null,
+			    "mu2": null,
+			    "a3": null,
+			    "cluster_pruning": false
+			}
+		    }
+		}
+	    }
+	}
+    }
+}

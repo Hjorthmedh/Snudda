@@ -17,6 +17,7 @@ class NeuronPrototype:
                  parameter_path=None,
                  mechanism_path=None,
                  modulation_path=None,
+                 reaction_diffusion_path=None,
                  snudda_data=None,
                  meta_path=None,
                  virtual_neuron=False,
@@ -82,6 +83,17 @@ class NeuronPrototype:
                 self.modulation_path = None
         else:
             self.modulation_path = None
+
+        if reaction_diffusion_path:
+            self.reaction_diffusion_path = snudda_parse_path(reaction_diffusion_path, self.snudda_data)
+        elif self.neuron_path:
+            self.reaction_diffusion_path = snudda_parse_path(os.path.join(self.neuron_path, "reaction_diffusion.json"),
+                                                             self.snudda_data)
+
+            if not os.path.exists(self.reaction_diffusion_path):
+                self.reaction_diffusion_path = None
+        else:
+            self.reaction_diffusion_path = None
 
         self.neuron_name = neuron_name
         self.parameter_info = None
@@ -379,6 +391,7 @@ class NeuronPrototype:
                     self.morphology_cache[morph_tag] = NeuronMorphologyExtended(swc_filename=morph_path,
                                                                                 param_data=self.parameter_path,
                                                                                 mech_filename=self.mechanism_path,
+                                                                                reaction_diffusion=self.reaction_diffusion_path,
                                                                                 neuron_path=self.neuron_path,
                                                                                 snudda_data=self.snudda_data,
                                                                                 name=self.neuron_name,
@@ -470,6 +483,7 @@ class NeuronPrototype:
                                                                         snudda_data=self.snudda_data,
                                                                         param_data=self.parameter_path,
                                                                         mech_filename=self.mechanism_path,
+                                                                        reaction_diffusion=self.reaction_diffusion_path,
                                                                         neuron_path=self.neuron_path,
                                                                         parameter_key=parameter_key,
                                                                         morphology_key=morphology_key,

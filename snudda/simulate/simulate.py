@@ -224,9 +224,7 @@ class SnuddaSimulate(object):
 
         self.virtual_neurons = {}
 
-        self.net_con_list = []  # Avoid premature garbage collection -- todo: THIS WILL BE REMOVED
-        self.synapse_list = []  # todo: THIS WILL BE REMOVED, replaced by synapse_dict
-        self.synapse_dict = dict()
+        self.synapse_dict = dict()  # Avoid premature garbage collection
         self.i_stim = []
         self.v_clamp_list = []
         self.gap_junction_list = []
@@ -295,12 +293,55 @@ class SnuddaSimulate(object):
                 self.add_volt_recording_soma(cell_id=record_soma_cell_id)
 
             if "record_all_compartments" in self.sim_info:
+                raise DeprecationWarning("record_all_compartments depricated, please use record_voltate_all_compartments")
                 record_comp_cell_id = np.array(self.sim_info["record_all_compartments"], dtype=int)
                 self.add_volt_recording_all(cell_id=record_comp_cell_id)
 
+            if "record_voltage_all_compartments" in self.sim_info:
+                record_comp_cell_id = np.array(self.sim_info["record_voltage_all_compartments"], dtype=int)
+                self.add_volt_recording_all(cell_id=record_comp_cell_id)
+
             if "record_all_synapses" in self.sim_info:
+                raise DeprecationWarning("record_all_synapses depricated, please use record_current_all_synapses")
                 record_syn_cell_id = np.array(self.sim_info["record_all_synapses"], dtype=int)
                 self.add_synapse_current_recording_all(record_syn_cell_id)
+
+            if "record_current_all_synapses" in self.sim_info:
+                record_syn_cell_id = np.array(self.sim_info["record_current_all_synapses"], dtype=int)
+                self.add_synapse_current_recording_all(record_syn_cell_id)
+
+            if "record_rxd_species_concentration_all_compartments" in self.sim_info:
+
+                rec_info = self.sim_info["record_rxd_species_concentration_all_compartments"]
+
+                if type(rec_info[0]) == str:
+                    # Only one species
+                    rec_info = [rec_info]
+
+                for record_rx_species, record_rxd_neuron_id in rec_info:
+                    self.write_log(f"Recording {record_rx_species} from neuron_id = {record_rxd_neuron_id}")
+                    for rxd_neuron_id in record_rxd_neuron_id:
+                        self.add_rxd_internal_concentration_recording_all(record_rx_species, rxd_neuron_id)
+
+            if "record_density_mechanism" in self.sim_info:
+                record_info = self.sim_info["record_density_mechanism"]
+
+                for key_name, density_data in record_info.items():
+                    density_mechanism_name, variable_name = key_name.split(".")
+                    neuron_id = density_data["neuron_id"]
+                    sec_id = density_data["section_id"]
+                    sec_x = density_data["section_x"]
+
+                    if not (len(neuron_id) == len(sec_id) == len(sec_x)):
+                        raise ValueError(f"neuron_id, section_id and section_x must be lists of same length in experiment config.\n"
+                                         f"{record_info = }")
+
+                    for nid, sid, sex in zip(neuron_id, sec_id, sec_x):
+
+                        self.add_density_mechanism_recording(neuron_id=nid,
+                                                             sec_id=sid, sec_x=sex,
+                                                             density_mechanism=density_mechanism_name,
+                                                             variable=variable_name)
 
         # Do we need blocking call here, to make sure all neurons are setup
         # before we try and connect them
@@ -431,14 +472,14 @@ class SnuddaSimulate(object):
         # We need to load all the synapse parameters
         self.synapse_parameters = dict()
 
-        for (preType, postType) in self.network_info["connectivity_distributions"]:
+        for (pre_type, post_type) in self.network_info["connectivity_distributions"]:
 
-            syn_data = self.network_info["connectivity_distributions"][preType, postType]
+            syn_data = self.network_info["connectivity_distributions"][pre_type, post_type]
 
-            for synType in syn_data:
+            for syn_type in syn_data:
 
-                synapse_type_id = syn_data[synType]["channel_model_id"]
-                info_dict = syn_data[synType]
+                synapse_type_id = syn_data[syn_type]["channel_model_id"]
+                info_dict = syn_data[syn_type]
 
                 if synapse_type_id == 3:
                     # Gap junctions, skip parameters
@@ -454,7 +495,7 @@ class SnuddaSimulate(object):
                         eval_str = f"self.sim.neuron.h.{mod_file}"
                         channel_module = eval(eval_str)  # If this fails, check that NEURON modules are compiled
                     else:
-                        self.write_log(f"Empty mod_file field for {preType} -> {postType} synapses. This channel is IGNORED.", force_print=True)
+                        self.write_log(f"Empty mod_file field for {pre_type} -> {post_type} synapses. This channel is IGNORED.", force_print=True)
                         channel_module = None
 
                     # These are not variables to set in the mod_file
@@ -465,7 +506,7 @@ class SnuddaSimulate(object):
                         del channel_param_dict["parameter_file"]
 
                 else:
-                    assert False, (f"No channel module specified for {preType}->{postType} synapses, "
+                    assert False, (f"No channel module specified for {pre_type}->{post_type} synapses, "
                                    f"type ID={synapse_type_id}")
 
                 if "parameter_file" in info_dict["channel_parameters"] \
@@ -520,6 +561,9 @@ class SnuddaSimulate(object):
         for ID in self.neuron_id:
 
             name = self.network_info["neurons"][ID]["name"]
+            neuron_type = self.network_info["neurons"][ID]["type"]
+
+            region = self.network_info["neurons"][ID]["volume_id"]
 
             # We need to get morphology from network_info, since it can now be redefined for bent morphologies
             morph = snudda_parse_path(self.network_info["neurons"][ID]["morphology"], self.snudda_data)
@@ -528,10 +572,38 @@ class SnuddaSimulate(object):
 
             param = os.path.join(neuron_path, "parameters.json")
             mech = os.path.join(neuron_path, "mechanisms.json")
-            modulation = os.path.join(neuron_path, "modulation.json")
 
-            if not os.path.isfile(modulation):
-                modulation = None
+            if "modulation" in self.network_info["neurons"][ID]:
+                modulation = self.network_info["neurons"][ID]["modulation"]
+
+                if not os.path.isfile(modulation):
+                    raise ValueError(f"Missing modulation file {modulation} "
+                                     f"for neuron {self.network_info['neurons'][ID]['name']}")
+
+            elif "modulation" in self.network_info["config"]["regions"][region]["neurons"][neuron_type]:
+                modulation = self.network_info["config"]["regions"][region]["neurons"][neuron_type]["modulation"]
+
+                if not os.path.isfile(modulation):
+                    modulation = os.path.join(neuron_path, modulation)
+
+            else:
+                modulation = os.path.join(neuron_path, "modulation.json")
+
+                if not os.path.isfile(modulation):
+                    modulation = None
+
+            if "reaction_diffusion_file" in self.network_info["neurons"][ID]:
+                reaction_diffusion_file = SnuddaLoad.to_str(self.network_info["neurons"][ID]["reaction_diffusion_file"])
+
+                if reaction_diffusion_file is not None and not os.path.isfile(reaction_diffusion_file):
+                    raise ValueError(f"Missing RxD reaction diffusion file {reaction_diffusion_file} "
+                                     f"for neuron {self.network_info['neurons'][ID]['name']}")
+
+            else:
+                reaction_diffusion_file = os.path.join(neuron_path, "reaction_diffusion.json")
+
+                if not os.path.isfile(reaction_diffusion_file):
+                    reaction_diffusion_file = None
 
             # Obs, neurons is a dictionary
             if self.network_info["neurons"][ID]["virtual_neuron"]:
@@ -563,6 +635,8 @@ class SnuddaSimulate(object):
                 # A real neuron (not a virtual neuron that just provides input)
                 parameter_key = self.network_info["neurons"][ID]["parameter_key"]
                 morphology_key = self.network_info["neurons"][ID]["morphology_key"]
+
+                # TODO: Modulation key currently has no USE -- deprecated? Remove?
                 modulation_key = self.network_info["neurons"][ID]["modulation_key"]
 
                 self.neurons[ID] = NeuronModel(param_file=param,
@@ -570,6 +644,7 @@ class SnuddaSimulate(object):
                                                mech_file=mech,
                                                cell_name=name,
                                                modulation_file=modulation,
+                                               reaction_diffusion_file=reaction_diffusion_file,
                                                parameter_key=parameter_key,
                                                morphology_key=morphology_key,
                                                modulation_key=modulation_key)
@@ -619,6 +694,12 @@ class SnuddaSimulate(object):
                 self.pc.spike_record(ID, t_spikes, id_spikes)
                 self.check_id_recordings.append((ID, id_spikes))
                 self.record.register_spike_data(neuron_id=ID, data=t_spikes, sec_id=-1, sec_x=0.5)
+
+        # RxD is slow when doing species.nodes call, so we cache it...
+        for neuron_id in self.neuron_id:
+            if not self.network_info["neurons"][ID]["virtual_neuron"] \
+                    and self.neurons[neuron_id].modulation is not None:
+                self.neurons[neuron_id].modulation.build_node_cache()
 
     ############################################################################
 
@@ -920,8 +1001,16 @@ class SnuddaSimulate(object):
         # gj_idx_a = np.where([x in self.neuron_id for x in self.gap_junctions[:, 0]])[0]
         # gj_idx_b = np.where([x in self.neuron_id for x in self.gap_junctions[:, 1]])[0]
 
-        gj_idx_a = np.where([self.neuron_id_on_node[x] for x in self.gap_junctions[:, 0]])[0]
-        gj_idx_b = np.where([self.neuron_id_on_node[x] for x in self.gap_junctions[:, 1]])[0]
+        # We need to remove gap junctions where one or both of the neurons are virtual
+
+        real_gj_idx = ~np.logical_or(self.is_virtual_neuron[self.gap_junctions[:, 0]],
+                                     self.is_virtual_neuron[self.gap_junctions[:, 1]])
+
+        if np.sum(real_gj_idx) == 0:
+            return np.array([]), np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
+
+        gj_idx_a = np.where([self.neuron_id_on_node[x] for x in self.gap_junctions[real_gj_idx, 0]])[0]
+        gj_idx_b = np.where([self.neuron_id_on_node[x] for x in self.gap_junctions[real_gj_idx, 1]])[0]
 
         gj_id_offset = 100 * self.num_neurons
         gj_gid_src_a = gj_id_offset + 2 * gj_idx_a
@@ -936,8 +1025,14 @@ class SnuddaSimulate(object):
         seg_id_a = self.gap_junctions[gj_idx_a, 2]
         seg_id_b = self.gap_junctions[gj_idx_b, 3]
 
-        compartment_a = [self.neurons[x].map_id_to_compartment([y])[0] for (x, y) in zip(neuron_id_a, seg_id_a)]
-        compartment_b = [self.neurons[x].map_id_to_compartment([y])[0] for (x, y) in zip(neuron_id_b, seg_id_b)]
+        try:
+            compartment_a = [self.neurons[x].map_id_to_compartment([y])[0] for (x, y) in zip(neuron_id_a, seg_id_a)]
+            compartment_b = [self.neurons[x].map_id_to_compartment([y])[0] for (x, y) in zip(neuron_id_b, seg_id_b)]
+        except:
+            import traceback
+            self.write_log(traceback.format_exc(), is_error=True)
+            import pdb
+            pdb.set_trace()
 
         seg_xa = self.gap_junctions[gj_idx_a, 4] / 1000.0
         seg_xb = self.gap_junctions[gj_idx_b, 5] / 1000.0
@@ -1026,6 +1121,10 @@ class SnuddaSimulate(object):
             # The target neuron is a virtual neuron, do not add synapse
             return
 
+        if conductance < 0:
+            raise ValueError(f"Negative conductance found, this can be caused by specifying too large conductance values."
+                             f"Remember that the synapse matrix is 32-bit int as pico siemens")
+
         # You can not locate a point process at endpoints (position 0.0 or 1.0) if it needs an ion
         if section_dist == 0.0:
             section_dist = 0.01
@@ -1050,13 +1149,16 @@ class SnuddaSimulate(object):
 
         syn = self.get_synapse(channel_module, dend_compartment, section_dist)
 
+        weight_scale = 1
+
         if par_data is not None:
             # Picking one of the parameter sets stored in par_data
             par_id = parameter_id % len(par_data)
 
             par_set = par_data[par_id]
+
             for par in par_set:
-                if par == "expdata" or par == "cond":
+                if par in ("expdata", "cond", "RxD"):
                     # expdata is not a parameter, and cond we take from synapse matrix
                     continue
 
@@ -1087,6 +1189,28 @@ class SnuddaSimulate(object):
                     import pdb
                     pdb.set_trace()
 
+            if "RxD" in par_set:
+                species_name = par_set["RxD"]["species_name"]
+                region = par_set["RxD"]["region"]
+
+                if region in ("internal", "external"):
+                    if section_id == -1:
+                        region = f"soma_{region}"
+                    else:
+                        region = f"dend_{region}"
+
+                weight_scale = par_set["RxD"].get("weight_scale", 1) * 1e-6  # (to compensate for 1e6 multiplication later)
+
+                # If you have a RxD synapse it is good idea to set weight scale, especially
+                # if your channel has valence 0, then cond variable is actually flux and needs to be in
+                # number of molecules per second.
+                flux_variable = par_set["RxD"]["flux_variable"]
+
+                self.neurons[cell_id_dest].modulation.link_synapse(species_name=species_name,
+                                                                   region=region,
+                                                                   synapse=syn,
+                                                                   flux_variable=flux_variable)
+
         if axon_dist is not None:
             # axon dist is in micrometer, want delay in ms
             synapse_delay = (1e3 * 1e-6 * axon_dist) / self.axon_speed + self.synapse_delay
@@ -1098,16 +1222,12 @@ class SnuddaSimulate(object):
             self.synapse_dict[cell_id_source, cell_id_dest] = []
 
         nc = self.pc.gid_connect(cell_id_source, syn)
-        nc.weight[0] = conductance
+        nc.weight[0] = conductance * weight_scale
         nc.delay = synapse_delay
         nc.threshold = self.spike_threshold
 
         # This prevents garbage collection of syn and nc
         self.synapse_dict[cell_id_source, cell_id_dest].append((syn, nc, synapse_type_id, section_id))
-
-        # TODO: Johanna promised to remove these when she is ready for it.
-        self.synapse_list.append(syn)
-        self.net_con_list.append(nc)
 
         return syn
 
@@ -1203,8 +1323,11 @@ class SnuddaSimulate(object):
                 eval_str = f"self.sim.neuron.h.{mod_file}"
                 channel_module = eval(eval_str)
 
-                for input_id, (section, section_x, param_id, n_spikes) \
+                rxd_species_name, rxd_flux_variable, rxd_region, rxd_weight_scale = self.get_rxd_external_input_parameters(neuron_input)
+
+                for input_id, (section, section_id, section_x, param_id, n_spikes) \
                         in enumerate(zip(sections,
+                                         neuron_input.attrs["section_id"],
                                          neuron_input.attrs["section_x"],
                                          neuron_input.attrs["parameter_id"],
                                          neuron_input["spikes"].attrs["num_spikes"])):
@@ -1240,7 +1363,7 @@ class SnuddaSimulate(object):
                     nc = h.NetCon(vs, syn)
 
                     nc.delay = 0.0
-                    nc.weight[0] = neuron_input.attrs["conductance"][()] * 1e6  # Neurons needs microsiemens
+                    nc.weight[0] = neuron_input.attrs["conductance"][()] * rxd_weight_scale  # Neurons needs microsiemens
                     nc.threshold = 0.1
 
                     # Get the modifications of synapse parameters, specific to this synapse
@@ -1248,6 +1371,11 @@ class SnuddaSimulate(object):
                         syn_params = param_list[param_id % len(param_list)]  # No longer need to take ["synapse"], only that part saved in hdf5
 
                         for par in syn_params:
+
+                            if par == "RxD":
+                                # RxD specific information
+                                continue
+
                             if par == "expdata":
                                 # Not a parameter
                                 continue
@@ -1267,8 +1395,38 @@ class SnuddaSimulate(object):
                             # print(f"Setting {par} to {par_value}.")
                             setattr(syn, par, par_value)
 
+                    if rxd_species_name is not None:
+                        if section_id == -1:
+                            region_name = f"soma_{rxd_region}"
+                        else:
+                            region_name = f"dend_{rxd_region}"
+
+                        self.neurons[neuron_id].modulation.link_synapse(species_name=rxd_species_name,
+                                                                        region=region_name,
+                                                                        synapse=syn,
+                                                                        flux_variable=rxd_flux_variable)
+
                     # Need to save references, otherwise they will be freed
                     self.external_stim[neuron_id, input_type].append((v, vs, nc, syn, spikes))
+
+    def get_rxd_external_input_parameters(self, neuron_input):
+
+        if "RxD" in neuron_input.attrs.keys():
+
+            rxd_dict = json.loads(neuron_input.attrs["RxD"])
+
+            species_name = rxd_dict.get("species_name")
+            flux_variable = rxd_dict.get("flux_variable")
+            region = rxd_dict.get("region")
+            weight_scale = rxd_dict.get("weight_scale", 1.0)
+
+        else:
+            species_name = None
+            flux_variable = None
+            region = None
+            weight_scale = 1e6  # we need to do pS -> micro siemens
+
+        return species_name, flux_variable, region, weight_scale
 
     ############################################################################
 
@@ -1446,6 +1604,9 @@ class SnuddaSimulate(object):
 
             for sid, sec in enumerate(self.neurons[cid].icell.dend):
 
+                assert int(sec.name().split('[')[-1].strip(']')) == sid, \
+                    f"Internal error, assumed {sid} was section id of {sec.name()}"
+
                 if centre_only_flag:
                     sec_id.append(sid)
                     sec_x.append(0.5)
@@ -1527,6 +1688,55 @@ class SnuddaSimulate(object):
             self.write_log(f"Warning: Not recording all synapse currents requested, capped at max_synapses={max_synapses}",
                            force_print=True)
 
+    def add_density_mechanism_recording(self, density_mechanism: str, variable: str,
+                                        neuron_id: int, sec_id: int, sec_x: float):
+
+        """ Record density mechanism:
+
+        Args:
+            density_mechanism (str): Name of density mechanism, e.g. "pas"
+            variable (str): Variable name to record, e.g. "i" (will then read _ref_i)
+            neuron_id (int) : Id of neuron
+            sec_id (int) : Section id of compartment
+            sec_x (float) : Section x
+        """
+
+        if neuron_id not in self.neuron_id:
+            # The neuron is not on this worker
+            return
+
+        segment = self.neurons[neuron_id].map_id_to_compartment(sec_id)(sec_x)
+        mech = getattr(segment, density_mechanism)
+        var = getattr(mech, f"_ref_{variable}")
+        data = self.sim.neuron.h.Vector().record(var)
+
+        self.record.register_compartment_data(data_type=f"{density_mechanism}.{variable}",
+                                              neuron_id=neuron_id,
+                                              data=data,
+                                              sec_id=sec_id,
+                                              sec_x=sec_x)
+
+        if self.record.time is None:
+            t_save = self.sim.neuron.h.Vector()
+            t_save.record(self.sim.neuron.h._ref_t)
+            self.record.register_time(time=t_save)
+
+    def add_membrane_recording(self, variable, neuron_id, sec_id, sec_x):
+
+        if neuron_id not in self.neuron_id:
+            # The neuron is not on this worker
+            return
+
+        segment = self.neurons[neuron_id].map_id_to_compartment(sec_id)(sec_x)
+        var = getattr(segment, f"_ref_{variable}")
+        data = self.sim.neuron.h.Vector().record(var)
+
+        self.record.register_compartment_data(data_type=f"membrane.{variable}",
+                                              neuron_id=neuron_id,
+                                              data=data,
+                                              sec_id=sec_id,
+                                              sec_x=sec_x)
+
     def add_synapse_current_recording(self, source_id, dest_id):
 
         assert (source_id, dest_id) in self.synapse_dict, f"No synapse between {source_id} and {dest_id}"
@@ -1549,11 +1759,70 @@ class SnuddaSimulate(object):
 
         return syn_ctr
 
+    def add_rxd_concentration_recording(self, species: str, neuron_id: int, region, sec_id, sec_x):
+
+        if sec_id == -1:
+            sec_type = "soma"
+        elif sec_id >= 0:
+            sec_type = "dend"
+        else:
+            sec_type = "axon"
+
+        if self.neurons[neuron_id].modulation is None:
+            raise ValueError(f"No modulation specified for neuron {self.neurons[neuron_id].name} ({neuron_id})")
+
+        segment = getattr(self.neurons[neuron_id].icell, sec_type)[sec_id](sec_x)
+
+        conc_ref = self.neurons[neuron_id].modulation.species[species][region].nodes(segment)._ref_concentration
+
+        vector = self.sim.neuron.h.Vector()
+        vector.record(conc_ref)
+
+        self.record.register_compartment_data(neuron_id=neuron_id,
+                                              data_type=species,
+                                              data=vector,
+                                              sec_id=sec_id, sec_x=sec_x)
+
+        if self.record.time is None:
+            t_save = self.sim.neuron.h.Vector()
+            t_save.record(self.sim.neuron.h._ref_t)
+            self.record.register_time(time=t_save)
+
+    def add_rxd_internal_concentration_recording_all(self, species, neuron_id):
+
+        if neuron_id not in self.neuron_id:
+            return
+
+        # Add soma
+        self.add_rxd_concentration_recording(species, neuron_id, "soma_internal", "soma", -1, 0.5)
+
+        for sid, sec in enumerate(self.neurons[neuron_id].icell.dend):
+            assert int(sec.name().split('[')[-1].strip(']')) == sid, \
+                f"Internal error, assumed {sid} was section id of {sec.name()}"
+            self.add_rxd_concentration_recording(species, neuron_id, "dend_internal", "dend", sid, 0.5)
+
+    def add_rxd_internal_concentration_recording_all_species(self, neuron_id):
+
+        if neuron_id not in self.neuron_id:
+            return
+
+        for species in self.neurons[neuron_id].modulation.species.keys():
+
+            # Add soma
+            self.add_rxd_concentration_recording(species, neuron_id, "soma_internal", -1, 0.5)
+
+            for sid, sec in enumerate(self.neurons[neuron_id].icell.dend):
+                assert int(sec.name().split('[')[-1].strip(']')) == sid, \
+                    f"Internal error, assumed {sid} was section id of {sec.name()}"
+                self.add_rxd_concentration_recording(species, neuron_id, "dend_internal", sid, 0.5)
+
     ############################################################################
 
     def run(self, t=None, hold_v=None):
 
         """ Run simulation. """
+
+        start_time = timeit.default_timer()
 
         if self.is_virtual_neuron.all():
             print("ALL YOUR NEURONS IN THE SIMULATION ARE VIRTUAL")
@@ -1567,10 +1836,6 @@ class SnuddaSimulate(object):
         if hold_v is None:
             if self.sim_info is not None and "hold_voltage" in self.sim_info:
                 hold_v = self.sim_info["hold_voltage"]
-
-        self.setup_print_sim_time(t)
-
-        start_time = timeit.default_timer()
 
         # If we want to use a non-default initialisation voltage, we need to
         # explicitly set: h.v_init
@@ -1589,8 +1854,11 @@ class SnuddaSimulate(object):
         # Asked on neuron, check answer:
         # https://www.neuron.yale.edu/phpBB/viewtopic.php?f=2&t=4161&p=18021
 
+        self.setup_print_sim_time(t)
+
         # Make sure all processes are synchronised
         self.pc.barrier()
+
         self.write_log(f"Running simulation for {t / 1000} s", force_print=True)
         self.sim.run(t, dt=0.025)
         self.pc.barrier()
@@ -1981,7 +2249,10 @@ class SnuddaSimulate(object):
 
     def _setup_print_sim_time_helper(self, t_max):
         """ Helper method for printing simulation time during execution. """
-        update_points = np.arange(t_max / 100., t_max, t_max / 100.)
+        update_points = np.array([0.0, 0.01, 0.02, 0.03, 0.04, 0.05,
+                                  0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]) * t_max
+
+        # update_points = np.arange(t_max / 100., t_max, t_max / 100.)
         for t in update_points:
             h.cvode.event(t, self.print_sim_time)
 
@@ -1989,10 +2260,16 @@ class SnuddaSimulate(object):
 
     def print_sim_time(self):
         """ Helper function, to print simulation time during execution. """
+
+        if h.t == 0:
+            # Starting simulation wall clock, for estimate of time left
+            self.sim_start_time = timeit.default_timer()
+            return
+
         cur_time = timeit.default_timer()
         elapsed_time = cur_time - self.sim_start_time
         fraction_done = h.t / self.t_max
-        time_left = elapsed_time * ((self.t_max - h.t) / h.t)
+        time_left = np.abs(elapsed_time * ((self.t_max - h.t) / h.t))
 
         # Do not print status update too often
         if cur_time - self.last_sim_report_time > 100 or fraction_done > 0.99:
@@ -2001,8 +2278,11 @@ class SnuddaSimulate(object):
         else:
             force_print = False
 
-        self.write_log("%.0f%% done. Elapsed: %.1f s, estimated time left: %.1f s"
-                       % (fraction_done * 100, elapsed_time, time_left), force_print=force_print)
+        self.write_log(f"{fraction_done * 100:>3.0f}% done. Elapsed: {elapsed_time:.1f} s, "
+                       f"estimated time left: {time_left:.1f} s", force_print=force_print)
+
+        # self.write_log("%.0f%% done. Elapsed: %.1f s, estimated time left: %.1f s"
+        #                % (fraction_done * 100, elapsed_time, time_left), force_print=force_print)
 
     ############################################################################
 
@@ -2026,6 +2306,12 @@ class SnuddaSimulate(object):
         if self is not None:
             self.clear_neuron()
 
+        if self.log_file is not None:
+            try:
+                self.log_file.close()
+            except:
+                pass
+
     def clear_neuron(self):
 
         if self.pc is not None:
@@ -2036,8 +2322,6 @@ class SnuddaSimulate(object):
         self.neuron_nodes = []  # Is this used?
         self.virtual_neurons = {}
 
-        self.net_con_list = []
-        self.synapse_list = []
         self.synapse_dict = dict()
         self.i_stim = []
         self.v_clamp_list = []

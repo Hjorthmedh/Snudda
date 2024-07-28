@@ -9,7 +9,7 @@ import mathutils
 import numpy as np
 from snudda.utils.load import SnuddaLoad
 from snudda.utils.snudda_path import snudda_parse_path, get_snudda_data
-from snudda.utils.load_network_simulation import SnuddaLoadNetworkSimulation
+from snudda.utils.load_network_simulation import SnuddaLoadSimulation
 
 
 class VisualiseNetwork(object):
@@ -39,7 +39,7 @@ class VisualiseNetwork(object):
         self.blender_output_image = blender_output_image
 
         if simulation_output_file_name:
-            self.slns = SnuddaLoadNetworkSimulation(simulation_output_file_name)
+            self.slns = SnuddaLoadSimulation(simulation_output_file_name)
             self.spike_times = self.slns.get_spikes()
         else:
             self.spike_times = None
