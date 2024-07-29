@@ -1408,7 +1408,7 @@ class SnuddaSimulate(object):
                                                                         flux_variable=rxd_flux_variable)
 
                     # Need to save references, otherwise they will be freed
-                    self.external_stim[neuron_id, input_type].append((v, vs, nc, syn, spikes))
+                    self.external_stim[neuron_id, input_type].append((v, vs, nc, syn, spikes, section_id, section_x))
 
     def get_rxd_external_input_parameters(self, neuron_input):
 
@@ -1756,12 +1756,6 @@ class SnuddaSimulate(object):
 
         return s_list, pre_type, post_type
 
-    def get_external_synapse_point_process(self, dest_id):
-
-        """ Returns point process of the external synapses on the neuron """
-
-        raise NotImplementedError("Not yet implemented.")
-
     def add_synapse_variable_recording(self, source_id, dest_id, variable, synapse_type=None):
 
         synapse_list, pre_type, post_type = self.get_internal_synapse_point_process(source_id=source_id,
@@ -1773,6 +1767,42 @@ class SnuddaSimulate(object):
                                                          post_synaptic_id=dest_id,
                                                          pre_synaptic_id=source_id,
                                                          name=f"{pre_type}_{post_type}_{synapse_type}")
+
+    def get_external_synapse_point_process(self, neuron_id, input_type):
+
+        """ Returns point process of the external synapses on the neuron """
+
+        external_input = self.external_stim[neuron_id, input_type]
+
+        syn_list = [(x[3], x[2], x[5], x[6]) for x in external_input]   # sym and nc
+
+        return syn_list
+
+    def add_external_input_variable_recording(self, neuron_id, input_type, variable, name=""):
+
+        # TODO: Verify this works...
+
+        syn_list = self.get_external_synapse_point_process(neuron_id=neuron_id, input_type=input_type)
+        syn_ctr = 0
+
+        for syn, nc, sec_id, sec_x in syn_list:
+            data = self.sim.neuron.h.Vector()
+            data.record(getattr(syn, f"_ref_{variable}"))
+            seg = syn.get_segment()
+
+            # They are close, but not identical...
+            # assert sec_x == seg.x, f"Internal error, {sec_x = } should be same as stored in {seg.x = }"
+
+            self.record.register_synapse_data(neuron_id=neuron_id,
+                                              data_type=f"{name}{'.' if len(name) > 0 else ''}{input_type}. {variable}", data=data,
+                                              synapse_type=-1,  # Check what the real number is
+                                              presynaptic_id=-1,  # External input
+                                              sec_id=sec_id,
+                                              sec_x=seg.x,
+                                              cond=nc.weight[0])
+            syn_ctr += 1
+
+        return syn_ctr
 
     def add_point_process_variable_recording(self, point_process_list, variable,
                                              post_synaptic_id, pre_synaptic_id=-1, name=""):
