@@ -3,6 +3,8 @@
 
 # TODO: How to handle co-release?
 
+# TODO: Move DA species to external compartment. IMPORTANT.
+
 import numpy as np
 import neuron.crxd as rxd
 import json
@@ -65,14 +67,8 @@ class NeuronModulation:
             if comp in self.species[species_name]:
                 raise ValueError(f"{species_name = } already defined for {comp = }")
 
-            # boundary_condition = False  # The rxd.Parameter does not seem to work?
-
-            # if species_name == "ATP":
-            #     import pdb
-            #     pdb.set_trace()
-
             if boundary_condition:
-                print(f"Fixing {species_name} concentration to constant {initial_conc}")
+                # print(f"Fixing {species_name} concentration to constant {initial_conc}")
                 # The concentration is fixed
                 self.species[species_name][comp] = rxd.Parameter(self.compartments[comp],
                                                                  name=species_name,

@@ -485,8 +485,7 @@ class SnuddaSimulate(object):
                     # Gap junctions, skip parameters
                     continue
 
-                if ("channel_parameters" in info_dict
-                        and info_dict["channel_parameters"] is not None):
+                if "channel_parameters" in info_dict and info_dict["channel_parameters"] is not None:
                     channel_param_dict = copy.deepcopy(info_dict["channel_parameters"])
                     mod_file = channel_param_dict["mod_file"]
 
@@ -519,6 +518,7 @@ class SnuddaSimulate(object):
                     # Save data as a list, we don't need the keys
                     par_data = []
                     for pd in par_data_dict:
+
                         if "synapse" in par_data_dict[pd]:
                             # Add channel parameters specified in network file, however
                             # any values in the synapse parameter file will overwrite them
@@ -527,6 +527,7 @@ class SnuddaSimulate(object):
                                 p_dict[x] = par_data_dict[pd]["synapse"][x]
 
                             par_data.append(p_dict)
+
                         else:
                             self.write_log(f"WARNING: Old data format in parameter file {par_file}")
 
@@ -1736,6 +1737,63 @@ class SnuddaSimulate(object):
                                               data=data,
                                               sec_id=sec_id,
                                               sec_x=sec_x)
+
+    def get_internal_synapse_point_process(self, source_id, dest_id, synapse_type=None):
+
+        synapse_list = self.synapse_dict.get((source_id, dest_id), [])
+
+        channel_model_id = None
+
+        if synapse_type is not None:
+            pre_type = self.network_info["neurons"][source_id]["type"]
+            post_type = self.network_info["neurons"][dest_id]["type"]
+
+            if (pre_type, post_type) in self.network_info["connectivity_distributions"]:
+                channel_model_id = self.network_info["connectivity_distributions"][(pre_type, post_type)][synapse_type]["channel_model_id"]
+
+        s_list = [synapse_info for synapse_info in synapse_list
+                  if channel_model_id is None or channel_model_id == synapse_info[2]]
+
+        return s_list, pre_type, post_type
+
+    def get_external_synapse_point_process(self, dest_id):
+
+        """ Returns point process of the external synapses on the neuron """
+
+        raise NotImplementedError("Not yet implemented.")
+
+    def add_synapse_variable_recording(self, source_id, dest_id, variable, synapse_type=None):
+
+        synapse_list, pre_type, post_type = self.get_internal_synapse_point_process(source_id=source_id,
+                                                                                    dest_id=dest_id,
+                                                                                    synapse_type=synapse_type)
+
+        return self.add_point_process_variable_recording(point_process_list=synapse_list,
+                                                         variable=variable,
+                                                         post_synaptic_id=dest_id,
+                                                         pre_synaptic_id=source_id,
+                                                         name=f"{pre_type}_{post_type}_{synapse_type}")
+
+    def add_point_process_variable_recording(self, point_process_list, variable,
+                                             post_synaptic_id, pre_synaptic_id=-1, name=""):
+
+        syn_ctr = 0
+
+        for syn, nc, synapse_type_id, sec_id in point_process_list:
+            data = self.sim.neuron.h.Vector()
+            data.record(getattr(syn, f"_ref_{variable}"))
+            seg = syn.get_segment()
+
+            self.record.register_synapse_data(neuron_id=post_synaptic_id,
+                                              data_type=f"{name}{'.' if len(name) > 0 else ''}{variable}", data=data,
+                                              synapse_type=synapse_type_id,
+                                              presynaptic_id=pre_synaptic_id,
+                                              sec_id=sec_id,
+                                              sec_x=seg.x,
+                                              cond=nc.weight[0])
+            syn_ctr += 1
+
+        return syn_ctr
 
     def add_synapse_current_recording(self, source_id, dest_id):
 
