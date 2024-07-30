@@ -716,6 +716,7 @@ class Snudda(object):
                             record_all=args.record_all,
                             simulation_config=args.simulation_config,
                             export_core_neuron=args.exportCoreNeuron,
+                            use_rxd_neuromodulation=args.use_rxd_neuromodulation,
                             verbose=args.verbose)
 
         sim.clear_neuron()
@@ -735,6 +736,7 @@ class Snudda(object):
                  sample_dt=None,
                  simulation_config=None,
                  export_core_neuron=False,
+                 use_rxd_neuromodulation=True,
                  verbose=False):
 
         start = timeit.default_timer()
@@ -811,6 +813,7 @@ class Snudda(object):
                              log_file=log_file,
                              simulation_config=simulation_config,
                              sample_dt=sample_dt,
+                             use_rxd_neuromodulation=use_rxd_neuromodulation,
                              verbose=verbose)
         sim.setup()
         sim.add_external_input()

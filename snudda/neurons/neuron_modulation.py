@@ -6,7 +6,7 @@
 # TODO: Move DA species to external compartment. IMPORTANT.
 
 import numpy as np
-import neuron.crxd as rxd
+import neuron.rxd as rxd
 import json
 from itertools import chain
 

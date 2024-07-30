@@ -31,7 +31,8 @@ class NeuronModel(ephys.models.CellModel):
                  modulation_id=None,
                  parameter_key=None,
                  morphology_key=None,
-                 modulation_key=None):
+                 modulation_key=None,
+                 use_rxd_neuromodulation=True):
 
         """
         Constructor
@@ -61,6 +62,7 @@ class NeuronModel(ephys.models.CellModel):
 
         self.script_dir = os.path.dirname(__file__)
         self.config_dir = os.path.join(self.script_dir, 'config')
+        self.use_rxd_neuromodulation = use_rxd_neuromodulation
 
         if os.path.isfile(morph_path):
             # If morph_path is a swc file, use it directly
@@ -114,7 +116,7 @@ class NeuronModel(ephys.models.CellModel):
         super(NeuronModel, self).__init__(name=cell_name, morph=morph,
                                           mechs=mechs, params=params)
 
-        if reaction_diffusion_file:
+        if reaction_diffusion_file and self.use_rxd_neuromodulation:
             self.modulation = NeuronModulation(neuron=self)
             self.modulation.config_file = reaction_diffusion_file
         else:

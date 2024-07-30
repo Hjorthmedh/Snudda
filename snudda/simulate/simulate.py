@@ -59,6 +59,7 @@ class SnuddaSimulate(object):
                  disable_synapses=None,
                  disable_gap_junctions=None,
                  sample_dt=None,
+                 use_rxd_neuromodulation=True,
                  simulation_config=None):
 
         """
@@ -124,6 +125,7 @@ class SnuddaSimulate(object):
         self.neuron_id = None
         self.neuron_id_on_node = None
         self.synapse_parameters = None
+        self.use_rxd_neuromodulation = use_rxd_neuromodulation
 
         self.sim_start_time = 0
         self.fih_time = None
@@ -293,7 +295,7 @@ class SnuddaSimulate(object):
                 self.add_volt_recording_soma(cell_id=record_soma_cell_id)
 
             if "record_all_compartments" in self.sim_info:
-                raise DeprecationWarning("record_all_compartments depricated, please use record_voltate_all_compartments")
+                raise DeprecationWarning("record_all_compartments deprecated, please use record_voltate_all_compartments")
                 record_comp_cell_id = np.array(self.sim_info["record_all_compartments"], dtype=int)
                 self.add_volt_recording_all(cell_id=record_comp_cell_id)
 
@@ -302,7 +304,7 @@ class SnuddaSimulate(object):
                 self.add_volt_recording_all(cell_id=record_comp_cell_id)
 
             if "record_all_synapses" in self.sim_info:
-                raise DeprecationWarning("record_all_synapses depricated, please use record_current_all_synapses")
+                raise DeprecationWarning("record_all_synapses deprecated, please use record_current_all_synapses")
                 record_syn_cell_id = np.array(self.sim_info["record_all_synapses"], dtype=int)
                 self.add_synapse_current_recording_all(record_syn_cell_id)
 
@@ -310,7 +312,11 @@ class SnuddaSimulate(object):
                 record_syn_cell_id = np.array(self.sim_info["record_current_all_synapses"], dtype=int)
                 self.add_synapse_current_recording_all(record_syn_cell_id)
 
-            if "record_rxd_species_concentration_all_compartments" in self.sim_info:
+            if "rxd_enable_extracellular" in self.sim_info:
+                import neuron.rxd as rxd
+                rxd.options.enable.extracellular = self.sim_info["rxd_enable_extracellular"]
+
+            if "record_rxd_species_concentration_all_compartments" in self.sim_info and self.use_rxd_neuromodulation:
 
                 rec_info = self.sim_info["record_rxd_species_concentration_all_compartments"]
 
@@ -322,6 +328,11 @@ class SnuddaSimulate(object):
                     self.write_log(f"Recording {record_rx_species} from neuron_id = {record_rxd_neuron_id}")
                     for rxd_neuron_id in record_rxd_neuron_id:
                         self.add_rxd_internal_concentration_recording_all(record_rx_species, rxd_neuron_id)
+
+            if "record_rxd_species_all" in self.sim_info and self.use_rxd_neuromodulation:
+                rxd_record_neuron_id = self.sim_info["record_rxd_species_all"]
+
+                self.add_rxd_internal_concentration_recording_all_species(neuron_id=rxd_record_neuron_id)
 
             if "record_density_mechanism" in self.sim_info:
                 record_info = self.sim_info["record_density_mechanism"]
@@ -648,7 +659,8 @@ class SnuddaSimulate(object):
                                                reaction_diffusion_file=reaction_diffusion_file,
                                                parameter_key=parameter_key,
                                                morphology_key=morphology_key,
-                                               modulation_key=modulation_key)
+                                               modulation_key=modulation_key,
+                                               use_rxd_neuromodulation=self.use_rxd_neuromodulation)
 
                 # Register ID as belonging to this worker node
                 try:
@@ -1190,7 +1202,7 @@ class SnuddaSimulate(object):
                     import pdb
                     pdb.set_trace()
 
-            if "RxD" in par_set:
+            if "RxD" in par_set and self.use_rxd_neuromodulation:
                 species_name = par_set["RxD"]["species_name"]
                 region = par_set["RxD"]["region"]
 
@@ -1412,7 +1424,7 @@ class SnuddaSimulate(object):
 
     def get_rxd_external_input_parameters(self, neuron_input):
 
-        if "RxD" in neuron_input.attrs.keys():
+        if "RxD" in neuron_input.attrs.keys() and self.use_rxd_neuromodulation:
 
             rxd_dict = json.loads(neuron_input.attrs["RxD"])
 
@@ -1849,6 +1861,10 @@ class SnuddaSimulate(object):
 
     def add_rxd_concentration_recording(self, species: str, neuron_id: int, region, sec_id, sec_x):
 
+        if not self.use_rxd_neuromodulation:
+            print(f"add_rxd_concentration_recording:  not enabled, ignoring recording of {species} in neuron {neuron_id}")
+            return
+
         if sec_id == -1:
             sec_type = "soma"
         elif sec_id >= 0:
@@ -1881,6 +1897,10 @@ class SnuddaSimulate(object):
         if neuron_id not in self.neuron_id:
             return
 
+        if not self.use_rxd_neuromodulation:
+            print(f"add_rxd_internal_concentration_recording_all:  not enabled, ignoring recording of {species} in neuron {neuron_id}")
+            return
+
         # Add soma
         self.add_rxd_concentration_recording(species, neuron_id, "soma_internal", "soma", -1, 0.5)
 
@@ -1889,9 +1909,21 @@ class SnuddaSimulate(object):
                 f"Internal error, assumed {sid} was section id of {sec.name()}"
             self.add_rxd_concentration_recording(species, neuron_id, "dend_internal", "dend", sid, 0.5)
 
-    def add_rxd_internal_concentration_recording_all_species(self, neuron_id):
+    def add_rxd_internal_concentration_recording_all_species(self, neuron_id, quiet=False):
+
+        if not quiet:
+            self.write_log(f"Recording all RxD species from neurons: {neuron_id}")
+
+        if isinstance(neuron_id, (list, np.ndarray)):
+            for nid in neuron_id:
+                self.add_rxd_internal_concentration_recording_all_species(neuron_id=nid, quiet=True)
+            return
 
         if neuron_id not in self.neuron_id:
+            return
+
+        if not self.use_rxd_neuromodulation:
+            print(f"add_rxd_internal_concentration_recording_all_species:  not enabled, ignoring recording of neuron {neuron_id}")
             return
 
         for species in self.neurons[neuron_id].modulation.species.keys():
