@@ -1,0 +1,31 @@
+{
+    "0": {
+        "cortical" : {
+            "generator" : "poisson",
+            "start" : [0],
+            "end" : [2],
+            "frequency" : [0],
+            "conductance" : 0.5e-9,
+	    "input_correlation": 0.5,
+            "num_inputs" : 20,
+	    "parameter_file": "data/tmglut_DA_parameters.json",
+            "mod_file": "tmGlut"
+        },
+	"DA" : {
+            "generator" : "poisson",
+            "start" : [0.3],
+            "end" : [1.3],
+            "frequency" : [10],
+            "conductance" : 0.5e-9,
+            "num_inputs" : 100,
+	    "num_soma_synapses" : 10,
+            "mod_file": "DASyn",
+	    "RxD": {
+		"species_name": "DA",
+		"flux_variable": "open",
+		"region": "internal",
+		"weight_scale": 1e18
+	    }
+	}
+    }
+}

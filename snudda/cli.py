@@ -144,12 +144,13 @@ def snudda_cli():
     simulate_parser.add_argument("--disableGJ", "--disableGapJunctions", action="store_true", dest="disable_gj", default=None,
                                  help="Disable gap junctions")
 
-    simulate_parser.add_argument("-mechdir", "--mechDir", dest="mech_dir",
+    simulate_parser.add_argument("--mechdir", "--mechDir", dest="mech_dir",
                                  help="mechanism directory if not default", default=None)
     simulate_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     simulate_parser.add_argument("--verbose", action="store_true")
     simulate_parser.add_argument("--exportCoreNeuron", action="store_true")
     simulate_parser.add_argument("--recordALL", dest="record_all", type=str, default=None)
+    simulate_parser.add_argument("--disable_rxd_neuromodulation", dest="use_rxd_neuromodulation", action="store_false", default=True)
 
     export_parser = sub_parsers.add_parser("export")
     export_parser.add_argument("path", help="Location of network")
