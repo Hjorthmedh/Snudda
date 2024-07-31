@@ -229,8 +229,8 @@ class SnuddaSimulate(object):
         self.synapse_dict = dict()  # Avoid premature garbage collection
         self.i_stim = []
         self.v_clamp_list = []
-        self.gap_junction_list = []
-        self.external_stim = dict([])
+        self.gap_junction_dict = dict()
+        self.external_stim = dict()
         self.t_save = []
         self.i_save = []
         self.i_key = []
@@ -1091,7 +1091,8 @@ class SnuddaSimulate(object):
                                       section_dist=s_x,
                                       gid_source_gj=gid_src,
                                       gid_dest_gj=gid_dest,
-                                      g_gap_junction=g)
+                                      g_gap_junction=g,
+                                      neuron_id=nid)
 
                 gap_junction_count += 1
 
@@ -1251,7 +1252,8 @@ class SnuddaSimulate(object):
     def add_gap_junction(self,
                          section, section_dist,
                          gid_source_gj, gid_dest_gj,
-                         g_gap_junction):
+                         g_gap_junction,
+                         neuron_id):
 
         """
         Add gap junction.
@@ -1262,12 +1264,17 @@ class SnuddaSimulate(object):
             gid_source_gj: GID of source gap junction
             gid_dest_gj: GID of destination gap junction
             g_gap_junction: Gap junction conductance
+            neuron_id: ID of neuron, this is for book-keeping
 
         """
 
         # If neuron complains, make sure you have par_ggap.mod
         gj = h.gGapPar(section(section_dist))
-        self.gap_junction_list.append(gj)
+
+        if neuron_id not in self.gap_junction_dict:
+            self.gap_junction_dict[neuron_id] = [(gj, gid_source_gj, gid_dest_gj)]
+        else:
+            self.gap_junction_dict[neuron_id].append((gj, gid_source_gj, gid_dest_gj))
 
         # If you get a "NEURON: No source_var for target_var sid = 1301" error, then
         # make sure the neurons on both sides of the gap junction are included in the simulation
@@ -1780,6 +1787,23 @@ class SnuddaSimulate(object):
                                                          pre_synaptic_id=source_id,
                                                          name=f"{pre_type}_{post_type}_{synapse_type}")
 
+    def add_gap_junction_current_recording(self, neuron_id, gj_idx=None):
+
+        gj_list = self.gap_junction_dict.get(neuron_id, [])
+
+        if gj_idx is not None:
+            gj_list = [gj_list[gj_idx]]
+
+        # syn, nc, synapse_type_id, sec_id
+        point_process = [(x[0], x[0], 3, -100) for x in gj_list]
+
+        return self.add_point_process_variable_recording(point_process_list=point_process,
+                                                         variable="i",
+                                                         post_synaptic_id=neuron_id,
+                                                         pre_synaptic_id=-1,  # We need to add bookkeeping to track destination
+                                                         name=f"gj_currents_{neuron_id}",
+                                                         use_netcon_weight=False)
+
     def get_external_synapse_point_process(self, neuron_id, input_type):
 
         """ Returns point process of the external synapses on the neuron """
@@ -1817,7 +1841,11 @@ class SnuddaSimulate(object):
         return syn_ctr
 
     def add_point_process_variable_recording(self, point_process_list, variable,
-                                             post_synaptic_id, pre_synaptic_id=-1, name=""):
+                                             post_synaptic_id, pre_synaptic_id=-1,
+                                             name="", use_netcon_weight=True):
+
+        if not isinstance(point_process_list, list):
+            point_process_list = list(point_process_list)
 
         syn_ctr = 0
 
@@ -1826,13 +1854,18 @@ class SnuddaSimulate(object):
             data.record(getattr(syn, f"_ref_{variable}"))
             seg = syn.get_segment()
 
+            if use_netcon_weight:
+                cond = nc.weight[0]  # netcon object for synapses
+            else:
+                cond = nc.g  # For gap junctions nc is a gap junction object, and g conductance
+
             self.record.register_synapse_data(neuron_id=post_synaptic_id,
                                               data_type=f"{name}{'.' if len(name) > 0 else ''}{variable}", data=data,
                                               synapse_type=synapse_type_id,
                                               presynaptic_id=pre_synaptic_id,
                                               sec_id=sec_id,
                                               sec_x=seg.x,
-                                              cond=nc.weight[0])
+                                              cond=cond)
             syn_ctr += 1
 
         return syn_ctr
@@ -2445,7 +2478,7 @@ class SnuddaSimulate(object):
         self.synapse_dict = dict()
         self.i_stim = []
         self.v_clamp_list = []
-        self.gap_junction_list = []
+        self.gap_junction_dict = dict()
         self.external_stim = dict([])
         self.check_id_recordings = []
         self.pc = None
