@@ -159,6 +159,7 @@ class SnuddaLoadSimulation:
         return list(self.network_simulation_file["neurons"][str(neuron_id)].keys())
 
     def get_all_data(self, neuron_id, exclude=None, include_time=False):
+
         data = dict()
 
         for data_type in self.list_data_types(neuron_id=neuron_id):
@@ -166,7 +167,10 @@ class SnuddaLoadSimulation:
             if exclude is not None and data_type in exclude:
                 continue
 
-            data[data_type] = self.get_data(data_type=data_type, neuron_id=neuron_id)
+            if data_type not in data:
+               data[data_type] = self.get_data(data_type=data_type, neuron_id=neuron_id)
+            else:
+                data[data_type].update(self.get_data(data_type=data_type, neuron_id=neuron_id))
 
         if include_time:
             data["time"] = self.get_time()

@@ -2013,6 +2013,10 @@ class SnuddaSimulate(object):
         self.pc.barrier()
 
         self.write_log(f"Running simulation for {t / 1000} s", force_print=True)
+
+        # import pdb
+        # pdb.set_trace()
+
         self.sim.run(t, dt=0.025)
         self.pc.barrier()
         self.write_log("Simulation done.")
