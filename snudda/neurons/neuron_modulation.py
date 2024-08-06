@@ -6,6 +6,7 @@
 # TODO: Move DA species to external compartment. IMPORTANT.
 
 import numpy as np
+from mpi4py import MPI  # This must be imported before neuron, to run parallel
 import neuron.rxd as rxd
 import json
 from itertools import chain

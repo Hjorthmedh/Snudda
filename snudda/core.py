@@ -742,6 +742,13 @@ class Snudda(object):
         start = timeit.default_timer()
 
         from mpi4py import MPI  # This must be imported before neuron, to run parallel
+
+        # Initialize MPI
+        comm = MPI.COMM_WORLD
+        rank = comm.Get_rank()
+        size = comm.Get_size()
+        print(f"MPI Rank: {rank}, Size: {size}")
+
         from neuron import h
         pc = h.ParallelContext()
 

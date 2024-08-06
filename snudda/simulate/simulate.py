@@ -28,6 +28,8 @@ from collections import OrderedDict
 import h5py
 import neuron
 import numpy as np
+
+from mpi4py import MPI  # This must be imported before neuron, to run parallel
 from neuron import h  # , gui
 import copy
 
@@ -138,6 +140,14 @@ class SnuddaSimulate(object):
 
         self.disable_synapses = False
         self.disable_gap_junctions = False
+
+        node_id = int(self.pc.id())
+        total_nodes = int(self.pc.nhost())
+
+        comm = MPI.COMM_WORLD
+        rank = comm.Get_rank()
+        size = comm.Get_size()
+        print(f"MPI Rank: {rank}, Size: {size} -- NEUON: This is node {node_id} out of {total_nodes}")
 
         if simulation_config:
 
