@@ -602,7 +602,8 @@ class SnuddaSimulate(object):
                     raise ValueError(f"Missing modulation file {modulation} "
                                      f"for neuron {self.network_info['neurons'][ID]['name']}")
 
-            elif "modulation" in self.network_info["config"]["regions"][region]["neurons"][neuron_type]:
+            elif neuron_type in self.network_info["config"]["regions"][region]["neurons"] and \
+                    "modulation" in self.network_info["config"]["regions"][region]["neurons"][neuron_type]:
                 modulation = self.network_info["config"]["regions"][region]["neurons"][neuron_type]["modulation"]
 
                 if not os.path.isfile(modulation):
