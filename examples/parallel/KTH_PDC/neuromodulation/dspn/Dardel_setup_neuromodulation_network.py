@@ -15,7 +15,7 @@ neurons_path = os.path.join("$DATA", "neurons", "striatum")
 input_tuning.setup_network(neurons_path=neurons_path, 
                            num_replicas=1,
                            neuron_types="dspn",
-                           reaction_diffusion_file="robert_reaction_diffusion_with_DA_decay.json",
+                           reaction_diffusion_file="reaction_diffusion_D1_with_DA_decay.json",
                            network_random_seed=1234)
 input_tuning = None
 
