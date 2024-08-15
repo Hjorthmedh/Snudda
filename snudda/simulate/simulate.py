@@ -637,10 +637,13 @@ class SnuddaSimulate(object):
                 with open(meta_file, "r") as mf:
                     meta_data = json.load(mf)
 
-                if parameter_key in meta_data:
-                    if morphology_key in meta_data[parameter_key]:
-                        if "axon_stump" in meta_data[parameter_key][morphology_key]:
-                            replace_info = meta_data[parameter_key][morphology_key]["axon_stump"]
+                meta_parameter_key = self.network_info["neurons"][ID]["parameter_key"]
+                meta_morphology_key = self.network_info["neurons"][ID]["morphology_key"]
+
+                if meta_parameter_key in meta_data:
+                    if meta_morphology_key in meta_data[meta_parameter_key]:
+                        if "axon_stump" in meta_data[meta_parameter_key][meta_morphology_key]:
+                            replace_info = meta_data[meta_parameter_key][meta_morphology_key]["axon_stump"]
                             axon_length = replace_info.get("axon_length", 60e-6)
                             axon_diameter = replace_info.get("axon_diameter", None)
                             axon_nseg = replace_info.get("axon_nseg", None)
