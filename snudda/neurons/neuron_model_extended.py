@@ -296,8 +296,9 @@ class NeuronModel(ephys.models.CellModel):
 
     def define_morphology(self, replace_axon=True, morph_file=None,
                           replace_axon_length=60,
-                          replace_axon_diameter=None,
-                          replace_axon_nseg=None):
+                          replace_axon_nsec=2,  # Need to switch to this once bluepyopt is updated
+                          replace_axon_diameter=None,  # This only supported by hoc replacement
+                          replace_axon_nseg=None):   # This only supported by hoc replacement
         """
         Define morphology. Handles SWC and ASC.
 
@@ -317,6 +318,15 @@ class NeuronModel(ephys.models.CellModel):
 
         return ephys.morphologies.NrnFileMorphology(morph_file, do_replace_axon=replace_axon,
                                                     replace_axon_hoc=replace_axon_hoc)
+
+        '''
+        # We have a pull request to bluepyopt with updated signature:
+        return ephys.morphologies.NrnFileMorphology(morph_file,
+                                                    do_replace_axon=replace_axon,
+                                                    replace_axon_hoc=replace_axon_hoc,
+                                                    axon_stump_length=replace_axon_length,
+                                                    axon_stump_nsec=replace_axon_nsec)
+        '''
 
     ##############################################################################
 
