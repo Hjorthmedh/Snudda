@@ -34,7 +34,7 @@ class NeuronModel(ephys.models.CellModel):
                  morphology_key=None,
                  modulation_key=None,
                  use_rxd_neuromodulation=True,
-                 replace_axon_length=None,
+                 replace_axon_length=60e-6,
                  replace_axon_diameter=None,
                  replace_axon_nseg=None):
 
@@ -295,7 +295,7 @@ class NeuronModel(ephys.models.CellModel):
     # Helper function
 
     def define_morphology(self, replace_axon=True, morph_file=None,
-                          replace_axon_length=60,
+                          replace_axon_length=60e-6,
                           replace_axon_nsec=2,  # Need to switch to this once bluepyopt is updated
                           replace_axon_diameter=None,  # This only supported by hoc replacement
                           replace_axon_nseg=None):   # This only supported by hoc replacement
@@ -554,8 +554,11 @@ class NeuronModel(ephys.models.CellModel):
 
             return axon_length_specified_hoc
 
+        assert axon_length is not None and axon_diameter is not None and axon_nseg is not None
+
         # In all remaining cases the user has to specify vectors for axon_length, axon_diameter, axon_nseg
-        assert len(axon_length) == len(axon_diameter) == len(axon_nseg)
+        assert len(axon_length) == len(axon_diameter) == len(axon_nseg), \
+            f"Unequal lengths: {axon_length = }, {axon_diameter = }, {axon_nseg = }"
 
         user_defined_axon_hoc = \
             f"""
