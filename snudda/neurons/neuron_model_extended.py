@@ -11,6 +11,9 @@ import bluepyopt.ephys as ephys
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.neurons.neuron_modulation import NeuronModulation
 
+# TOOD 2024-08-20: Once BluePyOpt is updated, use the new replace_axon functinality in Ephys to allow
+# the user to chance axon stump length, and nseg_frequency
+
 
 class NeuronModel(ephys.models.CellModel):
     """ Extended NeuronModel for simulation.
