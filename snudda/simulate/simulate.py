@@ -128,6 +128,7 @@ class SnuddaSimulate(object):
         self.neuron_id_on_node = None
         self.synapse_parameters = None
         self.use_rxd_neuromodulation = use_rxd_neuromodulation
+        self.bath_application = dict()
 
         self.sim_start_time = 0
         self.fih_time = None
@@ -363,6 +364,16 @@ class SnuddaSimulate(object):
                                                              sec_id=sid, sec_x=sex,
                                                              density_mechanism=density_mechanism_name,
                                                              variable=variable_name)
+            if "bath_application" in self.sim_info:
+                for species_name, bath_info in self.sim_info["bath_application"]:
+                    bath_time = bath_info["time"]
+                    bath_conc = bath_info["concentration"]
+                    neuron_id = bath_info.get("neuron_id", None)
+
+                    self.add_bath_application(species_name=species_name,
+                                              concentration=bath_conc,
+                                              time=bath_time,
+                                              neuron_id=neuron_id)
 
         # Do we need blocking call here, to make sure all neurons are setup
         # before we try and connect them
@@ -2002,6 +2013,26 @@ class SnuddaSimulate(object):
                 assert int(sec.name().split('[')[-1].strip(']')) == sid, \
                     f"Internal error, assumed {sid} was section id of {sec.name()}"
                 self.add_rxd_concentration_recording(species, neuron_id, "dend_internal", sid, 0.5)
+
+    def add_bath_application(self, species_name, concentration, time, neuron_id=None):
+
+        if neuron_id is None:
+            neuron_id = self.snudda_loader.get_neuron_id(include_virtual=False)
+
+        conc_vect = self.sim.neuron.h.Vector(concentration)
+        t_vect = self.sim.neuron.h.Vector(time)
+
+        if species_name is self.bath_application:
+            raise KeyError(f"Bath application already applied for {species_name}")
+
+        self.bath_application[species_name] = (time, concentration, t_vect, conc_vect)
+
+        for neuron in self.neurons[neuron_id]:
+            if neuron.modulation is not None:
+                neuron.modulation.concentration_from_vector(species_name=species_name,
+                                                            concentration_vector=conc_vect,
+                                                            time_vector=t_vect)
+
 
     ############################################################################
 
