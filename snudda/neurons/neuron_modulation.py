@@ -319,18 +319,18 @@ class NeuronModulation:
                                   backward_rate=backward_rate,
                                   region_name=region)
 
-        def concentration_from_vector(self, species_name, concentration_vector, time_vector, interpolate=True):
+    def concentration_from_vector(self, species_name, concentration_vector, time_vector, interpolate=True):
 
-            # Loops over all nodes in node_cache, and sets a vector to play
-            print(f"Playing concentration vector for {species_name} in all neurons.")
+        # Loops over all nodes in node_cache, and sets a vector to play
+        print(f"Playing concentration vector for {species_name} in all neurons.")
 
-            if self.node_cache is None:
-                raise ValueError("node_cache not build (build_node_cache)")
+        if self.node_cache is None:
+            raise ValueError("node_cache not build (build_node_cache)")
 
-            if species_name not in self.node_cache:
-                raise ValueError(f"{species_name} not present in node_cache, does {self.neuron.name} have RxD species?")
+        if species_name not in self.node_cache:
+            raise ValueError(f"{species_name} not present in node_cache, does {self.neuron.name} have RxD species?")
 
-            for region_name, node_dictionary in self.node_cache[species_name].items():
-                for node_name, node_data in node_dictionary.items():
-                    for nd in node_data[0]:
-                        concentration_vector.play(nd._ref_concentration, time_vector, interpolate)
+        for region_name, node_dictionary in self.node_cache[species_name].items():
+            for node_name, node_data in node_dictionary.items():
+                for nd in node_data[0]:
+                    concentration_vector.play(nd._ref_concentration, time_vector, interpolate)
