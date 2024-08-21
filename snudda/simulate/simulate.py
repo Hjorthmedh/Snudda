@@ -2028,12 +2028,14 @@ class SnuddaSimulate(object):
 
         self.bath_application[species_name] = (time, concentration, t_vect, conc_vect)
 
-        for neuron in [self.neurons[x] for x in neuron_id]:
-            if neuron.modulation is not None:
-                neuron.modulation.concentration_from_vector(species_name=species_name,
-                                                            concentration_vector=conc_vect,
-                                                            time_vector=t_vect)
+        for nid in neuron_id:
+            if nid in self.neurons:
+                n = self.neurons[nid]
 
+                if n.modulation is not None:
+                    n.modulation.concentration_from_vector(species_name=species_name,
+                                                           concentration_vector=conc_vect,
+                                                           time_vector=t_vect)
 
     ############################################################################
 
