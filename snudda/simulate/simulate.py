@@ -365,9 +365,10 @@ class SnuddaSimulate(object):
                                                              density_mechanism=density_mechanism_name,
                                                              variable=variable_name)
             if "bath_application" in self.sim_info:
-                for species_name, bath_info in self.sim_info["bath_application"]:
-                    bath_time = bath_info["time"]
-                    bath_conc = bath_info["concentration"]
+                for species_name, bath_info in self.sim_info["bath_application"].items():
+
+                    bath_time = np.array(bath_info["time"])
+                    bath_conc = np.array(bath_info["concentration"]) * 1e6  # convert from SI to micromolar
                     neuron_id = bath_info.get("neuron_id", None)
 
                     self.add_bath_application(species_name=species_name,
@@ -2027,7 +2028,7 @@ class SnuddaSimulate(object):
 
         self.bath_application[species_name] = (time, concentration, t_vect, conc_vect)
 
-        for neuron in self.neurons[neuron_id]:
+        for neuron in [self.neurons[x] for x in neuron_id]:
             if neuron.modulation is not None:
                 neuron.modulation.concentration_from_vector(species_name=species_name,
                                                             concentration_vector=conc_vect,
