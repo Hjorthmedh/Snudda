@@ -368,7 +368,7 @@ class SnuddaSimulate(object):
                 for species_name, bath_info in self.sim_info["bath_application"].items():
 
                     bath_time = np.array(bath_info["time"])
-                    bath_conc = np.array(bath_info["concentration"]) * 1e6  # convert from SI to micromolar
+                    bath_conc = np.array(bath_info["concentration"])
                     neuron_id = bath_info.get("neuron_id", None)
 
                     self.add_bath_application(species_name=species_name,
@@ -2020,8 +2020,8 @@ class SnuddaSimulate(object):
         if neuron_id is None:
             neuron_id = self.snudda_loader.get_neuron_id(include_virtual=False)
 
-        conc_vect = self.sim.neuron.h.Vector(concentration)
-        t_vect = self.sim.neuron.h.Vector(time)
+        conc_vect = self.sim.neuron.h.Vector(concentration * 1e6)  # SI to micromolar
+        t_vect = self.sim.neuron.h.Vector(time * 1e3)  # s -> ms
 
         if species_name is self.bath_application:
             raise KeyError(f"Bath application already applied for {species_name}")
