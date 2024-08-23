@@ -1,0 +1,23 @@
+{
+    "dspn": {
+	"cortical_background": {
+	    "generator": "poisson",
+	    "frequency": 1.2
+	},
+	"thalamic_background": {
+	    "generator": "poisson",
+	    "frequency": 1.2
+	},
+        "cortical" : {
+            "generator" : "poisson",
+            "start" : [0],
+            "end" : [10],
+            "frequency" : [10],
+            "conductance" : 0.5e-9,
+	    "input_correlation": 0.75,
+            "num_inputs" : 20,
+	    "parameter_file": "data/tmglut_DA_parameters.json",
+            "mod_file": "tmGlut"
+        }
+    }
+}

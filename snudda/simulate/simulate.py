@@ -148,7 +148,7 @@ class SnuddaSimulate(object):
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
         size = comm.Get_size()
-        print(f"MPI Rank: {rank}, Size: {size} -- NEUON: This is node {node_id} out of {total_nodes}")
+        print(f"MPI Rank: {rank}, Size: {size} -- NEURON: This is node {node_id} out of {total_nodes}")
 
         if simulation_config:
 
