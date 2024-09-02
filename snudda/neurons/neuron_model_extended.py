@@ -308,15 +308,7 @@ class NeuronModel(ephys.models.CellModel):
         return ephys.morphologies.NrnFileMorphology(morph_file, do_replace_axon=replace_axon,
                                                     axon_stub_length=replace_axon_length*1e6,
                                                     axon_nseg_frequency=replace_axon_nseg_frequency*1e6)
-        '''
-        # We have a pull request to bluepyopt with updated signature:
-        return ephys.morphologies.NrnFileMorphology(morph_file,
-                                                    do_replace_axon=replace_axon,
-                                                    replace_axon_hoc=replace_axon_hoc,
-                                                    axon_stump_length=replace_axon_length,
-                                                    axon_stump_nsec=replace_axon_nsec)
-        '''
-
+       
     ##############################################################################
 
     # Neuron_morphology defines sectionID, these must match what this returns
