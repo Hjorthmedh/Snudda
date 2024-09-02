@@ -642,8 +642,7 @@ class SnuddaSimulate(object):
 
             meta_file = snudda_parse_path(os.path.join(neuron_path, "meta.json"), self.snudda_data)
             axon_length = 60e-6
-            axon_diameter = None
-            axon_nseg = None
+            axon_nseg_frequency = 40e-6
 
             if os.path.isfile(meta_file):
                 with open(meta_file, "r") as mf:
@@ -657,8 +656,7 @@ class SnuddaSimulate(object):
                         if "axon_stump" in meta_data[meta_parameter_key][meta_morphology_key]:
                             replace_info = meta_data[meta_parameter_key][meta_morphology_key]["axon_stump"]
                             axon_length = replace_info.get("axon_length", 60e-6)
-                            axon_diameter = replace_info.get("axon_diameter", None)
-                            axon_nseg = replace_info.get("axon_nseg", None)
+                            axon_nseg_frequency = replace_info.get("axon_nseg_frequency", 40e-6)
 
             # Obs, neurons is a dictionary
             if self.network_info["neurons"][ID]["virtual_neuron"]:
@@ -705,8 +703,7 @@ class SnuddaSimulate(object):
                                                modulation_key=modulation_key,
                                                use_rxd_neuromodulation=self.use_rxd_neuromodulation,
                                                replace_axon_length=axon_length,
-                                               replace_axon_diameter=axon_diameter,
-                                               replace_axon_nseg=axon_nseg)
+                                               replace_axon_nseg_frequency=axon_nseg_frequency)
 
                 # Register ID as belonging to this worker node
                 try:
