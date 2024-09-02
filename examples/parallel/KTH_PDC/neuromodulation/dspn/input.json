@@ -4,7 +4,9 @@
 	    "generator": "poisson",
 	    "start": [0.5, 2, 3.5],
 	    "end": [1.5, 3, 4.5],
-	    "frequency": [10, 10, 10]
+	    "frequency": [10, 10, 10],
+	    "parameter_file": "tmglut_DA_parameters.json",
+	    "mod_file": "tmGlut"
 	},
 
 	"GABA": {
@@ -25,13 +27,13 @@
 	    "end": [2.5, 4],
 	    "frequency": [5, 10],
 	    "num_inputs": 100,
-	    "conductance": 5e-9,
+	    "conductance": 0.5e-9,
 	    "mod_file": "DASyn",
             "RxD": {
                 "species_name": "DA",
                 "flux_variable": "open",
                 "region": "internal",
-                "weight_scale": 1e16
+                "weight_scale": 1e18
             }	    
 	}
     }

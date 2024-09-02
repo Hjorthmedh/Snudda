@@ -1,0 +1,32 @@
+{
+    "network_file": "networks/neuromodulation_ON_OFF_bath/network-synapses.hdf5",
+    "input_file": "networks/neuromodulation_ON_OFF_bath/input-spikes.hdf5",
+    "output_file": "networks/neuromodulation_ON_OFF_bath/simulation/output_neuromodulation_ON.hdf5",
+    "log_file": "networks/neuromodulation_ON_OFF_bath/log/network-simulation-ON.txt",
+    "time": 25.0,
+    "record_all_soma": true,
+    "record_rxd_species_all": [0, 1],
+    "record_density_mechanism": {	
+	"kir_ms.modulation_factor": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	},
+	"naf_ms.modulation_factor": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	},
+	"kaf_ms.modulation_factor_g": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	},
+	"kaf_ms.modulation_factor_shift": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	}	
+    },
+    "rxd_enable_extracellular": false
+}

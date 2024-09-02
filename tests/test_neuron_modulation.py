@@ -24,7 +24,7 @@ class NeuromodulationTestCase(unittest.TestCase):
         os.mkdir(test_path)
         os.chdir(test_path)
 
-        self.neuron_path = "../validation/dspn_rxd"
+        self.neuron_path = "../validation/dspn_neurons_rxd"
         self.network_path = "networks/network_rxd"
 
         self.snudda = Snudda(network_path=self.network_path)

@@ -128,6 +128,7 @@ class SnuddaSimulate(object):
         self.neuron_id_on_node = None
         self.synapse_parameters = None
         self.use_rxd_neuromodulation = use_rxd_neuromodulation
+        self.bath_application = dict()
 
         self.sim_start_time = 0
         self.fih_time = None
@@ -147,7 +148,7 @@ class SnuddaSimulate(object):
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
         size = comm.Get_size()
-        print(f"MPI Rank: {rank}, Size: {size} -- NEUON: This is node {node_id} out of {total_nodes}")
+        print(f"MPI Rank: {rank}, Size: {size} -- NEURON: This is node {node_id} out of {total_nodes}")
 
         if simulation_config:
 
@@ -363,6 +364,17 @@ class SnuddaSimulate(object):
                                                              sec_id=sid, sec_x=sex,
                                                              density_mechanism=density_mechanism_name,
                                                              variable=variable_name)
+            if "bath_application" in self.sim_info:
+                for species_name, bath_info in self.sim_info["bath_application"].items():
+
+                    bath_time = np.array(bath_info["time"])
+                    bath_conc = np.array(bath_info["concentration"])
+                    neuron_id = bath_info.get("neuron_id", None)
+
+                    self.add_bath_application(species_name=species_name,
+                                              concentration=bath_conc,
+                                              time=bath_time,
+                                              neuron_id=neuron_id)
 
         # Do we need blocking call here, to make sure all neurons are setup
         # before we try and connect them
@@ -602,7 +614,8 @@ class SnuddaSimulate(object):
                     raise ValueError(f"Missing modulation file {modulation} "
                                      f"for neuron {self.network_info['neurons'][ID]['name']}")
 
-            elif "modulation" in self.network_info["config"]["regions"][region]["neurons"][neuron_type]:
+            elif neuron_type in self.network_info["config"]["regions"][region]["neurons"] and \
+                    "modulation" in self.network_info["config"]["regions"][region]["neurons"][neuron_type]:
                 modulation = self.network_info["config"]["regions"][region]["neurons"][neuron_type]["modulation"]
 
                 if not os.path.isfile(modulation):
@@ -626,6 +639,24 @@ class SnuddaSimulate(object):
 
                 if not os.path.isfile(reaction_diffusion_file):
                     reaction_diffusion_file = None
+
+            meta_file = snudda_parse_path(os.path.join(neuron_path, "meta.json"), self.snudda_data)
+            axon_length = 60e-6
+            axon_nseg_frequency = 40e-6
+
+            if os.path.isfile(meta_file):
+                with open(meta_file, "r") as mf:
+                    meta_data = json.load(mf)
+
+                meta_parameter_key = self.network_info["neurons"][ID]["parameter_key"]
+                meta_morphology_key = self.network_info["neurons"][ID]["morphology_key"]
+
+                if meta_parameter_key in meta_data:
+                    if meta_morphology_key in meta_data[meta_parameter_key]:
+                        if "axon_stump" in meta_data[meta_parameter_key][meta_morphology_key]:
+                            replace_info = meta_data[meta_parameter_key][meta_morphology_key]["axon_stump"]
+                            axon_length = replace_info.get("axon_length", 60e-6)
+                            axon_nseg_frequency = replace_info.get("axon_nseg_frequency", 40e-6)
 
             # Obs, neurons is a dictionary
             if self.network_info["neurons"][ID]["virtual_neuron"]:
@@ -670,7 +701,9 @@ class SnuddaSimulate(object):
                                                parameter_key=parameter_key,
                                                morphology_key=morphology_key,
                                                modulation_key=modulation_key,
-                                               use_rxd_neuromodulation=self.use_rxd_neuromodulation)
+                                               use_rxd_neuromodulation=self.use_rxd_neuromodulation,
+                                               replace_axon_length=axon_length,
+                                               replace_axon_nseg_frequency=axon_nseg_frequency)
 
                 # Register ID as belonging to this worker node
                 try:
@@ -1945,12 +1978,12 @@ class SnuddaSimulate(object):
             return
 
         # Add soma
-        self.add_rxd_concentration_recording(species, neuron_id, "soma_internal", "soma", -1, 0.5)
+        self.add_rxd_concentration_recording(species, neuron_id, "soma_internal", -1, 0.5)
 
         for sid, sec in enumerate(self.neurons[neuron_id].icell.dend):
             assert int(sec.name().split('[')[-1].strip(']')) == sid, \
                 f"Internal error, assumed {sid} was section id of {sec.name()}"
-            self.add_rxd_concentration_recording(species, neuron_id, "dend_internal", "dend", sid, 0.5)
+            self.add_rxd_concentration_recording(species, neuron_id, "dend_internal", sid, 0.5)
 
     def add_rxd_internal_concentration_recording_all_species(self, neuron_id, quiet=False):
 
@@ -1978,6 +2011,28 @@ class SnuddaSimulate(object):
                 assert int(sec.name().split('[')[-1].strip(']')) == sid, \
                     f"Internal error, assumed {sid} was section id of {sec.name()}"
                 self.add_rxd_concentration_recording(species, neuron_id, "dend_internal", sid, 0.5)
+
+    def add_bath_application(self, species_name, concentration, time, neuron_id=None):
+
+        if neuron_id is None:
+            neuron_id = self.snudda_loader.get_neuron_id(include_virtual=False)
+
+        conc_vect = self.sim.neuron.h.Vector(concentration * 1e6)  # SI to micromolar
+        t_vect = self.sim.neuron.h.Vector(time * 1e3)  # s -> ms
+
+        if species_name is self.bath_application:
+            raise KeyError(f"Bath application already applied for {species_name}")
+
+        self.bath_application[species_name] = (time, concentration, t_vect, conc_vect)
+
+        for nid in neuron_id:
+            if nid in self.neurons:
+                n = self.neurons[nid]
+
+                if n.modulation is not None:
+                    n.modulation.concentration_from_vector(species_name=species_name,
+                                                           concentration_vector=conc_vect,
+                                                           time_vector=t_vect)
 
     ############################################################################
 

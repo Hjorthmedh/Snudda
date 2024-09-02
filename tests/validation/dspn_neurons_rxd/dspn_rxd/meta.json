@@ -1,0 +1,17 @@
+{
+    "p1": {
+	"m1": {
+	    "morphology": "WT-0728MSN01-cor-rep-ax.swc",
+	    "axon_stump": {
+		"axon_length": 50e-6
+	    }    
+	},
+	"m2": {
+	    "morphology": "WT-0728MSN01-cor-rep-ax-copy.swc",
+	    "axon_stump": {
+		"axon_length": 70e-6,
+		"axon_nseg_frequency": 20e-6
+	    }    
+	}
+    }
+}
