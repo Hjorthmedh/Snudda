@@ -9,9 +9,8 @@
 	"m2": {
 	    "morphology": "WT-0728MSN01-cor-rep-ax-copy.swc",
 	    "axon_stump": {
-		"axon_length": [30e-6, 40e-6, 50e-6],
-		"axon_diameter": [1.5e-6, 1e-6, 0.5e-6],
-		"axon_nseg": [1, 3, 5]
+		"axon_length": 70e-6,
+		"axon_nseg_frequency": 20e-6
 	    }    
 	}
     }

@@ -308,7 +308,7 @@ class NeuronModel(ephys.models.CellModel):
         return ephys.morphologies.NrnFileMorphology(morph_file, do_replace_axon=replace_axon,
                                                     axon_stub_length=replace_axon_length*1e6,
                                                     axon_nseg_frequency=replace_axon_nseg_frequency*1e6)
-       
+
     ##############################################################################
 
     # Neuron_morphology defines sectionID, these must match what this returns
