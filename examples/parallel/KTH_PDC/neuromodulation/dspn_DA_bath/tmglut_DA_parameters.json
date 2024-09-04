@@ -1,0 +1,39 @@
+{
+    "low": {
+	"synapse": {
+	    "mod_pka_g_ampa_min": 1,
+	    "mod_pka_g_ampa_max": 1,
+	    "mod_pka_g_ampa_half": 12.5,
+	    "mod_pka_g_ampa_slope": 1,
+	    "mod_pka_g_nmda_min": 1,
+	    "mod_pka_g_nmda_max": 1.2,
+	    "mod_pka_g_nmda_half": 12.5,
+	    "mod_pka_g_nmda_slope": 1
+	}
+    },
+    "mid": {
+	"synapse": {
+	    "mod_pka_g_ampa_min": 1,
+	    "mod_pka_g_ampa_max": 1.15,
+	    "mod_pka_g_ampa_half": 12.5,
+	    "mod_pka_g_ampa_slope": 1,
+	    "mod_pka_g_nmda_min": 1,
+	    "mod_pka_g_nmda_max": 1.3,
+	    "mod_pka_g_nmda_half": 12.5,
+	    "mod_pka_g_nmda_slope": 1
+	}
+    },
+    "high": {
+	"synapse": {
+	    "mod_pka_g_ampa_min": 1,
+	    "mod_pka_g_ampa_max": 1.3,
+	    "mod_pka_g_ampa_half": 12.5,
+	    "mod_pka_g_ampa_slope": 1,
+	    "mod_pka_g_nmda_min": 1,
+	    "mod_pka_g_nmda_max": 1.6,
+	    "mod_pka_g_nmda_half": 12.5,
+	    "mod_pka_g_nmda_slope": 1
+	}
+    }
+        
+}
