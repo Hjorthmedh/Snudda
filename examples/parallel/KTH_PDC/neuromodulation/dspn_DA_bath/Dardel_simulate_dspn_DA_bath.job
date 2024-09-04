@@ -64,9 +64,8 @@ srun -n 1 nrnivmodl -incflags "-lltdl=/usr/lib64/libltdl.so.7 -lreadline=/lib64/
 popd
 
 export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
-srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/neuromodulation/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py dummy_file dummy_file --simulation_config dspn_experiment_config.json
+srun -n $N_WORKERS $SNUDDA_DIR/examples/parallel/KTH_PDC/neuromodulation/x86_64/special -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py dummy_file dummy_file --simulation_config dspn_bath_experiment_config.json
 
-# TODO, we need to write an experiment config update, so that we use sim.add_rxd_internal_concentration_recording_all(species="PKA", neuron_id=0)
 
 
 
