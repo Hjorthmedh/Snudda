@@ -2036,6 +2036,16 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
+    def sanity_check_play_vectors(self, sim_end_time):
+        # TODO: Add additional checks that all bath application play vectors are long enough
+
+        for species_name, bath_data in self.bath_application.items():
+            bath_max_time = np.max(bath_data[0])
+
+            if sim_end_time > bath_max_time:
+                raise ValueError(f"Simulation duration {sim_end_time} is "
+                                 f"longer than time vector for bath application of {species_name}")
+
     def run(self, t=None, hold_v=None):
 
         """ Run simulation. """
@@ -2050,6 +2060,8 @@ class SnuddaSimulate(object):
                 t = self.sim_info["time"] * 1e3  # convert to ms for NEURON
             else:
                 t = 1000.0
+
+        self.sanity_check_play_vectors(sim_end_time=t)
 
         if hold_v is None:
             if self.sim_info is not None and "hold_voltage" in self.sim_info:
