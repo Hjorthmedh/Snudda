@@ -285,6 +285,10 @@ class SnuddaInput(object):
                     it_group = nid_group.create_group(input_type)
                     spike_set = it_group.create_dataset("spikes", data=spike_mat, compression="gzip", dtype=np.float32)
                     loc_set = it_group.create_dataset("location", data=neuron_in["location"][0], compression="gzip", dtype=np.float32)
+                    loc_set = it_group.create_dataset("section_id", data=neuron_in["location"][1], compression="gzip", dtype=np.float32)
+                    loc_set = it_group.create_dataset("section_x", data=neuron_in["location"][2], compression="gzip", dtype=np.float32)
+                    loc_set = it_group.create_dataset("distance_to_soma", data=neuron_in["location"][3], compression="gzip", dtype=np.float32)
+
                     pre_set = it_group.create_dataset("Pre_ID", data=neuron_in["spike_source"], compression="gzip", dtype=np.float32)
 
                     spike_set.attrs["num_spikes"] = num_spikes
@@ -798,12 +802,15 @@ class SnuddaInput(object):
 
                 if "generator" in input_inf and input_inf["generator"] == "csv":
                     csv_file = snudda_parse_path(input_inf["csv_file"] % neuron_id, self.snudda_data)
-
+                    
                     self.neuron_input[neuron_id][input_type]["generator"] = "csv"
-                    # csv_spikes = self.import_csv_spikes(csv_file=csv_file)
-                    # num_spike_trains = len(csv_spikes)
                     
                     csv_spikes = self.import_csv_spikes(csv_file=csv_file)
+                    if "num_inputs" in input_inf:
+                        csv_spikes = csv_spikes[:input_inf["num_inputs"]]
+                        
+                    num_spike_trains = len(csv_spikes)
+                    
                     
                     rng_master = np.random.default_rng(self.random_seed + neuron_id + 10072)
                     
@@ -852,11 +859,17 @@ class SnuddaInput(object):
                         
                         if "cluster_size" in input_inf:
                             cluster_size = input_inf["cluster_size"]
+                            if isinstance(cluster_size, (np.ndarray, list)):
+                                cluster_size = round(rng_num_inputs.normal(loc=cluster_size[0],
+                                                                                 scale=cluster_size[1]))
                         else:
                             cluster_size = None
                         
                         if "cluster_spread" in input_inf:
                             cluster_spread = input_inf["cluster_spread"]
+                            if isinstance(cluster_spread, (np.ndarray, list)):
+                                cluster_spread = round(rng_num_inputs.normal(loc=cluster_spread[0],
+                                                                                 scale=cluster_spread[1]))
                         else:
                             cluster_spread = None
 
@@ -876,7 +889,7 @@ class SnuddaInput(object):
                                                                   rng=rng_master,
                                                                   cluster_size=cluster_size,
                                                                   cluster_spread=cluster_spread)
-                        print(len(input_loc[0]))
+
                         # If there are synapses on the soma then we need to add those also
                         if n_soma_synapses > 0:
                             input_loc = self.add_soma_synapses(input_loc,
@@ -2032,7 +2045,7 @@ class SnuddaInput(object):
     def make_input_helper_parallel(self, args):
 
         """ Helper function for parallel input generation."""
-        print('making input')
+        
         try:
 
             neuron_id, input_type, freq, start, end, synapse_density, num_spike_trains, \
@@ -2137,8 +2150,7 @@ class SnuddaInput(object):
         time_range = (t_start, t_end)
 
         rng = np.random.default_rng(random_seed)
-        print('num_spike_trains')
-        print(num_spike_trains)
+        
         if input_type.lower() == "virtual_neuron".lower():
             # This specifies activity of a virtual neuron
             conductance = None

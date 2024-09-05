@@ -633,7 +633,6 @@ class SnuddaPlace(object):
 
         for neuron_id, neuron_name, swc_filename, position, rotation, random_seed, volume_id, mesh_file,\
             k_dist, n_random, max_angle in bend_neuron_info:
-            print(mesh_file)
             if volume_id not in bend_morph:
                 bend_morph[volume_id] = BendMorphologies(region_mesh=RegionMeshRedux(mesh_file), rng=None)
 

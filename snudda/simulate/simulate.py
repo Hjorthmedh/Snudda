@@ -1072,8 +1072,9 @@ class SnuddaSimulate(object):
                         # If no list, we need to handle SI to natural units conversion automatically
                         val_orig = val
                         val = self.convert_to_natural_units(par, val)
-
+                        
                     if par in ["tau", "tauR"] and ((val < 0.01) or (10000 < val)):
+                        
                         self.write_log(f" !!! Warning: Converted from {val_orig} to {val} but expected "
                                        f"a value within [0.01, 10000) for neuron id {cell_id_source}. ", is_error=True)
 
@@ -1435,12 +1436,16 @@ class SnuddaSimulate(object):
             self.write_log(f"Resistance: {rs}, voltage: {vc.amp1}mV")
 
             self.v_clamp_list.append(vc)
-
+                
             if save_i_flag:
                 cur = self.sim.neuron.h.Vector()
                 cur.record(vc._ref_i)
                 self.i_save.append(cur)
                 self.i_key.append(cID)
+                self.record.register_compartment_data(neuron_id=cID,
+                                                      data_type="current", data=cur,
+                                                      sec_id=0, sec_x=0.5)
+
 
     ############################################################################
 
@@ -1689,7 +1694,7 @@ class SnuddaSimulate(object):
     ############################################################################
 
     def verify_synapse_placement(self, sec_list, sec_x_list, dest_id, voxel_coords, source_id_list=None):
-        self.write_log('VERIFYING')
+        # self.write_log('VERIFYING')
         """ Verifies synapse placement.
 
             We want to check that voxel coords transformed to local coordinate system
@@ -1739,10 +1744,10 @@ class SnuddaSimulate(object):
                                                  np.transpose(syn_pos_nrn)))
 
         syn_mismatch = np.sqrt(np.sum((syn_pos_nrn_rot - synapse_pos) ** 2, axis=1))
-        print('Syn Mismatch')
-        print(syn_mismatch)
-        print(np.mean(syn_mismatch))
-        print()
+        # print('Syn Mismatch')
+        # print(syn_mismatch)
+        # print(np.mean(syn_mismatch))
+        # print()
         bad_threshold = 22
         num_bad = np.sum(syn_mismatch > bad_threshold)
 
