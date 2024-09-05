@@ -27,6 +27,7 @@ class ProjectionDetection:
         self.hyper_voxel_projections = dict()
         self.projections = dict()
 
+        print('Projecting!')
         if not role:
             self.role = "master"
         else:
@@ -167,7 +168,7 @@ class ProjectionDetection:
     def find_hyper_voxel_helper(self, neuron_id, neuron_type, random_seed):
 
         """ Returns hyper voxels that neuron_id (of neuron_type) projects to. """
-
+        print(self.projections)
         try:
             rng = np.random.default_rng(random_seed)
 
@@ -182,7 +183,7 @@ class ProjectionDetection:
                         rx, ry, rz = proj["radius"]
                     else:
                         rx = ry = rz = proj["radius"]
-
+                            
                     # Find better way to calculate intersection between ellipsoid and hyper voxel cubes?
                     pos = self.ellipsoid_coordinates(target_pos, rx, ry, rz, target_rotation, num_points, rng)
 
@@ -299,21 +300,26 @@ class ProjectionDetection:
         self.projections[pre_neuron_type] = new_projection_list
 
     def parse_config(self):
-
         for region_name, region_data in self.snudda_detect.config["regions"].items():
             for con_name, con_info in region_data["connectivity"].items():
+                print(con_name)
                 for con_type, con_config in con_info.items():
                     if "projection_config_file" in con_config:
+                        print('Projection Config File')
                         pre_neuron_type = con_name.split(",")[0]
 
                         if "projection_name" in con_config:
                             projection_name = con_config["projection_name"]
                         else:
                             projection_name = f"{con_name},{con_type}"
-
+                        print(con_config["projection_config_file"])
                         self.add_projection(projection_name=projection_name, pre_neuron_type=pre_neuron_type,
                                             projection_file=snudda_parse_path(con_config["projection_config_file"],
                                                                               snudda_data=self.snudda_detect.snudda_data))
+                        # self.add_projection(projection_name=projection_name, pre_neuron_type=pre_neuron_type,
+                        #                     projection_file=con_config["projection_config_file"])
+
+
 
     def add_projection(self, projection_name, pre_neuron_type, projection_file):
 
@@ -358,17 +364,18 @@ class ProjectionDetection:
         if "rotation" in projection_data[projection_name]:
             proj_info["rotation"] = np.array(proj_file_info["rotation"])  # n x 9 matrix
 
+        print(proj_info)
         # Pre-compute target centres for each neuron of pre_neuron_type
         neuron_id = self.get_neurons_of_type(pre_neuron_type)
         pre_positions = self.get_neuron_positions(neuron_id)
         target_centres = griddata(points=proj_info["source"], values=proj_info["dest"],
-                                  xi=pre_positions, method="linear")
+                                  xi=pre_positions, method="nearest")
 
         axon_dist = np.linalg.norm(target_centres - pre_positions, axis=1)
 
         if "rotation" in proj_info:
             target_rotation = griddata(points=proj_info["dest"], values=proj_info["rotation"],
-                                       xi=target_centres, method="linear")
+                                       xi=target_centres, method="nearest")
         else:
             target_rotation = [None for x in neuron_id]
 
