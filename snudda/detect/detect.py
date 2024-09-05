@@ -736,7 +736,6 @@ class SnuddaDetect(object):
             #hyper_voxel_id = list(set(list(np.unique(rng.integers(low = 0, high = self.hyper_voxel_id_lookup.size,size = (n_hv,1))))))
 
             # hyper_voxel_id = list(np.unique(rng.integers(low = 0, high = self.hyper_voxel_id_lookup.size,size = (n_hv,1))))
-            print(hyper_voxel_id)
                 
             if axon_loc is not None:
                 inside_idx = np.sum(np.logical_and(0 <= axon_loc, axon_loc < self.hyper_voxel_id_lookup.shape), axis=1) == 3
@@ -1504,7 +1503,7 @@ class SnuddaDetect(object):
                                                                           na_neuron["axon_density_bounds_xyz"])
                 
             elif na_neuron["axon_density_type"] == "sparse":
-                    print('SPARSE')
+                    # print('SPARSE')
                     # print(na_neuron['position'])
                     (na_voxel_coords, na_axon_dist) = self.no_axon_points_sparse(na_neuron["position"])
             else:

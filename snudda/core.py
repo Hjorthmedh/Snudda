@@ -149,8 +149,7 @@ class Snudda(object):
                  "\nCall snudda init with --overwrite to override and overwrite the old data.")
 
         self.make_dir_if_needed(self.network_path)
-        print('Honor stay inside:')
-        print(honor_stay_inside)
+        print(f'Honor stay inside: {honor_stay_inside}')
         config_file = os.path.join(self.network_path, "network-config.json")
         SnuddaInit(network_path=self.network_path,
                    struct_def=struct_def,
@@ -815,6 +814,7 @@ class Snudda(object):
         if 'VC' in str(self.network_path):
            print('Voltage Clamping')
            sim.add_voltage_clamp([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39], voltage = -0.07, duration= 3.0, save_i_flag=True)
+           # sim.add_voltage_clamp([1], voltage = -0.07, duration= 3.0, save_i_flag=True)
 
 
         sim.check_memory_status()

@@ -35,7 +35,7 @@ class SnuddaAnalyse:
                  save_cache=True,
                  low_memory=False,
                  side_len=250e-6,
-                 volume_type="cube",
+                 volume_type="full",
                  volume_id=None,
                  n_max_analyse=None,
                  show_plots=False,
@@ -112,13 +112,13 @@ class SnuddaAnalyse:
             self.connection_matrix_gj = self.create_connection_matrix_gj()
 
             # self.connectionMatrix = self.createConnectionMatrixSLOW(synType=1)
-            self.make_pop_dict()
+            # self.make_pop_dict()
             self.positions = self.network["neuron_positions"]
 
-            self.synapse_dist()
+            # self.synapse_dist()
 
-            if save_cache:
-                self.save_cache_data(hdf5_file)
+            # if save_cache:
+                # self.save_cache_data(hdf5_file)
 
         self.worker_data = []
 
@@ -454,6 +454,7 @@ class SnuddaAnalyse:
 
                 if neuron_id is None:
                     neuron_id = idx
+        
 
         elif volume_type == "cube":
 
