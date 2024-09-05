@@ -10,8 +10,8 @@
     "rxd_enable_extracellular": false,
     "bath_application": {
         "DA": {
-            "time": [0, 1.99, 2, 3, 3.01],
-            "concentration": [0, 0, 60e-6, 60e-6, 0]
+            "time": [0, 1.99, 2, 3, 3.01, 10],
+            "concentration": [0, 0, 60e-6, 60e-6, 0, 0]
         }
     },
     
