@@ -63,6 +63,9 @@ class SnuddaAblateNetwork:
 
     def ablate_all_synapses(self):
         self.remove_all_synapses = True
+        
+    def keep_synapses_by_ID(self, syn_ids):
+        self.syn_keep_idx = syn_ids
 
     def ablate_all_gap_junctions(self):
         self.remove_all_gap_junctions = True
