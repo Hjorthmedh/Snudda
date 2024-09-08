@@ -221,7 +221,7 @@ class SnuddaPrune(object):
                                           "network/gap_junction_lookup")}  # range(6,9))}
         # How close does a synapse need to other synapses to be part of a cluster for
         # "protection" against pruning.
-        self.cluster_distance = 10e-6
+        self.cluster_distance = 20e-6
 
     ############################################################################
 
