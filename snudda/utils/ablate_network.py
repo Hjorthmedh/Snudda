@@ -46,6 +46,7 @@ class SnuddaAblateNetwork:
         self.remove_all_synapses = False
         self.remove_all_gap_junctions = False
         self.make_virtual_neuron_id = None
+        self.syn_keep_idx = None
 
         self.reset_network()
 
@@ -301,7 +302,11 @@ class SnuddaAblateNetwork:
             # Lastly deal with gap junctions
             keep_gj_flag = self.filter_synapses(data_type="gap_junctions")
 
-            num_syn = np.sum(keep_syn_flag)
+            # num_syn = np.sum(keep_syn_flag)
+            if self.syn_keep_idx is None:
+                self.syn_keep_idx = np.where(keep_syn_flag)[0]
+                
+            num_syn = len(self.syn_keep_idx)
             num_synapses = np.zeros((1,), dtype=np.uint64) + num_syn
 
             num_gj = np.sum(keep_gj_flag)
@@ -323,8 +328,12 @@ class SnuddaAblateNetwork:
             temp_syn_mat = np.zeros((num_syn, syn_mat.shape[1]), dtype=np.int32)
             temp_gj_mat = np.zeros((num_gj, gj_mat.shape[1]), dtype=np.int32)
 
-            syn_keep_idx = np.where(keep_syn_flag)[0]
-            for idx, row_idx in enumerate(syn_keep_idx):
+                
+            print()
+            print(len(self.syn_keep_idx))
+            print()
+            
+            for idx, row_idx in enumerate(self.syn_keep_idx):
 
                 if idx % 50000 == 0 and idx > 0:
                     print(f"{idx} / {num_syn} synapse rows parsed")

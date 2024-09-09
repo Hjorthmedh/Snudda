@@ -731,8 +731,8 @@ class SnuddaDetect(object):
             # n_hv = 4
             # hyper_voxel_id = np.unique(self.get_hypervoxel_coords_and_section_id(neuron = neuron)['neuron'][:,0])
             
-            
             hyper_voxel_id = list(set(list(np.unique(self.get_hypervoxel_coords_and_section_id(neuron = neuron)['neuron'][:,0]))[1:2] + list(np.unique(rng.integers(low = 0, high = self.hyper_voxel_id_lookup.size,size = (n_hv,1))))))
+
             #hyper_voxel_id = list(set(list(np.unique(rng.integers(low = 0, high = self.hyper_voxel_id_lookup.size,size = (n_hv,1))))))
 
             # hyper_voxel_id = list(np.unique(rng.integers(low = 0, high = self.hyper_voxel_id_lookup.size,size = (n_hv,1))))
@@ -1788,7 +1788,7 @@ class SnuddaDetect(object):
         Placing fake axon segments based on sparse distribution
 
         """
-        npoints = 500
+        npoints = 250
         
         # print('Sparse axon points')
         (xyz_inside, voxIdx) = self.get_hyper_voxel_axon_points_sparse(npoints)
