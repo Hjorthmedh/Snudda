@@ -2073,7 +2073,7 @@ class SnuddaSimulate(object):
             else:
                 t = 1000.0
 
-        self.sanity_check_play_vectors(sim_end_time=t)
+        self.sanity_check_play_vectors(sim_end_time=t*1e-3)
 
         if hold_v is None:
             if self.sim_info is not None and "hold_voltage" in self.sim_info:
