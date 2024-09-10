@@ -1,0 +1,24 @@
+{
+    "dspn": {
+	"cortical": {
+	    "generator": "poisson",
+	    "start": [0.5, 2, 3.5],
+	    "end": [1.5, 3, 4.5],
+	    "frequency": [10, 10, 10],
+	    "parameter_file": "tmglut_DA_parameters.json",
+	    "mod_file": "tmGlut"
+	},
+
+	"GABA": {
+	    "generator": "poisson",
+	    "type": "GABA",
+	    "start": [0.5, 2, 3.5],
+	    "end": [1.5, 3, 4.5],
+	    "frequency": [5, 5, 5],
+	    "num_inputs": 100,
+	    "conductance": 5e-10,
+	    "mod_file": "tmGabaA",
+	    "parameter_file": "$DATA/synapses/striatum/PlanertFitting-DD-tmgaba-fit.json"
+	}
+    }
+}

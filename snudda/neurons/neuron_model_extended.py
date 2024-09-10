@@ -11,9 +11,6 @@ import bluepyopt.ephys as ephys
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.neurons.neuron_modulation import NeuronModulation
 
-# TOOD 2024-08-20: Once BluePyOpt is updated, use the new replace_axon functinality in Ephys to allow
-# the user to chance axon stump length, and nseg_frequency
-
 
 class NeuronModel(ephys.models.CellModel):
     """ Extended NeuronModel for simulation.
@@ -38,8 +35,7 @@ class NeuronModel(ephys.models.CellModel):
                  modulation_key=None,
                  use_rxd_neuromodulation=True,
                  replace_axon_length=60e-6,
-                 replace_axon_diameter=None,
-                 replace_axon_nseg=None):
+                 replace_axon_nseg_frequency=40e-6):
 
         """
         Constructor
@@ -110,8 +106,7 @@ class NeuronModel(ephys.models.CellModel):
 
         morph = self.define_morphology(replace_axon=True, morph_file=morph_file,
                                        replace_axon_length=replace_axon_length,
-                                       replace_axon_diameter=replace_axon_diameter,
-                                       replace_axon_nseg=replace_axon_nseg)
+                                       replace_axon_nseg_frequency=replace_axon_nseg_frequency)
 
         mechs = self.define_mechanisms(mechanism_config=mech_file)
         params = self.define_parameters(param_file, parameter_id, parameter_key)
@@ -299,9 +294,7 @@ class NeuronModel(ephys.models.CellModel):
 
     def define_morphology(self, replace_axon=True, morph_file=None,
                           replace_axon_length=60e-6,
-                          replace_axon_nsec=2,  # Need to switch to this once bluepyopt is updated
-                          replace_axon_diameter=None,  # This only supported by hoc replacement
-                          replace_axon_nseg=None):   # This only supported by hoc replacement
+                          replace_axon_nseg_frequency=40e-6):   # This only supported by hoc replacement
         """
         Define morphology. Handles SWC and ASC.
 
@@ -312,24 +305,9 @@ class NeuronModel(ephys.models.CellModel):
 
         assert (morph_file is not None)
 
-        replace_axon_hoc = self.get_replacement_axon(axon_length=replace_axon_length,
-                                                     axon_diameter=replace_axon_diameter,
-                                                     axon_nseg=replace_axon_nseg)
-
-        # TODO: Turns out that NrnFileMorphology does not use the replace_axon_hoc
-        #       (only if create_hoc is called)
-
         return ephys.morphologies.NrnFileMorphology(morph_file, do_replace_axon=replace_axon,
-                                                    replace_axon_hoc=replace_axon_hoc)
-
-        '''
-        # We have a pull request to bluepyopt with updated signature:
-        return ephys.morphologies.NrnFileMorphology(morph_file,
-                                                    do_replace_axon=replace_axon,
-                                                    replace_axon_hoc=replace_axon_hoc,
-                                                    axon_stump_length=replace_axon_length,
-                                                    axon_stump_nsec=replace_axon_nsec)
-        '''
+                                                    axon_stub_length=replace_axon_length*1e6,
+                                                    axon_nseg_frequency=replace_axon_nseg_frequency*1e6)
 
     ##############################################################################
 
@@ -489,6 +467,8 @@ class NeuronModel(ephys.models.CellModel):
     ############################################################################
 
     def get_replacement_axon(self, axon_length=60e-6, axon_diameter=None, axon_nseg=None):
+
+        raise DeprecationWarning("This function is now orphaned. Might need to re-update it if we switch to using hoc")
 
         """
             If axon_length is given as a scalar, then the code is similar to the BluePyOpt hoc, with the modification
