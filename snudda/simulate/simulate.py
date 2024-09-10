@@ -1944,17 +1944,29 @@ class SnuddaSimulate(object):
             print(f"add_rxd_concentration_recording:  not enabled, ignoring recording of {species} in neuron {neuron_id}")
             return
 
+
         if sec_id == -1:
             sec_type = "soma"
+            neuron_sec_id = 0
         elif sec_id >= 0:
             sec_type = "dend"
+            neuron_sec_id = sec_id
         else:
             sec_type = "axon"
+            neuron_sec_id = 0
+            print("Axon recordings currently not fully supported (using sec_id=0")
 
         if self.neurons[neuron_id].modulation is None:
             raise ValueError(f"No modulation specified for neuron {self.neurons[neuron_id].name} ({neuron_id})")
 
-        segment = getattr(self.neurons[neuron_id].icell, sec_type)[sec_id](sec_x)
+        try:
+            segment = getattr(self.neurons[neuron_id].icell, sec_type)[neuron_sec_id](sec_x)
+        except:
+            import traceback
+            print(traceback.format_exc())
+            import pdb
+            pdb.set_trace()
+            
 
         conc_ref = self.neurons[neuron_id].modulation.species[species][region].nodes(segment)._ref_concentration
 
