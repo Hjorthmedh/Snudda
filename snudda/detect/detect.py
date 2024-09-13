@@ -726,17 +726,14 @@ class SnuddaDetect(object):
         
             rng = np.random.default_rng(seed)
 
-            # print(neuron.name)
-            # print(n_hv)
-            # n_hv = 4
-            # hyper_voxel_id = np.unique(self.get_hypervoxel_coords_and_section_id(neuron = neuron)['neuron'][:,0])
-            
+
             hyper_voxel_id = list(set(list(np.unique(self.get_hypervoxel_coords_and_section_id(neuron = neuron)['neuron'][:,0]))[1:2] + list(np.unique(rng.integers(low = 0, high = self.hyper_voxel_id_lookup.size,size = (n_hv,1))))))
 
-            #hyper_voxel_id = list(set(list(np.unique(rng.integers(low = 0, high = self.hyper_voxel_id_lookup.size,size = (n_hv,1))))))
+            if neuron.axon_density_prox:
+                hyper_voxel_id = list(set(list(np.unique(self.get_hypervoxel_coords_and_section_id(neuron = neuron)['neuron'][:,0]))[1:2] + list(np.unique(rng.integers(low = 0, high = self.hyper_voxel_id_lookup.size, size = (n_hv,1))))))
+            else:
+                hyper_voxel_id = list(set(list(np.unique(rng.integers(low = 0, high = self.hyper_voxel_id_lookup.size,size = (n_hv,1))))))
 
-            # hyper_voxel_id = list(np.unique(rng.integers(low = 0, high = self.hyper_voxel_id_lookup.size,size = (n_hv,1))))
-                
             if axon_loc is not None:
                 inside_idx = np.sum(np.logical_and(0 <= axon_loc, axon_loc < self.hyper_voxel_id_lookup.shape), axis=1) == 3
                 hyper_voxel_id = np.unique(self.hyper_voxel_id_lookup[tuple(axon_loc[inside_idx, :].T)])
@@ -2173,7 +2170,9 @@ class SnuddaDetect(object):
                             self.prototype_neurons[name].apply("set_axon_voxel_xyz_density", [density, axon_density_bounds_xyz])
                         elif axon_density_type == "sparse":
                             n_hv = definition["axon_density"][1]
-                            self.prototype_neurons[name].apply("set_axon_voxel_sparse_density", [n_hv])
+                            prox = definition["axon_density"][2]
+                            self.prototype_neurons[name].apply("set_axon_voxel_sparse_density", [n_hv], prox)
+        
                         else:
                             self.write_log(f"{name}: Unknown axon density type : {axon_density_type}\n"
                                            f"{definition['axon_density']}", is_error=True)
