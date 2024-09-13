@@ -2171,7 +2171,7 @@ class SnuddaDetect(object):
                         elif axon_density_type == "sparse":
                             n_hv = definition["axon_density"][1]
                             prox = definition["axon_density"][2]
-                            self.prototype_neurons[name].apply("set_axon_voxel_sparse_density", [n_hv], prox)
+                            self.prototype_neurons[name].apply("set_axon_voxel_sparse_density", [n_hv,prox])
         
                         else:
                             self.write_log(f"{name}: Unknown axon density type : {axon_density_type}\n"
