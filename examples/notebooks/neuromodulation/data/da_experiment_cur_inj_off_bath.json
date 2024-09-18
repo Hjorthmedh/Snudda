@@ -1,7 +1,7 @@
 {
     "network_file": "networks/neuromodulation_bath_current/network-synapses.hdf5",
-    "output_file": "networks/neuromodulation_bath_current/simulation/output_neuromodulation_ON.hdf5",
-    "log_file": "networks/neuromodulation_bath_current/log/network-simulation-ON.txt",
+    "output_file": "networks/neuromodulation_bath_current/simulation/output_neuromodulation_OFF.hdf5",
+    "log_file": "networks/neuromodulation_bath_current/log/network-simulation-OFF.txt",
     "time": 1.5,
     "record_all_soma": true,
     "record_rxd_species_all": [0, 1],
