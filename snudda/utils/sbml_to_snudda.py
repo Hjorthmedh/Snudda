@@ -7,12 +7,18 @@ import numpy as np
 
 class ReadSBML:
 
-    def __init__(self, filename=None, out_file=None):
+    def __init__(self, filename=None, out_file=None, concentration_scale_factor=None):
 
         self.filename = filename
         self.out_file = out_file
         self.reader = None
         self.data = None
+
+        if concentration_scale_factor is None:
+            self.concentration_scale_factor = 1
+        else:
+            self.concentration_scale_factor = concentration_scale_factor
+            print(f"Using concentration scale factor: {self.concentration_scale_factor}")
 
         if filename is not None:
 
@@ -58,11 +64,11 @@ class ReadSBML:
             # represents = species.getId()  # Assuming species ID represents itself
 
             species_data[species_name] = {
-                "initial_concentration": initial_concentration,
+                "initial_concentration": initial_concentration * self.concentration_scale_factor,
                 "diffusion_constant": diffusion_constant,
                 "charge": charge,
                 "regions": regions,
-                "concentration": initial_concentration
+                "concentration": initial_concentration * self.concentration_scale_factor
                 # "represents": represents
             }
 
@@ -153,10 +159,16 @@ class ReadSBML:
 
         orig_expression = expression
 
+        # TODO: We need to rescale the rates with self.concentration_scale_factor for two-factors
+        #       and self.concentration_scale_factor**2 for three-factors
+
+        # TODO: How to count reactants?
+
         while expression.getOperatorName() == "times":
             left_child = expression.getLeftChild()
 
-            # If the left child is a volume, then take the right child instead, and end the loop
+            # If the left child is a volume (ie has the name of a volume in compartment_list),
+            # then take the right child instead, and end the loop
             if left_child.getName() in compartment_list:
                 expression = expression.getRightChild()
                 break
@@ -198,10 +210,11 @@ def cli():
                                      formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("sbml_file", help="Input SBML file to convert")
     parser.add_argument("json_file", help="Snudda RxD JSON output file")
+    parser.add_argument("--conc_scale_factor", default=1, help="Rescale concentrations by factor", type=float)
 
     args = parser.parse_args()
 
-    rs = ReadSBML(filename=args.sbml_file, out_file=args.json_file)
+    rs = ReadSBML(filename=args.sbml_file, out_file=args.json_file, concentration_scale_factor=args.conc_scale_factor)
 
 
 if __name__ == "__main__":

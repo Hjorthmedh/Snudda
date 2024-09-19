@@ -30,9 +30,9 @@
     "rxd_enable_extracellular": false,
     "bath_application": {
 	"DA": {
-	    "time": [0, 10],
-	    "concentration": [60e-6, 60e-6],
-	    "interpolate": false
+	    "time": [0, 0.499, 0.5, 0.99, 1.0, 10],
+	    "concentration": [20e-6, 20e-6, 60e-6, 60e-6, 100e-6, 100e-6],
+	    "interpolate": true
 	}
     },
     "current_injection_file": "bath_current_injection.json"

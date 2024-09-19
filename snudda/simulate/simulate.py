@@ -2045,8 +2045,11 @@ class SnuddaSimulate(object):
         if neuron_id is None:
             neuron_id = self.snudda_loader.get_neuron_id(include_virtual=False)
 
-        conc_vect = self.sim.neuron.h.Vector(concentration * 1e6)  # SI to micromolar
+        conc_vect = self.sim.neuron.h.Vector(concentration * 1e3)  # SI to millimolar
         t_vect = self.sim.neuron.h.Vector(time * 1e3)  # s -> ms
+
+        if self.verbose:
+            self.write_log(f"Bath application t={time*1e3}ms, conc={concentration*1e3}")
 
         if species_name is self.bath_application:
             raise KeyError(f"Bath application already applied for {species_name}")
@@ -2370,8 +2373,8 @@ class SnuddaSimulate(object):
             cur_amp = np.array(cur_info["current"])
             neuron_id = int(neuron_id)
 
-            # Default mode is to interpolate between given points
-            interpolate_flag = cur_info["interpolate"] if "interpolate" in cur_info else False
+            # Default mode is to interpolate between given points (because otherwise we need a full vector)
+            interpolate_flag = cur_info["interpolate"] if "interpolate" in cur_info else True
 
             if self.verbose:
                 self.write_log(f"Adding current injection to neuron {neuron_id}: time = {time}, current = {cur_amp}, "

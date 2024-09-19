@@ -1,212 +1,212 @@
 {
     "species": {
         "GaolfGDP": {
-            "initial_concentration": 0.0100831208954662,
+            "initial_concentration": 1.0083120895466201e-11,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0100831208954662,
+            "concentration": 1.0083120895466201e-11,
             "boundary_condition": false
         },
         "Gbgolf": {
-            "initial_concentration": 29.8851246006536,
+            "initial_concentration": 2.98851246006536e-08,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 29.8851246006536,
+            "concentration": 2.98851246006536e-08,
             "boundary_condition": false
         },
         "GaolfGTP": {
-            "initial_concentration": 0.00891348109605658,
+            "initial_concentration": 8.91348109605658e-12,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.00891348109605658,
+            "concentration": 8.91348109605658e-12,
             "boundary_condition": false
         },
         "D1RDAGolf": {
-            "initial_concentration": 2.00890216216344,
+            "initial_concentration": 2.00890216216344e-09,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 2.00890216216344,
+            "concentration": 2.00890216216344e-09,
             "boundary_condition": false
         },
         "Golf": {
-            "initial_concentration": 1453.07257228221,
+            "initial_concentration": 1.4530725722822101e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1453.07257228221,
+            "concentration": 1.4530725722822101e-06,
             "boundary_condition": false
         },
         "D1RGolf": {
-            "initial_concentration": 515.033400954975,
+            "initial_concentration": 5.150334009549751e-07,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 515.033400954975,
+            "concentration": 5.150334009549751e-07,
             "boundary_condition": false
         },
         "D1RDA": {
-            "initial_concentration": 5.95922532787641,
+            "initial_concentration": 5.95922532787641e-09,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 5.95922532787641,
+            "concentration": 5.95922532787641e-09,
             "boundary_condition": false
         },
         "D1R": {
-            "initial_concentration": 1476.99847155499,
+            "initial_concentration": 1.47699847155499e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1476.99847155499,
+            "concentration": 1.47699847155499e-06,
             "boundary_condition": false
         },
         "cAMP": {
-            "initial_concentration": 38.1860143351998,
+            "initial_concentration": 3.81860143351998e-08,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 38.1860143351998,
+            "concentration": 3.81860143351998e-08,
             "boundary_condition": false
         },
         "AC5": {
-            "initial_concentration": 2.66944644058834,
+            "initial_concentration": 2.66944644058834e-09,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 2.66944644058834,
+            "concentration": 2.66944644058834e-09,
             "boundary_condition": false
         },
         "AC5GaolfGTP": {
-            "initial_concentration": 0.118090407078866,
+            "initial_concentration": 1.1809040707886602e-10,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.118090407078866,
+            "concentration": 1.1809040707886602e-10,
             "boundary_condition": false
         },
         "PDE4": {
-            "initial_concentration": 1506.80848289944,
+            "initial_concentration": 1.50680848289944e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1506.80848289944,
+            "concentration": 1.50680848289944e-06,
             "boundary_condition": false
         },
         "PKA": {
-            "initial_concentration": 1157.14133868944,
+            "initial_concentration": 1.15714133868944e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1157.14133868944,
+            "concentration": 1.15714133868944e-06,
             "boundary_condition": false
         },
         "PKAcAMP2": {
-            "initial_concentration": 3.2824343126378,
+            "initial_concentration": 3.2824343126378e-09,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 3.2824343126378,
+            "concentration": 3.2824343126378e-09,
             "boundary_condition": false
         },
         "PKAcAMP4": {
-            "initial_concentration": 0.0867374139319834,
+            "initial_concentration": 8.673741393198342e-11,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0867374139319834,
+            "concentration": 8.673741393198342e-11,
             "boundary_condition": false
         },
         "PKAreg": {
-            "initial_concentration": 39.489489583994,
+            "initial_concentration": 3.9489489583994e-08,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 39.489489583994,
+            "concentration": 3.9489489583994e-08,
             "boundary_condition": false
         },
         "PKAc": {
-            "initial_concentration": 3.66078057924366,
+            "initial_concentration": 3.6607805792436603e-09,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 3.66078057924366,
+            "concentration": 3.6607805792436603e-09,
             "boundary_condition": false
         },
         "PP1": {
-            "initial_concentration": 2927.34258198642,
+            "initial_concentration": 2.9273425819864204e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 2927.34258198642,
+            "concentration": 2.9273425819864204e-06,
             "boundary_condition": false
         },
         "DA": {
-            "initial_concentration": 20.0,
+            "initial_concentration": 2e-08,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 20.0,
+            "concentration": 2e-08,
             "boundary_condition": false
         },
         "AMP": {
@@ -221,135 +221,135 @@
             "boundary_condition": true
         },
         "PDE4_cAMP": {
-            "initial_concentration": 493.191517100561,
+            "initial_concentration": 4.931915171005611e-07,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 493.191517100561,
+            "concentration": 4.931915171005611e-07,
             "boundary_condition": false
         },
         "PDE10c": {
-            "initial_concentration": 0.578101285574062,
+            "initial_concentration": 5.78101285574062e-10,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.578101285574062,
+            "concentration": 5.78101285574062e-10,
             "boundary_condition": false
         },
         "PDE10": {
-            "initial_concentration": 396.456253552482,
+            "initial_concentration": 3.96456253552482e-07,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 396.456253552482,
+            "concentration": 3.96456253552482e-07,
             "boundary_condition": false
         },
         "PDE10_cAMP": {
-            "initial_concentration": 302.781683628694,
+            "initial_concentration": 3.0278168362869404e-07,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 302.781683628694,
+            "concentration": 3.0278168362869404e-07,
             "boundary_condition": false
         },
         "PDE10c_cAMP": {
-            "initial_concentration": 0.183961533250013,
+            "initial_concentration": 1.8396153325001302e-10,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.183961533250013,
+            "concentration": 1.8396153325001302e-10,
             "boundary_condition": false
         },
         "ATP": {
-            "initial_concentration": 5000000.0,
+            "initial_concentration": 0.005,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 5000000.0,
+            "concentration": 0.005,
             "boundary_condition": true
         },
         "AC5GaolfGTP_ATP": {
-            "initial_concentration": 29.7480375915836,
+            "initial_concentration": 2.97480375915836e-08,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 29.7480375915836,
+            "concentration": 2.97480375915836e-08,
             "boundary_condition": false
         },
         "AC5_ATP": {
-            "initial_concentration": 667.46442556075,
+            "initial_concentration": 6.6746442556075e-07,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 667.46442556075,
+            "concentration": 6.6746442556075e-07,
             "boundary_condition": false
         },
         "PP1_Target1p": {
-            "initial_concentration": 73.6574180095066,
+            "initial_concentration": 7.36574180095066e-08,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 73.6574180095066,
+            "concentration": 7.36574180095066e-08,
             "boundary_condition": false
         },
         "Target1p": {
-            "initial_concentration": 377.428073140956,
+            "initial_concentration": 3.77428073140956e-07,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 377.428073140956,
+            "concentration": 3.77428073140956e-07,
             "boundary_condition": false
         },
         "PKAc_Target1": {
-            "initial_concentration": 36.8287090047503,
+            "initial_concentration": 3.68287090047503e-08,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 36.8287090047503,
+            "concentration": 3.68287090047503e-08,
             "boundary_condition": false
         },
         "Target1": {
-            "initial_concentration": 2515.08579984072,
+            "initial_concentration": 2.51508579984072e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 2515.08579984072,
+            "concentration": 2.51508579984072e-06,
             "boundary_condition": false
         }
     },
