@@ -584,7 +584,7 @@ class NeuronMorphologyExtended:
         self.axon_density_bounds_xyz = axon_density_bounds_xyz
         
     def set_axon_voxel_sparse_density(self,
-                                   n_hv, prox):
+                                   n_hv):
 
         """
         Sets axon density
@@ -597,7 +597,6 @@ class NeuronMorphologyExtended:
 
         self.axon_density_type = "sparse"
         self.axon_density_hv = n_hv
-        self.axon_density_prox = prox
 
 
 if __name__ == "__main__":
