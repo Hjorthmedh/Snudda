@@ -357,7 +357,7 @@
         "revreaction_1": {
             "reactants": "D1RGolf + DA",
             "products": "D1RDAGolf",
-            "forward_rate": 0.05,
+            "forward_rate": 50000000.0,
             "backward_rate": 250.0,
             "regions": [
                 "soma_internal",
@@ -367,7 +367,7 @@
         "revreaction_2": {
             "reactants": "D1R + DA",
             "products": "D1RDA",
-            "forward_rate": 0.05,
+            "forward_rate": 50000000.0,
             "backward_rate": 250.0,
             "regions": [
                 "soma_internal",
@@ -377,7 +377,7 @@
         "revreaction_3": {
             "reactants": "D1R + Golf",
             "products": "D1RGolf",
-            "forward_rate": 0.06,
+            "forward_rate": 59999999.99999999,
             "backward_rate": 250.0,
             "regions": [
                 "soma_internal",
@@ -387,7 +387,7 @@
         "revreaction_4": {
             "reactants": "Golf + D1RDA",
             "products": "D1RDAGolf",
-            "forward_rate": 0.06,
+            "forward_rate": 59999999.99999999,
             "backward_rate": 250.0,
             "regions": [
                 "soma_internal",
@@ -397,7 +397,7 @@
         "revreaction_5": {
             "reactants": "AC5 + GaolfGTP",
             "products": "AC5GaolfGTP",
-            "forward_rate": 10.0,
+            "forward_rate": 10000000000.0,
             "backward_rate": 1.0,
             "regions": [
                 "soma_internal",
@@ -407,7 +407,7 @@
         "revreaction_6": {
             "reactants": "AC5GaolfGTP + ATP",
             "products": "AC5GaolfGTP_ATP",
-            "forward_rate": 0.00255,
+            "forward_rate": 2550000.0,
             "backward_rate": 1.0,
             "regions": [
                 "soma_internal",
@@ -417,7 +417,7 @@
         "revreaction_7": {
             "reactants": "AC5 + ATP",
             "products": "AC5_ATP",
-            "forward_rate": 0.0001,
+            "forward_rate": 100000.0,
             "backward_rate": 1.0,
             "regions": [
                 "soma_internal",
@@ -427,7 +427,7 @@
         "revreaction_8": {
             "reactants": "GaolfGTP + AC5_ATP",
             "products": "AC5GaolfGTP_ATP",
-            "forward_rate": 10.0,
+            "forward_rate": 10000000000.0,
             "backward_rate": 1.0,
             "regions": [
                 "soma_internal",
@@ -437,7 +437,7 @@
         "revreaction_9": {
             "reactants": "cAMP + PDE4",
             "products": "PDE4_cAMP",
-            "forward_rate": 0.03,
+            "forward_rate": 29999999.999999996,
             "backward_rate": 1.0,
             "regions": [
                 "soma_internal",
@@ -447,7 +447,7 @@
         "revreaction_10": {
             "reactants": "PDE10 + 2 * cAMP",
             "products": "PDE10c",
-            "forward_rate": 1e-06,
+            "forward_rate": 999999999999.9999,
             "backward_rate": 1.0,
             "regions": [
                 "soma_internal",
@@ -457,7 +457,7 @@
         "revreaction_11": {
             "reactants": "cAMP + PDE10",
             "products": "PDE10_cAMP",
-            "forward_rate": 0.1,
+            "forward_rate": 100000000.0,
             "backward_rate": 2.0,
             "regions": [
                 "soma_internal",
@@ -467,7 +467,7 @@
         "revreaction_12": {
             "reactants": "cAMP + PDE10c",
             "products": "PDE10c_cAMP",
-            "forward_rate": 0.1,
+            "forward_rate": 100000000.0,
             "backward_rate": 2.0,
             "regions": [
                 "soma_internal",
@@ -477,7 +477,7 @@
         "revreaction_13": {
             "reactants": "cAMP + PKA",
             "products": "PKAcAMP2",
-            "forward_rate": 0.026,
+            "forward_rate": 25999999.999999996,
             "backward_rate": 350.0,
             "regions": [
                 "soma_internal",
@@ -487,7 +487,7 @@
         "revreaction_14": {
             "reactants": "cAMP + PKAcAMP2",
             "products": "PKAcAMP4",
-            "forward_rate": 0.0346,
+            "forward_rate": 34600000.0,
             "backward_rate": 50.0,
             "regions": [
                 "soma_internal",
@@ -498,7 +498,7 @@
             "reactants": "PKAcAMP4",
             "products": "PKAc + PKAreg",
             "forward_rate": 50.0,
-            "backward_rate": 0.03,
+            "backward_rate": 29999999.999999996,
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -527,7 +527,7 @@
         "irrevreaction_3": {
             "reactants": "GaolfGDP + Gbgolf",
             "products": "Golf",
-            "forward_rate": 100.0,
+            "forward_rate": 100000000000.0,
             "backward_rate": null,
             "regions": [
                 "soma_internal",
@@ -547,7 +547,7 @@
         "irrevreaction_5": {
             "reactants": "cAMP + AC5GaolfGTP",
             "products": "AC5GaolfGTP_ATP",
-            "forward_rate": 2.55,
+            "forward_rate": 2549999999.9999995,
             "backward_rate": null,
             "regions": [
                 "soma_internal",
@@ -567,7 +567,7 @@
         "irrevreaction_7": {
             "reactants": "cAMP + AC5",
             "products": "AC5_ATP",
-            "forward_rate": 0.002,
+            "forward_rate": 2000000.0,
             "backward_rate": null,
             "regions": [
                 "soma_internal",
@@ -627,7 +627,7 @@
         "revreaction_17": {
             "reactants": "PP1 + Target1p",
             "products": "PP1_Target1p",
-            "forward_rate": 0.001,
+            "forward_rate": 1000000.0,
             "backward_rate": 10.0,
             "regions": [
                 "soma_internal",
@@ -637,7 +637,7 @@
         "revreaction_16": {
             "reactants": "Target1 + PKAc",
             "products": "PKAc_Target1",
-            "forward_rate": 0.08,
+            "forward_rate": 80000000.0,
             "backward_rate": 10.0,
             "regions": [
                 "soma_internal",

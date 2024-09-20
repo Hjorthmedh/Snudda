@@ -294,6 +294,10 @@ class NeuronModulation:
 
         for reaction_name, reaction_data in self.config_data.get("reactions", {}).items():
 
+            # BE CAREFUL, BECAUSE VALUES ARE UNSCALED AND FED DIRECTLY INTO RxD
+            # which uses mmolar, ms, litres as units. So usually forward rate needs
+            # to account for the concentration if rescaled.
+            # TODO: Add proper unit handling.
             forward_rates = reaction_data["forward_rate"]
             backward_rates = reaction_data["backward_rate"]
 
@@ -307,16 +311,39 @@ class NeuronModulation:
                 raise ValueError(f"{reaction_data} incompatible lengths for regions, forward and backward rates")
 
             for region, forward_rate, backward_rate in zip(reaction_data["regions"], forward_rates, backward_rates):
+                # TODO: Sanitise species_name_str before exec call
                 exec(f"{species_name_vars} = self.get_species('{species_name_str}', region_name=region)")
 
                 left_side = eval(reaction_data["reactants"])
                 right_side = eval(reaction_data["products"])
 
+                try:
+                    n_left = sum((left_side*1)._items.values())
+                    n_right = sum((right_side*1)._items.values())
+                except:
+                    import traceback
+                    print(traceback.format_exc())
+                    import pdb
+                    pdb.set_trace()
+
+                assert n_left >= 1 and n_right >= 1
+
+                # First 1e3 is for 1/second to 1/ms, second term is to correct for concentration
+                left_scale_from_SI = 1e-3 * 1e-3 ** (n_left - 1)
+                right_scale_from_SI = 1e-3 * 1e-3 ** (n_right - 1)
+
+                scaled_forward_rate = forward_rate * left_scale_from_SI if forward_rate is not None else forward_rate
+                scaled_backward_rate = backward_rate * right_scale_from_SI if backward_rate is not None else backward_rate
+
+                print(f"Reaction name: {reaction_name}, left: {left_side}, right: {right_side}")
+                print(f"k_forward: {forward_rate} (scaled: {scaled_forward_rate})")
+                print(f"k_backward: {backward_rate} (scaled: {scaled_backward_rate})")
+
                 self.add_reaction(reaction_name=reaction_name,
                                   left_side=left_side,
                                   right_side=right_side,
-                                  forward_rate=forward_rate,
-                                  backward_rate=backward_rate,
+                                  forward_rate=scaled_forward_rate,
+                                  backward_rate=scaled_backward_rate,
                                   region_name=region)
 
     def concentration_from_vector(self, species_name, concentration_vector, time_vector, interpolate=True):

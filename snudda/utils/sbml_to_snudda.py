@@ -144,18 +144,55 @@ class ReadSBML:
 
         if operator == "minus":
             # We have both forward and backward rate to extract
-            forward_rate = self._get_rate_helper(current_expression.getLeftChild(), global_parameters, compartment_list)
-            backward_rate = self._get_rate_helper(current_expression.getRightChild(), global_parameters, compartment_list)
+            forward_rate = self._get_rate_helper(current_expression.getLeftChild(),
+                                                 global_parameters, compartment_list, model)
+            backward_rate = self._get_rate_helper(current_expression.getRightChild(),
+                                                  global_parameters, compartment_list, model)
 
         else:
-            forward_rate = self._get_rate_helper(current_expression, global_parameters, compartment_list)
+            forward_rate = self._get_rate_helper(current_expression,
+                                                 global_parameters, compartment_list, model)
             backward_rate = None
 
         print(f"{forward_rate =}, {backward_rate =}")
 
         return forward_rate, backward_rate
 
-    def _get_rate_helper(self, expression, global_parameters, compartment_list):
+    def _count_reactants(self, expression, model):
+
+        num_species = 0
+        species_list = [x.getId() for x in model.getListOfSpecies()]
+
+        if expression.getId() in species_list or expression.getName() in species_list:
+            # We found a species, number of reactants is 1
+            return 1
+
+        if expression.getOperatorName() == "times":
+            left_child = expression.getLeftChild()
+            right_child = expression.getRightChild()
+
+            num_species += self._count_reactants(left_child, model)
+            num_species += self._count_reactants(right_child, model)
+        elif expression.getName() == "power":
+            # libsbml.formulaToString(orig_expression)
+            left_child = expression.getLeftChild()
+            right_child = expression.getRightChild()
+
+            base = self._count_reactants(left_child, model)
+            exponent = right_child.getValue()
+
+            num_species = base * exponent
+
+        elif expression.getOperatorName() is None:
+            return 0
+        else:
+            import pdb
+            pdb.set_trace()
+            raise ValueError(f"Not a multiplication: {expression.getOperatorName()}")
+
+        return num_species
+
+    def _get_rate_helper(self, expression, global_parameters, compartment_list, model):
 
         orig_expression = expression
 
@@ -178,6 +215,8 @@ class ReadSBML:
 
         rate_name = expression.getName()
 
+        print(f"rate_name = {rate_name}")
+
         try:
             rate = global_parameters[rate_name]
         except:
@@ -185,6 +224,11 @@ class ReadSBML:
             print(traceback.format_exc())
             import pdb
             pdb.set_trace()
+
+        if self.concentration_scale_factor != 1:
+            num_species = self._count_reactants(expression=orig_expression, model=model)
+
+            rate /= self.concentration_scale_factor ** (num_species - 1)
 
         return rate
 
