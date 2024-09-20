@@ -10,7 +10,7 @@
 	    "represents": "DA"   
 	},
 	"B":{
-	    "initial_concentration": 0.7,
+	    "initial_concentration": 0.7e-3,
 	    "diffusion_constant": 0,
 	    "charge": 0,
 	    "regions": ["soma_internal", "dend_internal"],
@@ -19,7 +19,7 @@
 	    "represents": "DA"	    
 	},
 	"PKA":{
-	    "initial_concentration": 0.1,
+	    "initial_concentration": 0.1e-3,
 	    "diffusion_constant": 0,
 	    "charge": 0,
 	    "regions": ["soma_internal", "dend_internal"],
@@ -39,8 +39,8 @@
 	"my_reaction_1": {
 	    "reactants": "DA + B",
 	    "products": "PKA",
-	    "forward_rate": 0.01,
-	    "backward_rate": 0.0005,
+	    "forward_rate": 0.01e-6,
+	    "backward_rate": 0.0005e-3,
 	    "regions": ["soma_internal", "dend_internal"]
 	}
     }
