@@ -275,7 +275,7 @@ class SnuddaSimulate(object):
         self.load_network_info(self.network_file)
 
         self.record = SnuddaSaveNetworkRecordings(output_file=self.output_file, network_data=self.network_info,
-                                                  sample_dt=self.sample_dt)
+                                                  sample_dt=self.sample_dt, node_id=node_id)
         self.record.add_unit(data_type="voltage", target_unit="V", conversion_factor=1e-3)
         self.record.add_unit(data_type="synaptic_current", target_unit="A", conversion_factor=1e-9)
         self.record.add_unit(data_type="spikes", target_unit="s", conversion_factor=1e-3)

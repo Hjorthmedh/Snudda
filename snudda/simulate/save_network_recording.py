@@ -181,9 +181,10 @@ class SnuddaSaveNetworkRecordings:
 
     # TODO: Add saving of simulation_config file (and experiment_config_file for pair recording)
 
-    def __init__(self, output_file, network_data=None, sample_dt=None):
+    def __init__(self, output_file, network_data=None, sample_dt=None, node_id=0):
 
-        if not self.check_file_available(output_file):
+        # Only do this check on the first node
+        if node_id == 0 and not self.check_file_available(output_file):
             sys.exit(-1)
 
         self.output_file = output_file
@@ -284,7 +285,7 @@ class SnuddaSaveNetworkRecordings:
                 f = h5py.File(file_name, "w")
                 f.close()
             except BlockingIOError as e:
-                print(f"Unable to create file {file_name}.")
+                print(f"Unable to create file {file_name}. Is some other program using the file?")
                 return False
 
         return True
