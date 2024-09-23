@@ -280,7 +280,24 @@ class SnuddaSaveNetworkRecordings:
                 os.mkdir(os.path.dirname(self.output_file))
 
             print(f"Writing network output to {self.output_file}")
-            out_file = h5py.File(self.output_file, "w")
+
+            try:
+                out_file = h5py.File(self.output_file, "w")
+            except Exception as e:
+
+                print(e)
+                print(f"Trying to recover, and save to different file name.")
+
+                ctr = 1
+                temp_name = f"{self.output_file}-{ctr}"
+
+                while os.path.isfile(temp_name):
+                    print(f"File exists: {temp_name}")
+                    ctr += 1
+                    temp_name = f"{self.output_file}-{ctr}"
+
+                print(f"\n!!! Unable to create {self.output_file} (file locked?), using {temp_name} instead\n\n")
+                out_file = h5py.File(temp_name, "w")
 
             meta_data = out_file.create_group("meta_data")
 
