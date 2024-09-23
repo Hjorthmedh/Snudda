@@ -2369,6 +2369,11 @@ class SnuddaSimulate(object):
     def parse_current_injection_info(self):
 
         for neuron_id, cur_info in self.current_injection_info.items():
+
+            if neuron_id not in self.neurons:
+                # Neuron not on this worker.
+                continue
+
             time = np.array(cur_info["time"])
             cur_amp = np.array(cur_info["current"])
             neuron_id = int(neuron_id)
