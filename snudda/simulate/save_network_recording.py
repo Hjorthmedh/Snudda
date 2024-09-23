@@ -274,10 +274,6 @@ class SnuddaSaveNetworkRecordings:
         group.create_dataset(name, (len(string_data),), str_type, string_data, compression="gzip")
 
     def check_file_available(self, file_name):
-        file_dir = os.path.dirname(file_name)
-
-        if not os.path.isdir(file_dir):
-            raise ValueError(f"Parent directory for file does not exist {file_name} (dir: {file_dir}")
 
         if os.path.isfile(file_name):
             # Try to open and close file, to make sure it is available
