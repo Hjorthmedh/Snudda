@@ -860,15 +860,15 @@ class SnuddaInput(object):
                         if "cluster_size" in input_inf:
                             cluster_size = input_inf["cluster_size"]
                             if isinstance(cluster_size, (np.ndarray, list)):
-                                cluster_size = round(rng_num_inputs.normal(loc=cluster_size[0],
-                                                                                 scale=cluster_size[1]))
+                                cluster_size = max(1,round(rng_num_inputs.normal(loc=cluster_size[0],
+                                                                                 scale=cluster_size[1])))
                         else:
                             cluster_size = None
                         
                         if "cluster_spread" in input_inf:
                             cluster_spread = input_inf["cluster_spread"]
                             if isinstance(cluster_spread, (np.ndarray, list)):
-                                cluster_spread = round(rng_num_inputs.normal(loc=cluster_spread[0],
+                                cluster_spread = max(1e-6,rng_num_inputs.normal(loc=cluster_spread[0],
                                                                                  scale=cluster_spread[1]))
                         else:
                             cluster_spread = None
