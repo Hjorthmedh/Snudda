@@ -185,7 +185,7 @@ class ProjectionDetection:
                         rx = ry = rz = proj["radius"]
                             
                     # Find better way to calculate intersection between ellipsoid and hyper voxel cubes?
-                    pos = self.ellipsoid_coordinates(target_pos, rx, ry, rz, target_rotation, num_points, rng)
+                    pos = self.ellipsoid_coordinates(target_pos, rx, ry, rz, target_rotation, num_points, rng, jitter = True)
 
                     hv_idx = ((pos - self.snudda_detect.simulation_origo)
                               / (self.snudda_detect.hyper_voxel_size * self.snudda_detect.voxel_size)).astype(int)
@@ -203,7 +203,7 @@ class ProjectionDetection:
         return neuron_id, hyper_voxels
 
     @staticmethod
-    def ellipsoid_coordinates(target_pos, rx, ry, rz, rotation, num_points, rng):
+    def ellipsoid_coordinates(target_pos, rx, ry, rz, rotation, num_points, rng, jitter = True):
 
         """
             Return num points centred around target_pos, within an ellipsoid with axis rx, ry, rz rotated by rotation
@@ -223,6 +223,9 @@ class ProjectionDetection:
         theta = 2 * np.pi * rnd_values[:, 0]
         phi = np.arccos(2 * rnd_values[:, 1] - 1)
         r_scale = rnd_values[:, 2] ** (1 / 3)
+        
+        if jitter:
+            rotation = rotation * rng.uniform(0.95, 1.05)
 
         x_coord = np.multiply(rx * r_scale, np.multiply(np.sin(phi), np.cos(theta)))
         y_coord = np.multiply(ry * r_scale, np.multiply(np.sin(phi), np.sin(theta)))
@@ -261,7 +264,7 @@ class ProjectionDetection:
                 else:
                     rx = ry = rz = proj["radius"]
 
-                pos = self.ellipsoid_coordinates(target_pos, rx, ry, rz, target_rotation, num_points, rng)
+                pos = self.ellipsoid_coordinates(target_pos, rx, ry, rz, target_rotation, num_points, rng, jitter = True)
 
                 # Convert to coordinates in the hyper voxel
                 voxel_coords = np.round((pos - self.snudda_detect.hyper_voxel_origo)

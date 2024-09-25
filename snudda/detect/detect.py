@@ -1840,7 +1840,7 @@ class SnuddaDetect(object):
         Placing fake axon segments based on sparse distribution
 
         """
-        npoints = 300
+        npoints = 20000
         
         # print('Sparse axon points')
         (xyz_inside, voxIdx) = self.get_hyper_voxel_axon_points_sparse(npoints)

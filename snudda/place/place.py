@@ -50,7 +50,7 @@ class SnuddaPlace(object):
                  h5libver=None,
                  random_seed=None,
                  griddata_interpolation=False,
-                 morphologies_stay_inside=True):
+                 morphologies_stay_inside=True, rotations = None):
 
         """
         Constructor.
@@ -108,6 +108,10 @@ class SnuddaPlace(object):
         else:
             self.write_log("No network_path given, not setting position_file. Remember to pass it to write_data.")
             self.position_file = None
+
+
+        self.rotations = rotations
+
 
         if h5libver is None:
             self.h5libver = "latest"
@@ -183,7 +187,18 @@ class SnuddaPlace(object):
             print(text, flush=True)
 
     ############################################################################
+    
+    
+    def get_position_from_file(self, swc_path):
+        for root, dirs, files in os.walk(swc_path.replace('morphology', '')):
+               for filename in files:
+                   if filename.endswith("loc.txt"):
+                       pos_file = os.path.join(root, filename)
 
+        position = np.array([np.loadtxt(pos_file)*1e-6])
+        print(position)
+        return position
+    
     def add_neurons(self,
                     swc_path,
                     num_neurons,
@@ -199,7 +214,8 @@ class SnuddaPlace(object):
                     morphology_key=None,
                     modulation_key=None,
                     config=None,
-                    rng=None):
+                    rng=None, 
+                    read_positions = False, no_rotations = False):
 
         """
         Add neurons to volume specified.
@@ -239,11 +255,19 @@ class SnuddaPlace(object):
                                            virtual_neuron=virtual_neuron)
 
         neuron_type = name.split("_")[0]
-        neuron_positions = self.volume[volume_id]["mesh"].place_neurons(num_neurons, neuron_type)
+        
+        if read_positions: 
+            neuron_positions = self.get_position_from_file(swc_path)
+        else:
+            neuron_positions = self.volume[volume_id]["mesh"].place_neurons(num_neurons, neuron_type)
+
 
         first_added = True
-
-        neuron_rotations = self.rotate_helper.get_rotations(volume_name=volume_id, neuron_type=neuron_type,
+            
+        if no_rotations: 
+            neuron_rotations = np.array([np.array([1,0,0,0,1,0,0,0,1])])
+        else: 
+            neuron_rotations = self.rotate_helper.get_rotations(volume_name=volume_id, neuron_type=neuron_type,
                                                             neuron_positions=neuron_positions,
                                                             rng=rng)
 
@@ -473,6 +497,16 @@ class SnuddaPlace(object):
                                                                 n_neurons, f"{neuron_type} morphology_key")
                 modulation_key_list = SnuddaPlace.replicate_str(neuron_data.get("modulation_key"),
                                                                 n_neurons, f"{neuron_type} modulation_key")
+                if "read_positions" in neuron_data:
+                    read_positions = neuron_data["read_positions"]
+                    
+                else:
+                    read_positions = False
+                
+                if "no_rotations" in neuron_data:
+                    no_rotations = neuron_data["no_rotations"]
+                else:
+                    no_rotations = False
 
                 for (neuron_name, neuron_path), num, parameter_key, morphology_key, modulation_key \
                         in zip(neuron_data["neuron_path"].items(), n_neurons,
@@ -514,7 +548,7 @@ class SnuddaPlace(object):
                                      morphology_key=morphology_key,
                                      modulation_key=modulation_key,
                                      config=config,
-                                     rng=region_rnd)
+                                     rng=region_rnd, read_positions = read_positions, no_rotations= no_rotations)
 
                     number_of_added_neurons += num
 

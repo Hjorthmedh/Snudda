@@ -436,7 +436,7 @@ class SnuddaInit(object):
                     stay_inside=False,
                     k_dist=30e-6,
                     n_random=5,  # Used for bending morphologies
-                    max_angle=0.1):
+                    max_angle=0.1, read_positions = False, no_rotations = False):
 
         if num_neurons is not None and num_neurons <= 0:
             print(f"{name}: Skipping neuron because, {num_neurons =}")
@@ -581,7 +581,13 @@ class SnuddaInit(object):
 
         if stay_inside:
             neuron_dict["stay_inside_mesh"] = {"k_dist": k_dist, "n_random": n_random, "max_angle": max_angle}
-
+            
+        if read_positions is not None:
+            neuron_dict["read_positions"] = read_positions
+            
+        if no_rotations is not None:
+            neuron_dict["no_rotations"] = no_rotations
+        
         neuron_dict["neuron_path"] = dict()
 
         for unique_name, neuron_path in neuron_file_list:
