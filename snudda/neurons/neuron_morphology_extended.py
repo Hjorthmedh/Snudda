@@ -68,6 +68,7 @@ class NeuronMorphologyExtended:
         self.density_bin_size = 10e-6
         # Or are they required for axon densities?
 
+        print(swc_filename)
         if self.load_morphology and swc_filename is not None:
             self.add_morphology(swc_file=swc_filename, position=position, rotation=rotation)
 
@@ -464,15 +465,20 @@ class NeuronMorphologyExtended:
             # include that section as well (and in case of parent, potentially its children).
 
             kd_tree = self.morphology_data["neuron"].get_kd_tree(compartment_type=3)
-            lust_of_closest_point_idx = kd_tree.query_ball_point(x=geometry[syn_idx, :3], r=cluster_spread)
+            list_of_closest_point_idx = kd_tree.query_ball_point(x=geometry[syn_idx, :3], r=cluster_spread)
 
             list_cluster_syn_idx = []
-
-            for closest_point_idxs in lust_of_closest_point_idx:
+            
+            for closest_point_idxs in list_of_closest_point_idx:
                 # lust_of_closest_point_idx is indexed onto geometry[dend_idx, :3]
                 list_cluster_syn_idx.append(rng.choice(dend_idx[closest_point_idxs], size=cluster_size, replace=True))
-
-            cluster_syn_idx = np.concatenate(list_cluster_syn_idx)
+            try:
+                cluster_syn_idx = np.concatenate(list_cluster_syn_idx)
+            except:
+                import traceback
+                print(traceback.format_exc())
+                import pdb
+                pdb.set_trace()
 
             # Make sure we only have num_location points, remove any excess
             cluster_syn_idx = cluster_syn_idx[:num_locations]
