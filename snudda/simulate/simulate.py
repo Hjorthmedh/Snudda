@@ -356,6 +356,12 @@ class SnuddaSimulate(object):
 
                 self.add_rxd_internal_concentration_recording_all_species(neuron_id=rxd_record_neuron_id)
 
+            if "record_rxd_species_soma" in self.sim_info and self.use_rxd_neuromodulation:
+                rxd_record_neuron_id = self.sim_info["record_rxd_species_soma"]
+
+                self.add_rxd_internal_concentration_recording_all_species(neuron_id=rxd_record_neuron_id,
+                                                                          include_dendrites=False)
+
             if "record_density_mechanism" in self.sim_info:
                 record_info = self.sim_info["record_density_mechanism"]
 
@@ -2013,7 +2019,7 @@ class SnuddaSimulate(object):
                 f"Internal error, assumed {sid} was section id of {sec.name()}"
             self.add_rxd_concentration_recording(species, neuron_id, "dend_internal", sid, 0.5)
 
-    def add_rxd_internal_concentration_recording_all_species(self, neuron_id):
+    def add_rxd_internal_concentration_recording_all_species(self, neuron_id, include_dendrites=True):
 
         if self.verbose:
             self.write_log(f"Recording all RxD species from neurons: {neuron_id}")
@@ -2035,10 +2041,11 @@ class SnuddaSimulate(object):
             # Add soma
             self.add_rxd_concentration_recording(species, neuron_id, "soma_internal", -1, 0.5)
 
-            for sid, sec in enumerate(self.neurons[neuron_id].icell.dend):
-                assert int(sec.name().split('[')[-1].strip(']')) == sid, \
-                    f"Internal error, assumed {sid} was section id of {sec.name()}"
-                self.add_rxd_concentration_recording(species, neuron_id, "dend_internal", sid, 0.5)
+            if include_dendrites:
+                for sid, sec in enumerate(self.neurons[neuron_id].icell.dend):
+                    assert int(sec.name().split('[')[-1].strip(']')) == sid, \
+                        f"Internal error, assumed {sid} was section id of {sec.name()}"
+                    self.add_rxd_concentration_recording(species, neuron_id, "dend_internal", sid, 0.5)
 
     def add_bath_application(self, species_name, concentration, time, neuron_id=None, interpolate=True):
 

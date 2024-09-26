@@ -1,6 +1,8 @@
 # python ../../../../snudda/utils/sbml_to_snudda.py SBML/MODEL_speedy_reduced2.xml JSON/robert_reaction_diffusion.json
 
-python ../../../../snudda/utils/sbml_to_snudda.py SBML/Robert-MODEL_speedy_reduced2_UPDATED.xml JSON/reaction_diffusion_D1.json --conc_scale_factor 1e-9
+# python ../../../../snudda/utils/sbml_to_snudda.py SBML/Robert-MODEL_speedy_reduced2_UPDATED.xml JSON/reaction_diffusion_D1.json --conc_scale_factor 1e-9
+
+python ../../../../snudda/utils/sbml_to_snudda.py SBML/Robert-MODEL_speedy_reduced2_UPDATED_notarget.xml JSON/reaction_diffusion_D1.json --conc_scale_factor 1e-9
 
 # python ../../../../snudda/utils/sbml_to_snudda.py SBML/Nair_2016_optimized_UPDATED.xml JSON/reaction_diffusion_D1.json
 
