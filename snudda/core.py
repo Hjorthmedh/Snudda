@@ -167,6 +167,7 @@ class Snudda(object):
     ############################################################################
 
     def init_tiny(self, neuron_paths, neuron_names, number_of_neurons,
+                  morphology_key=None, parameter_key=None,
                   connection_config=None, random_seed=None, density=80500, d_min=15e-6):
 
         """
@@ -202,8 +203,24 @@ class Snudda(object):
         if isinstance(number_of_neurons, int):
             number_of_neurons = [int(number_of_neurons / len(neuron_paths)) for x in neuron_names]
 
-        for path, name, cnt in zip(neuron_paths, neuron_names, number_of_neurons):
+        if isinstance(morphology_key, str):
+            morphology_key = [morphology_key]
+
+        if isinstance(parameter_key, str):
+            parameter_key = [parameter_key]
+
+        assert (morphology_key is None and parameter_key is None) or \
+            len(morphology_key) == len(parameter_key) == len(neuron_paths)
+
+        for idx, (path, name, cnt) in enumerate(zip(neuron_paths, neuron_names, number_of_neurons)):
+            if name in si.network_data["regions"]["Cube"]["neurons"]:
+                raise ValueError(f"neuron name {name} defined more than once")
+
             si.add_neurons(name=name, neuron_dir=path, region_name="Cube", num_neurons=cnt)
+
+            if morphology_key is not None:
+                si.network_data["regions"]["Cube"]["neurons"][name]["parameter_key"] = parameter_key[idx]
+                si.network_data["regions"]["Cube"]["neurons"][name]["morphology_key"] = morphology_key[idx]
 
         si.write_json()
 
