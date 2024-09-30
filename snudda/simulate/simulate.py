@@ -89,15 +89,23 @@ class SnuddaSimulate(object):
         elif network_file:
             self.network_path = os.path.dirname(network_file)
         else:
-            assert False, "You must give network_path or network_file"
+            self.write_log("No network network_path or network_file specified")
+            self.network_path = None
 
         self.snudda_data = get_snudda_data(snudda_data=snudda_data,
                                            network_path=self.network_path)
 
-        if not network_file:
-            self.network_file = os.path.join(self.network_path, "network-synapses.hdf5")
+        if not network_file and self.network_path is not None:
+            alt_network_file = os.path.join(self.network_path, "network-synapses.hdf5")
+            if os.path.isfile(alt_network_file):
+                self.network_file = alt_network_file
+            else:
+                self.network_file = None
         else:
             self.network_file = network_file
+
+        if self.network_file is None:
+            self.write_log(f"Warning: no network_file defined.", is_error=True)
 
         if not input_file:
             default_input_file = os.path.join(self.network_path, "input-spikes.hdf5")
@@ -141,6 +149,9 @@ class SnuddaSimulate(object):
 
         self.disable_synapses = False
         self.disable_gap_junctions = False
+
+        self.current_injection_info = dict()
+        self.current_clamps = dict()
 
         node_id = int(self.pc.id())
         total_nodes = int(self.pc.nhost())
@@ -192,6 +203,18 @@ class SnuddaSimulate(object):
             if "snudda_data" in self.sim_info:
                 # Do not change this unless you know what you are doing
                 self.snudda_data = self.sim_info["snudda_data"]
+
+            if "current_injection_file" in self.sim_info:
+                current_file = self.sim_info["current_injection_file"]
+                if not os.path.isfile(current_file):
+                    raise ValueError(f"No such current injection file {current_file}")
+
+                with open(current_file, "rt") as f:
+                    self.current_injection_info = json.load(f)
+
+            if "current_injection_info" in self.sim_info:
+                # This is merged with current injection info read from file (above)
+                self.current_injection_info |= self.sim_info["current_injection_info"]
 
         else:
             self.sim_info = None
@@ -261,10 +284,13 @@ class SnuddaSimulate(object):
 
         # We need to initialise random streams, see Lytton el at 2016 (p2072)
 
-        self.load_network_info(self.network_file)
+        if self.network_file is not None:
+            self.load_network_info(self.network_file)
+        else:
+            self.write_log("No network path or file specified, not loading network.")
 
         self.record = SnuddaSaveNetworkRecordings(output_file=self.output_file, network_data=self.network_info,
-                                                  sample_dt=self.sample_dt)
+                                                  sample_dt=self.sample_dt, node_id=node_id)
         self.record.add_unit(data_type="voltage", target_unit="V", conversion_factor=1e-3)
         self.record.add_unit(data_type="synaptic_current", target_unit="A", conversion_factor=1e-9)
         self.record.add_unit(data_type="spikes", target_unit="s", conversion_factor=1e-3)
@@ -345,6 +371,12 @@ class SnuddaSimulate(object):
 
                 self.add_rxd_internal_concentration_recording_all_species(neuron_id=rxd_record_neuron_id)
 
+            if "record_rxd_species_soma" in self.sim_info and self.use_rxd_neuromodulation:
+                rxd_record_neuron_id = self.sim_info["record_rxd_species_soma"]
+
+                self.add_rxd_internal_concentration_recording_all_species(neuron_id=rxd_record_neuron_id,
+                                                                          include_dendrites=False)
+
             if "record_density_mechanism" in self.sim_info:
                 record_info = self.sim_info["record_density_mechanism"]
 
@@ -370,11 +402,16 @@ class SnuddaSimulate(object):
                     bath_time = np.array(bath_info["time"])
                     bath_conc = np.array(bath_info["concentration"])
                     neuron_id = bath_info.get("neuron_id", None)
+                    interpolate_bath = bath_info.get("interpolate", False)
 
                     self.add_bath_application(species_name=species_name,
                                               concentration=bath_conc,
                                               time=bath_time,
-                                              neuron_id=neuron_id)
+                                              neuron_id=neuron_id,
+                                              interpolate=interpolate_bath)
+
+            # Add any current injections that are specified
+            self.parse_current_injection_info()
 
         # Do we need blocking call here, to make sure all neurons are setup
         # before we try and connect them
@@ -1941,17 +1978,29 @@ class SnuddaSimulate(object):
             print(f"add_rxd_concentration_recording:  not enabled, ignoring recording of {species} in neuron {neuron_id}")
             return
 
+
         if sec_id == -1:
             sec_type = "soma"
+            neuron_sec_id = 0
         elif sec_id >= 0:
             sec_type = "dend"
+            neuron_sec_id = sec_id
         else:
             sec_type = "axon"
+            neuron_sec_id = 0
+            print("Axon recordings currently not fully supported (using sec_id=0")
 
         if self.neurons[neuron_id].modulation is None:
             raise ValueError(f"No modulation specified for neuron {self.neurons[neuron_id].name} ({neuron_id})")
 
-        segment = getattr(self.neurons[neuron_id].icell, sec_type)[sec_id](sec_x)
+        try:
+            segment = getattr(self.neurons[neuron_id].icell, sec_type)[neuron_sec_id](sec_x)
+        except:
+            import traceback
+            print(traceback.format_exc())
+            import pdb
+            pdb.set_trace()
+            
 
         conc_ref = self.neurons[neuron_id].modulation.species[species][region].nodes(segment)._ref_concentration
 
@@ -1985,14 +2034,14 @@ class SnuddaSimulate(object):
                 f"Internal error, assumed {sid} was section id of {sec.name()}"
             self.add_rxd_concentration_recording(species, neuron_id, "dend_internal", sid, 0.5)
 
-    def add_rxd_internal_concentration_recording_all_species(self, neuron_id, quiet=False):
+    def add_rxd_internal_concentration_recording_all_species(self, neuron_id, include_dendrites=True):
 
-        if not quiet:
+        if self.verbose:
             self.write_log(f"Recording all RxD species from neurons: {neuron_id}")
 
         if isinstance(neuron_id, (list, np.ndarray)):
             for nid in neuron_id:
-                self.add_rxd_internal_concentration_recording_all_species(neuron_id=nid, quiet=True)
+                self.add_rxd_internal_concentration_recording_all_species(neuron_id=nid)
             return
 
         if neuron_id not in self.neuron_id:
@@ -2007,18 +2056,22 @@ class SnuddaSimulate(object):
             # Add soma
             self.add_rxd_concentration_recording(species, neuron_id, "soma_internal", -1, 0.5)
 
-            for sid, sec in enumerate(self.neurons[neuron_id].icell.dend):
-                assert int(sec.name().split('[')[-1].strip(']')) == sid, \
-                    f"Internal error, assumed {sid} was section id of {sec.name()}"
-                self.add_rxd_concentration_recording(species, neuron_id, "dend_internal", sid, 0.5)
+            if include_dendrites:
+                for sid, sec in enumerate(self.neurons[neuron_id].icell.dend):
+                    assert int(sec.name().split('[')[-1].strip(']')) == sid, \
+                        f"Internal error, assumed {sid} was section id of {sec.name()}"
+                    self.add_rxd_concentration_recording(species, neuron_id, "dend_internal", sid, 0.5)
 
-    def add_bath_application(self, species_name, concentration, time, neuron_id=None):
+    def add_bath_application(self, species_name, concentration, time, neuron_id=None, interpolate=True):
 
         if neuron_id is None:
             neuron_id = self.snudda_loader.get_neuron_id(include_virtual=False)
 
-        conc_vect = self.sim.neuron.h.Vector(concentration * 1e6)  # SI to micromolar
+        conc_vect = self.sim.neuron.h.Vector(concentration * 1e3)  # SI to millimolar
         t_vect = self.sim.neuron.h.Vector(time * 1e3)  # s -> ms
+
+        if self.verbose:
+            self.write_log(f"Bath application t={time*1e3}ms, conc={concentration*1e3}")
 
         if species_name is self.bath_application:
             raise KeyError(f"Bath application already applied for {species_name}")
@@ -2032,7 +2085,8 @@ class SnuddaSimulate(object):
                 if n.modulation is not None:
                     n.modulation.concentration_from_vector(species_name=species_name,
                                                            concentration_vector=conc_vect,
-                                                           time_vector=t_vect)
+                                                           time_vector=t_vect,
+                                                           interpolate=interpolate)
 
     ############################################################################
 
@@ -2061,7 +2115,7 @@ class SnuddaSimulate(object):
             else:
                 t = 1000.0
 
-        self.sanity_check_play_vectors(sim_end_time=t)
+        self.sanity_check_play_vectors(sim_end_time=t*1e-3)
 
         if hold_v is None:
             if self.sim_info is not None and "hold_voltage" in self.sim_info:
@@ -2333,6 +2387,40 @@ class SnuddaSimulate(object):
                 time.sleep(1)
 
     ############################################################################
+
+    def parse_current_injection_info(self):
+
+        if self.current_injection_info and self.verbose:
+            self.write_log(f"Parsing current_injection_info.")
+
+        for neuron_id, cur_info in self.current_injection_info.items():
+
+            if int(neuron_id) not in self.neurons:
+                # Neuron not on this worker.
+                continue
+
+            time = np.array(cur_info["time"])
+            cur_amp = np.array(cur_info["current"])
+            neuron_id = int(neuron_id)
+
+            # Default mode is to interpolate between given points (because otherwise we need a full vector)
+            interpolate_flag = cur_info["interpolate"] if "interpolate" in cur_info else True
+
+            if self.verbose:
+                self.write_log(f"Adding current injection to neuron {neuron_id}: time = {time}, current = {cur_amp}, "
+                               f"{'interpolate' if interpolate_flag else ''}")
+
+            t_vec = neuron.h.Vector(time * 1e3)
+            amp_vec = neuron.h.Vector(cur_amp * 1e9)
+
+            if neuron_id not in self.current_clamps:
+                self.current_clamps[neuron_id] = []
+
+            i_clamp = self.sim.neuron.h.IClamp(0.5, sec=self.neurons[neuron_id].icell.soma[0])
+            i_clamp.dur = 1e9
+            amp_vec.play(i_clamp._ref_amp, t_vec, interpolate_flag)
+
+            self.current_clamps[neuron_id].append((i_clamp, t_vec, amp_vec))
 
     def add_current_injection(self, neuron_id, start_time, end_time, amplitude):
 

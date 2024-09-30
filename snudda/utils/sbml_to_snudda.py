@@ -7,12 +7,18 @@ import numpy as np
 
 class ReadSBML:
 
-    def __init__(self, filename=None, out_file=None):
+    def __init__(self, filename=None, out_file=None, concentration_scale_factor=None):
 
         self.filename = filename
         self.out_file = out_file
         self.reader = None
         self.data = None
+
+        if concentration_scale_factor is None:
+            self.concentration_scale_factor = 1
+        else:
+            self.concentration_scale_factor = concentration_scale_factor
+            print(f"Using concentration scale factor: {self.concentration_scale_factor}")
 
         if filename is not None:
 
@@ -58,11 +64,11 @@ class ReadSBML:
             # represents = species.getId()  # Assuming species ID represents itself
 
             species_data[species_name] = {
-                "initial_concentration": initial_concentration,
+                "initial_concentration": initial_concentration * self.concentration_scale_factor,
                 "diffusion_constant": diffusion_constant,
                 "charge": charge,
                 "regions": regions,
-                "concentration": initial_concentration
+                "concentration": initial_concentration * self.concentration_scale_factor
                 # "represents": represents
             }
 
@@ -138,25 +144,68 @@ class ReadSBML:
 
         if operator == "minus":
             # We have both forward and backward rate to extract
-            forward_rate = self._get_rate_helper(current_expression.getLeftChild(), global_parameters, compartment_list)
-            backward_rate = self._get_rate_helper(current_expression.getRightChild(), global_parameters, compartment_list)
+            forward_rate = self._get_rate_helper(current_expression.getLeftChild(),
+                                                 global_parameters, compartment_list, model)
+            backward_rate = self._get_rate_helper(current_expression.getRightChild(),
+                                                  global_parameters, compartment_list, model)
 
         else:
-            forward_rate = self._get_rate_helper(current_expression, global_parameters, compartment_list)
+            forward_rate = self._get_rate_helper(current_expression,
+                                                 global_parameters, compartment_list, model)
             backward_rate = None
 
         print(f"{forward_rate =}, {backward_rate =}")
 
         return forward_rate, backward_rate
 
-    def _get_rate_helper(self, expression, global_parameters, compartment_list):
+    def _count_reactants(self, expression, model):
+
+        num_species = 0
+        species_list = [x.getId() for x in model.getListOfSpecies()]
+
+        if expression.getId() in species_list or expression.getName() in species_list:
+            # We found a species, number of reactants is 1
+            return 1
+
+        if expression.getOperatorName() == "times":
+            left_child = expression.getLeftChild()
+            right_child = expression.getRightChild()
+
+            num_species += self._count_reactants(left_child, model)
+            num_species += self._count_reactants(right_child, model)
+        elif expression.getName() == "power":
+            # libsbml.formulaToString(orig_expression)
+            left_child = expression.getLeftChild()
+            right_child = expression.getRightChild()
+
+            base = self._count_reactants(left_child, model)
+            exponent = right_child.getValue()
+
+            num_species = base * exponent
+
+        elif expression.getOperatorName() is None:
+            return 0
+        else:
+            import pdb
+            pdb.set_trace()
+            raise ValueError(f"Not a multiplication: {expression.getOperatorName()}")
+
+        return num_species
+
+    def _get_rate_helper(self, expression, global_parameters, compartment_list, model):
 
         orig_expression = expression
+
+        # TODO: We need to rescale the rates with self.concentration_scale_factor for two-factors
+        #       and self.concentration_scale_factor**2 for three-factors
+
+        # TODO: How to count reactants?
 
         while expression.getOperatorName() == "times":
             left_child = expression.getLeftChild()
 
-            # If the left child is a volume, then take the right child instead, and end the loop
+            # If the left child is a volume (ie has the name of a volume in compartment_list),
+            # then take the right child instead, and end the loop
             if left_child.getName() in compartment_list:
                 expression = expression.getRightChild()
                 break
@@ -166,6 +215,8 @@ class ReadSBML:
 
         rate_name = expression.getName()
 
+        print(f"rate_name = {rate_name}")
+
         try:
             rate = global_parameters[rate_name]
         except:
@@ -173,6 +224,11 @@ class ReadSBML:
             print(traceback.format_exc())
             import pdb
             pdb.set_trace()
+
+        if self.concentration_scale_factor != 1:
+            num_species = self._count_reactants(expression=orig_expression, model=model)
+
+            rate /= self.concentration_scale_factor ** (num_species - 1)
 
         return rate
 
@@ -198,10 +254,11 @@ def cli():
                                      formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("sbml_file", help="Input SBML file to convert")
     parser.add_argument("json_file", help="Snudda RxD JSON output file")
+    parser.add_argument("--conc_scale_factor", default=1, help="Rescale concentrations by factor", type=float)
 
     args = parser.parse_args()
 
-    rs = ReadSBML(filename=args.sbml_file, out_file=args.json_file)
+    rs = ReadSBML(filename=args.sbml_file, out_file=args.json_file, concentration_scale_factor=args.conc_scale_factor)
 
 
 if __name__ == "__main__":

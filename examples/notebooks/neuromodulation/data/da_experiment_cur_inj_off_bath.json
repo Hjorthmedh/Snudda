@@ -1,9 +1,8 @@
 {
-    "network_file": "networks/neuromodulation_ON_OFF_bath/network-synapses.hdf5",
-    "input_file": "networks/neuromodulation_ON_OFF_bath/input-spikes.hdf5",
-    "output_file": "networks/neuromodulation_ON_OFF_bath/simulation/output_neuromodulation_ON.hdf5",
-    "log_file": "networks/neuromodulation_ON_OFF_bath/log/network-simulation-ON.txt",
-    "time": 25.0,
+    "network_file": "networks/neuromodulation_bath_current/network-synapses.hdf5",
+    "output_file": "networks/neuromodulation_bath_current/simulation/output_neuromodulation_OFF.hdf5",
+    "log_file": "networks/neuromodulation_bath_current/log/network-simulation-OFF.txt",
+    "time": 1.5,
     "record_all_soma": true,
     "record_rxd_species_all": [0, 1],
     "record_density_mechanism": {	
@@ -29,10 +28,5 @@
 	}	
     },
     "rxd_enable_extracellular": false,
-    "bath_application": {
-	"DA": {
-	    "time": [0, 0.499, 0.5, 1, 1.001, 10],
-	    "concentration": [0, 0, 60e-6, 60e-6, 0, 0]
-	}
-    }    
+    "current_injection_file": "bath_current_injection.json"
 }

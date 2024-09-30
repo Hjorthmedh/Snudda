@@ -19,14 +19,14 @@
             "type": "range",
             "sectionlist": ["soma", "basal"],
             "dist_type": "uniform",
-            "value": 12.5
+            "value": 12.5e-12
         },
         {
             "param_name": "mod_pka_g_slope_kir_ms",
             "type": "range",
             "sectionlist": ["soma", "basal"],
             "dist_type": "uniform",
-            "value": 1
+            "value": 1e-12
         },
         {
             "param_name": "mod_pka_g_min_cal12_ms",
@@ -47,14 +47,14 @@
             "type": "range",
             "sectionlist": ["soma", "basal"],
             "dist_type": "uniform",
-            "value": 12.5
+            "value": 12.5e-12
         },
         {
             "param_name": "mod_pka_g_slope_cal12_ms",
             "type": "range",
             "sectionlist": ["soma", "basal"],
             "dist_type": "uniform",
-            "value": 1
+            "value": 1e-12
         },
         {
             "param_name": "mod_pka_g_min_cal13_ms",
@@ -75,14 +75,14 @@
             "type": "range",
             "sectionlist": ["soma", "basal"],
             "dist_type": "uniform",
-            "value": 12.5
+            "value": 12.5e-12
         },
         {
             "param_name": "mod_pka_g_slope_cal13_ms",
             "type": "range",
             "sectionlist": ["soma", "basal"],
             "dist_type": "uniform",
-            "value": 1
+            "value": 1e-12
         },
         {
             "param_name": "mod_pka_g_min_naf_ms",
@@ -103,14 +103,14 @@
             "type": "range",
             "sectionlist": ["soma", "basal"],
             "dist_type": "uniform",
-            "value": 12.5
+            "value": 12.5e-12
         },
         {
             "param_name": "mod_pka_g_slope_naf_ms",
             "type": "range",
             "sectionlist": ["soma", "basal"],
             "dist_type": "uniform",
-            "value": 1
+            "value": 1e-12
         },
 
         {
@@ -132,14 +132,14 @@
             "type": "range",
             "sectionlist": ["soma", "basal"],
             "dist_type": "uniform",
-            "value": 12.5
+            "value": 12.5e-12
         },
         {
             "param_name": "mod_pka_g_slope_kas_ms",
             "type": "range",
             "sectionlist": ["soma", "basal"],
             "dist_type": "uniform",
-            "value": 1
+            "value": 1e-12
         },
 
 	
@@ -162,14 +162,14 @@
             "type": "range",
             "sectionlist": ["soma", "basal"],
             "dist_type": "uniform",
-            "value": 12.5
+            "value": 12.5e-12
         },
         {
             "param_name": "mod_pka_g_slope_kaf_ms",
             "type": "range",
             "sectionlist": ["soma", "basal"],
             "dist_type": "uniform",
-            "value": 1
+            "value": 1e-12
         },
 
 
@@ -192,14 +192,14 @@
             "type": "range",
             "sectionlist": ["soma", "basal"],
             "dist_type": "uniform",
-            "value": 12.5
+            "value": 12.5e-12
         },
         {
             "param_name": "mod_pka_shift_slope_kaf_ms",
             "type": "range",
             "sectionlist": ["soma", "basal"],
             "dist_type": "uniform",
-            "value": 1
+            "value": 1e-12
         }
 	
 	

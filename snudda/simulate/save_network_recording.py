@@ -1,3 +1,4 @@
+import sys
 import os.path
 import h5py
 import numpy as np
@@ -180,7 +181,12 @@ class SnuddaSaveNetworkRecordings:
 
     # TODO: Add saving of simulation_config file (and experiment_config_file for pair recording)
 
-    def __init__(self, output_file, network_data=None, sample_dt=None):
+    def __init__(self, output_file, network_data=None, sample_dt=None, node_id=0):
+
+        # Only do this check on the first node
+        if node_id == 0 and not self.check_file_available(output_file):
+            sys.exit(-1)
+
         self.output_file = output_file
         self.network_data = network_data
         self.header_exists = False
@@ -267,6 +273,19 @@ class SnuddaSaveNetworkRecordings:
         str_type = f"S{max_len}"
         group.create_dataset(name, (len(string_data),), str_type, string_data, compression="gzip")
 
+    def check_file_available(self, file_name):
+
+        if os.path.isfile(file_name):
+            # Try to open and close file, to make sure it is available
+            try:
+                f = h5py.File(file_name, "w")
+                f.close()
+            except BlockingIOError as e:
+                print(f"Unable to create file {file_name}. Is some other program using the file?")
+                return False
+
+        return True
+
     def write_header(self):
 
         self.pc.barrier()
@@ -280,7 +299,26 @@ class SnuddaSaveNetworkRecordings:
                 os.mkdir(os.path.dirname(self.output_file))
 
             print(f"Writing network output to {self.output_file}")
-            out_file = h5py.File(self.output_file, "w")
+
+            try:
+                out_file = h5py.File(self.output_file, "w")
+            except Exception as e:
+
+                print(e)
+                print(f"Trying to recover, and save to different file name.")
+
+                ctr = 1
+                temp_name = f"{self.output_file}-{ctr}"
+
+                while os.path.isfile(temp_name):
+                    print(f"File exists: {temp_name}")
+                    ctr += 1
+                    temp_name = f"{self.output_file}-{ctr}"
+
+                print(f"\n!!! Unable to create {self.output_file} (file locked?), using {temp_name} instead\n\n")
+                self.output_file = temp_name
+
+                out_file = h5py.File(temp_name, "w")
 
             meta_data = out_file.create_group("meta_data")
 

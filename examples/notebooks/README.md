@@ -43,3 +43,5 @@ Here is a collection of Jupyter Notebooks, some of the workflows are split over 
 ## Additional notebooks
 * [Paired current injection](validation/synapses/network_pair_pulse_simulation.ipynb) in a simulated network
 * [Neuromodulation examples](https://github.com/jofrony/Neuromodulation-software/tree/main/examples) in a network
+* [Minimal current injection example](neuron_with_current_injection.ipynb)
+
