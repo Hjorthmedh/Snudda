@@ -1,0 +1,12 @@
+{
+    "network_path": "my_network",
+    "snudda_data": "/home/hjorth/HBP/BasalGangliaData/data",
+
+    "random_seed": {
+	"master_seed": 1234	
+    },
+    
+    "regions": {
+	"Striatum" : "striatum.json"
+    }	
+}

@@ -1,0 +1,47 @@
+{
+    "species": {
+	"DA":{
+	    "initial_concentration": 0,
+	    "diffusion_constant": 0,
+	    "charge": 0,
+	    "regions": ["soma_internal", "dend_internal"],
+	    "atol_scale": null,
+	    "ecs_boundary_conditions": null,
+	    "represents": "DA"   
+	},
+	"B":{
+	    "initial_concentration": 0.7e-3,
+	    "diffusion_constant": 0,
+	    "charge": 0,
+	    "regions": ["soma_internal", "dend_internal"],
+	    "atol_scale": null,
+	    "ecs_boundary_conditions": null,
+	    "represents": "DA"	    
+	},
+	"PKA":{
+	    "initial_concentration": 0.1e-3,
+	    "diffusion_constant": 0,
+	    "charge": 0,
+	    "regions": ["soma_internal", "dend_internal"],
+	    "atol_scale": null,
+	    "ecs_boundary_conditions": null,
+	    "represents": "DA"	    
+	}
+	
+    },
+    "rates": {
+	"DA": {
+	    "rates": ["-0.001*DA", "-0.0001*DA"],
+	    "regions": ["soma_internal", "dend_internal"]
+	}
+    },
+    "reactions": {
+	"my_reaction_1": {
+	    "reactants": "DA + B",
+	    "products": "PKA",
+	    "forward_rate": 0.01e-6,
+	    "backward_rate": 0.0005e-3,
+	    "regions": ["soma_internal", "dend_internal"]
+	}
+    }
+}

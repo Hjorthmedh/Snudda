@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 from snudda.utils.load import SnuddaLoad
-from snudda.utils.load_network_simulation import SnuddaLoadNetworkSimulation
+from snudda.utils.load_network_simulation import SnuddaLoadSimulation
 from snudda.utils.export_connection_matrix import SnuddaExportConnectionMatrix
 from collections import OrderedDict
 

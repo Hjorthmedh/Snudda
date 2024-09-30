@@ -1,0 +1,10 @@
+{
+    "network_file": "../networks/dspn_modulation/network-synapses.hdf5",
+    "input_file": "../networks/dspn_modulation/input-spikes.hdf5",
+    "output_file": "../networks/dspn_modulation/simulation/dspn-output.hdf5",
+    "log_file": "../networks/dspn_modulation/log/network-simulation-log.txt",
+    "sample_dt": 0.01,
+    "time": 11,
+    "record_all_soma": true,
+    "record_rxd_species_concentration_all_compartments": [["PKA", [0]], ["DA", [0]]]
+}

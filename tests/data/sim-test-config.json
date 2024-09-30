@@ -7,6 +7,6 @@
     "output_file": "tiny_parallel/simulation/output-cnf.hdf5",
     "log_file": "tiny_parallel/log/simulation-cnf.txt",
     "record_soma": [0, 1, 2],
-    "record_all_compartments": [4],
-    "record_all_synapses": [0]
+    "record_voltage_all_compartments": [4],
+    "record_current_all_synapses": [0]
 }

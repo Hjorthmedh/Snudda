@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from snudda.simulate.pair_recording import PairRecording
 from snudda.utils.load import SnuddaLoad
-from snudda.utils.load_network_simulation import SnuddaLoadNetworkSimulation
+from snudda.utils.load_network_simulation import SnuddaLoadSimulation
 
 
 class AnalyseGapJunctionCoupling:
@@ -32,9 +32,9 @@ class AnalyseGapJunctionCoupling:
             output_file = None
 
         self.network_simulation = \
-            SnuddaLoadNetworkSimulation(network_simulation_output_file=os.path.join(self.network_path,
+            SnuddaLoadSimulation(network_simulation_output_file=os.path.join(self.network_path,
                                                                                     "simulation",
-                                                                                    output_file))
+                                                                             output_file))
 
     def get_gap_junction_connection_matrix(self):
 

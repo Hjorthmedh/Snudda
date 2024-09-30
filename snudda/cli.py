@@ -138,22 +138,19 @@ def snudda_cli():
                                  help="Exclude voltage data, to save time and space.")
     simulate_parser.add_argument("-randomseed", "--randomseed", "--seed", default=None, help="Random seed", type=int)
 
-    simulate_parser.add_argument("--neuromodulation", type=str, default=None,
-                                 help=('replay plays back a vector of modulation level, '
-                                       'adaptive sets modulation based on spiking activity'))
-
     simulate_parser.add_argument("--disableSyn", "--disableSynapses", action="store_true", dest="disable_synapses", default=None,
                                  help="Disable synapses")
 
     simulate_parser.add_argument("--disableGJ", "--disableGapJunctions", action="store_true", dest="disable_gj", default=None,
                                  help="Disable gap junctions")
 
-    simulate_parser.add_argument("-mechdir", "--mechDir", dest="mech_dir",
+    simulate_parser.add_argument("--mechdir", "--mechDir", dest="mech_dir",
                                  help="mechanism directory if not default", default=None)
     simulate_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     simulate_parser.add_argument("--verbose", action="store_true")
     simulate_parser.add_argument("--exportCoreNeuron", action="store_true")
     simulate_parser.add_argument("--recordALL", dest="record_all", type=str, default=None)
+    simulate_parser.add_argument("--disable_rxd_neuromodulation", dest="use_rxd_neuromodulation", action="store_false", default=True)
 
     export_parser = sub_parsers.add_parser("export")
     export_parser.add_argument("path", help="Location of network")

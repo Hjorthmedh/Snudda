@@ -4,16 +4,12 @@ import json
 import numpy as np
 from snudda.simulate.pair_recording import PairRecording
 from snudda.utils.load import SnuddaLoad
-from snudda.utils.load_network_simulation import SnuddaLoadNetworkSimulation
-
-import neuron
+from snudda.utils.load_network_simulation import SnuddaLoadSimulation
 
 
 class PairRecordingTestCase(unittest.TestCase):
 
     def setUp(self):
-
-        print(f"Running NEURON version {neuron.__version__}")
 
         if os.path.dirname(__file__):
             os.chdir(os.path.dirname(__file__))
@@ -65,8 +61,8 @@ class PairRecordingTestCase(unittest.TestCase):
         sim_file = os.path.join(self.network_path, "simulation", "pair-recording-simulation.hdf5")
 
         sl = SnuddaLoad(self.network_path)
-        sns = SnuddaLoadNetworkSimulation(network_path=self.network_path,
-                                          network_simulation_output_file=sim_file)
+        sns = SnuddaLoadSimulation(network_path=self.network_path,
+                                   network_simulation_output_file=sim_file)
 
         with open(self.experiment_config_file, "r") as f:
             experiment_config = json.load(f)

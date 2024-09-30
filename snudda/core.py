@@ -166,6 +166,68 @@ class Snudda(object):
 
     ############################################################################
 
+    def init_tiny(self, neuron_paths, neuron_names, number_of_neurons,
+                  morphology_key=None, parameter_key=None,
+                  connection_config=None, random_seed=None, density=80500, d_min=15e-6):
+
+        """
+            network_path : Network path
+
+        """
+
+        from snudda.init.init import SnuddaInit
+        from snudda.place import create_cube_mesh
+
+        n_total = np.sum(number_of_neurons)
+
+        si = SnuddaInit(network_path=self.network_path,
+                        random_seed=random_seed)
+
+        si.define_structure(struct_name="Cube",
+                            struct_mesh="cube",
+                            d_min=d_min,
+                            struct_centre=(0.0, 0.0, 0.0),
+                            side_len=(n_total/density)**(1/3)*1e-3,
+                            num_neurons=n_total,
+                            n_putative_points=n_total*5)
+
+        if connection_config is not None:
+            si.replace_connectivity(connection_file=connection_config)
+
+        if isinstance(neuron_paths, str):
+            neuron_paths = [neuron_paths]
+
+        if isinstance(neuron_names, str):
+            neuron_names = [neuron_names]
+
+        if isinstance(number_of_neurons, int):
+            number_of_neurons = [int(number_of_neurons / len(neuron_paths)) for x in neuron_names]
+
+        if isinstance(morphology_key, str):
+            morphology_key = [morphology_key]
+
+        if isinstance(parameter_key, str):
+            parameter_key = [parameter_key]
+
+        assert (morphology_key is None and parameter_key is None) or \
+            len(morphology_key) == len(parameter_key) == len(neuron_paths)
+
+        for idx, (path, name, cnt) in enumerate(zip(neuron_paths, neuron_names, number_of_neurons)):
+            if name in si.network_data["regions"]["Cube"]["neurons"]:
+                raise ValueError(f"neuron name {name} defined more than once")
+
+            si.add_neurons(name=name, neuron_dir=path, region_name="Cube", num_neurons=cnt)
+
+            if morphology_key is not None:
+                si.network_data["regions"]["Cube"]["neurons"][name]["parameter_key"] = parameter_key[idx]
+                si.network_data["regions"]["Cube"]["neurons"][name]["morphology_key"] = morphology_key[idx]
+
+        si.write_json()
+
+        return si
+
+    ############################################################################
+
     def import_config_wrapper(self, args):
 
         self.import_config(network_config_file=args.config_file,
@@ -194,10 +256,10 @@ class Snudda(object):
 
     ############################################################################
 
-    def create_network(self):
+    def create_network(self, honor_morphology_stay_inside=True):
 
         # This is a helper function, to create the full network
-        self.place_neurons()
+        self.place_neurons(honor_morphology_stay_inside=honor_morphology_stay_inside)
         self.detect_synapses()
         self.prune_synapses()
 
@@ -235,7 +297,7 @@ class Snudda(object):
                       ipython_timeout=120,
                       h5libver="latest",
                       verbose=False,
-                      honor_morphology_stay_inside=False):
+                      honor_morphology_stay_inside=True):
 
         if parallel is None:
             parallel = self.parallel
@@ -618,17 +680,21 @@ class Snudda(object):
 
             try:
                 if os.path.exists("nrnmech.dll"):
-                    h.nrn_load_dll("nrnmech.dll")
+                    mech_path = "nrnmech.dll"
                 elif os.path.exists("x86_64"):
-                    h.nrn_load_dll("x86_64/.libs/libnrnmech.so")
+                    mech_path = "x86_64/.libs/libnrnmech.so"
                 elif os.path.exists("aarch64"):
-                    h.nrn_load_dll("aarch64/.libs/libnrnmech.so")
+                    mech_path = "aarch64/.libs/libnrnmech.so"
                 elif os.path.exists("arm64"):
-                    h.nrn_load_dll("arm64/.libs/libnrnmech.so")
+                    mech_path = "arm64/.libs/libnrnmech.so"
                 else:
                     print(f"Could not find compiled mechanisms. Compile using 'nrnivmodl {mech_dir}' "
                           f"and retry simulation.")
                     sys.exit(-1)
+
+                print(f"Loading mechanisms from '{os.path.abspath(mech_path)}'")
+                h.nrn_load_dll(mech_path)
+
             except:
                 import traceback
                 print(f"Error while loading mechanisms:\n{traceback.format_exc()}")
@@ -650,7 +716,7 @@ class Snudda(object):
 
         Example:
             snudda simulate [--networkFile NETWORK_FILE] [--inputFile INPUT_FILE] [--time TIME]
-            [--spikesOut SPIKES_OUT] [--neuromodulation NEUROMODULATION] [--noVolt] [--disableGJ]
+            [--spikesOut SPIKES_OUT] [--noVolt] [--disableGJ]
             [-mechdir MECH_DIR] [--profile] [--verbose] [--exportCoreNeuron] path
         """
 
@@ -660,13 +726,14 @@ class Snudda(object):
                             output_file=args.output_file, snudda_data=args.snudda_data,
                             time=args.time,
                             mech_dir=args.mech_dir,
-                            neuromodulation=args.neuromodulation,
+                            # neuromodulation=args.neuromodulation,
                             disable_synapses=args.disable_synapses,
                             disable_gj=args.disable_gj,
                             record_volt=args.record_volt,
                             record_all=args.record_all,
                             simulation_config=args.simulation_config,
                             export_core_neuron=args.exportCoreNeuron,
+                            use_rxd_neuromodulation=args.use_rxd_neuromodulation,
                             verbose=args.verbose)
 
         sim.clear_neuron()
@@ -678,18 +745,27 @@ class Snudda(object):
                  snudda_data=None,
                  time=None,
                  mech_dir=None,
-                 neuromodulation=None,
+                 # neuromodulation=None,
                  disable_synapses=None,
                  disable_gj=False,
                  record_volt=True,
                  record_all=False,
+                 sample_dt=None,
                  simulation_config=None,
                  export_core_neuron=False,
+                 use_rxd_neuromodulation=True,
                  verbose=False):
 
         start = timeit.default_timer()
 
         from mpi4py import MPI  # This must be imported before neuron, to run parallel
+
+        # Initialize MPI
+        comm = MPI.COMM_WORLD
+        rank = comm.Get_rank()
+        size = comm.Get_size()
+        print(f"MPI Rank: {rank}, Size: {size}")
+
         from neuron import h
         pc = h.ParallelContext()
 
@@ -697,7 +773,9 @@ class Snudda(object):
             network_file = os.path.join(self.network_path, "network-synapses.hdf5")
 
         if input_file is None:
-            input_file = os.path.join(self.network_path, "input-spikes.hdf5")
+            putative_input_file = os.path.join(self.network_path, "input-spikes.hdf5")
+            if os.path.isfile(putative_input_file):
+                input_file = putative_input_file
 
         if output_file is None:
             output_file = os.path.join(self.network_path, "simulation", "output.hdf5")
@@ -721,15 +799,6 @@ class Snudda(object):
             mech_dir = os.path.realpath(snudda_path.snudda_parse_path(os.path.join("$DATA", "neurons", "mechanisms"),
                                                                       snudda_data))
 
-            if neuromodulation is not None:
-                # read neuromod file and determine if it is replay or adaptive, then if and import the correct one
-                with open(neuromodulation, "r") as f:
-                    neuromod_dict = json.load(f, object_pairs_hook=OrderedDict)
-
-                if "adaptive" in neuromod_dict["type"]:
-                    mech_dir = os.path.realpath(snudda_path.snudda_parse_path(os.path.join("$DATA", "neurons",
-                                                                                           "mechanisms_ptr"),
-                                                                              snudda_data=snudda_data))
         self.compile_mechanisms(mech_dir=mech_dir)
 
         save_dir = os.path.join(os.path.dirname(network_file), "simulation")
@@ -757,66 +826,21 @@ class Snudda(object):
             print(f"Creating directory {log_dir}")
             os.makedirs(log_dir, exist_ok=True)
 
-        if neuromodulation is not None:
+        from snudda.simulate.simulate import SnuddaSimulate
 
-            # read neuromod file and determine if it is replay or adaptive, then if and import the correct one
-
-            with open(neuromodulation, 'r') as neuromod_f:
-                neuromod_dict = json.load(neuromod_f, object_pairs_hook=OrderedDict)
-
-            if 'type' not in neuromod_dict:
-                print(f"Neuromodulation is not defined correctly in {neuromodulation} : 'type' is missing. "
-                      f"Did you specify the correct file?")
-                sys.exit(-1)
-
-            elif 'replay' in neuromod_dict['type']:
-                from snudda.neuromodulation.neuromodulation import SnuddaSimulateNeuromodulation
-
-                sim = SnuddaSimulateNeuromodulation(network_file=network_file,
-                                                    input_file=input_file,
-                                                    output_file=output_file,
-                                                    disable_gap_junctions=disable_gj,
-                                                    disable_synapses=disable_synapses,
-                                                    log_file=log_file,
-                                                    simulation_config=simulation_config,
-                                                    verbose=verbose)
-
-                sim.setup()
-                sim.add_external_input()
-                sim.apply_neuromodulation(neuromod_dict)
-                sim.neuromodulation_network_wide()
-
-            elif 'adaptive' in neuromod_dict['type']:
-                from snudda.neuromodulation.neuromodulation_synapse import SnuddaSimulateNeuromodulationSynapse
-
-                sim = SnuddaSimulateNeuromodulationSynapse(network_file=network_file,
-                                                           input_file=input_file,
-                                                           output_file=output_file,
-                                                           disable_gap_junctions=disable_gj,
-                                                           disable_synapses=disable_synapses,
-                                                           log_file=log_file,
-                                                           neuromodulator_description=neuromod_dict,
-                                                           simulation_config=simulation_config,
-                                                           verbose=verbose)
-
-                sim.setup()
-                sim.add_external_input()
-
-        else:
-
-            from snudda.simulate.simulate import SnuddaSimulate
-
-            # Simulate is deterministic, no random seed.
-            sim = SnuddaSimulate(network_file=network_file,
-                                 input_file=input_file,
-                                 output_file=output_file,
-                                 disable_gap_junctions=disable_gj,
-                                 disable_synapses=disable_synapses,
-                                 log_file=log_file,
-                                 simulation_config=simulation_config,
-                                 verbose=verbose)
-            sim.setup()
-            sim.add_external_input()
+        # Simulate is deterministic, no random seed.
+        sim = SnuddaSimulate(network_file=network_file,
+                             input_file=input_file,
+                             output_file=output_file,
+                             disable_gap_junctions=disable_gj,
+                             disable_synapses=disable_synapses,
+                             log_file=log_file,
+                             simulation_config=simulation_config,
+                             sample_dt=sample_dt,
+                             use_rxd_neuromodulation=use_rxd_neuromodulation,
+                             verbose=verbose)
+        sim.setup()
+        sim.add_external_input()
 
         sim.check_memory_status()
 
@@ -842,15 +866,21 @@ class Snudda(object):
             return  # We do not run simulation when exporting to core neuron
 
         sim.check_memory_status()
-        print(f"Running simulation for {t_sim} ms.")
-        sim.run(t_sim)  # In milliseconds
+        if t_sim is None or t_sim > 0:
+            print(f"Running simulation for {t_sim} ms.")
+            sim.run(t_sim)  # In milliseconds
 
-        print("Simulation done, saving output")
-        sim.write_output()
+            print("Simulation done, saving output")
+            sim.write_output()
+        else:
+            print(f"Time set to {t_sim} ms. No simulation run.")
 
         stop = timeit.default_timer()
         if sim.pc.id() == 0:
             print(f"Program run time: {stop - start:.1f}s")
+
+        # OBS! You want to do sim.clear_neuron() after the simulation if you need
+        #      to setup another neuron simulation afterwards.
 
         # sim.plot()
         return sim
@@ -894,7 +924,6 @@ class Snudda(object):
         self.logfile.write(f"Reading IPYPARALLEL connection info from {u_file}\n")
         # self.rc = Client(profile=ipython_profile, url_file=u_file, timeout=120, debug=False)
         self.rc = Client(profile=ipython_profile, connection_info=u_file, timeout=timeout, debug=False)
-
 
         self.logfile.write(f'Client IDs: {self.rc.ids}')
 

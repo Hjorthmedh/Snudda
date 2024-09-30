@@ -1,0 +1,28 @@
+{
+    "regions": {
+        "Cube": {
+	    "connectivity": {
+		"dspn,dspn": {
+		    "GABA": {
+			"conductance": [
+			    1e-9,
+			    1e-3
+			],
+			"channel_parameters": {
+			    "mod_file": "tmGabaA"
+			},			
+			"cluster_size": 1,
+			"cluster_spread": null,
+			"pruning": {
+			    "f1": null,
+			    "soft_max": null,
+			    "mu2": null,
+			    "a3": null,
+			    "cluster_pruning": false
+			}
+		    }
+		}
+	    }
+	}
+    }
+}

@@ -18,6 +18,7 @@ class NeuronMorphologyExtended:
                  snudda_data=None,
                  param_data=None,
                  mech_filename=None,
+                 reaction_diffusion=None,
                  neuron_path=None,
                  parameter_key=None,
                  morphology_key=None,
@@ -46,6 +47,7 @@ class NeuronMorphologyExtended:
 
         self.param_data = param_data
         self.mech_filename = mech_filename
+        self.reaction_diffusion = reaction_diffusion
         self.neuron_path = neuron_path
 
         self.parameter_key = parameter_key
@@ -187,6 +189,7 @@ class NeuronMorphologyExtended:
                                               snudda_data=self.snudda_data,
                                               param_data=self.param_data,
                                               mech_filename=self.mech_filename,
+                                              reaction_diffusion=self.reaction_diffusion,
                                               neuron_path=self.neuron_path,
                                               parameter_key=self.parameter_key,
                                               morphology_key=self.morphology_key,

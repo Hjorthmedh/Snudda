@@ -186,8 +186,9 @@ class SnuddaLoad(object):
         if "config" in f["meta"]:
             if self.verbose:
                 print("Loading config data from HDF5")
-            data["config"] = SnuddaLoad.to_str(f["meta/config"][()])
+            # data["config"] = SnuddaLoad.to_str(f["meta/config"][()])
             self.config = json.loads(f["meta/config"][()])
+            data["config"] = self.config
 
         # Added so this code can also load the position file, which
         # does not have the network group yet
@@ -413,7 +414,8 @@ class SnuddaLoad(object):
             axon_density_type, axon_density, axon_density_radius, \
             axon_density_bounds_xyz, \
             morph, neuron_path, \
-            parameter_key, morphology_key, modulation_key, population_unit_id \
+            parameter_key, morphology_key, modulation_key, population_unit_id, \
+            reaction_diffusion_file \
                 in zip(hdf5_file["network/neurons/name"][:],
                        hdf5_file["network/neurons/neuron_id"][:],
                        hdf5_file["network/neurons/hoc"][:],
@@ -430,7 +432,8 @@ class SnuddaLoad(object):
                        hdf5_file["network/neurons/parameter_key"][:],
                        hdf5_file["network/neurons/morphology_key"][:],
                        hdf5_file["network/neurons/modulation_key"][:],
-                       hdf5_file["network/neurons/population_unit_id"][:]
+                       hdf5_file["network/neurons/population_unit_id"][:],
+                       hdf5_file["network/neurons/reaction_diffusion_file"][:]
                        ):
 
             n = dict([])
@@ -476,6 +479,7 @@ class SnuddaLoad(object):
             n["parameter_key"] = par_key if len(par_key) > 0 else None
             n["morphology_key"] = morph_key if len(morph_key) > 0 else None
             n["modulation_key"] = mod_key if len(mod_key) > 0 else None
+            n["reaction_diffusion_file"] = SnuddaLoad.to_str(reaction_diffusion_file) if len(reaction_diffusion_file) > 0 else None
 
             n["population_unit"] = population_unit_id
 

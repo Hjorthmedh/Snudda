@@ -4,10 +4,12 @@ modified by Johannes Hjorth """
 import json
 import os
 from collections import OrderedDict
+import numpy as np
 
 import bluepyopt.ephys as ephys
 
 from snudda.neurons.neuron_prototype import NeuronPrototype
+from snudda.neurons.neuron_modulation import NeuronModulation
 
 
 class NeuronModel(ephys.models.CellModel):
@@ -24,12 +26,16 @@ class NeuronModel(ephys.models.CellModel):
                  mech_file=None,
                  param_file=None,
                  modulation_file=None,
+                 reaction_diffusion_file=None,
                  parameter_id=None,
                  morphology_id=None,
                  modulation_id=None,
                  parameter_key=None,
                  morphology_key=None,
-                 modulation_key=None):
+                 modulation_key=None,
+                 use_rxd_neuromodulation=True,
+                 replace_axon_length=60e-6,
+                 replace_axon_nseg_frequency=40e-6):
 
         """
         Constructor
@@ -40,8 +46,9 @@ class NeuronModel(ephys.models.CellModel):
             mech_file: Path to mechanism file
             param_file: Path to parameter file
             modulation_file: Path to neuromodulation parameter file
+            reaction_diffusion_file: Path to the RxD reaction diffusion file
             parameter_id: ID of parameter set
-            morphology_id: ID of morphology set
+            morphology_id: ID of morphology set -- DEPRECATED
             modulation_id: ID of neuromodulation parameter set
             parameter_key (str): parameter key for lookup in parameter.json
             morphology_key (str): morphology key, together with parameter_key lookup in meta.json
@@ -58,6 +65,7 @@ class NeuronModel(ephys.models.CellModel):
 
         self.script_dir = os.path.dirname(__file__)
         self.config_dir = os.path.join(self.script_dir, 'config')
+        self.use_rxd_neuromodulation = use_rxd_neuromodulation
 
         if os.path.isfile(morph_path):
             # If morph_path is a swc file, use it directly
@@ -82,7 +90,8 @@ class NeuronModel(ephys.models.CellModel):
                                                    morphology_path=morph_path,
                                                    parameter_path=param_file,
                                                    mechanism_path=mech_file,
-                                                   modulation_path=modulation_file)
+                                                   modulation_path=modulation_file,
+                                                   reaction_diffusion_path=reaction_diffusion_file)
 
                 morph_file, _ = neuron_prototype.get_morphology(parameter_id=parameter_id,
                                                                 morphology_id=morphology_id,
@@ -95,7 +104,10 @@ class NeuronModel(ephys.models.CellModel):
 
         self.morph_file = morph_file
 
-        morph = self.define_morphology(replace_axon=True, morph_file=morph_file)
+        morph = self.define_morphology(replace_axon=True, morph_file=morph_file,
+                                       replace_axon_length=replace_axon_length,
+                                       replace_axon_nseg_frequency=replace_axon_nseg_frequency)
+
         mechs = self.define_mechanisms(mechanism_config=mech_file)
         params = self.define_parameters(param_file, parameter_id, parameter_key)
 
@@ -109,6 +121,13 @@ class NeuronModel(ephys.models.CellModel):
 
         super(NeuronModel, self).__init__(name=cell_name, morph=morph,
                                           mechs=mechs, params=params)
+
+        if reaction_diffusion_file and self.use_rxd_neuromodulation:
+            self.modulation = NeuronModulation(neuron=self)
+            self.modulation.config_file = reaction_diffusion_file
+        else:
+            self.modulation = None
+
         self.syn_list = []
         self.section_lookup = None
 
@@ -140,8 +159,7 @@ class NeuronModel(ephys.models.CellModel):
                 continue
 
             seclist_loc = \
-                ephys.locations.NrnSeclistLocation(section_list,
-                                                   seclist_name=section_list)
+                ephys.locations.NrnSeclistLocation(section_list, seclist_name=section_list)
             for channel in channels:
                 mechanisms.append(ephys.mechanisms.NrnMODMechanism(
                     name='%s.%s' % (channel, section_list),
@@ -156,12 +174,12 @@ class NeuronModel(ephys.models.CellModel):
 
     # Helper function
 
-    def define_parameters(self, parameter_config=None, parameter_id=None, parameter_key=None):
+    def define_parameters(self, parameter_config, parameter_id=None, parameter_key=None):
         """
         Define parameters based on parameter_config and parameter_id.
         If there are n parameter sets, and parameter_id is k, then the parameter set is n % k."""
 
-        assert (parameter_config is not None)
+        assert parameter_config is not None
 
         # print("Using parameter config: " + parameter_config)
 
@@ -170,7 +188,7 @@ class NeuronModel(ephys.models.CellModel):
 
         parameters = []
 
-        if type(param_configs) == OrderedDict:
+        if isinstance(param_configs, (OrderedDict, dict)):
             # Multiple parameters, pick one
 
             if parameter_key is not None:
@@ -225,38 +243,49 @@ class NeuronModel(ephys.models.CellModel):
                         bounds=bounds,
                         value=value))
             elif param_config['type'] in ['section', 'range']:
+
                 if param_config['dist_type'] == 'uniform':
                     scaler = ephys.parameterscalers.NrnSegmentLinearScaler()
                 elif param_config['dist_type'] in ['exp', 'distance']:
-                    scaler = ephys.parameterscalers.NrnSegmentSomaDistanceScaler(
-                        distribution=param_config['dist'])
-                seclist_loc = ephys.locations.NrnSeclistLocation(
-                    param_config['sectionlist'],
-                    seclist_name=param_config['sectionlist'])
+                    scaler = ephys.parameterscalers.NrnSegmentSomaDistanceScaler(distribution=param_config['dist'])
+                else:
+                    raise ValueError(f"Unknown dist_type = {param_config['dist_type']}, "
+                                     f"expected 'uniform', 'exp' or 'distance'")
+                # 2024-07-23: Updated format, so that "sectionlist" is allowed to be either a string (of one section type)
+                #             or a list of strings with section types.
 
-                name = '%s.%s' % (param_config['param_name'],
-                                  param_config['sectionlist'])
+                section_list = param_config['sectionlist']
+                if not isinstance(section_list, list):
+                    section_list = [section_list]
 
-                if param_config['type'] == 'section':
-                    parameters.append(
-                        ephys.parameters.NrnSectionParameter(
-                            name=name,
-                            param_name=param_config['param_name'],
-                            value_scaler=scaler,
-                            value=value,
-                            frozen=frozen,
-                            bounds=bounds,
-                            locations=[seclist_loc]))
-                elif param_config['type'] == 'range':
-                    parameters.append(
-                        ephys.parameters.NrnRangeParameter(
-                            name=name,
-                            param_name=param_config['param_name'],
-                            value_scaler=scaler,
-                            value=value,
-                            frozen=frozen,
-                            bounds=bounds,
-                            locations=[seclist_loc]))
+                for seclist_item in section_list:
+
+                    seclist_loc = ephys.locations.NrnSeclistLocation(seclist_item,
+                                                                     seclist_name=seclist_item)
+
+                    name = '%s.%s' % (param_config['param_name'],
+                                      seclist_item)
+
+                    if param_config['type'] == 'section':
+                        parameters.append(
+                            ephys.parameters.NrnSectionParameter(
+                                name=name,
+                                param_name=param_config['param_name'],
+                                value_scaler=scaler,
+                                value=value,
+                                frozen=frozen,
+                                bounds=bounds,
+                                locations=[seclist_loc]))
+                    elif param_config['type'] == 'range':
+                        parameters.append(
+                            ephys.parameters.NrnRangeParameter(
+                                name=name,
+                                param_name=param_config['param_name'],
+                                value_scaler=scaler,
+                                value=value,
+                                frozen=frozen,
+                                bounds=bounds,
+                                locations=[seclist_loc]))
             else:
                 raise Exception(f"Param config type has to be global, section or range: {param_config}")
 
@@ -266,7 +295,9 @@ class NeuronModel(ephys.models.CellModel):
 
     # Helper function
 
-    def define_morphology(self, replace_axon=True, morph_file=None):
+    def define_morphology(self, replace_axon=True, morph_file=None,
+                          replace_axon_length=60e-6,
+                          replace_axon_nseg_frequency=40e-6):   # This only supported by hoc replacement
         """
         Define morphology. Handles SWC and ASC.
 
@@ -277,18 +308,17 @@ class NeuronModel(ephys.models.CellModel):
 
         assert (morph_file is not None)
 
-        return ephys.morphologies.NrnFileMorphology(morph_file, do_replace_axon=replace_axon)
-
-    # OLD BUGFIX FOR segment pop
-    # ,replace_axon_hoc=self.getReplacementAxon())
+        return ephys.morphologies.NrnFileMorphology(morph_file, do_replace_axon=replace_axon,
+                                                    axon_stub_length=replace_axon_length*1e6,
+                                                    axon_nseg_frequency=replace_axon_nseg_frequency*1e6)
 
     ##############################################################################
 
     # Neuron_morphology defines sectionID, these must match what this returns
     # so that they point to the same compartment.
     #
-    # Soma is 0
-    # axons are negative values (currently all set to -1) in Neuron_morphology
+    # Soma is -1
+    # axons are negative values (-2, -3, ..) in Neuron_morphology
     # dendrites are 1,2,3,4,5... ie one higher than what Neuron internally
     # uses to index the dendrites (due to us wanting to include soma)
 
@@ -323,13 +353,10 @@ class NeuronModel(ephys.models.CellModel):
         if self.section_lookup is None:
             self.build_section_lookup()
 
-        try:
+        if isinstance(section_id, int):
+            sec = self.section_lookup[section_id]
+        else:
             sec = [self.section_lookup[x] for x in section_id]
-        except:
-            import traceback
-            print(traceback.format_exc())
-            import pdb
-            pdb.set_trace()
 
         return sec
 
@@ -437,69 +464,134 @@ class NeuronModel(ephys.models.CellModel):
         for param in self.params.values():
             param.instantiate(sim=sim, icell=self.icell)
 
+        if self.modulation:
+            self.modulation.load_json()
+
     ############################################################################
 
-    def get_replacement_axon(self):
+    def get_replacement_axon(self, axon_length=60e-6, axon_diameter=None, axon_nseg=None):
 
-        assert False, "Old bugfix for segment stack pop, should not be needed anymore"
+        raise DeprecationWarning("This function is now orphaned. Might need to re-update it if we switch to using hoc")
 
-        new_axon_hoc = \
-            '''
-proc replace_axon(){ local nSec, D1, D2
-  // preserve the number of original axonal sections
-  nSec = sec_count(axonal)
-  // Try to grab info from original axon
-  if(nSec == 0) { //No axon section present
-    D1 = D2 = 1
-  } else if(nSec == 1) {
-    access axon[0]
-    D1 = D2 = diam
-  } else {
-    access axon[0]
-    D1 = D2 = diam
+        """
+            If axon_length is given as a scalar, then the code is similar to the BluePyOpt hoc, with the modification
+            that the total axon_length is specified by the user.
 
-    //access soma distance() //to calculate distance from soma
-    soma distance() //to calculate distance from soma
-    forsec axonal{
-      D2 = diam
-      //if section is longer than 60um then store diam and exit from loop
-      if(distance(0.5) > 60){
-        break
-      }
-    }
-  }
-  // get rid of the old axon
-  forsec axonal{
-    delete_section()
-  }
-  create axon[2]
+            If axon_length is a vector, then axon_diameter and axon_nseg must be given and be vectors of same length
+            The returned hoc will then create the user specified axon stump.
 
-  //access axon[0] {
-  axon[0] {
-    L = 30
-    diam = D1
-    nseg = 1 + 2*int(L/40)
-    all.append()
-    axonal.append()
-  }
-  // access axon[1] {
-  axon[1] {
-    L = 30
-    diam = D2
-    nseg = 1 + 2*int(L/40)
-    all.append()
-    axonal.append()
-  }
-  nSecAxonal = 2
-  soma[0] connect axon[0](0), 1
-  axon[0] connect axon[1](0), 1
+        """
 
-  if(nSec > 0) {
-    pop_section()
-  }
+        if isinstance(axon_length, (int, float, np.integer, np.floating)):
+            assert axon_diameter is None and axon_nseg is None
+            # We have only the length specified, use two sections
 
+            assert axon_length < 10000e-6, "Please specify replacement axon_length in SI units (meters)."
 
-}
-        '''
+            axon_length_specified_hoc = \
+                f'''
+            proc replace_axon(){{ local nSec, D1, D2
+              // preserve the number of original axonal sections
+              nSec = sec_count(axonal)
 
-        return new_axon_hoc
+              // Try to grab info from original axon
+              if(nSec == 0) {{ //No axon section present
+                D1 = D2 = 1
+              }} else if(nSec == 1) {{
+                axon[0] D1 = D2 = diam
+              }} else {{
+                axon[0] D1 = D2 = diam
+                soma distance() //to calculate distance from soma
+                forsec axonal{{
+                  //if section is longer than 60um then store diam and exit from loop
+                  if(distance(0.5) > {axon_length * 1e6}){{
+                    D2 = diam
+                    break
+                  }}
+                }}
+              }}
+
+              // get rid of the old axon
+              forsec axonal{{
+                delete_section()
+              }}
+
+              create axon[2]
+
+              axon[0] {{
+                L = {axon_length * 1e6 / 2}
+                diam = D1
+                nseg = 1 + 2*int(L/40)
+                all.append()
+                axonal.append()
+              }}
+              axon[1] {{
+                L = {axon_length * 1e6 / 2}
+                diam = D2
+                nseg = 1 + 2*int(L/40)
+                all.append()
+                axonal.append()
+              }}
+              nSecAxonal = 2
+              soma[0] connect axon[0](0), 1
+              axon[0] connect axon[1](0), 1
+            }}
+                    '''
+
+            return axon_length_specified_hoc
+
+        assert axon_length is not None and axon_diameter is not None and axon_nseg is not None
+
+        # In all remaining cases the user has to specify vectors for axon_length, axon_diameter, axon_nseg
+        assert len(axon_length) == len(axon_diameter) == len(axon_nseg), \
+            f"Unequal lengths: {axon_length = }, {axon_diameter = }, {axon_nseg = }"
+
+        user_defined_axon_hoc = \
+            f"""
+        proc replace_axon() {{
+            
+          // get rid of the old axon
+          forsec axonal{{
+            delete_section()
+            
+          create axon[{len(axon_length)}]
+            
+          }}
+            """
+
+        for idx, (al, ad, an) in enumerate(zip(axon_length, axon_diameter, axon_nseg)):
+
+            assert 0 < al < 500e-6, "Please make sure you specify axon length in SI units (meters)"
+            assert 0 < ad < 10e-6, "Please make sure you specify axon diameter in SI units (meters)"
+            assert an % 2 == 1, f"{axon_nseg = } must contain odd integer"
+
+            user_defined_axon_hoc += \
+            f"""
+          axon[{idx}] {{
+            L = {al*1e6}
+            diam = {ad*1e6}
+            nseg = {an}
+            all.append()
+            axonal.append()
+          }}
+          """
+
+        user_defined_axon_hoc += f"""
+              nSecAxonal = {len(axon_length)}
+        """
+
+        for idx, al in enumerate(axon_length):
+
+            if idx == 0:
+                user_defined_axon_hoc += f"""
+              soma[0] connect axon[0](0), 1
+            """
+            else:
+                user_defined_axon_hoc += f"""
+              axon[{idx-1}] connect axon[{idx}](0), 1
+                """
+
+        user_defined_axon_hoc += "}"
+
+        return user_defined_axon_hoc
+

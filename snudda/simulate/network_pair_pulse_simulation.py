@@ -54,7 +54,7 @@ import neuron
 import numpy as np
 
 from snudda.simulate.simulate import SnuddaSimulate
-from snudda.utils import SnuddaLoadNetworkSimulation
+from snudda.utils import SnuddaLoadSimulation
 from snudda.utils.load import SnuddaLoad
 from snudda.utils import snudda_parse_path
 from snudda.utils.snudda_path import get_snudda_data
@@ -321,7 +321,7 @@ class SnuddaNetworkPairPulseSimulation:
         self.snudda_load = SnuddaLoad(self.network_file)
         self.data = self.snudda_load.data
 
-        ssd = SnuddaLoadNetworkSimulation(network_path=self.network_path)
+        ssd = SnuddaLoadSimulation(network_path=self.network_path)
         voltage = ssd.get_voltage()
         time = ssd.get_time()
 

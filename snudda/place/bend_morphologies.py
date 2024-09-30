@@ -57,9 +57,9 @@ class BendMorphologies:
                 parent_dir, parent_point, parent_dist, parent_moved = parent_direction[section.section_id, section.section_type]
             else:
                 if morphology.rotation is not None:
-                    parent_dir = np.matmul(morphology.rotation, np.array([[1], [0], [0]])).T
+                    parent_dir = np.matmul(morphology.rotation, np.array([[0], [0], [1]])).T
                 else:
-                    parent_dir = np.array([[1, 0, 0]])
+                    parent_dir = np.array([[0, 0, 1]])
 
                 if morphology.position is not None:
                     parent_point = morphology.position
@@ -145,7 +145,7 @@ class BendMorphologies:
             if (section.section_id, section.section_type) in parent_direction.keys():
                 parent_dir = parent_direction[section.section_id, section.section_type]
             else:
-                parent_dir = np.array([[1, 0, 0]])
+                parent_dir = np.array([[0, 0, 1]])
 
             try:
                 rot_and_len, last_direction = self.rotation_representation(section=section, parent_direction=parent_dir)
@@ -174,9 +174,9 @@ class BendMorphologies:
                 parent_dir, parent_pos = parent_direction[section.section_id, section.section_type]
             else:
                 if morphology.rotation is not None:
-                    parent_dir = np.matmul(morphology.rotation, np.array([[1, 0, 0]]).T).T
+                    parent_dir = np.matmul(morphology.rotation, np.array([[0, 0, 1]]).T).T
                 else:
-                    parent_dir = np.array([[1, 0, 0]])
+                    parent_dir = np.array([[0, 0, 1]])
 
                 if morphology.position is not None:
                     parent_pos = morphology.position
@@ -223,7 +223,7 @@ class BendMorphologies:
 
         if parent_direction is None:
             # parent_direction = np.array([[1, 0, 0]])
-            parent_direction = np.array([1, 0, 0])
+            parent_direction = np.array([0, 0, 1])
 
         rotations_and_length = []
         parent_direction = parent_direction / np.linalg.norm(parent_direction)
@@ -334,6 +334,19 @@ class BendMorphologies:
         swc_data[:, 5] = morphology.geometry[:, 3] * 1e6     # radie in micrometer
         swc_data[:, 6] = morphology.section_data[:, 3] + 1   # parent compartment
         swc_data[0, 6] = -1
+
+        # There is a special case, when the first point after the soma is a branch point
+        # which could lead to a 1 point section, to handle those Snudda set section_type to 0 for that point
+        # https://github.com/neuronsimulator/nrn/blob/5038de0b79ddf7da9b536639989da4c10dbae7f7/share/lib/hoc/import3d/read_swc.hoc#L304
+        # We need to find those points and set the section_type to that of the child
+
+        bad_idx_list = np.where(morphology.section_data[:, 2] == 0)[0]
+        for bad_idx in bad_idx_list:
+            child_idx = np.where(morphology.section_data[:, 3] == bad_idx)[0]
+            s_type = morphology.section_data[child_idx, 2]
+            assert (s_type == s_type[0]).all(), f"Children of different type in {morphology.swc_file} {s_type}"
+            swc_data[bad_idx, 1] = s_type[0]
+            print(f"Setting {output_file} row {bad_idx} type to {s_type[0]}.")
 
         with open(output_file, "wt") as f:
             if comment:

@@ -1,0 +1,573 @@
+{
+    "species": {
+        "GaolfGDP": {
+            "initial_concentration": 1.0083120895466201e-11,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 1.0083120895466201e-11,
+            "boundary_condition": false
+        },
+        "Gbgolf": {
+            "initial_concentration": 2.98851246006536e-08,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 2.98851246006536e-08,
+            "boundary_condition": false
+        },
+        "GaolfGTP": {
+            "initial_concentration": 8.91348109605658e-12,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 8.91348109605658e-12,
+            "boundary_condition": false
+        },
+        "D1RDAGolf": {
+            "initial_concentration": 2.00890216216344e-09,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 2.00890216216344e-09,
+            "boundary_condition": false
+        },
+        "Golf": {
+            "initial_concentration": 1.4530725722822101e-06,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 1.4530725722822101e-06,
+            "boundary_condition": false
+        },
+        "D1RGolf": {
+            "initial_concentration": 5.150334009549751e-07,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 5.150334009549751e-07,
+            "boundary_condition": false
+        },
+        "D1RDA": {
+            "initial_concentration": 5.95922532787641e-09,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 5.95922532787641e-09,
+            "boundary_condition": false
+        },
+        "D1R": {
+            "initial_concentration": 1.47699847155499e-06,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 1.47699847155499e-06,
+            "boundary_condition": false
+        },
+        "cAMP": {
+            "initial_concentration": 3.81860143351998e-08,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 3.81860143351998e-08,
+            "boundary_condition": false
+        },
+        "AC5": {
+            "initial_concentration": 2.66944644058834e-09,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 2.66944644058834e-09,
+            "boundary_condition": false
+        },
+        "AC5GaolfGTP": {
+            "initial_concentration": 1.1809040707886602e-10,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 1.1809040707886602e-10,
+            "boundary_condition": false
+        },
+        "PDE4": {
+            "initial_concentration": 1.50680848289944e-06,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 1.50680848289944e-06,
+            "boundary_condition": false
+        },
+        "PKA": {
+            "initial_concentration": 1.15714133868944e-06,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 1.15714133868944e-06,
+            "boundary_condition": false
+        },
+        "PKAcAMP2": {
+            "initial_concentration": 3.2824343126378e-09,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 3.2824343126378e-09,
+            "boundary_condition": false
+        },
+        "PKAcAMP4": {
+            "initial_concentration": 8.673741393198342e-11,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 8.673741393198342e-11,
+            "boundary_condition": false
+        },
+        "PKAreg": {
+            "initial_concentration": 3.9489489583994e-08,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 3.9489489583994e-08,
+            "boundary_condition": false
+        },
+        "PKAc": {
+            "initial_concentration": 3.6607805792436603e-09,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 3.6607805792436603e-09,
+            "boundary_condition": false
+        },
+        "DA": {
+            "initial_concentration": 2e-08,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 2e-08,
+            "boundary_condition": false
+        },
+        "AMP": {
+            "initial_concentration": 0.0,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 0.0,
+            "boundary_condition": true
+        },
+        "PDE4_cAMP": {
+            "initial_concentration": 4.931915171005611e-07,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 4.931915171005611e-07,
+            "boundary_condition": false
+        },
+        "PDE10c": {
+            "initial_concentration": 5.78101285574062e-10,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 5.78101285574062e-10,
+            "boundary_condition": false
+        },
+        "PDE10": {
+            "initial_concentration": 3.96456253552482e-07,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 3.96456253552482e-07,
+            "boundary_condition": false
+        },
+        "PDE10_cAMP": {
+            "initial_concentration": 3.0278168362869404e-07,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 3.0278168362869404e-07,
+            "boundary_condition": false
+        },
+        "PDE10c_cAMP": {
+            "initial_concentration": 1.8396153325001302e-10,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 1.8396153325001302e-10,
+            "boundary_condition": false
+        },
+        "ATP": {
+            "initial_concentration": 0.005,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 0.005,
+            "boundary_condition": true
+        },
+        "AC5GaolfGTP_ATP": {
+            "initial_concentration": 2.97480375915836e-08,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 2.97480375915836e-08,
+            "boundary_condition": false
+        },
+        "AC5_ATP": {
+            "initial_concentration": 6.6746442556075e-07,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 6.6746442556075e-07,
+            "boundary_condition": false
+        }
+    },
+    "reactions": {
+        "revreaction_1": {
+            "reactants": "D1RGolf + DA",
+            "products": "D1RDAGolf",
+            "forward_rate": 50000000.0,
+            "backward_rate": 250.0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ]
+        },
+        "revreaction_2": {
+            "reactants": "D1R + DA",
+            "products": "D1RDA",
+            "forward_rate": 50000000.0,
+            "backward_rate": 250.0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ]
+        },
+        "revreaction_3": {
+            "reactants": "D1R + Golf",
+            "products": "D1RGolf",
+            "forward_rate": 59999999.99999999,
+            "backward_rate": 250.0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ]
+        },
+        "revreaction_4": {
+            "reactants": "Golf + D1RDA",
+            "products": "D1RDAGolf",
+            "forward_rate": 59999999.99999999,
+            "backward_rate": 250.0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ]
+        },
+        "revreaction_5": {
+            "reactants": "AC5 + GaolfGTP",
+            "products": "AC5GaolfGTP",
+            "forward_rate": 10000000000.0,
+            "backward_rate": 1.0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ]
+        },
+        "revreaction_6": {
+            "reactants": "AC5GaolfGTP + ATP",
+            "products": "AC5GaolfGTP_ATP",
+            "forward_rate": 2550000.0,
+            "backward_rate": 1.0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ]
+        },
+        "revreaction_7": {
+            "reactants": "AC5 + ATP",
+            "products": "AC5_ATP",
+            "forward_rate": 100000.0,
+            "backward_rate": 1.0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ]
+        },
+        "revreaction_8": {
+            "reactants": "GaolfGTP + AC5_ATP",
+            "products": "AC5GaolfGTP_ATP",
+            "forward_rate": 10000000000.0,
+            "backward_rate": 1.0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ]
+        },
+        "revreaction_9": {
+            "reactants": "cAMP + PDE4",
+            "products": "PDE4_cAMP",
+            "forward_rate": 29999999.999999996,
+            "backward_rate": 1.0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ]
+        },
+        "revreaction_10": {
+            "reactants": "PDE10 + 2 * cAMP",
+            "products": "PDE10c",
+            "forward_rate": 999999999999.9999,
+            "backward_rate": 1.0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ]
+        },
+        "revreaction_11": {
+            "reactants": "cAMP + PDE10",
+            "products": "PDE10_cAMP",
+            "forward_rate": 100000000.0,
+            "backward_rate": 2.0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ]
+        },
+        "revreaction_12": {
+            "reactants": "cAMP + PDE10c",
+            "products": "PDE10c_cAMP",
+            "forward_rate": 100000000.0,
+            "backward_rate": 2.0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ]
+        },
+        "revreaction_13": {
+            "reactants": "cAMP + PKA",
+            "products": "PKAcAMP2",
+            "forward_rate": 25999999.999999996,
+            "backward_rate": 350.0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ]
+        },
+        "revreaction_14": {
+            "reactants": "cAMP + PKAcAMP2",
+            "products": "PKAcAMP4",
+            "forward_rate": 34600000.0,
+            "backward_rate": 50.0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ]
+        },
+        "revreaction_15": {
+            "reactants": "PKAcAMP4",
+            "products": "PKAc + PKAreg",
+            "forward_rate": 50.0,
+            "backward_rate": 29999999.999999996,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ]
+        },
+        "irrevreaction_1": {
+            "reactants": "D1RDAGolf",
+            "products": "Gbgolf + D1RDA + GaolfGTP",
+            "forward_rate": 15.0,
+            "backward_rate": null,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ]
+        },
+        "irrevreaction_2": {
+            "reactants": "GaolfGTP",
+            "products": "GaolfGDP",
+            "forward_rate": 30.0,
+            "backward_rate": null,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ]
+        },
+        "irrevreaction_3": {
+            "reactants": "GaolfGDP + Gbgolf",
+            "products": "Golf",
+            "forward_rate": 100000000000.0,
+            "backward_rate": null,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ]
+        },
+        "irrevreaction_4": {
+            "reactants": "AC5GaolfGTP_ATP",
+            "products": "cAMP + AC5GaolfGTP",
+            "forward_rate": 50.0,
+            "backward_rate": null,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ]
+        },
+        "irrevreaction_5": {
+            "reactants": "cAMP + AC5GaolfGTP",
+            "products": "AC5GaolfGTP_ATP",
+            "forward_rate": 2549999999.9999995,
+            "backward_rate": null,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ]
+        },
+        "irrevreaction_6": {
+            "reactants": "AC5_ATP",
+            "products": "cAMP + AC5",
+            "forward_rate": 1.0,
+            "backward_rate": null,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ]
+        },
+        "irrevreaction_7": {
+            "reactants": "cAMP + AC5",
+            "products": "AC5_ATP",
+            "forward_rate": 2000000.0,
+            "backward_rate": null,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ]
+        },
+        "irrevreaction_8": {
+            "reactants": "AC5GaolfGTP",
+            "products": "AC5 + GaolfGDP",
+            "forward_rate": 1.0,
+            "backward_rate": null,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ]
+        },
+        "irrevreaction_9": {
+            "reactants": "AC5GaolfGTP_ATP",
+            "products": "AC5_ATP + GaolfGDP",
+            "forward_rate": 1.0,
+            "backward_rate": null,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ]
+        },
+        "irrevreaction_10": {
+            "reactants": "PDE4_cAMP",
+            "products": "PDE4 + AMP",
+            "forward_rate": 2.5,
+            "backward_rate": null,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ]
+        },
+        "irrevreaction_11": {
+            "reactants": "PDE10_cAMP",
+            "products": "PDE10 + AMP",
+            "forward_rate": 3.0,
+            "backward_rate": null,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ]
+        },
+        "irrevreaction_12": {
+            "reactants": "PDE10c_cAMP",
+            "products": "PDE10c + AMP",
+            "forward_rate": 10.0,
+            "backward_rate": null,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ]
+        }
+    }
+}

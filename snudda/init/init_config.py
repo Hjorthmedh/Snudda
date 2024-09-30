@@ -66,13 +66,7 @@ class ConfigParser:
 
         return isinstance(item, str) and len(item) > 0 and item[0] == '!'
 
-    def substitute_json(self, putative_file, key=None, parent_file=None):
-
-        if not (isinstance(putative_file, str) and putative_file.endswith(".json")):
-            return putative_file
-
-        # First we look for files in the same directory as the parent directory
-        # after that we do SNUDDA_DATA substitution if no match
+    def get_putative_path(self, putative_file, parent_file=None):
 
         # This allows us to exclude parsing of certain json files
         if os.path.basename(putative_file) in self.exclude_parse_values:
@@ -95,6 +89,19 @@ class ConfigParser:
 
         if putative_path is None:
             raise ValueError(f"File not found {putative_file}")
+
+        return putative_path
+
+    def substitute_json(self, putative_file, key=None, parent_file=None):
+
+        if not (isinstance(putative_file, str) and putative_file.endswith(".json")):
+            return putative_file
+
+        # First we look for files in the same directory as the parent directory
+        # after that we do SNUDDA_DATA substitution if no match
+
+        putative_path = self.get_putative_path(putative_file=putative_file,
+                                               parent_file=parent_file)
 
         with open(putative_path) as f:
             print(f"Loading {putative_path}")
@@ -140,11 +147,10 @@ class ConfigParser:
 
     def setup_random_seeds(self):
 
-        if "random_seed" in self.config_data:
-            if "master_seed" in self.config_data["random_seed"]:
-                master_seed = self.config_data["random_seed"]["master_seed"]
-            else:
-                master_seed = None
+        master_seed = None
+
+        if "random_seed" in self.config_data and "master_seed" in self.config_data["random_seed"]:
+            master_seed = self.config_data["random_seed"]["master_seed"]
 
         from snudda.init import SnuddaInit
 

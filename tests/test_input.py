@@ -4,6 +4,8 @@ import h5py
 import json
 import numpy as np
 
+from copy import deepcopy
+
 from snudda.detect.detect import SnuddaDetect
 from snudda.input.input import SnuddaInput
 from snudda.detect.prune import SnuddaPrune

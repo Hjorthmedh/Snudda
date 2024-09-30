@@ -1,0 +1,4261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level2/version4" level="2" version="4">
+  <model id="Nair_2016_optimized">
+    <listOfUnitDefinitions>
+      <unitDefinition id="time">
+        <listOfUnits>
+          <unit kind="second" exponent="1" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="volume">
+        <listOfUnits>
+          <unit kind="litre" exponent="1" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="substance">
+        <listOfUnits>
+          <unit kind="mole" exponent="1" scale="-9" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="length">
+        <listOfUnits>
+          <unit kind="metre" exponent="1" scale="-6" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="area">
+        <listOfUnits>
+          <unit kind="metre" exponent="2" scale="-6" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="nanomole_per_liter">
+        <listOfUnits>
+          <unit kind="mole" exponent="1" scale="-9" multiplier="1"/>
+          <unit kind="litre" exponent="-1" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="one_over_millisecond">
+        <listOfUnits>
+          <unit kind="dimensionless" exponent="1" scale="0" multiplier="1"/>
+          <unit kind="second" exponent="-1" scale="-3" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="liter_per_nanomole_millisecond">
+        <listOfUnits>
+          <unit kind="litre" exponent="1" scale="0" multiplier="1"/>
+          <unit kind="mole" exponent="-1" scale="-9" multiplier="1"/>
+          <unit kind="second" exponent="-1" scale="-3" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="liter_square_per_nanomole_square_millisecond">
+        <listOfUnits>
+          <unit kind="litre" exponent="2" scale="0" multiplier="1"/>
+          <unit kind="mole" exponent="-2" scale="-9" multiplier="1"/>
+          <unit kind="second" exponent="-1" scale="-3" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="millisecond">
+        <listOfUnits>
+          <unit kind="second" exponent="1" scale="-3" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="liter">
+        <listOfUnits>
+          <unit kind="litre" exponent="1" scale="0" multiplier="1"/>
+        </listOfUnits>
+      </unitDefinition>
+    </listOfUnitDefinitions>
+    <listOfCompartments>
+      <compartment id="V1" name="Spine" size="1e-15" units="liter"/>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species id="AC5" name="AC5" compartment="V1" initialConcentration="700" substanceUnits="substance"/>
+      <species id="AC5_ATP" name="AC5_ATP" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="AC5_Ca" name="AC5_Ca" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="AC5_Ca_ATP" name="AC5_Ca_ATP" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="AC5_Ca_GaolfGTP" name="AC5_Ca_GaolfGTP" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="AC5_Ca_GaolfGTP_ATP" name="AC5_Ca_GaolfGTP_ATP" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="AC5_GaolfGTP" name="AC5_GaolfGTP" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="AC5_GaolfGTP_ATP" name="AC5_GaolfGTP_ATP" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="AMP" name="AMP" compartment="V1" initialConcentration="0" substanceUnits="substance" boundaryCondition="true"/>
+      <species id="ATP" name="ATP" compartment="V1" initialConcentration="5000000" substanceUnits="substance" boundaryCondition="true"/>
+      <species id="B56PP2A" name="B56PP2A" compartment="V1" initialConcentration="2000" substanceUnits="substance"/>
+      <species id="B56PP2A_D32p75" name="B56PP2A_D32p75" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="B56PP2A_pARPP21" name="B56PP2A_pARPP21" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="B56PP2Ap" name="B56PP2Ap" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="B56PP2Ap_D32p75" name="B56PP2Ap_D32p75" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="B56PP2Ap_pARPP21" name="B56PP2Ap_pARPP21" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="B72PP2A" name="B72PP2A" compartment="V1" initialConcentration="2000" substanceUnits="substance"/>
+      <species id="B72PP2A_D32p34" name="B72PP2A_D32p34" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="B72PP2A_D32p75" name="B72PP2A_D32p75" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="B72PP2A_pARPP21" name="B72PP2A_pARPP21" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="B72PP2A_Ca_D32p34" name="B72PP2A_Ca_D32p34" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="B72PP2A_Ca_D32p75" name="B72PP2A_Ca_D32p75" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="B72PP2A_Ca" name="B72PP2A_Ca" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="B72PP2A_Ca_pARPP21" name="B72PP2A_Ca_pARPP21" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="Ca" name="Ca" compartment="V1" initialConcentration="60" substanceUnits="substance" boundaryCondition="true"/>
+      <species id="CaM" name="CaM" compartment="V1" initialConcentration="9000" substanceUnits="substance"/>
+      <species id="CaM_Ca2" name="CaM_Ca2" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="CaM_Ca4" name="CaM_Ca4" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="CaM_Ca4_pARPP21" name="CaM_Ca4_pARPP21" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="CaMKII" name="CaMKII" compartment="V1" initialConcentration="20000" substanceUnits="substance"/>
+      <species id="CaMKII_CaM_Ca4" name="CaMKII_CaM_Ca4" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="CaMKII_CaM" name="CaMKII_CaM" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="CaMKII_CaM_Ca2" name="CaMKII_CaM_Ca2" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="CaMKII_CaM_Ca2_psd" name="CaMKII_CaM_Ca2_psd" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="CaMKII_CaM_psd" name="CaMKII_CaM_psd" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="CaMKII_CaM_Ca4_psd" name="CaMKII_CaM_Ca4_psd" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="CaMKII_psd" name="CaMKII_psd" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="cAMP" name="cAMP" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="Substrate" name="Substrate" compartment="V1" initialConcentration="3000" substanceUnits="substance"/>
+      <species id="CDK5" name="CDK5" compartment="V1" initialConcentration="1800" substanceUnits="substance"/>
+      <species id="CDK5_D32" name="CDK5_D32" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="D1R" name="D1R" compartment="V1" initialConcentration="2000" substanceUnits="substance"/>
+      <species id="D1R_DA" name="D1R_DA" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="D1R_Golf_DA" name="D1R_Golf_DA" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="D1R_Golf" name="D1R_Golf" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="D32p34" name="D32p34" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="D32p75" name="D32p75" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="D32" name="D32" compartment="V1" initialConcentration="50000" substanceUnits="substance"/>
+      <species id="DA" name="DA" compartment="V1" initialConcentration="20" substanceUnits="substance" boundaryCondition="true"/>
+      <species id="GaolfGDP" name="GaolfGDP" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="GaolfGTP" name="GaolfGTP" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="Gbgolf" name="Gbgolf" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="Golf" name="Golf" compartment="V1" initialConcentration="2000" substanceUnits="substance"/>
+      <species id="pCaMKII" name="pCaMKII" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="pCaMKII_CaM_Ca4" name="pCaMKII_CaM_Ca4" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="pCaMKII_CaM" name="pCaMKII_CaM" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="pCaMKII_CaM_Ca2" name="pCaMKII_CaM_Ca2" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="pCaMKII_CaM_Ca2_psd" name="pCaMKII_CaM_Ca2_psd" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="pCaMKII_CaM_psd" name="pCaMKII_CaM_psd" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="pCaMKII_CaM_Ca4_psd" name="pCaMKII_CaM_Ca4_psd" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="pCaMKII_psd" name="pCaMKII_psd" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="pSubstrate" name="pSubstrate" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="PDE4" name="PDE4" compartment="V1" initialConcentration="2000" substanceUnits="substance"/>
+      <species id="PDE4_cAMP" name="PDE4_cAMP" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="PDE10r" name="PDE10r" compartment="V1" initialConcentration="700" substanceUnits="substance"/>
+      <species id="PDE10r_cAMP" name="PDE10r_cAMP" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="PDE10c" name="PDE10c" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="PDE10c_cAMP" name="PDE10c_cAMP" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="PKA" name="PKA" compartment="V1" initialConcentration="1200" substanceUnits="substance"/>
+      <species id="PKAc" name="PKAc" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="PKAc_B56PP2A" name="PKAc_B56PP2A" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="PKAc_D32" name="PKAc_D32" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="PKAc_ARPP21" name="PKAc_ARPP21" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="PKA_Ca2MP" name="PKA_Ca2MP" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="PKA_Ca4MP" name="PKA_Ca4MP" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="PKAc_D32p75" name="PKAc_D32p75" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="PKAreg" name="PKAreg" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="PP1" name="PP1" compartment="V1" initialConcentration="3000" substanceUnits="substance"/>
+      <species id="PP1_pCaMKII_psd" name="PP1_pCaMKII_psd" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="PP1_pSubstrate" name="PP1_pSubstrate" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="PP1_D32p34" name="PP1_D32p34" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="CaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd" name="CaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="pCaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd" name="pCaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="CaMKII_CaM_Ca4_CaMKII_CaM_Ca4" name="CaMKII_CaM_Ca4_CaMKII_CaM_Ca4" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="pCaMKII_CaM_Ca4_CaMKII_CaM_Ca4" name="pCaMKII_CaM_Ca4_CaMKII_CaM_Ca4" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="PP2B" name="PP2B" compartment="V1" initialConcentration="4000" substanceUnits="substance"/>
+      <species id="PP2Bc" name="PP2Bc" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="PP2Bc_D32p34" name="PP2Bc_D32p34" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="PP2B_CaM" name="PP2B_CaM" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="PP2B_CaM_Ca2" name="PP2B_CaM_Ca2" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="pARPP21" name="pARPP21" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="ARPP21" name="ARPP21" compartment="V1" initialConcentration="20000" substanceUnits="substance"/>
+      <species id="pCaMKII_psd_Substrate" name="pCaMKII_psd_Substrate" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="pCaMKII_CaM_psd_Substrate" name="pCaMKII_CaM_psd_Substrate" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="pCaMKII_CaM_Ca2_psd_Substrate" name="pCaMKII_CaM_Ca2_psd_Substrate" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="pCaMKII_CaM_Ca4_psd_Substrate" name="pCaMKII_CaM_Ca4_psd_Substrate" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="CaMKII_CaM_psd_Substrate" name="CaMKII_CaM_psd_Substrate" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="CaMKII_CaM_Ca2_psd_Substrate" name="CaMKII_CaM_Ca2_psd_Substrate" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="CaMKII_CaM_Ca4_psd_Substrate" name="CaMKII_CaM_Ca4_psd_Substrate" compartment="V1" initialConcentration="0" substanceUnits="substance"/>
+      <species id="pSubstrate_out" name="pSubstrate_out" compartment="V1" initialConcentration="0" substanceUnits="substance" boundaryCondition="true"/>
+      <species id="PP1_out" name="PP1_out" compartment="V1" initialConcentration="0" substanceUnits="substance" boundaryCondition="true"/>
+      <species id="CaM_out" name="CaM_out" compartment="V1" initialConcentration="0" substanceUnits="substance" boundaryCondition="true"/>
+      <species id="D32_out" name="D32_out" compartment="V1" initialConcentration="0" substanceUnits="substance" boundaryCondition="true"/>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter id="tau_DA1" name="tau_DA1" value="34.979" units="millisecond"/>
+      <parameter id="tau_DA2" name="tau_DA2" value="420" units="millisecond"/>
+      <parameter id="DA_basal" name="DA_basal" value="20" units="nanomole_per_liter"/>
+      <parameter id="kf_R0" name="kf_R0" value="0.0299999999999998" units="one_over_millisecond"/>
+      <parameter id="kf_R1" name="kf_R1" value="0.015" units="one_over_millisecond"/>
+      <parameter id="kf_R2" name="kf_R2" value="5.00000000000001e-05" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R2" name="kr_R2" value="0.25" units="one_over_millisecond"/>
+      <parameter id="kf_R3" name="kf_R3" value="5.00000000000001e-05" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R3" name="kr_R3" value="0.25" units="one_over_millisecond"/>
+      <parameter id="kf_R4" name="kf_R4" value="0.01" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R4" name="kr_R4" value="0.001" units="one_over_millisecond"/>
+      <parameter id="kf_R5" name="kf_R5" value="5.99999999999995e-06" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R5" name="kr_R5" value="0.0199999999999999" units="one_over_millisecond"/>
+      <parameter id="kf_R6" name="kf_R6" value="0.0001" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R6" name="kr_R6" value="3" units="one_over_millisecond"/>
+      <parameter id="kf_R7" name="kf_R7" value="0.0001" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R7" name="kr_R7" value="2.99999999999998e-06" units="one_over_millisecond"/>
+      <parameter id="kf_R8" name="kf_R8" value="1e-05" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R8" name="kr_R8" value="0.2" units="one_over_millisecond"/>
+      <parameter id="kf_R9" name="kf_R9" value="0.01" units="one_over_millisecond"/>
+      <parameter id="kf_R10" name="kf_R10" value="1e-06" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R10" name="kr_R10" value="0.000299999999999998" units="one_over_millisecond"/>
+      <parameter id="kf_R11" name="kf_R11" value="0.000199999999999999" units="one_over_millisecond"/>
+      <parameter id="kf_R12" name="kf_R12" value="0.001" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R12" name="kr_R12" value="0.0015" units="one_over_millisecond"/>
+      <parameter id="kf_R13" name="kf_R13" value="1e-06" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R13" name="kr_R13" value="0.1" units="one_over_millisecond"/>
+      <parameter id="kf_R14" name="kf_R14" value="0.01" units="one_over_millisecond"/>
+      <parameter id="kf_R15" name="kf_R15" value="0.0001" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R15" name="kr_R15" value="0.1" units="one_over_millisecond"/>
+      <parameter id="kf_R16" name="kf_R16" value="1e-05" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R16" name="kr_R16" value="0.01" units="one_over_millisecond"/>
+      <parameter id="kf_R17" name="kf_R17" value="1.49999999999999e-05" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R17" name="kr_R17" value="0.1" units="one_over_millisecond"/>
+      <parameter id="kf_R18" name="kf_R18" value="7.99999999999994e-06" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R18" name="kr_R18" value="0.1" units="one_over_millisecond"/>
+      <parameter id="kf_R19" name="kf_R19" value="1.49999999999999e-05" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R19" name="kr_R19" value="0.1" units="one_over_millisecond"/>
+      <parameter id="kf_R20" name="kf_R20" value="0.00799999999999994" units="one_over_millisecond"/>
+      <parameter id="kf_R21" name="kf_R21" value="0.0015" units="one_over_millisecond"/>
+      <parameter id="kf_R22" name="kf_R22" value="0.00799999999999994" units="one_over_millisecond"/>
+      <parameter id="kf_R23" name="kf_R23" value="0.00130000000000001" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R23" name="kr_R23" value="0.0001" units="one_over_millisecond"/>
+      <parameter id="kf_R24" name="kf_R24" value="0.0001" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R24" name="kr_R24" value="1" units="one_over_millisecond"/>
+      <parameter id="kf_R25" name="kf_R25" value="5.99999999999995e-06" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R25" name="kr_R25" value="2e-07" units="one_over_millisecond"/>
+      <parameter id="kf_R26" name="kf_R26" value="0.0001" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R26" name="kr_R26" value="0.1" units="one_over_millisecond"/>
+      <parameter id="kf_R27" name="kf_R27" value="0.0001" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R27" name="kr_R27" value="2.99999999999998e-05" units="one_over_millisecond"/>
+      <parameter id="kf_R28" name="kf_R28" value="1e-06" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R28" name="kr_R28" value="0.01" units="one_over_millisecond"/>
+      <parameter id="kf_R29" name="kf_R29" value="0.01" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R29" name="kr_R29" value="0.001" units="one_over_millisecond"/>
+      <parameter id="kf_R30" name="kf_R30" value="7.99999999999994e-06" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R30" name="kr_R30" value="0.1" units="one_over_millisecond"/>
+      <parameter id="kf_R31" name="kf_R31" value="0.0015" units="one_over_millisecond"/>
+      <parameter id="kf_R32" name="kf_R32" value="0.00299999999999998" units="one_over_millisecond"/>
+      <parameter id="kf_R33" name="kf_R33" value="0.00299999999999998" units="one_over_millisecond"/>
+      <parameter id="kf_R34" name="kf_R34" value="5.00000000000001e-07" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R34" name="kr_R34" value="0.001" units="one_over_millisecond"/>
+      <parameter id="kf_R35" name="kf_R35" value="5.00000000000001e-07" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R35" name="kr_R35" value="0.001" units="one_over_millisecond"/>
+      <parameter id="kf_R36" name="kf_R36" value="0.00119999999999999" units="one_over_millisecond"/>
+      <parameter id="kf_R37" name="kf_R37" value="7.99999999999994e-06" units="one_over_millisecond"/>
+      <parameter id="kf_R38" name="kf_R38" value="2.60000000000001e-05" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R38" name="kr_R38" value="0.35" units="one_over_millisecond"/>
+      <parameter id="kf_R39" name="kf_R39" value="3.46000000000003e-05" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R39" name="kr_R39" value="0.0500000000000001" units="one_over_millisecond"/>
+      <parameter id="kf_R40" name="kf_R40" value="0.0500000000000001" units="one_over_millisecond"/>
+      <parameter id="kr_R40" name="kr_R40" value="2.99999999999998e-05" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kf_R41" name="kf_R41" value="2.99999999999998e-05" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R41" name="kr_R41" value="0.001" units="one_over_millisecond"/>
+      <parameter id="kf_R42" name="kf_R42" value="0.00250000000000001" units="one_over_millisecond"/>
+      <parameter id="kf_R43" name="kf_R43" value="1e-09" units="liter_square_per_nanomole_square_millisecond"/>
+      <parameter id="kr_R43" name="kr_R43" value="0.001" units="one_over_millisecond"/>
+      <parameter id="kf_R44" name="kf_R44" value="0.00299999999999998" units="one_over_millisecond"/>
+      <parameter id="kf_R45" name="kf_R45" value="0.0001" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R45" name="kr_R45" value="0.00199999999999999" units="one_over_millisecond"/>
+      <parameter id="kf_R46" name="kf_R46" value="0.01" units="one_over_millisecond"/>
+      <parameter id="kf_R47" name="kf_R47" value="0.1" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kf_R48" name="kf_R48" value="2.55000000000003e-06" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R48" name="kr_R48" value="0.001" units="one_over_millisecond"/>
+      <parameter id="kf_R49" name="kf_R49" value="1e-07" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R49" name="kr_R49" value="0.001" units="one_over_millisecond"/>
+      <parameter id="kf_R50" name="kf_R50" value="7.5e-08" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R50" name="kr_R50" value="0.001" units="one_over_millisecond"/>
+      <parameter id="kf_R51" name="kf_R51" value="1.30000000000001e-06" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R51" name="kr_R51" value="0.001" units="one_over_millisecond"/>
+      <parameter id="kf_R52" name="kf_R52" value="0.01" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R52" name="kr_R52" value="0.001" units="one_over_millisecond"/>
+      <parameter id="kf_R53" name="kf_R53" value="0.01" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R53" name="kr_R53" value="0.001" units="one_over_millisecond"/>
+      <parameter id="kf_R54" name="kf_R54" value="1e-06" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R54" name="kr_R54" value="0.01" units="one_over_millisecond"/>
+      <parameter id="kf_R55" name="kf_R55" value="0.0500000000000001" units="one_over_millisecond"/>
+      <parameter id="kf_R56" name="kf_R56" value="0.00255000000000003" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kf_R57" name="kf_R57" value="0.001" units="one_over_millisecond"/>
+      <parameter id="kf_R58" name="kf_R58" value="2e-06" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kf_R59" name="kf_R59" value="0.000500000000000001" units="one_over_millisecond"/>
+      <parameter id="kf_R60" name="kf_R60" value="7.5e-07" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kf_R61" name="kf_R61" value="0.0250000000000001" units="one_over_millisecond"/>
+      <parameter id="kf_R62" name="kf_R62" value="0.000650000000000007" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kf_R63" name="kf_R63" value="0.001" units="one_over_millisecond"/>
+      <parameter id="kf_R64" name="kf_R64" value="0.001" units="one_over_millisecond"/>
+      <parameter id="kf_R65" name="kf_R65" value="0.001" units="one_over_millisecond"/>
+      <parameter id="kf_R66" name="kf_R66" value="0.001" units="one_over_millisecond"/>
+      <parameter id="kf_R67" name="kf_R67" value="5.99999999999995e-05" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R67" name="kr_R67" value="0.25" units="one_over_millisecond"/>
+      <parameter id="kf_R68" name="kf_R68" value="5.99999999999995e-05" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R68" name="kr_R68" value="0.25" units="one_over_millisecond"/>
+      <parameter id="kf_R69" name="kf_R69" value="0.0001" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R69" name="kr_R69" value="0.00199999999999999" units="one_over_millisecond"/>
+      <parameter id="kf_R70" name="kf_R70" value="0.0001" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R70" name="kr_R70" value="0.0399999999999998" units="one_over_millisecond"/>
+      <parameter id="kf_R71" name="kf_R71" value="0.0001" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R71" name="kr_R71" value="0.4" units="one_over_millisecond"/>
+      <parameter id="kf_R72" name="kf_R72" value="0.0001" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R72" name="kr_R72" value="4" units="one_over_millisecond"/>
+      <parameter id="kf_R73" name="kf_R73" value="0.0001" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R73" name="kr_R73" value="0.1" units="one_over_millisecond"/>
+      <parameter id="kf_R74" name="kf_R74" value="5.99999999999995e-06" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R74" name="kr_R74" value="0.00199999999999999" units="one_over_millisecond"/>
+      <parameter id="kf_R75" name="kf_R75" value="0.0001" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R75" name="kr_R75" value="0.01" units="one_over_millisecond"/>
+      <parameter id="kf_R76" name="kf_R76" value="5.99999999999995e-06" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R76" name="kr_R76" value="0.00199999999999999" units="one_over_millisecond"/>
+      <parameter id="kf_R77" name="kf_R77" value="0.0001" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R77" name="kr_R77" value="0.000399999999999998" units="one_over_millisecond"/>
+      <parameter id="kf_R78" name="kf_R78" value="0.0001" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R78" name="kr_R78" value="0.0399999999999998" units="one_over_millisecond"/>
+      <parameter id="kf_R79" name="kf_R79" value="0.0001" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R79" name="kr_R79" value="0.4" units="one_over_millisecond"/>
+      <parameter id="kf_R80" name="kf_R80" value="4.49999999999997e-05" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R80" name="kr_R80" value="0.2" units="one_over_millisecond"/>
+      <parameter id="kf_R81" name="kf_R81" value="0.01" units="one_over_millisecond"/>
+      <parameter id="kf_R82" name="kf_R82" value="0.000500000000000001" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R82" name="kr_R82" value="0.01" units="one_over_millisecond"/>
+      <parameter id="kf_R83" name="kf_R83" value="0.01" units="one_over_millisecond"/>
+      <parameter id="kf_R84" name="kf_R84" value="7.00000000000004e-06" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R84" name="kr_R84" value="0.1" units="one_over_millisecond"/>
+      <parameter id="kf_R85" name="kf_R85" value="0.001" units="one_over_millisecond"/>
+      <parameter id="kf_R86" name="kf_R86" value="3.99999999999998e-06" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R86" name="kr_R86" value="0.1" units="one_over_millisecond"/>
+      <parameter id="kf_R87" name="kf_R87" value="0.01" units="one_over_millisecond"/>
+      <parameter id="kf_R88" name="kf_R88" value="7.00000000000004e-06" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R88" name="kr_R88" value="0.1" units="one_over_millisecond"/>
+      <parameter id="kf_R89" name="kf_R89" value="0.001" units="one_over_millisecond"/>
+      <parameter id="kf_R90" name="kf_R90" value="3.99999999999998e-06" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R90" name="kr_R90" value="0.1" units="one_over_millisecond"/>
+      <parameter id="kf_R91" name="kf_R91" value="5.00000000000001e-07" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R91" name="kr_R91" value="0.001" units="one_over_millisecond"/>
+      <parameter id="kf_R92" name="kf_R92" value="0.01" units="one_over_millisecond"/>
+      <parameter id="kf_R93" name="kf_R93" value="5.00000000000001e-07" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R93" name="kr_R93" value="0.01" units="one_over_millisecond"/>
+      <parameter id="kf_R94" name="kf_R94" value="0.01" units="one_over_millisecond"/>
+      <parameter id="kf_R95" name="kf_R95" value="0.0001" units="one_over_millisecond"/>
+      <parameter id="kf_R96" name="kf_R96" value="5.00000000000001e-07" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R96" name="kr_R96" value="0.01" units="one_over_millisecond"/>
+      <parameter id="kf_R97" name="kf_R97" value="0.01" units="one_over_millisecond"/>
+      <parameter id="kf_R98" name="kf_R98" value="5.00000000000001e-07" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R98" name="kr_R98" value="0.01" units="one_over_millisecond"/>
+      <parameter id="kf_R99" name="kf_R99" value="0.01" units="one_over_millisecond"/>
+      <parameter id="kf_R100" name="kf_R100" value="5.00000000000001e-07" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R100" name="kr_R100" value="0.01" units="one_over_millisecond"/>
+      <parameter id="kf_R101" name="kf_R101" value="0.01" units="one_over_millisecond"/>
+      <parameter id="kf_R102" name="kf_R102" value="5.00000000000001e-07" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R102" name="kr_R102" value="0.01" units="one_over_millisecond"/>
+      <parameter id="kf_R103" name="kf_R103" value="0.01" units="one_over_millisecond"/>
+      <parameter id="kf_R104" name="kf_R104" value="5.00000000000001e-07" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R104" name="kr_R104" value="0.01" units="one_over_millisecond"/>
+      <parameter id="kf_R105" name="kf_R105" value="0.01" units="one_over_millisecond"/>
+      <parameter id="kf_R106" name="kf_R106" value="5.00000000000001e-07" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R106" name="kr_R106" value="0.01" units="one_over_millisecond"/>
+      <parameter id="kf_R107" name="kf_R107" value="0.01" units="one_over_millisecond"/>
+      <parameter id="kf_R108" name="kf_R108" value="0.000500000000000001" units="one_over_millisecond"/>
+      <parameter id="kr_R108" name="kr_R108" value="1e-06" units="one_over_millisecond"/>
+      <parameter id="kf_R109" name="kf_R109" value="0.000500000000000001" units="one_over_millisecond"/>
+      <parameter id="kr_R109" name="kr_R109" value="1e-06" units="one_over_millisecond"/>
+      <parameter id="kf_R110" name="kf_R110" value="0.000500000000000001" units="one_over_millisecond"/>
+      <parameter id="kr_R110" name="kr_R110" value="1e-06" units="one_over_millisecond"/>
+      <parameter id="kf_R111" name="kf_R111" value="0.000500000000000001" units="one_over_millisecond"/>
+      <parameter id="kr_R111" name="kr_R111" value="1e-06" units="one_over_millisecond"/>
+      <parameter id="kf_R112" name="kf_R112" value="0.0001" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R112" name="kr_R112" value="0.000399999999999998" units="one_over_millisecond"/>
+      <parameter id="kf_R113" name="kf_R113" value="0.0001" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R113" name="kr_R113" value="0.0399999999999998" units="one_over_millisecond"/>
+      <parameter id="kf_R114" name="kf_R114" value="0.0001" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R114" name="kr_R114" value="0.4" units="one_over_millisecond"/>
+      <parameter id="kf_R115" name="kf_R115" value="5.99999999999995e-06" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R115" name="kr_R115" value="0.00199999999999999" units="one_over_millisecond"/>
+      <parameter id="kf_R116" name="kf_R116" value="0.0001" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R116" name="kr_R116" value="0.01" units="one_over_millisecond"/>
+      <parameter id="kf_R117" name="kf_R117" value="7.99999999999994e-07" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R117" name="kr_R117" value="0.001" units="one_over_millisecond"/>
+      <parameter id="kf_R118" name="kf_R118" value="0.001" units="one_over_millisecond"/>
+      <parameter id="kf_R119" name="kf_R119" value="0.000500000000000001" units="one_over_millisecond"/>
+      <parameter id="kf_R120" name="kf_R120" value="0.0001" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R120" name="kr_R120" value="0.0399999999999998" units="one_over_millisecond"/>
+      <parameter id="kf_R121" name="kf_R121" value="0.0001" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R121" name="kr_R121" value="0.4" units="one_over_millisecond"/>
+      <parameter id="kf_R122" name="kf_R122" value="0.0001" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R122" name="kr_R122" value="4" units="one_over_millisecond"/>
+      <parameter id="kf_R123" name="kf_R123" value="0.0001" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R123" name="kr_R123" value="0.1" units="one_over_millisecond"/>
+      <parameter id="kf_R124" name="kf_R124" value="5.99999999999995e-06" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R124" name="kr_R124" value="0.00199999999999999" units="one_over_millisecond"/>
+      <parameter id="kf_R125" name="kf_R125" value="0.000500000000000001" units="one_over_millisecond"/>
+      <parameter id="kr_R125" name="kr_R125" value="0.000500000000000001" units="one_over_millisecond"/>
+      <parameter id="kf_R126" name="kf_R126" value="0.000500000000000001" units="one_over_millisecond"/>
+      <parameter id="kr_R126" name="kr_R126" value="0.000500000000000001" units="one_over_millisecond"/>
+      <parameter id="kf_R127" name="kf_R127" value="0.000500000000000001" units="one_over_millisecond"/>
+      <parameter id="kr_R127" name="kr_R127" value="0.000500000000000001" units="one_over_millisecond"/>
+      <parameter id="kf_R128" name="kf_R128" value="0.000500000000000001" units="one_over_millisecond"/>
+      <parameter id="kr_R128" name="kr_R128" value="0.000500000000000001" units="one_over_millisecond"/>
+      <parameter id="kf_R129" name="kf_R129" value="1e-06" units="one_over_millisecond"/>
+      <parameter id="kr_R129" name="kr_R129" value="0.000500000000000001" units="one_over_millisecond"/>
+      <parameter id="kf_R130" name="kf_R130" value="3.60000000000003e-07" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R130" name="kr_R130" value="0.0229999999999998" units="one_over_millisecond"/>
+      <parameter id="kf_R131" name="kf_R131" value="0.00390000000000001" units="one_over_millisecond"/>
+      <parameter id="kf_R132" name="kf_R132" value="1.10000000000001e-06" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R132" name="kr_R132" value="0.00540000000000002" units="one_over_millisecond"/>
+      <parameter id="kf_R133" name="kf_R133" value="10" units="one_over_millisecond"/>
+      <parameter id="kf_R134" name="kf_R134" value="3.60000000000003e-07" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R134" name="kr_R134" value="0.0229999999999998" units="one_over_millisecond"/>
+      <parameter id="kf_R135" name="kf_R135" value="0.00390000000000001" units="one_over_millisecond"/>
+      <parameter id="kf_R136" name="kf_R136" value="1.10000000000001e-06" units="liter_per_nanomole_millisecond"/>
+      <parameter id="kr_R136" name="kr_R136" value="0.00540000000000002" units="one_over_millisecond"/>
+      <parameter id="kf_R137" name="kf_R137" value="10" units="one_over_millisecond"/>
+      <parameter id="DA_start" name="DA_start" value="100" units="millisecond"/>
+      <parameter id="DA_max" name="DA_max" value="1480" units="nanomole_per_liter"/>
+      <parameter id="ATP_expression" name="ATP_expression" value="5000000" units="nanomole_per_liter"/>
+    </listOfParameters>
+    <listOfRules>
+      <assignmentRule variable="DA">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <plus/>
+            <ci> DA_basal </ci>
+            <apply>
+              <times/>
+              <apply>
+                <divide/>
+                <cn type="integer"> 1 </cn>
+                <apply>
+                  <plus/>
+                  <cn type="integer"> 1 </cn>
+                  <apply>
+                    <exp/>
+                    <apply>
+                      <times/>
+                      <apply>
+                        <minus/>
+                        <cn type="e-notation"> 10 <sep/> 10 </cn>
+                      </apply>
+                      <apply>
+                        <minus/>
+                        <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
+                        <ci> DA_start </ci>
+                      </apply>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+              <apply>
+                <divide/>
+                <ci> DA_max </ci>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <exp/>
+                    <apply>
+                      <divide/>
+                      <apply>
+                        <times/>
+                        <apply>
+                          <divide/>
+                          <apply>
+                            <times/>
+                            <apply>
+                              <minus/>
+                              <ci> tau_DA1 </ci>
+                            </apply>
+                            <ci> tau_DA2 </ci>
+                          </apply>
+                          <apply>
+                            <minus/>
+                            <ci> tau_DA2 </ci>
+                            <ci> tau_DA1 </ci>
+                          </apply>
+                        </apply>
+                        <apply>
+                          <log/>
+                          <logbase>
+                            <cn type="integer"> 10 </cn>
+                          </logbase>
+                          <apply>
+                            <divide/>
+                            <ci> tau_DA2 </ci>
+                            <ci> tau_DA1 </ci>
+                          </apply>
+                        </apply>
+                      </apply>
+                      <ci> tau_DA1 </ci>
+                    </apply>
+                  </apply>
+                  <apply>
+                    <exp/>
+                    <apply>
+                      <divide/>
+                      <apply>
+                        <times/>
+                        <apply>
+                          <divide/>
+                          <apply>
+                            <times/>
+                            <apply>
+                              <minus/>
+                              <ci> tau_DA1 </ci>
+                            </apply>
+                            <ci> tau_DA2 </ci>
+                          </apply>
+                          <apply>
+                            <minus/>
+                            <ci> tau_DA2 </ci>
+                            <ci> tau_DA1 </ci>
+                          </apply>
+                        </apply>
+                        <apply>
+                          <log/>
+                          <logbase>
+                            <cn type="integer"> 10 </cn>
+                          </logbase>
+                          <apply>
+                            <divide/>
+                            <ci> tau_DA2 </ci>
+                            <ci> tau_DA1 </ci>
+                          </apply>
+                        </apply>
+                      </apply>
+                      <ci> tau_DA2 </ci>
+                    </apply>
+                  </apply>
+                </apply>
+              </apply>
+              <apply>
+                <minus/>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <minus/>
+                      <apply>
+                        <minus/>
+                        <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
+                        <ci> DA_start </ci>
+                      </apply>
+                    </apply>
+                    <ci> tau_DA1 </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <exp/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <minus/>
+                      <apply>
+                        <minus/>
+                        <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
+                        <ci> DA_start </ci>
+                      </apply>
+                    </apply>
+                    <ci> tau_DA2 </ci>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="pSubstrate_out">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> pSubstrate </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="PP1_out">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> PP1 </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="CaM_out">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> CaM </ci>
+        </math>
+      </assignmentRule>
+      <assignmentRule variable="D32_out">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> D32 </ci>
+        </math>
+      </assignmentRule>
+    </listOfRules>
+    <listOfReactions>
+      <reaction id="ReactionFlux0" name="ReactionFlux0" reversible="false">
+        <listOfReactants>
+          <speciesReference species="GaolfGTP"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="GaolfGDP"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R0 </ci>
+              <ci> GaolfGTP </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux1" name="ReactionFlux1" reversible="false">
+        <listOfReactants>
+          <speciesReference species="D1R_Golf_DA"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Gbgolf"/>
+          <speciesReference species="D1R_DA"/>
+          <speciesReference species="GaolfGTP"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R1 </ci>
+              <ci> D1R_Golf_DA </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux2" name="ReactionFlux2" reversible="true">
+        <listOfReactants>
+          <speciesReference species="D1R_Golf"/>
+          <speciesReference species="DA"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="D1R_Golf_DA"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R2 </ci>
+                  <ci> D1R_Golf </ci>
+                  <ci> DA </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R2 </ci>
+                  <ci> D1R_Golf_DA </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux3" name="ReactionFlux3" reversible="true">
+        <listOfReactants>
+          <speciesReference species="D1R"/>
+          <speciesReference species="DA"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="D1R_DA"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R3 </ci>
+                  <ci> D1R </ci>
+                  <ci> DA </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R3 </ci>
+                  <ci> D1R_DA </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux4" name="ReactionFlux4" reversible="true">
+        <listOfReactants>
+          <speciesReference species="AC5"/>
+          <speciesReference species="GaolfGTP"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="AC5_GaolfGTP"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R4 </ci>
+                  <ci> AC5 </ci>
+                  <ci> GaolfGTP </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R4 </ci>
+                  <ci> AC5_GaolfGTP </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux5" name="ReactionFlux5" reversible="true">
+        <listOfReactants>
+          <speciesReference species="CaM"/>
+          <speciesReference species="Ca"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CaM_Ca2"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R5 </ci>
+                  <ci> CaM </ci>
+                  <ci> Ca </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R5 </ci>
+                  <ci> CaM_Ca2 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux6" name="ReactionFlux6" reversible="true">
+        <listOfReactants>
+          <speciesReference species="PP2B"/>
+          <speciesReference species="CaM"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="PP2B_CaM"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R6 </ci>
+                  <ci> PP2B </ci>
+                  <ci> CaM </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R6 </ci>
+                  <ci> PP2B_CaM </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux7" name="ReactionFlux7" reversible="true">
+        <listOfReactants>
+          <speciesReference species="CaM_Ca4"/>
+          <speciesReference species="PP2B"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="PP2Bc"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R7 </ci>
+                  <ci> CaM_Ca4 </ci>
+                  <ci> PP2B </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R7 </ci>
+                  <ci> PP2Bc </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux8" name="ReactionFlux8" reversible="true">
+        <listOfReactants>
+          <speciesReference species="PKAc"/>
+          <speciesReference species="D32"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="PKAc_D32"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R8 </ci>
+                  <ci> PKAc </ci>
+                  <ci> D32 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R8 </ci>
+                  <ci> PKAc_D32 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux9" name="ReactionFlux9" reversible="false">
+        <listOfReactants>
+          <speciesReference species="PKAc_D32"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="D32p34"/>
+          <speciesReference species="PKAc"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R9 </ci>
+              <ci> PKAc_D32 </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux10" name="ReactionFlux10" reversible="true">
+        <listOfReactants>
+          <speciesReference species="PKAc"/>
+          <speciesReference species="B56PP2A"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="PKAc_B56PP2A"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R10 </ci>
+                  <ci> PKAc </ci>
+                  <ci> B56PP2A </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R10 </ci>
+                  <ci> PKAc_B56PP2A </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux11" name="ReactionFlux11" reversible="false">
+        <listOfReactants>
+          <speciesReference species="PKAc_B56PP2A"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="B56PP2Ap"/>
+          <speciesReference species="PKAc"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R11 </ci>
+              <ci> PKAc_B56PP2A </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux12" name="ReactionFlux12" reversible="true">
+        <listOfReactants>
+          <speciesReference species="D32p34"/>
+          <speciesReference species="PP1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="PP1_D32p34"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R12 </ci>
+                  <ci> D32p34 </ci>
+                  <ci> PP1 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R12 </ci>
+                  <ci> PP1_D32p34 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux13" name="ReactionFlux13" reversible="true">
+        <listOfReactants>
+          <speciesReference species="CDK5"/>
+          <speciesReference species="D32"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CDK5_D32"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R13 </ci>
+                  <ci> CDK5 </ci>
+                  <ci> D32 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R13 </ci>
+                  <ci> CDK5_D32 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux14" name="ReactionFlux14" reversible="false">
+        <listOfReactants>
+          <speciesReference species="CDK5_D32"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CDK5"/>
+          <speciesReference species="D32p75"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R14 </ci>
+              <ci> CDK5_D32 </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux15" name="ReactionFlux15" reversible="true">
+        <listOfReactants>
+          <speciesReference species="D32p75"/>
+          <speciesReference species="PKAc"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="PKAc_D32p75"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R15 </ci>
+                  <ci> D32p75 </ci>
+                  <ci> PKAc </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R15 </ci>
+                  <ci> PKAc_D32p75 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux16" name="ReactionFlux16" reversible="true">
+        <listOfReactants>
+          <speciesReference species="B72PP2A"/>
+          <speciesReference species="Ca"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="B72PP2A_Ca"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R16 </ci>
+                  <ci> B72PP2A </ci>
+                  <ci> Ca </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R16 </ci>
+                  <ci> B72PP2A_Ca </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux17" name="ReactionFlux17" reversible="true">
+        <listOfReactants>
+          <speciesReference species="B56PP2Ap"/>
+          <speciesReference species="D32p75"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="B56PP2Ap_D32p75"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R17 </ci>
+                  <ci> B56PP2Ap </ci>
+                  <ci> D32p75 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R17 </ci>
+                  <ci> B56PP2Ap_D32p75 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux18" name="ReactionFlux18" reversible="true">
+        <listOfReactants>
+          <speciesReference species="B72PP2A"/>
+          <speciesReference species="D32p75"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="B72PP2A_D32p75"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R18 </ci>
+                  <ci> B72PP2A </ci>
+                  <ci> D32p75 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R18 </ci>
+                  <ci> B72PP2A_D32p75 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux19" name="ReactionFlux19" reversible="true">
+        <listOfReactants>
+          <speciesReference species="D32p75"/>
+          <speciesReference species="B72PP2A_Ca"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="B72PP2A_Ca_D32p75"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R19 </ci>
+                  <ci> D32p75 </ci>
+                  <ci> B72PP2A_Ca </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R19 </ci>
+                  <ci> B72PP2A_Ca_D32p75 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux20" name="ReactionFlux20" reversible="false">
+        <listOfReactants>
+          <speciesReference species="B56PP2Ap_D32p75"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="B56PP2Ap"/>
+          <speciesReference species="D32"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R20 </ci>
+              <ci> B56PP2Ap_D32p75 </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux21" name="ReactionFlux21" reversible="false">
+        <listOfReactants>
+          <speciesReference species="B72PP2A_D32p75"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="B72PP2A"/>
+          <speciesReference species="D32"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R21 </ci>
+              <ci> B72PP2A_D32p75 </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux22" name="ReactionFlux22" reversible="false">
+        <listOfReactants>
+          <speciesReference species="B72PP2A_Ca_D32p75"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="B72PP2A_Ca"/>
+          <speciesReference species="D32"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R22 </ci>
+              <ci> B72PP2A_Ca_D32p75 </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux23" name="ReactionFlux23" reversible="true">
+        <listOfReactants>
+          <speciesReference species="D32p34"/>
+          <speciesReference species="PP2Bc"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="PP2Bc_D32p34"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R23 </ci>
+                  <ci> D32p34 </ci>
+                  <ci> PP2Bc </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R23 </ci>
+                  <ci> PP2Bc_D32p34 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux24" name="ReactionFlux24" reversible="true">
+        <listOfReactants>
+          <speciesReference species="CaM_Ca2"/>
+          <speciesReference species="Ca"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CaM_Ca4"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R24 </ci>
+                  <ci> CaM_Ca2 </ci>
+                  <ci> Ca </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R24 </ci>
+                  <ci> CaM_Ca4 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux25" name="ReactionFlux25" reversible="true">
+        <listOfReactants>
+          <speciesReference species="Ca"/>
+          <speciesReference species="PP2B_CaM"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="PP2B_CaM_Ca2"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R25 </ci>
+                  <ci> Ca </ci>
+                  <ci> PP2B_CaM </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R25 </ci>
+                  <ci> PP2B_CaM_Ca2 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux26" name="ReactionFlux26" reversible="true">
+        <listOfReactants>
+          <speciesReference species="Ca"/>
+          <speciesReference species="PP2B_CaM_Ca2"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="PP2Bc"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R26 </ci>
+                  <ci> Ca </ci>
+                  <ci> PP2B_CaM_Ca2 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R26 </ci>
+                  <ci> PP2Bc </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux27" name="ReactionFlux27" reversible="true">
+        <listOfReactants>
+          <speciesReference species="CaM_Ca2"/>
+          <speciesReference species="PP2B"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="PP2B_CaM_Ca2"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R27 </ci>
+                  <ci> CaM_Ca2 </ci>
+                  <ci> PP2B </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R27 </ci>
+                  <ci> PP2B_CaM_Ca2 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux28" name="ReactionFlux28" reversible="true">
+        <listOfReactants>
+          <speciesReference species="AC5"/>
+          <speciesReference species="Ca"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="AC5_Ca"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R28 </ci>
+                  <ci> AC5 </ci>
+                  <ci> Ca </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R28 </ci>
+                  <ci> AC5_Ca </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux29" name="ReactionFlux29" reversible="true">
+        <listOfReactants>
+          <speciesReference species="AC5_Ca"/>
+          <speciesReference species="GaolfGTP"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="AC5_Ca_GaolfGTP"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R29 </ci>
+                  <ci> AC5_Ca </ci>
+                  <ci> GaolfGTP </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R29 </ci>
+                  <ci> AC5_Ca_GaolfGTP </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux30" name="ReactionFlux30" reversible="true">
+        <listOfReactants>
+          <speciesReference species="D32p75"/>
+          <speciesReference species="B56PP2A"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="B56PP2A_D32p75"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R30 </ci>
+                  <ci> D32p75 </ci>
+                  <ci> B56PP2A </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R30 </ci>
+                  <ci> B56PP2A_D32p75 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux31" name="ReactionFlux31" reversible="false">
+        <listOfReactants>
+          <speciesReference species="B56PP2A_D32p75"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="B56PP2A"/>
+          <speciesReference species="D32"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R31 </ci>
+              <ci> B56PP2A_D32p75 </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux32" name="ReactionFlux32" reversible="false">
+        <listOfReactants>
+          <speciesReference species="B72PP2A_Ca_D32p34"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="B72PP2A_Ca"/>
+          <speciesReference species="D32"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R32 </ci>
+              <ci> B72PP2A_Ca_D32p34 </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux33" name="ReactionFlux33" reversible="false">
+        <listOfReactants>
+          <speciesReference species="B72PP2A_D32p34"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="D32"/>
+          <speciesReference species="B72PP2A"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R33 </ci>
+              <ci> B72PP2A_D32p34 </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux34" name="ReactionFlux34" reversible="true">
+        <listOfReactants>
+          <speciesReference species="D32p34"/>
+          <speciesReference species="B72PP2A_Ca"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="B72PP2A_Ca_D32p34"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R34 </ci>
+                  <ci> D32p34 </ci>
+                  <ci> B72PP2A_Ca </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R34 </ci>
+                  <ci> B72PP2A_Ca_D32p34 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux35" name="ReactionFlux35" reversible="true">
+        <listOfReactants>
+          <speciesReference species="D32p34"/>
+          <speciesReference species="B72PP2A"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="B72PP2A_D32p34"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R35 </ci>
+                  <ci> D32p34 </ci>
+                  <ci> B72PP2A </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R35 </ci>
+                  <ci> B72PP2A_D32p34 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux36" name="ReactionFlux36" reversible="false">
+        <listOfReactants>
+          <speciesReference species="PP2Bc_D32p34"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="D32"/>
+          <speciesReference species="PP2Bc"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R36 </ci>
+              <ci> PP2Bc_D32p34 </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux37" name="ReactionFlux37" reversible="false">
+        <listOfReactants>
+          <speciesReference species="B56PP2Ap"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="B56PP2A"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R37 </ci>
+              <ci> B56PP2Ap </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux38" name="ReactionFlux38" reversible="true">
+        <listOfReactants>
+          <speciesReference species="cAMP"/>
+          <speciesReference species="PKA"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="PKA_Ca2MP"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R38 </ci>
+                  <ci> cAMP </ci>
+                  <ci> PKA </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R38 </ci>
+                  <ci> PKA_Ca2MP </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux39" name="ReactionFlux39" reversible="true">
+        <listOfReactants>
+          <speciesReference species="cAMP"/>
+          <speciesReference species="PKA_Ca2MP"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="PKA_Ca4MP"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R39 </ci>
+                  <ci> cAMP </ci>
+                  <ci> PKA_Ca2MP </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R39 </ci>
+                  <ci> PKA_Ca4MP </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux40" name="ReactionFlux40" reversible="true">
+        <listOfReactants>
+          <speciesReference species="PKA_Ca4MP"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="PKAc"/>
+          <speciesReference species="PKAreg"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R40 </ci>
+                  <ci> PKA_Ca4MP </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R40 </ci>
+                  <ci> PKAc </ci>
+                  <ci> PKAreg </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux41" name="ReactionFlux41" reversible="true">
+        <listOfReactants>
+          <speciesReference species="cAMP"/>
+          <speciesReference species="PDE4"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="PDE4_cAMP"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R41 </ci>
+                  <ci> cAMP </ci>
+                  <ci> PDE4 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R41 </ci>
+                  <ci> PDE4_cAMP </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux42" name="ReactionFlux42" reversible="false">
+        <listOfReactants>
+          <speciesReference species="PDE4_cAMP"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="PDE4"/>
+          <speciesReference species="AMP"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R42 </ci>
+              <ci> PDE4_cAMP </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux43" name="ReactionFlux43" reversible="true">
+        <listOfReactants>
+          <speciesReference species="PDE10r"/>
+          <speciesReference species="cAMP" stoichiometry="2"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="PDE10c"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R43 </ci>
+                  <ci> PDE10r </ci>
+                  <apply>
+                    <power/>
+                    <ci> cAMP </ci>
+                    <cn type="integer"> 2 </cn>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R43 </ci>
+                  <ci> PDE10c </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux44" name="ReactionFlux44" reversible="false">
+        <listOfReactants>
+          <speciesReference species="PDE10r_cAMP"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="PDE10r"/>
+          <speciesReference species="AMP"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R44 </ci>
+              <ci> PDE10r_cAMP </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux45" name="ReactionFlux45" reversible="true">
+        <listOfReactants>
+          <speciesReference species="cAMP"/>
+          <speciesReference species="PDE10r"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="PDE10r_cAMP"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R45 </ci>
+                  <ci> cAMP </ci>
+                  <ci> PDE10r </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R45 </ci>
+                  <ci> PDE10r_cAMP </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux46" name="ReactionFlux46" reversible="false">
+        <listOfReactants>
+          <speciesReference species="PDE10c_cAMP"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="PDE10c"/>
+          <speciesReference species="AMP"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R46 </ci>
+              <ci> PDE10c_cAMP </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux47" name="ReactionFlux47" reversible="false">
+        <listOfReactants>
+          <speciesReference species="GaolfGDP"/>
+          <speciesReference species="Gbgolf"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Golf"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R47 </ci>
+              <ci> GaolfGDP </ci>
+              <ci> Gbgolf </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux48" name="ReactionFlux48" reversible="true">
+        <listOfReactants>
+          <speciesReference species="AC5_GaolfGTP"/>
+          <speciesReference species="ATP"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="AC5_GaolfGTP_ATP"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R48 </ci>
+                  <ci> AC5_GaolfGTP </ci>
+                  <ci> ATP </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R48 </ci>
+                  <ci> AC5_GaolfGTP_ATP </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux49" name="ReactionFlux49" reversible="true">
+        <listOfReactants>
+          <speciesReference species="AC5"/>
+          <speciesReference species="ATP"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="AC5_ATP"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R49 </ci>
+                  <ci> AC5 </ci>
+                  <ci> ATP </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R49 </ci>
+                  <ci> AC5_ATP </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux50" name="ReactionFlux50" reversible="true">
+        <listOfReactants>
+          <speciesReference species="AC5_Ca"/>
+          <speciesReference species="ATP"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="AC5_Ca_ATP"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R50 </ci>
+                  <ci> AC5_Ca </ci>
+                  <ci> ATP </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R50 </ci>
+                  <ci> AC5_Ca_ATP </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux51" name="ReactionFlux51" reversible="true">
+        <listOfReactants>
+          <speciesReference species="AC5_Ca_GaolfGTP"/>
+          <speciesReference species="ATP"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="AC5_Ca_GaolfGTP_ATP"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R51 </ci>
+                  <ci> AC5_Ca_GaolfGTP </ci>
+                  <ci> ATP </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R51 </ci>
+                  <ci> AC5_Ca_GaolfGTP_ATP </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux52" name="ReactionFlux52" reversible="true">
+        <listOfReactants>
+          <speciesReference species="GaolfGTP"/>
+          <speciesReference species="AC5_ATP"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="AC5_GaolfGTP_ATP"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R52 </ci>
+                  <ci> GaolfGTP </ci>
+                  <ci> AC5_ATP </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R52 </ci>
+                  <ci> AC5_GaolfGTP_ATP </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux53" name="ReactionFlux53" reversible="true">
+        <listOfReactants>
+          <speciesReference species="GaolfGTP"/>
+          <speciesReference species="AC5_Ca_ATP"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="AC5_Ca_GaolfGTP_ATP"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R53 </ci>
+                  <ci> GaolfGTP </ci>
+                  <ci> AC5_Ca_ATP </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R53 </ci>
+                  <ci> AC5_Ca_GaolfGTP_ATP </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux54" name="ReactionFlux54" reversible="true">
+        <listOfReactants>
+          <speciesReference species="Ca"/>
+          <speciesReference species="AC5_ATP"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="AC5_Ca_ATP"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R54 </ci>
+                  <ci> Ca </ci>
+                  <ci> AC5_ATP </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R54 </ci>
+                  <ci> AC5_Ca_ATP </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux55" name="ReactionFlux55" reversible="false">
+        <listOfReactants>
+          <speciesReference species="AC5_GaolfGTP_ATP"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="cAMP"/>
+          <speciesReference species="AC5_GaolfGTP"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R55 </ci>
+              <ci> AC5_GaolfGTP_ATP </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux56" name="ReactionFlux56" reversible="false">
+        <listOfReactants>
+          <speciesReference species="cAMP"/>
+          <speciesReference species="AC5_GaolfGTP"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="AC5_GaolfGTP_ATP"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R56 </ci>
+              <ci> cAMP </ci>
+              <ci> AC5_GaolfGTP </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux57" name="ReactionFlux57" reversible="false">
+        <listOfReactants>
+          <speciesReference species="AC5_ATP"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="cAMP"/>
+          <speciesReference species="AC5"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R57 </ci>
+              <ci> AC5_ATP </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux58" name="ReactionFlux58" reversible="false">
+        <listOfReactants>
+          <speciesReference species="cAMP"/>
+          <speciesReference species="AC5"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="AC5_ATP"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R58 </ci>
+              <ci> cAMP </ci>
+              <ci> AC5 </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux59" name="ReactionFlux59" reversible="false">
+        <listOfReactants>
+          <speciesReference species="AC5_Ca_ATP"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="cAMP"/>
+          <speciesReference species="AC5_Ca"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R59 </ci>
+              <ci> AC5_Ca_ATP </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux60" name="ReactionFlux60" reversible="false">
+        <listOfReactants>
+          <speciesReference species="cAMP"/>
+          <speciesReference species="AC5_Ca"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="AC5_Ca_ATP"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R60 </ci>
+              <ci> cAMP </ci>
+              <ci> AC5_Ca </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux61" name="ReactionFlux61" reversible="false">
+        <listOfReactants>
+          <speciesReference species="AC5_Ca_GaolfGTP_ATP"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="cAMP"/>
+          <speciesReference species="AC5_Ca_GaolfGTP"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R61 </ci>
+              <ci> AC5_Ca_GaolfGTP_ATP </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux62" name="ReactionFlux62" reversible="false">
+        <listOfReactants>
+          <speciesReference species="cAMP"/>
+          <speciesReference species="AC5_Ca_GaolfGTP"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="AC5_Ca_GaolfGTP_ATP"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R62 </ci>
+              <ci> cAMP </ci>
+              <ci> AC5_Ca_GaolfGTP </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux63" name="ReactionFlux63" reversible="false">
+        <listOfReactants>
+          <speciesReference species="AC5_GaolfGTP"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="AC5"/>
+          <speciesReference species="GaolfGDP"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R63 </ci>
+              <ci> AC5_GaolfGTP </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux64" name="ReactionFlux64" reversible="false">
+        <listOfReactants>
+          <speciesReference species="AC5_Ca_GaolfGTP"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="AC5_Ca"/>
+          <speciesReference species="GaolfGDP"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R64 </ci>
+              <ci> AC5_Ca_GaolfGTP </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux65" name="ReactionFlux65" reversible="false">
+        <listOfReactants>
+          <speciesReference species="AC5_GaolfGTP_ATP"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="AC5_ATP"/>
+          <speciesReference species="GaolfGDP"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R65 </ci>
+              <ci> AC5_GaolfGTP_ATP </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux66" name="ReactionFlux66" reversible="false">
+        <listOfReactants>
+          <speciesReference species="AC5_Ca_GaolfGTP_ATP"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="AC5_Ca_ATP"/>
+          <speciesReference species="GaolfGDP"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R66 </ci>
+              <ci> AC5_Ca_GaolfGTP_ATP </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux67" name="ReactionFlux67" reversible="true">
+        <listOfReactants>
+          <speciesReference species="D1R"/>
+          <speciesReference species="Golf"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="D1R_Golf"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R67 </ci>
+                  <ci> D1R </ci>
+                  <ci> Golf </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R67 </ci>
+                  <ci> D1R_Golf </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux68" name="ReactionFlux68" reversible="true">
+        <listOfReactants>
+          <speciesReference species="Golf"/>
+          <speciesReference species="D1R_DA"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="D1R_Golf_DA"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R68 </ci>
+                  <ci> Golf </ci>
+                  <ci> D1R_DA </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R68 </ci>
+                  <ci> D1R_Golf_DA </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux69" name="ReactionFlux69" reversible="true">
+        <listOfReactants>
+          <speciesReference species="cAMP"/>
+          <speciesReference species="PDE10c"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="PDE10c_cAMP"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R69 </ci>
+                  <ci> cAMP </ci>
+                  <ci> PDE10c </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R69 </ci>
+                  <ci> PDE10c_cAMP </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux70" name="ReactionFlux70" reversible="true">
+        <listOfReactants>
+          <speciesReference species="CaMKII"/>
+          <speciesReference species="CaM_Ca4"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CaMKII_CaM_Ca4"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R70 </ci>
+                  <ci> CaMKII </ci>
+                  <ci> CaM_Ca4 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R70 </ci>
+                  <ci> CaMKII_CaM_Ca4 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux71" name="ReactionFlux71" reversible="true">
+        <listOfReactants>
+          <speciesReference species="CaM_Ca2"/>
+          <speciesReference species="CaMKII"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CaMKII_CaM_Ca2"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R71 </ci>
+                  <ci> CaM_Ca2 </ci>
+                  <ci> CaMKII </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R71 </ci>
+                  <ci> CaMKII_CaM_Ca2 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux72" name="ReactionFlux72" reversible="true">
+        <listOfReactants>
+          <speciesReference species="CaM"/>
+          <speciesReference species="CaMKII"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CaMKII_CaM"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R72 </ci>
+                  <ci> CaM </ci>
+                  <ci> CaMKII </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R72 </ci>
+                  <ci> CaMKII_CaM </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux73" name="ReactionFlux73" reversible="true">
+        <listOfReactants>
+          <speciesReference species="CaMKII_CaM_Ca2"/>
+          <speciesReference species="Ca"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CaMKII_CaM_Ca4"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R73 </ci>
+                  <ci> CaMKII_CaM_Ca2 </ci>
+                  <ci> Ca </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R73 </ci>
+                  <ci> CaMKII_CaM_Ca4 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux74" name="ReactionFlux74" reversible="true">
+        <listOfReactants>
+          <speciesReference species="CaMKII_CaM"/>
+          <speciesReference species="Ca"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CaMKII_CaM_Ca2"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R74 </ci>
+                  <ci> CaMKII_CaM </ci>
+                  <ci> Ca </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R74 </ci>
+                  <ci> CaMKII_CaM_Ca2 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux75" name="ReactionFlux75" reversible="true">
+        <listOfReactants>
+          <speciesReference species="pCaMKII_CaM_Ca2"/>
+          <speciesReference species="Ca"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="pCaMKII_CaM_Ca4"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R75 </ci>
+                  <ci> pCaMKII_CaM_Ca2 </ci>
+                  <ci> Ca </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R75 </ci>
+                  <ci> pCaMKII_CaM_Ca4 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux76" name="ReactionFlux76" reversible="true">
+        <listOfReactants>
+          <speciesReference species="pCaMKII_CaM"/>
+          <speciesReference species="Ca"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="pCaMKII_CaM_Ca2"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R76 </ci>
+                  <ci> pCaMKII_CaM </ci>
+                  <ci> Ca </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R76 </ci>
+                  <ci> pCaMKII_CaM_Ca2 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux77" name="ReactionFlux77" reversible="true">
+        <listOfReactants>
+          <speciesReference species="pCaMKII"/>
+          <speciesReference species="CaM_Ca4"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="pCaMKII_CaM_Ca4"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R77 </ci>
+                  <ci> pCaMKII </ci>
+                  <ci> CaM_Ca4 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R77 </ci>
+                  <ci> pCaMKII_CaM_Ca4 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux78" name="ReactionFlux78" reversible="true">
+        <listOfReactants>
+          <speciesReference species="pCaMKII"/>
+          <speciesReference species="CaM_Ca2"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="pCaMKII_CaM_Ca2"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R78 </ci>
+                  <ci> pCaMKII </ci>
+                  <ci> CaM_Ca2 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R78 </ci>
+                  <ci> pCaMKII_CaM_Ca2 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux79" name="ReactionFlux79" reversible="true">
+        <listOfReactants>
+          <speciesReference species="pCaMKII"/>
+          <speciesReference species="CaM"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="pCaMKII_CaM"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R79 </ci>
+                  <ci> pCaMKII </ci>
+                  <ci> CaM </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R79 </ci>
+                  <ci> pCaMKII_CaM </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux80" name="ReactionFlux80" reversible="true">
+        <listOfReactants>
+          <speciesReference species="ARPP21"/>
+          <speciesReference species="PKAc"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="PKAc_ARPP21"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R80 </ci>
+                  <ci> ARPP21 </ci>
+                  <ci> PKAc </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R80 </ci>
+                  <ci> PKAc_ARPP21 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux81" name="ReactionFlux81" reversible="false">
+        <listOfReactants>
+          <speciesReference species="PKAc_ARPP21"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="PKAc"/>
+          <speciesReference species="pARPP21"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R81 </ci>
+              <ci> PKAc_ARPP21 </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux82" name="ReactionFlux82" reversible="true">
+        <listOfReactants>
+          <speciesReference species="pARPP21"/>
+          <speciesReference species="CaM_Ca4"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CaM_Ca4_pARPP21"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R82 </ci>
+                  <ci> pARPP21 </ci>
+                  <ci> CaM_Ca4 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R82 </ci>
+                  <ci> CaM_Ca4_pARPP21 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux83" name="ReactionFlux83" reversible="false">
+        <listOfReactants>
+          <speciesReference species="B72PP2A_Ca_pARPP21"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="ARPP21"/>
+          <speciesReference species="B72PP2A_Ca"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R83 </ci>
+              <ci> B72PP2A_Ca_pARPP21 </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux84" name="ReactionFlux84" reversible="true">
+        <listOfReactants>
+          <speciesReference species="pARPP21"/>
+          <speciesReference species="B72PP2A_Ca"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="B72PP2A_Ca_pARPP21"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R84 </ci>
+                  <ci> pARPP21 </ci>
+                  <ci> B72PP2A_Ca </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R84 </ci>
+                  <ci> B72PP2A_Ca_pARPP21 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux85" name="ReactionFlux85" reversible="false">
+        <listOfReactants>
+          <speciesReference species="B72PP2A_pARPP21"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="ARPP21"/>
+          <speciesReference species="B72PP2A"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R85 </ci>
+              <ci> B72PP2A_pARPP21 </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux86" name="ReactionFlux86" reversible="true">
+        <listOfReactants>
+          <speciesReference species="pARPP21"/>
+          <speciesReference species="B72PP2A"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="B72PP2A_pARPP21"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R86 </ci>
+                  <ci> pARPP21 </ci>
+                  <ci> B72PP2A </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R86 </ci>
+                  <ci> B72PP2A_pARPP21 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux87" name="ReactionFlux87" reversible="false">
+        <listOfReactants>
+          <speciesReference species="B56PP2Ap_pARPP21"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="ARPP21"/>
+          <speciesReference species="B56PP2Ap"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R87 </ci>
+              <ci> B56PP2Ap_pARPP21 </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux88" name="ReactionFlux88" reversible="true">
+        <listOfReactants>
+          <speciesReference species="pARPP21"/>
+          <speciesReference species="B56PP2Ap"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="B56PP2Ap_pARPP21"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R88 </ci>
+                  <ci> pARPP21 </ci>
+                  <ci> B56PP2Ap </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R88 </ci>
+                  <ci> B56PP2Ap_pARPP21 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux89" name="ReactionFlux89" reversible="false">
+        <listOfReactants>
+          <speciesReference species="B56PP2A_pARPP21"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="ARPP21"/>
+          <speciesReference species="B56PP2A"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R89 </ci>
+              <ci> B56PP2A_pARPP21 </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux90" name="ReactionFlux90" reversible="true">
+        <listOfReactants>
+          <speciesReference species="pARPP21"/>
+          <speciesReference species="B56PP2A"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="B56PP2A_pARPP21"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R90 </ci>
+                  <ci> pARPP21 </ci>
+                  <ci> B56PP2A </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R90 </ci>
+                  <ci> B56PP2A_pARPP21 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux91" name="ReactionFlux91" reversible="true">
+        <listOfReactants>
+          <speciesReference species="pSubstrate"/>
+          <speciesReference species="PP1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="PP1_pSubstrate"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R91 </ci>
+                  <ci> pSubstrate </ci>
+                  <ci> PP1 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R91 </ci>
+                  <ci> PP1_pSubstrate </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux92" name="ReactionFlux92" reversible="false">
+        <listOfReactants>
+          <speciesReference species="PP1_pSubstrate"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="PP1"/>
+          <speciesReference species="Substrate"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R92 </ci>
+              <ci> PP1_pSubstrate </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux93" name="ReactionFlux93" reversible="true">
+        <listOfReactants>
+          <speciesReference species="Substrate"/>
+          <speciesReference species="pCaMKII_psd"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="pCaMKII_psd_Substrate"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R93 </ci>
+                  <ci> Substrate </ci>
+                  <ci> pCaMKII_psd </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R93 </ci>
+                  <ci> pCaMKII_psd_Substrate </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux94" name="ReactionFlux94" reversible="false">
+        <listOfReactants>
+          <speciesReference species="pCaMKII_psd_Substrate"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="pCaMKII_psd"/>
+          <speciesReference species="pSubstrate"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R94 </ci>
+              <ci> pCaMKII_psd_Substrate </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux95" name="ReactionFlux95" reversible="false">
+        <listOfReactants>
+          <speciesReference species="pCaMKII"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CaMKII"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R95 </ci>
+              <ci> pCaMKII </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux96" name="ReactionFlux96" reversible="true">
+        <listOfReactants>
+          <speciesReference species="Substrate"/>
+          <speciesReference species="pCaMKII_CaM_psd"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="pCaMKII_CaM_psd_Substrate"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R96 </ci>
+                  <ci> Substrate </ci>
+                  <ci> pCaMKII_CaM_psd </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R96 </ci>
+                  <ci> pCaMKII_CaM_psd_Substrate </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux97" name="ReactionFlux97" reversible="false">
+        <listOfReactants>
+          <speciesReference species="pCaMKII_CaM_psd_Substrate"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="pCaMKII_CaM_psd"/>
+          <speciesReference species="pSubstrate"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R97 </ci>
+              <ci> pCaMKII_CaM_psd_Substrate </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux98" name="ReactionFlux98" reversible="true">
+        <listOfReactants>
+          <speciesReference species="Substrate"/>
+          <speciesReference species="pCaMKII_CaM_Ca2_psd"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="pCaMKII_CaM_Ca2_psd_Substrate"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R98 </ci>
+                  <ci> Substrate </ci>
+                  <ci> pCaMKII_CaM_Ca2_psd </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R98 </ci>
+                  <ci> pCaMKII_CaM_Ca2_psd_Substrate </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux99" name="ReactionFlux99" reversible="false">
+        <listOfReactants>
+          <speciesReference species="pCaMKII_CaM_Ca2_psd_Substrate"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="pCaMKII_CaM_Ca2_psd"/>
+          <speciesReference species="pSubstrate"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R99 </ci>
+              <ci> pCaMKII_CaM_Ca2_psd_Substrate </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux100" name="ReactionFlux100" reversible="true">
+        <listOfReactants>
+          <speciesReference species="Substrate"/>
+          <speciesReference species="pCaMKII_CaM_Ca4_psd"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="pCaMKII_CaM_Ca4_psd_Substrate"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R100 </ci>
+                  <ci> Substrate </ci>
+                  <ci> pCaMKII_CaM_Ca4_psd </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R100 </ci>
+                  <ci> pCaMKII_CaM_Ca4_psd_Substrate </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux101" name="ReactionFlux101" reversible="false">
+        <listOfReactants>
+          <speciesReference species="pCaMKII_CaM_Ca4_psd_Substrate"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="pCaMKII_CaM_Ca4_psd"/>
+          <speciesReference species="pSubstrate"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R101 </ci>
+              <ci> pCaMKII_CaM_Ca4_psd_Substrate </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux102" name="ReactionFlux102" reversible="true">
+        <listOfReactants>
+          <speciesReference species="Substrate"/>
+          <speciesReference species="CaMKII_CaM_psd"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CaMKII_CaM_psd_Substrate"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R102 </ci>
+                  <ci> Substrate </ci>
+                  <ci> CaMKII_CaM_psd </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R102 </ci>
+                  <ci> CaMKII_CaM_psd_Substrate </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux103" name="ReactionFlux103" reversible="false">
+        <listOfReactants>
+          <speciesReference species="CaMKII_CaM_psd_Substrate"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CaMKII_CaM_psd"/>
+          <speciesReference species="pSubstrate"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R103 </ci>
+              <ci> CaMKII_CaM_psd_Substrate </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux104" name="ReactionFlux104" reversible="true">
+        <listOfReactants>
+          <speciesReference species="Substrate"/>
+          <speciesReference species="CaMKII_CaM_Ca2_psd"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CaMKII_CaM_Ca2_psd_Substrate"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R104 </ci>
+                  <ci> Substrate </ci>
+                  <ci> CaMKII_CaM_Ca2_psd </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R104 </ci>
+                  <ci> CaMKII_CaM_Ca2_psd_Substrate </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux105" name="ReactionFlux105" reversible="false">
+        <listOfReactants>
+          <speciesReference species="CaMKII_CaM_Ca2_psd_Substrate"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CaMKII_CaM_Ca2_psd"/>
+          <speciesReference species="pSubstrate"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R105 </ci>
+              <ci> CaMKII_CaM_Ca2_psd_Substrate </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux106" name="ReactionFlux106" reversible="true">
+        <listOfReactants>
+          <speciesReference species="Substrate"/>
+          <speciesReference species="CaMKII_CaM_Ca4_psd"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CaMKII_CaM_Ca4_psd_Substrate"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R106 </ci>
+                  <ci> Substrate </ci>
+                  <ci> CaMKII_CaM_Ca4_psd </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R106 </ci>
+                  <ci> CaMKII_CaM_Ca4_psd_Substrate </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux107" name="ReactionFlux107" reversible="false">
+        <listOfReactants>
+          <speciesReference species="CaMKII_CaM_Ca4_psd_Substrate"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CaMKII_CaM_Ca4_psd"/>
+          <speciesReference species="pSubstrate"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R107 </ci>
+              <ci> CaMKII_CaM_Ca4_psd_Substrate </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux108" name="ReactionFlux108" reversible="true">
+        <listOfReactants>
+          <speciesReference species="pCaMKII_CaM_Ca4"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="pCaMKII_CaM_Ca4_psd"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R108 </ci>
+                  <ci> pCaMKII_CaM_Ca4 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R108 </ci>
+                  <ci> pCaMKII_CaM_Ca4_psd </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux109" name="ReactionFlux109" reversible="true">
+        <listOfReactants>
+          <speciesReference species="pCaMKII_CaM_Ca2"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="pCaMKII_CaM_Ca2_psd"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R109 </ci>
+                  <ci> pCaMKII_CaM_Ca2 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R109 </ci>
+                  <ci> pCaMKII_CaM_Ca2_psd </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux110" name="ReactionFlux110" reversible="true">
+        <listOfReactants>
+          <speciesReference species="pCaMKII_CaM"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="pCaMKII_CaM_psd"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R110 </ci>
+                  <ci> pCaMKII_CaM </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R110 </ci>
+                  <ci> pCaMKII_CaM_psd </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux111" name="ReactionFlux111" reversible="true">
+        <listOfReactants>
+          <speciesReference species="pCaMKII"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="pCaMKII_psd"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R111 </ci>
+                  <ci> pCaMKII </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R111 </ci>
+                  <ci> pCaMKII_psd </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux112" name="ReactionFlux112" reversible="true">
+        <listOfReactants>
+          <speciesReference species="CaM_Ca4"/>
+          <speciesReference species="pCaMKII_psd"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="pCaMKII_CaM_Ca4_psd"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R112 </ci>
+                  <ci> CaM_Ca4 </ci>
+                  <ci> pCaMKII_psd </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R112 </ci>
+                  <ci> pCaMKII_CaM_Ca4_psd </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux113" name="ReactionFlux113" reversible="true">
+        <listOfReactants>
+          <speciesReference species="pCaMKII_psd"/>
+          <speciesReference species="CaM_Ca2"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="pCaMKII_CaM_Ca2_psd"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R113 </ci>
+                  <ci> pCaMKII_psd </ci>
+                  <ci> CaM_Ca2 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R113 </ci>
+                  <ci> pCaMKII_CaM_Ca2_psd </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux114" name="ReactionFlux114" reversible="true">
+        <listOfReactants>
+          <speciesReference species="CaM"/>
+          <speciesReference species="pCaMKII_psd"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="pCaMKII_CaM_psd"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R114 </ci>
+                  <ci> CaM </ci>
+                  <ci> pCaMKII_psd </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R114 </ci>
+                  <ci> pCaMKII_CaM_psd </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux115" name="ReactionFlux115" reversible="true">
+        <listOfReactants>
+          <speciesReference species="pCaMKII_CaM_psd"/>
+          <speciesReference species="Ca"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="pCaMKII_CaM_Ca2_psd"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R115 </ci>
+                  <ci> pCaMKII_CaM_psd </ci>
+                  <ci> Ca </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R115 </ci>
+                  <ci> pCaMKII_CaM_Ca2_psd </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux116" name="ReactionFlux116" reversible="true">
+        <listOfReactants>
+          <speciesReference species="pCaMKII_CaM_Ca2_psd"/>
+          <speciesReference species="Ca"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="pCaMKII_CaM_Ca4_psd"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R116 </ci>
+                  <ci> pCaMKII_CaM_Ca2_psd </ci>
+                  <ci> Ca </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R116 </ci>
+                  <ci> pCaMKII_CaM_Ca4_psd </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux117" name="ReactionFlux117" reversible="true">
+        <listOfReactants>
+          <speciesReference species="pCaMKII_psd"/>
+          <speciesReference species="PP1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="PP1_pCaMKII_psd"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R117 </ci>
+                  <ci> pCaMKII_psd </ci>
+                  <ci> PP1 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R117 </ci>
+                  <ci> PP1_pCaMKII_psd </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux118" name="ReactionFlux118" reversible="false">
+        <listOfReactants>
+          <speciesReference species="PP1_pCaMKII_psd"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="PP1"/>
+          <speciesReference species="CaMKII_psd"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R118 </ci>
+              <ci> PP1_pCaMKII_psd </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux119" name="ReactionFlux119" reversible="false">
+        <listOfReactants>
+          <speciesReference species="CaMKII_psd"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CaMKII"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R119 </ci>
+              <ci> CaMKII_psd </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux120" name="ReactionFlux120" reversible="true">
+        <listOfReactants>
+          <speciesReference species="CaM_Ca4"/>
+          <speciesReference species="CaMKII_psd"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CaMKII_CaM_Ca4_psd"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R120 </ci>
+                  <ci> CaM_Ca4 </ci>
+                  <ci> CaMKII_psd </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R120 </ci>
+                  <ci> CaMKII_CaM_Ca4_psd </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux121" name="ReactionFlux121" reversible="true">
+        <listOfReactants>
+          <speciesReference species="CaM_Ca2"/>
+          <speciesReference species="CaMKII_psd"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CaMKII_CaM_Ca2_psd"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R121 </ci>
+                  <ci> CaM_Ca2 </ci>
+                  <ci> CaMKII_psd </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R121 </ci>
+                  <ci> CaMKII_CaM_Ca2_psd </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux122" name="ReactionFlux122" reversible="true">
+        <listOfReactants>
+          <speciesReference species="CaM"/>
+          <speciesReference species="CaMKII_psd"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CaMKII_CaM_psd"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R122 </ci>
+                  <ci> CaM </ci>
+                  <ci> CaMKII_psd </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R122 </ci>
+                  <ci> CaMKII_CaM_psd </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux123" name="ReactionFlux123" reversible="true">
+        <listOfReactants>
+          <speciesReference species="CaMKII_CaM_Ca2_psd"/>
+          <speciesReference species="Ca"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CaMKII_CaM_Ca4_psd"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R123 </ci>
+                  <ci> CaMKII_CaM_Ca2_psd </ci>
+                  <ci> Ca </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R123 </ci>
+                  <ci> CaMKII_CaM_Ca4_psd </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux124" name="ReactionFlux124" reversible="true">
+        <listOfReactants>
+          <speciesReference species="CaMKII_CaM_psd"/>
+          <speciesReference species="Ca"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CaMKII_CaM_Ca2_psd"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R124 </ci>
+                  <ci> CaMKII_CaM_psd </ci>
+                  <ci> Ca </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R124 </ci>
+                  <ci> CaMKII_CaM_Ca2_psd </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux125" name="ReactionFlux125" reversible="true">
+        <listOfReactants>
+          <speciesReference species="CaMKII_CaM"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CaMKII_CaM_psd"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R125 </ci>
+                  <ci> CaMKII_CaM </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R125 </ci>
+                  <ci> CaMKII_CaM_psd </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux126" name="ReactionFlux126" reversible="true">
+        <listOfReactants>
+          <speciesReference species="CaMKII_CaM_Ca2"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CaMKII_CaM_Ca2_psd"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R126 </ci>
+                  <ci> CaMKII_CaM_Ca2 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R126 </ci>
+                  <ci> CaMKII_CaM_Ca2_psd </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux127" name="ReactionFlux127" reversible="true">
+        <listOfReactants>
+          <speciesReference species="CaMKII_CaM_Ca4"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CaMKII_CaM_Ca4_psd"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R127 </ci>
+                  <ci> CaMKII_CaM_Ca4 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R127 </ci>
+                  <ci> CaMKII_CaM_Ca4_psd </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux128" name="ReactionFlux128" reversible="true">
+        <listOfReactants>
+          <speciesReference species="CaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CaMKII_CaM_Ca4_CaMKII_CaM_Ca4"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R128 </ci>
+                  <ci> CaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R128 </ci>
+                  <ci> CaMKII_CaM_Ca4_CaMKII_CaM_Ca4 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux129" name="ReactionFlux129" reversible="true">
+        <listOfReactants>
+          <speciesReference species="pCaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="pCaMKII_CaM_Ca4_CaMKII_CaM_Ca4"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R129 </ci>
+                  <ci> pCaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R129 </ci>
+                  <ci> pCaMKII_CaM_Ca4_CaMKII_CaM_Ca4 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux130" name="ReactionFlux130" reversible="true">
+        <listOfReactants>
+          <speciesReference species="CaMKII_CaM_Ca4"/>
+          <speciesReference species="CaMKII_CaM_Ca4"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CaMKII_CaM_Ca4_CaMKII_CaM_Ca4"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R130 </ci>
+                  <ci> CaMKII_CaM_Ca4 </ci>
+                  <ci> CaMKII_CaM_Ca4 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R130 </ci>
+                  <ci> CaMKII_CaM_Ca4_CaMKII_CaM_Ca4 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux131" name="ReactionFlux131" reversible="false">
+        <listOfReactants>
+          <speciesReference species="CaMKII_CaM_Ca4_CaMKII_CaM_Ca4"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="pCaMKII_CaM_Ca4"/>
+          <speciesReference species="CaMKII_CaM_Ca4"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R131 </ci>
+              <ci> CaMKII_CaM_Ca4_CaMKII_CaM_Ca4 </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux132" name="ReactionFlux132" reversible="true">
+        <listOfReactants>
+          <speciesReference species="pCaMKII_CaM_Ca4"/>
+          <speciesReference species="CaMKII_CaM_Ca4"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="pCaMKII_CaM_Ca4_CaMKII_CaM_Ca4"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R132 </ci>
+                  <ci> pCaMKII_CaM_Ca4 </ci>
+                  <ci> CaMKII_CaM_Ca4 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R132 </ci>
+                  <ci> pCaMKII_CaM_Ca4_CaMKII_CaM_Ca4 </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux133" name="ReactionFlux133" reversible="false">
+        <listOfReactants>
+          <speciesReference species="pCaMKII_CaM_Ca4_CaMKII_CaM_Ca4"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="pCaMKII_CaM_Ca4"/>
+          <speciesReference species="pCaMKII_CaM_Ca4"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R133 </ci>
+              <ci> pCaMKII_CaM_Ca4_CaMKII_CaM_Ca4 </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux134" name="ReactionFlux134" reversible="true">
+        <listOfReactants>
+          <speciesReference species="CaMKII_CaM_Ca4_psd"/>
+          <speciesReference species="CaMKII_CaM_Ca4_psd"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="CaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R134 </ci>
+                  <ci> CaMKII_CaM_Ca4_psd </ci>
+                  <ci> CaMKII_CaM_Ca4_psd </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R134 </ci>
+                  <ci> CaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux135" name="ReactionFlux135" reversible="false">
+        <listOfReactants>
+          <speciesReference species="CaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="pCaMKII_CaM_Ca4_psd"/>
+          <speciesReference species="CaMKII_CaM_Ca4_psd"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R135 </ci>
+              <ci> CaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux136" name="ReactionFlux136" reversible="true">
+        <listOfReactants>
+          <speciesReference species="pCaMKII_CaM_Ca4_psd"/>
+          <speciesReference species="CaMKII_CaM_Ca4_psd"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="pCaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_R136 </ci>
+                  <ci> pCaMKII_CaM_Ca4_psd </ci>
+                  <ci> CaMKII_CaM_Ca4_psd </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_R136 </ci>
+                  <ci> pCaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd </ci>
+                </apply>
+              </apply>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="ReactionFlux137" name="ReactionFlux137" reversible="false">
+        <listOfReactants>
+          <speciesReference species="pCaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="pCaMKII_CaM_Ca4_psd"/>
+          <speciesReference species="pCaMKII_CaM_Ca4_psd"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> kf_R137 </ci>
+              <ci> pCaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd </ci>
+              <ci> V1 </ci>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+    </listOfReactions>
+  </model>
+</sbml>

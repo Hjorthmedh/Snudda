@@ -81,7 +81,7 @@ class MyTestCase(unittest.TestCase):
 
         if False:
             from snudda.plotting.plot_network import PlotNetwork
-            pn = PlotNetwork(modified_network)
+            pn = PlotNetwork(self.modified_network)
             pn.plot(plot_axon=False, plot_dendrite=False, plot_synapses=False)
 
     def test_mapping(self):

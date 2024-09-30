@@ -1,0 +1,41 @@
+{
+    "network_file": "networks/neuromodulation_bath_current/network-synapses.hdf5",
+    "output_file": "networks/neuromodulation_bath_current/simulation/output_neuromodulation_ON.hdf5",
+    "log_file": "networks/neuromodulation_bath_current/log/network-simulation-ON.txt",
+    "time": 20,
+    "record_all_soma": true,
+    "record_rxd_species_soma": [0, 1],
+    "record_density_mechanism": {	
+	"kir_ms.modulation_factor": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	},
+	"naf_ms.modulation_factor": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	},
+	"kaf_ms.modulation_factor_g": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	},
+	"kaf_ms.modulation_factor_shift": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	}	
+    },
+    "rxd_enable_extracellular": false,
+    "bath_application": {
+	"DA": {
+	    "Xtime": [0, 2.499, 2.5, 2.99, 3.0, 3.5, 3.51, 4, 4.01, 20],
+	    "Xconcentration": [1e-6, 1e-6, 0, 0, 60e-6, 60e-6, 100e-6, 100e-6, 0, 0],
+	    "time": [0, 20],
+	    "concentration": [1e-6, 1e-6],
+	    "interpolate": true
+	}
+    },
+    "current_injection_file": "bath_current_injection.json"
+}

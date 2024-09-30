@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from snudda.neurons import NeuronMorphologyExtended
-from snudda.utils import SnuddaLoad, SnuddaLoadNetworkSimulation, snudda_parse_path
+from snudda.utils import SnuddaLoad, SnuddaLoadSimulation, snudda_parse_path
 
 
 class PlotNeuronVoltage:
@@ -33,9 +33,9 @@ class PlotNeuronVoltage:
             self.snudda_data = snudda_data
 
         print(f"Loading simulation data {self.simulation_file}")
-        self.simulation_data = SnuddaLoadNetworkSimulation(network_simulation_output_file=self.simulation_file,
-                                                           network_path=self.network_path,
-                                                           do_test=False)
+        self.simulation_data = SnuddaLoadSimulation(network_simulation_output_file=self.simulation_file,
+                                                    network_path=self.network_path,
+                                                    do_test=False)
 
     def load_morphology(self, neuron_id):
         morphology_file = snudda_parse_path(self.network_data["neurons"][neuron_id]["morphology"],
