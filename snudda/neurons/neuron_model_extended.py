@@ -243,7 +243,7 @@ class NeuronModel(ephys.models.CellModel):
                         bounds=bounds,
                         value=value))
             elif param_config['type'] in ['section', 'range']:
-             
+
                 if param_config['dist_type'] == 'uniform':
                     scaler = ephys.parameterscalers.NrnSegmentLinearScaler()
                 elif param_config['dist_type'] in ['exp', 'distance']:

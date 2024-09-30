@@ -89,15 +89,23 @@ class SnuddaSimulate(object):
         elif network_file:
             self.network_path = os.path.dirname(network_file)
         else:
-            assert False, "You must give network_path or network_file"
+            self.write_log("No network network_path or network_file specified")
+            self.network_path = None
 
         self.snudda_data = get_snudda_data(snudda_data=snudda_data,
                                            network_path=self.network_path)
 
-        if not network_file:
-            self.network_file = os.path.join(self.network_path, "network-synapses.hdf5")
+        if not network_file and self.network_path is not None:
+            alt_network_file = os.path.join(self.network_path, "network-synapses.hdf5")
+            if os.path.isfile(alt_network_file):
+                self.network_file = alt_network_file
+            else:
+                self.network_file = None
         else:
             self.network_file = network_file
+
+        if self.network_file is None:
+            self.write_log(f"Warning: no network_file defined.", is_error=True)
 
         if not input_file:
             default_input_file = os.path.join(self.network_path, "input-spikes.hdf5")
@@ -204,6 +212,10 @@ class SnuddaSimulate(object):
                 with open(current_file, "rt") as f:
                     self.current_injection_info = json.load(f)
 
+            if "current_injection_info" in self.sim_info:
+                # This is merged with current injection info read from file (above)
+                self.current_injection_info |= self.sim_info["current_injection_info"]
+
         else:
             self.sim_info = None
 
@@ -272,7 +284,10 @@ class SnuddaSimulate(object):
 
         # We need to initialise random streams, see Lytton el at 2016 (p2072)
 
-        self.load_network_info(self.network_file)
+        if self.network_file is not None:
+            self.load_network_info(self.network_file)
+        else:
+            self.write_log("No network path or file specified, not loading network.")
 
         self.record = SnuddaSaveNetworkRecordings(output_file=self.output_file, network_data=self.network_info,
                                                   sample_dt=self.sample_dt, node_id=node_id)
@@ -2375,9 +2390,12 @@ class SnuddaSimulate(object):
 
     def parse_current_injection_info(self):
 
+        if self.current_injection_info and self.verbose:
+            self.write_log(f"Parsing current_injection_info.")
+
         for neuron_id, cur_info in self.current_injection_info.items():
 
-            if neuron_id not in self.neurons:
+            if int(neuron_id) not in self.neurons:
                 # Neuron not on this worker.
                 continue
 
