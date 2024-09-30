@@ -517,26 +517,37 @@ class SnuddaInit(object):
         # TODO: We should force users to use same name as the directory name
         # ie, fs/FS_0 directory should be named FS_0
 
-        # Find which neurons are available in neuron_dir
-        # OBS, we need to sort the list of neuron directories, so every computer gets the same order
-        dir_list = sorted(glob.glob(os.path.join(snudda_parse_path(neuron_dir, self.snudda_data), "*")))
-        neuron_file_list = []
 
-        assert len(dir_list) > 0, f"Neuron dir {snudda_parse_path(neuron_dir, self.snudda_data)} is empty!"
+        full_neuron_path = snudda_parse_path(neuron_dir, self.snudda_data)
+        has_morphology_dir = os.path.isdir(os.path.join(full_neuron_path, "morphology"))
 
-        ctr = 0
+        if has_morphology_dir:
+            # The folder specified has a morphology directory, use those morphologies
+            neuron_file_list = [(name, full_neuron_path)]
 
-        for fd in dir_list:
+        else:
+            # Assume each subdirectory in current folder contains a neuron
 
-            d = snudda_simplify_path(fd, self.snudda_data)
+            # Find which neurons are available in neuron_dir
+            # OBS, we need to sort the list of neuron directories, so every computer gets the same order
+            dir_list = sorted(glob.glob(os.path.join(snudda_parse_path(neuron_dir, self.snudda_data), "*")))
+            neuron_file_list = []
 
-            if snudda_isdir(d, self.snudda_data):
-                # We want to maintain the $SNUDDA_DATA keyword in the path so that the user can move
-                # the config file between systems and still run it.
-                sd = snudda_parse_path(d, self.snudda_data)
+            assert len(dir_list) > 0, f"Neuron dir {snudda_parse_path(neuron_dir, self.snudda_data)} is empty!"
 
-                neuron_file_list.append((f"{name}_{ctr}", sd))
-                ctr += 1
+            ctr = 0
+
+            for fd in dir_list:
+
+                d = snudda_simplify_path(fd, self.snudda_data)
+
+                if snudda_isdir(d, self.snudda_data):
+                    # We want to maintain the $SNUDDA_DATA keyword in the path so that the user can move
+                    # the config file between systems and still run it.
+                    sd = snudda_parse_path(d, self.snudda_data)
+
+                    neuron_file_list.append((f"{name}_{ctr}", sd))
+                    ctr += 1
 
         # First check how many unique cells we hava available, then we
         # calculate how many of each to use in simulation
