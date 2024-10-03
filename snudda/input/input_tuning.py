@@ -1538,7 +1538,7 @@ class InputTuning(object):
         region_def[vol_name]["volume"]["type"] = "mesh"
         region_def[vol_name]["volume"]["d_min"] = 15e-6
         region_def[vol_name]["volume"]["mesh_file"] = "data/mesh/InputTestMesh.obj"
-        region_def[vol_name]["volume"]["num_putative_points"] = 10000
+        region_def[vol_name]["volume"]["num_putative_points"] = 100000
         region_def[vol_name]["connectivity"] = dict()  # Unconnected
 
         if single_neuron_path:
