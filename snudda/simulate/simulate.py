@@ -2000,12 +2000,14 @@ class SnuddaSimulate(object):
             print(traceback.format_exc())
             import pdb
             pdb.set_trace()
-            
 
         conc_ref = self.neurons[neuron_id].modulation.species[species][region].nodes(segment)._ref_concentration
 
         vector = self.sim.neuron.h.Vector()
         vector.record(conc_ref)
+
+        # Convert back from RxD millimolar -> molar
+        self.record.add_unit(data_type=species, target_unit="molar", conversion_factor=1e-3)
 
         self.record.register_compartment_data(neuron_id=neuron_id,
                                               data_type=species,
