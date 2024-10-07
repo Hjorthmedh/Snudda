@@ -4,7 +4,7 @@
             "generator": "poisson",
             "type": "AMPA_NMDA",
             "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
-            "num_inputs": 200,
+            "num_inputs": 300,
             "frequency": 2,
             "population_unit_correlation": 0.0,
             "jitter": 0.0,

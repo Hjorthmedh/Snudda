@@ -17,6 +17,6 @@ psutil >= 5.8.0
 cython  # Needed for compiling NEURON
 wheel  # setup.py seems to need this now
 open3d
-
+ruamel.yaml<0.17  # Later versions are not compatible with ARM M1 Linux
 # igraph
 # snudda
