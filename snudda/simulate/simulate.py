@@ -142,6 +142,7 @@ class SnuddaSimulate(object):
         self.fih_time = None
         self.last_sim_report_time = 0
         self.sample_dt = sample_dt  # None means all values, 0.0005 means 0.5ms time resolution in saved files
+        self.sim_dt = 0.025
 
         self.pc = h.ParallelContext()
 
@@ -187,6 +188,10 @@ class SnuddaSimulate(object):
 
             if "output_file" in self.sim_info:
                 self.output_file = self.sim_info["output_file"]
+
+            if "sim_dt" in self.sim_info:
+                self.sim_dt = self.sim_info["sim_dt"] * 1e3  # OBS, converted to ms for NEURON
+                self.write_log(f"Setting simulation dt={self.sim_dt} ms")
 
             if "sample_dt" in self.sim_info:
                 self.sample_dt = self.sim_info["sample_dt"]
@@ -2150,7 +2155,7 @@ class SnuddaSimulate(object):
         # import pdb
         # pdb.set_trace()
 
-        self.sim.run(t, dt=0.025)
+        self.sim.run(t, dt=self.sim_dt)
         self.pc.barrier()
         self.write_log("Simulation done.")
 

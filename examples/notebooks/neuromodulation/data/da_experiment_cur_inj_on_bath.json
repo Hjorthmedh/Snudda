@@ -3,6 +3,7 @@
     "output_file": "networks/neuromodulation_bath_current/simulation/output_neuromodulation_ON.hdf5",
     "log_file": "networks/neuromodulation_bath_current/log/network-simulation-ON.txt",
     "time": 20,
+    "sim_dt": 0.001,
     "record_all_soma": true,
     "record_rxd_species_soma": [0, 1],
     "record_density_mechanism": {	
@@ -32,7 +33,7 @@
 	"DA": {
 	    "Xtime": [0, 2.499, 2.5, 2.99, 3.0, 3.5, 3.51, 4, 4.01, 20],
 	    "Xconcentration": [1e-6, 1e-6, 0, 0, 60e-6, 60e-6, 100e-6, 100e-6, 0, 0],
-	    "time": [0, 20],
+	    "time": [0, 100],
 	    "concentration": [1e-6, 1e-6],
 	    "interpolate": true
 	}
