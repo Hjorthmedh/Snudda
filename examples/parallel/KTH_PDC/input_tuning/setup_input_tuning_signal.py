@@ -33,12 +33,14 @@ else:
 if os.getenv("NUM_INPUT_MAX"):
     num_input_max = float(os.getenv("NUM_INPUT_MAX"))
 else:
-    num_input_max = 250
+    # previously 250
+    num_input_max = 500
 
 if os.getenv("NUM_REPLICAS"):
     num_replicas = os.getenv("NUM_REPLICAS")
 else:
-    num_replicas = 20
+    # previously 20
+    num_replicas = 50
     
 if os.getenv("SEED_LIST"):
     seed_list = ast.literal_eval(os.getenv("SEED_LIST"))
