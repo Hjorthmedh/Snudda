@@ -386,10 +386,15 @@ class InputTuning(object):
             for nid in neuron_id:
                 assert network_info.data["neurons"][neuron_id[0]]["name"] == network_info.data["neurons"][nid]["name"]
 
+            # Check if spike frequency is too low, if so give image a different name
+
             if depol_block:
                 label = f"signal-{requested_frequency}-Hz-BLOCKED"
             else:
                 label = f"signal-{requested_frequency}-Hz"
+
+            if np.max(spike_count_mean) < requested_spikes:
+                label = f"{label}-TOO-LOW-FREQ"
 
             self.plot_signal_info(neuron_id=neuron_id, neuron_info=neuron_info, best_config=best_config,
                                   spike_count=spike_count, input_config=input_config, max_time=np.max(time),
