@@ -649,7 +649,13 @@ class SnuddaSimulate(object):
             param = os.path.join(neuron_path, "parameters.json")
             mech = os.path.join(neuron_path, "mechanisms.json")
 
-            if "modulation" in self.network_info["neurons"][ID]:
+            if not self.use_rxd_neuromodulation:
+                modulation = None
+
+            elif "modulation" in self.network_info["neurons"][ID]:
+                # TODO: This is old network_config location for "neurons", deprecate?
+                raise DeprecationWarning(f"This is old location for 'neurons' in network_info, remove!")
+
                 modulation = self.network_info["neurons"][ID]["modulation"]
 
                 if not os.path.isfile(modulation):
@@ -669,7 +675,10 @@ class SnuddaSimulate(object):
                 if not os.path.isfile(modulation):
                     modulation = None
 
-            if "reaction_diffusion_file" in self.network_info["neurons"][ID]:
+            if not self.use_rxd_neuromodulation:
+                reaction_diffusion_file = None
+
+            elif "reaction_diffusion_file" in self.network_info["neurons"][ID]:
                 reaction_diffusion_file = SnuddaLoad.to_str(self.network_info["neurons"][ID]["reaction_diffusion_file"])
 
                 if reaction_diffusion_file is not None and not os.path.isfile(reaction_diffusion_file):
@@ -1982,7 +1991,6 @@ class SnuddaSimulate(object):
         if not self.use_rxd_neuromodulation:
             print(f"add_rxd_concentration_recording:  not enabled, ignoring recording of {species} in neuron {neuron_id}")
             return
-
 
         if sec_id == -1:
             sec_type = "soma"
