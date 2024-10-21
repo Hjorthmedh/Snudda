@@ -54,8 +54,7 @@ class PlotBad:
         self.load_meta(neuron_paths)
         self.load_parameters(neuron_paths)
         self.extract_parameters()
-        
-        
+
     def load_meta(self, neuron_paths):
 
         all_meta = dict()
@@ -239,9 +238,8 @@ def cli():
                  snudda_data=args.snudda_data)
     # pb.plot()
     pb.summary_plot()
-    
 
-    
+
 if __name__ == "__main__":
     cli()
     input("Press a key to exit")
