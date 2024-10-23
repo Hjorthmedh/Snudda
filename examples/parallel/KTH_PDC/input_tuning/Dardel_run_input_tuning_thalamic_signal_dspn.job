@@ -2,11 +2,11 @@
 #SBATCH --partition=main
 #SBATCH -o log/InputTuning-%j-output.txt
 #SBATCH -e log/InputTuning-%j-error.txt
-#SBATCH -t 3:59:00
-#SBATCH --time-min=1:59:00
+#SBATCH -t 7:59:00
+#SBATCH --time-min=7:59:00
 #SBATCH -J InputTuning
 #SBATCH -A naiss2023-5-231
-#SBATCH --nodes=8-12
+#SBATCH --nodes=19-20
 #SBATCH --tasks-per-node=128
 #SBATCH --mem-per-cpu=930M
 #SBATCH --mail-type=ALL
