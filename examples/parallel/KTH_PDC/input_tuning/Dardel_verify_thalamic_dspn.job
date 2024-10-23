@@ -11,8 +11,8 @@
 #SBATCH --mem-per-cpu=930M
 #SBATCH --mail-type=ALL
 
-export SNUDDA_TUNE_NEURON="fs"
-export INPUT_TYPE="cortical"
+export SNUDDA_TUNE_NEURON="dspn"
+export INPUT_TYPE="thalamic"
 
 # You need to point this as the directory where you created the network in
 #NETWORK_DIR=/cfs/klemming/home/${USER:0:1}/$USER/Snudda/examples/parallel/KTH_PDC/networks/test_10k
