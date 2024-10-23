@@ -626,6 +626,7 @@ class SnuddaInit(object):
         """
 
         parameter_file = os.path.join(neuron_dir, "parameters.json")
+        par_data = None
 
         if os.path.isfile(parameter_file):
 
@@ -649,6 +650,7 @@ class SnuddaInit(object):
         else:
             print("No parameter.json file.")
             has_meta = False
+            meta_file = None
 
         if has_meta:
 
@@ -678,7 +680,7 @@ class SnuddaInit(object):
             if len(missing_morphology_tag) > 0:
                 print(f"Missing morphology tag(s) for {', '.join(missing_morphology_tag)} in {meta_file}")
 
-            if len(missing_morph) == 0:
+            if len(missing_morph) > 0:
                 print(f"The following morphologies in {meta_file} are missing: {', '.join(missing_morph)}")
 
             return snudda_simplify_path(morph_dir, self.snudda_data)
