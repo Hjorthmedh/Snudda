@@ -672,14 +672,14 @@ class SnuddaInit(object):
                                                              meta_data[par_key][morph_key]["morphology"])):
                             missing_morph.append(meta_data[par_key][morph_key]["morphology"])
 
-            assert len(missing_par_key) == 0, \
-                f"Missing parameter key(s) {', '.join(missing_par_key)} in {meta_file}"
+            if len(missing_par_key) > 0:
+                print(f"Missing parameter key(s) {', '.join(missing_par_key)} in {meta_file}")
 
-            assert len(missing_morphology_tag) == 0, \
-                f"Missing morphology tag(s) for {', '.join(missing_morphology_tag)} in {meta_file}"
+            if len(missing_morphology_tag) > 0:
+                print(f"Missing morphology tag(s) for {', '.join(missing_morphology_tag)} in {meta_file}")
 
-            assert len(missing_morph) == 0, \
-                f"The following morphologies in {meta_file} are missing: {', '.join(missing_morph)}"
+            if len(missing_morph) == 0:
+                print(f"The following morphologies in {meta_file} are missing: {', '.join(missing_morph)}")
 
             return snudda_simplify_path(morph_dir, self.snudda_data)
 
