@@ -1482,7 +1482,11 @@ class InputTuning(object):
             meta_data = json.load(mf)
 
         for p_idx, p_key in enumerate(param_data):
-            assert p_key in meta_data, f"parameter key {p_key} missing in {neuron_info['meta_file']}"
+            if p_key not in meta_data:
+                print(f"parameter key {p_key} missing in {neuron_info['meta']}")
+                # Skip this key
+                continue
+
             for m_idx, m_key in enumerate(meta_data[p_key]):
                 ni = copy.deepcopy(neuron_info)
                 ni["morphology_key"] = m_key
