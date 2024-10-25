@@ -238,7 +238,8 @@ class SnuddaPlace(object):
                                            modulation_path=modulation,
                                            reaction_diffusion_path=reaction_diffusion,
                                            load_morphology=False,
-                                           virtual_neuron=virtual_neuron)
+                                           virtual_neuron=virtual_neuron,
+                                           verbose=self.verbose)
 
         neuron_type = name.split("_")[0]
         neuron_positions = self.volume[volume_id]["mesh"].place_neurons(num_neurons, neuron_type)
