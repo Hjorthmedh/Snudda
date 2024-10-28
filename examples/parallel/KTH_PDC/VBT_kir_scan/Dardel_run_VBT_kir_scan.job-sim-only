@@ -43,33 +43,6 @@ else
 fi
 
 
-# Start ipyparallel
-#.. Start the ipcontroller
-export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
-srun -n 1 -N 1 -c 2 --exact --overlap --mem=0 ./../ipcontroller_new.sh &
-
-
-echo ">>> waiting 60s for controller to start"
-sleep 60 
-
-#.. Read in CONTROLLERIP
-CONTROLLERIP=$(<controller_ip.txt)
-
-##.. Start the engines
-echo ">>> starting ${IPNWORKERS} engines "
-echo "SLURM_JOB_NUM_NODES={SLURM_JOB_NUM_NODES}"
-
-export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
-srun -n ${IPNWORKERS} -c 2 -N ${SLURM_JOB_NUM_NODES} --exact --overlap --mem=0 ipengine \
---location=${CONTROLLERIP} --profile=${IPYTHON_PROFILE} --mpi \
---ipython-dir=${IPYTHONDIR}  --timeout=30.0 c.EngineFactory.max_heartbeat_misses=10  c.MPI.use='mpi4py' \
-1> ipe_${SLURM_JOBID}.out 2> ipe_${SLURM_JOBID}.err &
-
-
-echo ">>> waiting 60s for engines to start"
-sleep 30
-
-
 echo "Network path: "$NETWORK_PATH
 
 export PATH=$SNUDDA_DIR/snudda_env/bin/:$PATH
@@ -81,15 +54,7 @@ unset DISPLAY
 
 export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
 
-# srun -n 1 -N 1 --exact --overlap --mem=0 python setup_kir_scan.py $NETWORK_PATH --ipython_profile $IPYTHON_PROFILE &> log/setup_network_log.txt
-
-# Creating network in serial
-srun -n 1 -N 1 --exact --overlap --mem=0 python setup_kir_scan.py $NETWORK_PATH &> log/setup_network_log.txt
-
-
-# Quit ipyparallel
-
-python ../ipcontroller_shutdown.py
+echo "Skipping network creation"
 
 
 ##############
