@@ -81,7 +81,7 @@ unset DISPLAY
 
 export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
 
-srun -n 1 -N 1 --exact --overlap --mem=0 python setup_kir_scan.py $NETWORK_PATH &> log/setup_network_log.txt
+srun -n 1 -N 1 --exact --overlap --mem=0 python setup_kir_scan.py $NETWORK_PATH --ipython_profile $IPYTHON_PROFILE &> log/setup_network_log.txt
 
 
 # Quit ipyparallel
