@@ -9,7 +9,8 @@ def simulate(network_path, output_path, kir_factor=1.0, time=1.0):
     # Next we need to reduce kir by a factor
     print("Reduce the KIR channel conductance in SPN")
 
-    print(f"Before: {sim.neurons[0].icell.soma[0](0.5).kir_ms.gbar = }")
+    if 0 in sim.neurons and "SPN" in sim.neurons[0].name:
+        print(f"Before: {sim.neurons[0].icell.soma[0](0.5).kir_ms.gbar = }")
     
     for sec in sim.sim.neuron.h.allsec():
         for seg in sec:
@@ -17,9 +18,8 @@ def simulate(network_path, output_path, kir_factor=1.0, time=1.0):
                 # Scale the conductance parameter for each segment
                 seg.kir_ms.gbar *= kir_factor
 
-
-    print(f"After: {sim.neurons[0].icell.soma[0](0.5).kir_ms.gbar = }")
-    
+    if 0 in sim.neurons and "SPN" in sim.neurons[0].name:
+        print(f"After: {sim.neurons[0].icell.soma[0](0.5).kir_ms.gbar = }")
 
     sim.run(t=time*1e3)
     sim.write_output()
