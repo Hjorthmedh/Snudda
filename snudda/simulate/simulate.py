@@ -14,13 +14,13 @@
 #
 ############################################################################
 
+import copy
+import gc
 import json
 import os
-import sys
 import re
-import timeit
 import time
-import gc
+import timeit
 # Plot all sections
 # [neuron.h.psection(x) for x in neuron.h.allsec()]
 from collections import OrderedDict
@@ -31,15 +31,14 @@ import numpy as np
 
 from mpi4py import MPI  # This must be imported before neuron, to run parallel
 from neuron import h  # , gui
-import copy
 
 import snudda.utils.memory
-from snudda.utils.snudda_path import snudda_parse_path, get_snudda_data
 from snudda.neurons.neuron_model_extended import NeuronModel
 from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
+from snudda.simulate.save_network_recording import SnuddaSaveNetworkRecordings
 # If simulationConfig is set, those values override other values
 from snudda.utils.load import SnuddaLoad
-from snudda.simulate.save_network_recording import SnuddaSaveNetworkRecordings
+from snudda.utils.snudda_path import snudda_parse_path, get_snudda_data
 
 
 # !!! Need to gracefully handle the situation where there are more workers than
