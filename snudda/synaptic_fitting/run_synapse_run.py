@@ -24,16 +24,18 @@ class RunSynapseRun(object):
                  stim_times,
                  synapse_density,
                  num_synapses,
+                 neuron_parameter_key,
+                 neuron_morphology_key,
                  neuron_path=None,
                  neuron_morphology=None,
                  neuron_mechanisms=None,
                  neuron_parameters=None,
-                 neuron_modulation=None,
+                 # neuron_modulation=None,
                  synapse_section_id=None,  # if given, nSynapses is ignored
                  synapse_section_x=None,  # same # of elements as synapseSectionID
-                 neuron_parameter_id=0,  # Which param set in parameter file to use
-                 neuron_morphology_id=0,
-                 neuron_modulation_id=0,
+                 # neuron_parameter_id=0,  # Which param set in parameter file to use
+                 # neuron_morphology_id=0,
+                 # neuron_modulation_id=0,
                  holding_voltage=-70e-3,
                  holding_current=None,
                  synapse_type='glut',
@@ -79,8 +81,8 @@ class RunSynapseRun(object):
         if neuron_mechanisms is None and self.neuron_path is not None:
             neuron_mechanisms = os.path.join(self.neuron_path, "mechanisms.json")
 
-        if neuron_modulation is None and self.neuron_path is not None:
-            neuron_modulation = os.path.join(self.neuron_path, "modulation.json")
+        # if neuron_modulation is None and self.neuron_path is not None:
+        #     neuron_modulation = os.path.join(self.neuron_path, "modulation.json")
 
         # Done in NrnSimulatorParallel
         # neuron.h.load_file('stdrun.hoc')
@@ -93,9 +95,8 @@ class RunSynapseRun(object):
         self.write_log(f"Using morphology: {neuron_morphology}")
         neuron_prototype = NeuronPrototype(neuron_path=neuron_path,
                                            neuron_name="OptimisationNeuron")
-        self.morphology = neuron_prototype.clone(parameter_id=neuron_parameter_id,
-                                                 morphology_id=neuron_morphology_id,
-                                                 modulation_id=neuron_modulation_id)
+        self.morphology = neuron_prototype.clone(parameter_key=neuron_parameter_key,
+                                                 morphology_key=neuron_morphology_key)
         # self.morphology = NeuronMorphology(swc_filename=neuron_morphology)
 
         # We need to setup the Neuron model
@@ -103,10 +104,9 @@ class RunSynapseRun(object):
                                   morph_path=neuron_morphology,
                                   mech_file=neuron_mechanisms,
                                   cell_name="OptimisationNeuron",
-                                  modulation_file=neuron_modulation,
-                                  parameter_id=neuron_parameter_id,
-                                  morphology_id=neuron_morphology_id,
-                                  modulation_id=neuron_modulation_id)
+                                  # modulation_file=neuron_modulation,
+                                  parameter_key=neuron_parameter_key,
+                                  morphology_key=neuron_morphology_key)
 
         self.neuron.instantiate(sim=self.sim)
         self.set_resting_voltage(holding_voltage * 1e3)
@@ -266,7 +266,7 @@ class RunSynapseRun(object):
                 "Can not plot if sectionID and sectionX are given"
 
             input_coords, section_id, section_x, density_function, dist_syn_soma = \
-                self.morphology.dendrite_input_locations(synapse_density=synapse_density,
+                self.morphology.dendrite_input_locations(synapse_density_str=synapse_density,
                                                          num_locations=num_synapses,
                                                          return_density=True)
 
@@ -293,7 +293,7 @@ class RunSynapseRun(object):
         elif section_id is None or section_x is None:
 
             input_coords, section_id, section_x, dist_syn_soma = \
-                self.morphology.dendrite_input_locations(synapse_density=synapse_density,
+                self.morphology.dendrite_input_locations(synapse_density_str=synapse_density,
                                                          num_locations=num_synapses,
                                                          rng=self.rng)
 
@@ -614,11 +614,10 @@ if __name__ == "__main__":
                          neuron_morphology="../data/cellspecs/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521/WT-1215MSN03-cor-rep-ax2.swc",
                          neuron_parameters="../data/cellspecs/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521/parameters.json",
                          neuron_mechanisms="../data/cellspecs/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521/mechanisms.json",
-                         neuron_modulation="../data/cellspecs/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20190521/modulation.json",
                          synapse_density=synapse_density,
                          num_synapses=10,
-                         neuron_parameter_id=0,
-                         neuron_modulation_id=0,
+                         neuron_parameter_key=0,
+                         # neuron_modulation_key=0,
                          holding_voltage=holding_voltage)
 
     # I would like to plot the morphology
