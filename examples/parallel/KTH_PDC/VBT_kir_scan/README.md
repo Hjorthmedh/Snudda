@@ -36,4 +36,6 @@ The network structure can be inspected with ```snudda_load your_simulation_file.
 The simulation data can be loaded using ```snudda/utils/load_network_simulation.py```, if you want to plot individual traces you can use ```snudda_plot_traces```, use ```--help``` as an option to get instructions.
 
 
+## Load example
 
+More information about how to extract the simulated data can be found [here](LoadDataExample.ipynb).
