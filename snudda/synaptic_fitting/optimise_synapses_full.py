@@ -1406,6 +1406,7 @@ if __name__ == "__main__":
     parser.add_argument("--compile", action="store_true", help="Compile NEURON modules")
 
     parser.add_argument("--data", help="Snudda data directory")
+    parser.add_argument("--nTrials", help="Number of trials", default=2)
 
     args = parser.parse_args()
 
@@ -1479,4 +1480,4 @@ if __name__ == "__main__":
 
         sys.exit(0)
 
-    ly.parallel_optimise_single_cell(n_trials=2)
+    ly.parallel_optimise_single_cell(n_trials=args.nTrials)
