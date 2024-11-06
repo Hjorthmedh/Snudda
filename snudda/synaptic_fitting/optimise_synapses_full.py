@@ -61,7 +61,7 @@ class OptimiseSynapsesFull(object):
                  role="master", d_view=None, verbose=True, log_file_name=None,
                  opt_method="sobol", pretty_plot=False,
                  model_bounds="model_bounds.json",
-                 neuron_set_file="neuronSet.json",
+                 neuron_set_file="neuron_set.json",
                  synapse_parameter_file=None,
                  normalise_trace=True):
 
@@ -176,19 +176,19 @@ class OptimiseSynapsesFull(object):
             self.data = json.load(f, object_pairs_hook=OrderedDict)
 
             self.volt = np.array(self.data["data"]["mean_norm_trace"])
-            self.sample_freq = self.data["metadata"]["sample_frequency"]
+            self.sample_freq = self.data["meta_data"]["sample_frequency"]
 
-            if "holding_voltage" in self.data["metadata"]:
-                self.trace_holding_voltage = self.data["metadata"]["trace_holding_voltage"]
+            if "holding_voltage" in self.data["meta_data"]:
+                self.trace_holding_voltage = self.data["meta_data"]["trace_holding_voltage"]
             else:
                 self.trace_holding_voltage = None
 
             dt = 1 / self.sample_freq
             self.time = 0 + dt * np.arange(0, len(self.volt))
 
-            self.stim_time = np.array(self.data["metadata"]["stim_time"])
+            self.stim_time = np.array(self.data["meta_data"]["stim_time"])
 
-            self.cell_type = self.data["metadata"]["cell_type"]
+            self.cell_type = self.data["meta_data"]["cell_type"]
 
     ############################################################################
 
@@ -336,18 +336,18 @@ class OptimiseSynapsesFull(object):
             with open(self.neuron_set_file, 'r') as f:
                 self.cell_properties = json.load(f, object_pairs_hook=OrderedDict)
 
-        cell_type = self.data["metadata"]["cell_type"]
+        cell_type = self.data["meta_data"]["cell_type"]
 
         return copy.deepcopy(self.cell_properties[cell_type])
 
     def update_cell_properties(self, holding_current):
 
-        cell_type = self.data["metadata"]["cell_type"]
+        cell_type = self.data["meta_data"]["cell_type"]
 
         with open(self.neuron_set_file, 'r') as f:
             self.cell_properties = json.load(f, object_pairs_hook=OrderedDict)
 
-        self.cell_properties[cell_type]["holdingCurrent"] = holding_current
+        self.cell_properties[cell_type]["holding_current"] = holding_current
 
         with open(self.neuron_set_file, 'w') as f:
             json.dump(self.cell_properties, f, indent=4)
@@ -549,23 +549,26 @@ class OptimiseSynapsesFull(object):
         if synapse_density_override is not None:
             synapse_density = synapse_density_override
         else:
-            synapse_density = c_prop["synapseDensity"]
+            synapse_density = c_prop["synapse_density"]
 
         if n_synapses_override is not None:
             n_synapses = n_synapses_override
         else:
             n_synapses = c_prop["num_synapses"]
 
-        if "holdingCurrent" in c_prop:
-            holding_current = c_prop["holdingCurrent"]
+        if "holding_current" in c_prop:
+            holding_current = c_prop["holding_current"]
         else:
             holding_current = None
+
+        neuron_morphology_key = c_prop["neuron_morphology_key"]
+        neuron_parameter_key = c_prop["neuron_parameter_key"]
 
         # Use the trace holding voltage if it exists, otherwise use the holding voltage in the neuronSet json file.
         if self.trace_holding_voltage is not None:
             trace_holding_voltage = self.trace_holding_voltage
-        elif "baselineVoltage" in c_prop:
-            trace_holding_voltage = c_prop["baselineVoltage"]
+        elif "baseline_voltage" in c_prop:
+            trace_holding_voltage = c_prop["baseline_voltage"]
         else:
             assert f"You need to specify either a trace_holding_voltage in {self.data_file}" \
                    f"or specify baselineVoltage in neuronSet.json for the neuron type in question."
@@ -574,7 +577,9 @@ class OptimiseSynapsesFull(object):
         holding_current = None
 
         self.rsr_synapse_model = \
-            RunSynapseRun(neuron_path=snudda_parse_path(c_prop["neuronPath"], self.snudda_data),
+            RunSynapseRun(neuron_path=snudda_parse_path(c_prop["neuron_path"], self.snudda_data),
+                          neuron_morphology_key=neuron_morphology_key,
+                          neuron_parameter_key=neuron_parameter_key,
                           stim_times=t_stim,
                           num_synapses=n_synapses,
                           synapse_density=synapse_density,
@@ -838,7 +843,7 @@ class OptimiseSynapsesFull(object):
 
     def get_model_bounds(self):
 
-        mb = self.data["modeldata"]
+        mb = self.data["model_data"]
 
         param_list = ["U", "tauR", "tauF", "tauRatio", "cond"]
         lower_bound = [mb[x][0] for x in param_list]
@@ -1099,8 +1104,8 @@ class OptimiseSynapsesFull(object):
                             t_stim=self.stim_time,
                             h_peak=peak_height,
                             model_bounds=model_bounds,
-                            smooth_exp_trace8=ly.smooth_exp_volt8,
-                            smooth_exp_trace9=ly.smooth_exp_volt9)
+                            smooth_exp_trace8=self.smooth_exp_volt8,
+                            smooth_exp_trace9=self.smooth_exp_volt9)
 
         self.write_log(f"Sobol search done. Best parameter {self.synapse_parameter_data.get_best_parameterset()}")
 
@@ -1242,7 +1247,7 @@ class OptimiseSynapsesFull(object):
                                                  model_bounds[1][3]),
                                  chaospy.Uniform(model_bounds[0][4],
                                                  model_bounds[1][4]))
-        # Seed Sobol sequence --- does not change anything.
+        # Seed Sobol sequence --- does not change anything  .
         # np.random.seed()
 
         skip_sets = self.synapse_parameter_data.get_iter()
@@ -1401,6 +1406,7 @@ if __name__ == "__main__":
     parser.add_argument("--compile", action="store_true", help="Compile NEURON modules")
 
     parser.add_argument("--data", help="Snudda data directory")
+    parser.add_argument("--nTrials", help="Number of trials", default=2)
 
     args = parser.parse_args()
 
@@ -1474,4 +1480,4 @@ if __name__ == "__main__":
 
         sys.exit(0)
 
-    ly.parallel_optimise_single_cell(n_trials=2)
+    ly.parallel_optimise_single_cell(n_trials=args.nTrials)

@@ -1,14 +1,14 @@
 {
-    "metadata": {
+    "meta_data": {
 	"input_region": "M1LH",
 	"input_frequency": 20,
 	"sample_frequency" : 5000,
-	"cell_type": "SPN",
+	"cell_type": "dSPN",
 	"classification": "unknown",
 	"stim_time": [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 1]
     },
 
-    "modeldata": {
+    "model_data": {
         "U" : [1e-3, 1.0],
         "tauR" : [1e-4, 2.0],
         "tauF" : [1e-4, 2.0],
