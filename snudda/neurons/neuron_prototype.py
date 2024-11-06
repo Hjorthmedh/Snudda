@@ -1,7 +1,6 @@
 import glob
 import json
 import os
-from collections import OrderedDict
 
 from snudda.neurons import NeuronMorphologyExtended
 from snudda.utils.snudda_path import snudda_parse_path
@@ -124,10 +123,18 @@ class NeuronPrototype:
 
         if self.meta_path and os.path.exists(self.meta_path):
             with open(self.meta_path, "r") as fm:
-                self.meta_info = json.load(fm, object_pairs_hook=OrderedDict)
+                self.meta_info = json.load(fm)
 
         with open(par_path, "r") as f:
-            self.parameter_info = json.load(f, object_pairs_hook=OrderedDict)
+            self.parameter_info = json.load(f)
+
+        if self.meta_info and isinstance(self.parameter_info, dict):
+            # Check that all parameter_keys are in meta, otherwise remove them
+            for par_key in list(self.parameter_info.keys()):
+                if par_key not in self.meta_info:
+                    del self.parameter_info[par_key]
+                    if self.verbose:
+                        print(f"Parameter key {par_key} missing in {self.meta_path}")
 
         # We now expect a dictionary of parameter sets. If it is a list, we convert it to a dictionary
         if type(self.parameter_info) == list:
@@ -137,7 +144,7 @@ class NeuronPrototype:
 
         if mod_path is not None and os.path.exists(mod_path):
             with open(mod_path, "r") as f:
-                self.modulation_info = json.load(f, object_pairs_hook=OrderedDict)
+                self.modulation_info = json.load(f)
         else:
             self.modulation_info = None
 

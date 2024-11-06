@@ -26,15 +26,19 @@ network_path = os.path.join("networks", f"input_tuning_{neuron_type}_background"
 
 from ipyparallel import Client
 
-ipython_profile = "default"
-ipython_dir = os.getenv('IPYTHONDIR')
-if not ipython_dir:
-    ipython_dir = os.path.join(os.path.abspath(os.getcwd()), ".ipython")
+try:
+    ipython_profile = "default"
+    ipython_dir = os.getenv('IPYTHONDIR')
+    if not ipython_dir:
+        ipython_dir = os.path.join(os.path.abspath(os.getcwd()), ".ipython")
 
-u_file = os.path.join(ipython_dir, f"profile_{ipython_profile}", "security", "ipcontroller-client.json")
-print(f"Reading IPYPARALLEL connection info from {u_file}\n")
-rc = Client(profile=ipython_profile, connection_info=u_file, timeout=120, debug=False)
-
+    u_file = os.path.join(ipython_dir, f"profile_{ipython_profile}", "security", "ipcontroller-client.json")
+    print(f"Reading IPYPARALLEL connection info from {u_file}\n")
+    rc = Client(profile=ipython_profile, connection_info=u_file, timeout=120, debug=False)
+except:
+    print("\n!!! --> Failed to start ipyparallel\n")
+    rc = None
+    
 input_tuning = InputTuning(network_path, rc=rc, input_seed_list=seed_list)
 
 print("Constructor done, calling setup_network.")
@@ -52,7 +56,6 @@ input_tuning.setup_background_input(input_types=["cortical_background", "thalami
                                     input_fraction=[0.5, 0.5],
                                     num_input_min=10, num_input_max=1000,
                                     input_frequency=[2, 2],
-                                    input_correlation=None,
                                     input_duration=10)
 
 print("All done with setup_input_tuning_background.py")

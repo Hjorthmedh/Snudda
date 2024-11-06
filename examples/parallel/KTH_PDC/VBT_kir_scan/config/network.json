@@ -1,0 +1,28 @@
+{
+    "network_path": "networks/wt_kir_scan_1",
+    "snudda_data": "/cfs/klemming/home/h/hjorth/BasalGangliaData/data",
+    "!snudda_data": "/home/hjorth/HBP/2024-10-03/BasalGangliaData/data/",
+
+    "random_seed": {
+	"master_seed": 1234	
+    },
+    
+    "regions": {
+	"Striatum" : {
+	    "num_neurons": 10000,
+	    "volume": {
+		"mesh_file": "$SNUDDA_DATA/meshes/Striatum-dorsal-left-hemisphere.obj",
+		"d_min": 1.5e-5,
+		"num_putative_points": 500000,
+		"random_seed": 123456
+	    },
+	    "neurons": ["neurons/dspn.json",
+			"neurons/ispn.json",
+			"neurons/fs.json",
+			"neurons/chin.json",
+			"neurons/lts.json"],
+	    "connectivity": ["$SNUDDA_DATA/connectivity/striatum/striatum-connectivity.json"],
+	    "!populations": "pop1.json"
+	}
+    }
+}

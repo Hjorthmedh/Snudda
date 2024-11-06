@@ -386,10 +386,15 @@ class InputTuning(object):
             for nid in neuron_id:
                 assert network_info.data["neurons"][neuron_id[0]]["name"] == network_info.data["neurons"][nid]["name"]
 
+            # Check if spike frequency is too low, if so give image a different name
+
             if depol_block:
                 label = f"signal-{requested_frequency}-Hz-BLOCKED"
             else:
                 label = f"signal-{requested_frequency}-Hz"
+
+            if np.max(spike_count_mean) < requested_spikes:
+                label = f"{label}-TOO-LOW-FREQ"
 
             self.plot_signal_info(neuron_id=neuron_id, neuron_info=neuron_info, best_config=best_config,
                                   spike_count=spike_count, input_config=input_config, max_time=np.max(time),
@@ -1477,7 +1482,11 @@ class InputTuning(object):
             meta_data = json.load(mf)
 
         for p_idx, p_key in enumerate(param_data):
-            assert p_key in meta_data, f"parameter key {p_key} missing in {neuron_info['meta_file']}"
+            if p_key not in meta_data:
+                print(f"parameter key {p_key} missing in {neuron_info['meta']}")
+                # Skip this key
+                continue
+
             for m_idx, m_key in enumerate(meta_data[p_key]):
                 ni = copy.deepcopy(neuron_info)
                 ni["morphology_key"] = m_key
@@ -1538,7 +1547,7 @@ class InputTuning(object):
         region_def[vol_name]["volume"]["type"] = "mesh"
         region_def[vol_name]["volume"]["d_min"] = 15e-6
         region_def[vol_name]["volume"]["mesh_file"] = "data/mesh/InputTestMesh.obj"
-        region_def[vol_name]["volume"]["num_putative_points"] = 10000
+        region_def[vol_name]["volume"]["num_putative_points"] = 100000
         region_def[vol_name]["connectivity"] = dict()  # Unconnected
 
         if single_neuron_path:

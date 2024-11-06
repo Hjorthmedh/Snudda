@@ -14,13 +14,13 @@
 #
 ############################################################################
 
+import copy
+import gc
 import json
 import os
-import sys
 import re
-import timeit
 import time
-import gc
+import timeit
 # Plot all sections
 # [neuron.h.psection(x) for x in neuron.h.allsec()]
 from collections import OrderedDict
@@ -31,15 +31,14 @@ import numpy as np
 
 from mpi4py import MPI  # This must be imported before neuron, to run parallel
 from neuron import h  # , gui
-import copy
 
 import snudda.utils.memory
-from snudda.utils.snudda_path import snudda_parse_path, get_snudda_data
 from snudda.neurons.neuron_model_extended import NeuronModel
 from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
+from snudda.simulate.save_network_recording import SnuddaSaveNetworkRecordings
 # If simulationConfig is set, those values override other values
 from snudda.utils.load import SnuddaLoad
-from snudda.simulate.save_network_recording import SnuddaSaveNetworkRecordings
+from snudda.utils.snudda_path import snudda_parse_path, get_snudda_data
 
 
 # !!! Need to gracefully handle the situation where there are more workers than
@@ -142,6 +141,7 @@ class SnuddaSimulate(object):
         self.fih_time = None
         self.last_sim_report_time = 0
         self.sample_dt = sample_dt  # None means all values, 0.0005 means 0.5ms time resolution in saved files
+        self.sim_dt = 0.025
 
         self.pc = h.ParallelContext()
 
@@ -187,6 +187,10 @@ class SnuddaSimulate(object):
 
             if "output_file" in self.sim_info:
                 self.output_file = self.sim_info["output_file"]
+
+            if "sim_dt" in self.sim_info:
+                self.sim_dt = self.sim_info["sim_dt"] * 1e3  # OBS, converted to ms for NEURON
+                self.write_log(f"Setting simulation dt={self.sim_dt} ms")
 
             if "sample_dt" in self.sim_info:
                 self.sample_dt = self.sim_info["sample_dt"]
@@ -644,7 +648,13 @@ class SnuddaSimulate(object):
             param = os.path.join(neuron_path, "parameters.json")
             mech = os.path.join(neuron_path, "mechanisms.json")
 
-            if "modulation" in self.network_info["neurons"][ID]:
+            if not self.use_rxd_neuromodulation:
+                modulation = None
+
+            elif "modulation" in self.network_info["neurons"][ID]:
+                # TODO: This is old network_config location for "neurons", deprecate?
+                raise DeprecationWarning(f"This is old location for 'neurons' in network_info, remove!")
+
                 modulation = self.network_info["neurons"][ID]["modulation"]
 
                 if not os.path.isfile(modulation):
@@ -664,7 +674,10 @@ class SnuddaSimulate(object):
                 if not os.path.isfile(modulation):
                     modulation = None
 
-            if "reaction_diffusion_file" in self.network_info["neurons"][ID]:
+            if not self.use_rxd_neuromodulation:
+                reaction_diffusion_file = None
+
+            elif "reaction_diffusion_file" in self.network_info["neurons"][ID]:
                 reaction_diffusion_file = SnuddaLoad.to_str(self.network_info["neurons"][ID]["reaction_diffusion_file"])
 
                 if reaction_diffusion_file is not None and not os.path.isfile(reaction_diffusion_file):
@@ -1978,7 +1991,6 @@ class SnuddaSimulate(object):
             print(f"add_rxd_concentration_recording:  not enabled, ignoring recording of {species} in neuron {neuron_id}")
             return
 
-
         if sec_id == -1:
             sec_type = "soma"
             neuron_sec_id = 0
@@ -2000,12 +2012,14 @@ class SnuddaSimulate(object):
             print(traceback.format_exc())
             import pdb
             pdb.set_trace()
-            
 
         conc_ref = self.neurons[neuron_id].modulation.species[species][region].nodes(segment)._ref_concentration
 
         vector = self.sim.neuron.h.Vector()
         vector.record(conc_ref)
+
+        # Convert back from RxD millimolar -> molar
+        self.record.add_unit(data_type=species, target_unit="molar", conversion_factor=1e-3)
 
         self.record.register_compartment_data(neuron_id=neuron_id,
                                               data_type=species,
@@ -2148,7 +2162,7 @@ class SnuddaSimulate(object):
         # import pdb
         # pdb.set_trace()
 
-        self.sim.run(t, dt=0.025)
+        self.sim.run(t, dt=self.sim_dt)
         self.pc.barrier()
         self.write_log("Simulation done.")
 

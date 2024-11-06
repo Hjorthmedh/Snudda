@@ -121,8 +121,8 @@ class NeuromodulationTestCase(unittest.TestCase):
         data_pka = nd.get_data("membrane.PKAi", 0)[0][0]
 
         self.assertTrue(np.max(np.abs(data_a[0][0][0] - 0)) < 1e-7)
-        self.assertTrue(np.max(np.abs(data_b[0][0][0] - 0.7)) < 1e-7)
-        self.assertTrue(np.max(np.abs(data_ab[0][0][0] - 0.1)) < 1e-7)
+        self.assertTrue(np.max(np.abs(data_b[0][0][0] - 0.7e-3)) < 1e-7)
+        self.assertTrue(np.max(np.abs(data_ab[0][0][0] - 0.1e-3)) < 1e-7)
 
         #self.assertTrue(data_a[0][0][-1] < data_a[0][0][0])
         #self.assertTrue(data_b[0][0][-1] < data_b[0][0][0])
