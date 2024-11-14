@@ -873,7 +873,7 @@ class SnuddaInput(object):
                                 cluster_spread = round(rng_num_inputs.normal(loc=cluster_spread[0],
                                                                                  scale=cluster_spread[1]))
                         else:
-                            cluster_spread = None
+                            cluster_spread = 20e-6
 
                         if "num_soma_synapses" in input_inf:
                             n_soma_synapses = input_inf["num_soma_synapses"]

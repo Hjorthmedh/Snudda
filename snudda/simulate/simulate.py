@@ -2239,6 +2239,8 @@ if __name__ == "__main__":
                          simulation_config=args.simulation_config,
                          verbose=args.verbose)
     sim.setup()
+    # for cell_id in range(70):
+    #     sim.add_voltage_clamp(cell_id, -0.06, 2)
     sim.add_external_input()
     sim.check_memory_status()
 

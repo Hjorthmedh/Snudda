@@ -65,6 +65,9 @@ class SnuddaPrune(object):
                  rc=None, d_view=None, role="master", verbose=False,
                  config_file=None,  # Default is to use same config_file as for detect, but you can override it
                  scratch_path=None,
+                 merge_info_file = None,
+                 output_file = None,
+                 voxel_files = None,
                  # pre_merge_only=False,
                  h5libver="latest",
                  random_seed=None,
@@ -100,9 +103,15 @@ class SnuddaPrune(object):
         self.work_history_file = os.path.join(network_path, "log", "network-detect-worklog.hdf5")
         self.network_path = network_path
         self.keep_files = keep_files
-        self.merge_info_file = os.path.join(self.network_path, "pruning_merge_info.json")
+        if merge_info_file:
+            self.merge_info_file = merge_info_file
+        else:
+            self.merge_info_file = os.path.join(self.network_path, "pruning_merge_info.json")
+        self.output_file = output_file
+        self.voxel_files = voxel_files
+        
         self.all_neuron_pair_synapses_share_parameter_id = all_neuron_pair_synapses_share_parameter_id
-
+        
         self.logfile = logfile
         self.verbose = verbose
         self.h5libver = h5libver
@@ -1097,7 +1106,7 @@ class SnuddaPrune(object):
             self.write_log(f"Warning, multiple_files but running {merge_data_type} in serial")
 
             syn_before_total = 0
-            self.setup_output_file()
+            self.setup_output_file(output_file = self.output_file)
 
             for syn_file in synapse_file:
                 syn_before, syn_after = self.prune_synapses(synapse_file=syn_file, output_filename=None,
@@ -1586,7 +1595,8 @@ class SnuddaPrune(object):
             chunk_size = 10000
 
             # Next we need to open all the relevant files
-            h_file_name_mask = os.path.join(self.network_path, "voxels", "network-putative-synapses-%s.hdf5")
+            h_file_name_mask = self.voxel_files
+            # h_file_name_mask = os.path.join(self.network_path, "voxels", "network-putative-synapses-%s.hdf5")
 
             max_axon_voxel_ctr = 0
             max_dend_voxel_ctr = 0
