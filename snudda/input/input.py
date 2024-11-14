@@ -809,7 +809,8 @@ class SnuddaInput(object):
                     
                     if "num_inputs" in input_inf:
                         csv_spikes = csv_spikes[:input_inf["num_inputs"]]
-                        rng_num_inputs = np.random.default_rng()    
+                        rng_num_inputs = np.random.default_rng()
+
                     num_spike_trains = len(csv_spikes)
                     
                     
@@ -872,7 +873,7 @@ class SnuddaInput(object):
                                 cluster_spread = max(1e-6,rng_num_inputs.normal(loc=cluster_spread[0],
                                                                                  scale=cluster_spread[1]))
                         else:
-                            cluster_spread = None
+                            cluster_spread = 20e-6
 
                         if "num_soma_synapses" in input_inf:
                             n_soma_synapses = input_inf["num_soma_synapses"]

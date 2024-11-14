@@ -465,12 +465,14 @@ class NeuronMorphologyExtended:
             # include that section as well (and in case of parent, potentially its children).
 
             kd_tree = self.morphology_data["neuron"].get_kd_tree(compartment_type=3)
+
             list_of_closest_point_idx = kd_tree.query_ball_point(x=geometry[syn_idx, :3], r=cluster_spread)
+            # print(kd_tree.query(geometry[syn_idx, :3], k =3))
 
             list_cluster_syn_idx = []
             
             for closest_point_idxs in list_of_closest_point_idx:
-                # lust_of_closest_point_idx is indexed onto geometry[dend_idx, :3]
+                # list_of_closest_point_idx is indexed onto geometry[dend_idx, :3]
                 list_cluster_syn_idx.append(rng.choice(dend_idx[closest_point_idxs], size=cluster_size, replace=True))
             try:
                 cluster_syn_idx = np.concatenate(list_cluster_syn_idx)

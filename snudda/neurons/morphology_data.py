@@ -395,7 +395,6 @@ class MorphologyData:
                         print(traceback.format_exc())
                         import pdb
                         pdb.set_trace()
-
                 parent_idx = self.section_data[idx, 3]
 
                 # Use soma distance as a shortcut for calculating length of compartments

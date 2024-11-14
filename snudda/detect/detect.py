@@ -312,7 +312,7 @@ class SnuddaDetect(object):
             if not os.path.exists(os.path.dirname(self.save_file)):
                 self.write_log(f"Creating directory {os.path.dirname(self.save_file)}")
                 os.mkdir(os.path.dirname(self.save_file))
-
+                print(self.save_file)
             self.setup_parallel(d_view=d_view)
 
             if self.work_history_file is None:
@@ -2309,8 +2309,8 @@ class SnuddaDetect(object):
         self.write_log(f"{mem}")
 
         # Make sure we do not change config file unintentionally
-        assert pos_info["config_file"] == self.config_file, \
-            f"Not using original config file: {pos_info['config_file']} \nvs\n{self.config_file}"
+        # assert pos_info["config_file"] == self.config_file, \
+        #     f"Not using original config file: {pos_info['config_file']} \nvs\n{self.config_file}"
 
         self.neurons = pos_info["neurons"]
         num_neurons = len(self.neurons)

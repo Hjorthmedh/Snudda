@@ -225,8 +225,12 @@ class ProjectionDetection:
         r_scale = rnd_values[:, 2] ** (1 / 3)
         
         if jitter:
-            rotation = rotation * rng.uniform(0.95, 1.05)
-
+            print('Jittering')
+            rotation = rotation * rng.uniform(0.90, 1.10)
+            rx = rx * rng.uniform(0.7, 1.1)
+            ry = ry * rng.uniform(0.8, 1.50)
+            rz = rz * rng.uniform(0.8, 1.50)
+        
         x_coord = np.multiply(rx * r_scale, np.multiply(np.sin(phi), np.cos(theta)))
         y_coord = np.multiply(ry * r_scale, np.multiply(np.sin(phi), np.sin(theta)))
         z_coord = np.multiply(rz * r_scale, np.cos(phi))
