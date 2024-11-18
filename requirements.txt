@@ -20,3 +20,5 @@ open3d
 ruamel.yaml<0.17  # Later versions are not compatible with ARM M1 Linux
 # igraph
 # snudda
+
+# python-libsbml   # optional, to get access to libsbml

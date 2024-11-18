@@ -1,0 +1,101 @@
+!!SBtab	SBtabVersion='1.0' Document='Nair_2016_optimized' TableName='Compound' TableTitle='Compound' TableType = 'Compound'										
+!ID	!Name	!Unit	!InitialValue	!IsConstant	!Assignment	!Interpolation	!Type	!Location	!IsInput	!Identifiers:UniProt	!Identifiers:kegg_compound
+S0	AC5	nanomole/liter	700	0	0	0	kinetic	Spine	0	P84309	K08045
+S1	AC5_ATP	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S2	AC5_Ca	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S3	AC5_Ca_ATP	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S4	AC5_Ca_GaolfGTP	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S5	AC5_Ca_GaolfGTP_ATP	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S6	AC5_GaolfGTP	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S7	AC5_GaolfGTP_ATP	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S8	AMP	nanomole/liter	0	1	0	0	kinetic	Spine	0		C00020
+S9	ATP	nanomole/liter	5000000	1	ATP_expression	0	kinetic	Spine	0		C00002
+S10	B56PP2A	nanomole/liter	2000	0	0	0	kinetic	Spine	0	P63330 Q76MZ3 Q14738	K03456
+S11	B56PP2A_D32p75	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S12	B56PP2A_pARPP21	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S13	B56PP2Ap	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S14	B56PP2Ap_D32p75	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S15	B56PP2Ap_pARPP21	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S16	B72PP2A	nanomole/liter	2000	0	0	0	kinetic	Spine	0	P63330 Q76MZ3 B2RXC8	
+S17	B72PP2A_D32p34	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S18	B72PP2A_D32p75	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S19	B72PP2A_pARPP21	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S20	B72PP2A_Ca_D32p34	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S21	B72PP2A_Ca_D32p75	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S22	B72PP2A_Ca	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S23	B72PP2A_Ca_pARPP21	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S24	Ca	nanomole/liter	60	1	Ca_expression	1	kinetic	Spine	1		
+S25	CaM	nanomole/liter	9000	0	0	0	kinetic	Spine	0	P0DP28 P0DP27 P0DP26	K02183
+S26	CaM_Ca2	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S27	CaM_Ca4	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S28	CaM_Ca4_pARPP21	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S29	CaMKII	nanomole/liter	20000	0	0	0	kinetic	Spine	0	P28652 P11798	K04515
+S30	CaMKII_CaM_Ca4	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S31	CaMKII_CaM	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S32	CaMKII_CaM_Ca2	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S33	CaMKII_CaM_Ca2_psd	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S34	CaMKII_CaM_psd	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S35	CaMKII_CaM_Ca4_psd	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S36	CaMKII_psd	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S37	cAMP	nanomole/liter	0	0	0	0	kinetic	Spine	0		C00575
+S38	Substrate	nanomole/liter	3000	0	0	0	kinetic	Spine	0	P23818 P23819 Q9Z2W9 Q9Z2W8	K05197 K05198 K05199 K05200
+S39	CDK5	nanomole/liter	1800	0	0	0	kinetic	Spine	0	P49615	K02090
+S40	CDK5_D32	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S41	D1R	nanomole/liter	2000	0	0	0	kinetic	Spine	0	Q61616	K04144
+S42	D1R_DA	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S43	D1R_Golf_DA	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S44	D1R_Golf	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S45	D32p34	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S46	D32p75	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S47	D32	nanomole/liter	50000	0	0	0	kinetic	Spine	0	Q60829	C03758
+S48	DA	nanomole/liter	20	1	DA_expression	1	kinetic	Spine	1		K15494
+S49	GaolfGDP	nanomole/liter	0	0	0	0	kinetic	Spine	0	Q8CGK7	K04633
+S50	GaolfGTP	nanomole/liter	0	0	0	0	kinetic	Spine	0	Q8CGK7	K04633
+S51	Gbgolf	nanomole/liter	0	0	0	0	kinetic	Spine	0	P62874 Q61012	K04548
+S52	Golf	nanomole/liter	2000	0	0	0	kinetic	Spine	0		
+S53	pCaMKII	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S54	pCaMKII_CaM_Ca4	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S55	pCaMKII_CaM	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S56	pCaMKII_CaM_Ca2	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S57	pCaMKII_CaM_Ca2_psd	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S58	pCaMKII_CaM_psd	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S59	pCaMKII_CaM_Ca4_psd	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S60	pCaMKII_psd	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S61	pSubstrate	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S62	PDE4	nanomole/liter	2000	0	0	0	kinetic	Spine	0	O89084 Q01063 Q3UEI1 Q9QXI7	K13293
+S63	PDE4_cAMP	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S64	PDE10r	nanomole/liter	700	0	0	0	kinetic	Spine	0	Q8CA95	
+S65	PDE10r_cAMP	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S66	PDE10c	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S67	PDE10c_cAMP	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S68	PKA	nanomole/liter	1200	0	0	0	kinetic	Spine	0		K04345
+S69	PKAc	nanomole/liter	0	0	0	0	kinetic	Spine	0	P05132 P68181	
+S70	PKAc_B56PP2A	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S71	PKAc_D32	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S72	PKAc_ARPP21	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S73	PKA_Ca2MP	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S74	PKA_Ca4MP	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S75	PKAc_D32p75	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S76	PKAreg	nanomole/liter	0	0	0	0	kinetic	Spine	0	P31324	
+S77	PP1	nanomole/liter	3000	0	0	0	kinetic	Spine	0	P62137 P62141 P63087	K06269
+S78	PP1_pCaMKII_psd	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S79	PP1_pSubstrate	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S80	PP1_D32p34	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S81	CaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S82	pCaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S83	CaMKII_CaM_Ca4_CaMKII_CaM_Ca4	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S84	pCaMKII_CaM_Ca4_CaMKII_CaM_Ca4	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S85	PP2B	nanomole/liter	4000	0	0	0	kinetic	Spine	0	P63328 P48453	K04348
+S86	PP2Bc	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S87	PP2Bc_D32p34	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S88	PP2B_CaM	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S89	PP2B_CaM_Ca2	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S90	pARPP21	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S91	ARPP21	nanomole/liter	20000	0	0	0	kinetic	Spine	0	Q9DCB4	100173450
+S92	pCaMKII_psd_Substrate	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S93	pCaMKII_CaM_psd_Substrate	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S94	pCaMKII_CaM_Ca2_psd_Substrate	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S95	pCaMKII_CaM_Ca4_psd_Substrate	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S96	CaMKII_CaM_psd_Substrate	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S97	CaMKII_CaM_Ca2_psd_Substrate	nanomole/liter	0	0	0	0	kinetic	Spine	0		
+S98	CaMKII_CaM_Ca4_psd_Substrate	nanomole/liter	0	0	0	0	kinetic	Spine	0		
