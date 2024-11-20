@@ -5,6 +5,8 @@
     "time": 1.5,
     "!sim_dt": 0.005,
     "record_all_soma": true,
+    "use_rxd_neuromodulation": false,
+
     "record_rxd_species_all": [0, 1],
     "record_density_mechanism": {	
 	"kir_ms.modulation_factor": {

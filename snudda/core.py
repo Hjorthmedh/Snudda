@@ -722,6 +722,17 @@ class Snudda(object):
 
         print(f"args: {args}")
 
+        assert args.enable_rxd_neuromodulation is None or args.disable_rxd_neuromodulation is None, \
+            "You can only specify enable_rxd_neuromodulation or disable_rxd_neuromodulation, not both"
+
+        use_rxd_neuromodulation = None
+
+        if args.enable_rxd_neuromodulation == True:
+            use_rxd_neuromodulation = True
+
+        if args.disable_rxd_neuromodulation == True:
+            use_rxd_neuromodulation = False
+
         sim = self.simulate(network_file=args.network_file, input_file=args.input_file,
                             output_file=args.output_file, snudda_data=args.snudda_data,
                             time=args.time,
@@ -733,7 +744,7 @@ class Snudda(object):
                             record_all=args.record_all,
                             simulation_config=args.simulation_config,
                             export_core_neuron=args.exportCoreNeuron,
-                            use_rxd_neuromodulation=args.use_rxd_neuromodulation,
+                            use_rxd_neuromodulation=use_rxd_neuromodulation,
                             verbose=args.verbose)
 
         sim.clear_neuron()
@@ -753,7 +764,7 @@ class Snudda(object):
                  sample_dt=None,
                  simulation_config=None,
                  export_core_neuron=False,
-                 use_rxd_neuromodulation=True,
+                 use_rxd_neuromodulation=None,
                  verbose=False):
 
         start = timeit.default_timer()

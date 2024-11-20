@@ -60,7 +60,7 @@ class SnuddaSimulate(object):
                  disable_synapses=None,
                  disable_gap_junctions=None,
                  sample_dt=None,
-                 use_rxd_neuromodulation=True,
+                 use_rxd_neuromodulation=None,
                  simulation_config=None):
 
         """
@@ -352,6 +352,16 @@ class SnuddaSimulate(object):
             if "record_current_all_synapses" in self.sim_info:
                 record_syn_cell_id = np.array(self.sim_info["record_current_all_synapses"], dtype=int)
                 self.add_synapse_current_recording_all(record_syn_cell_id)
+
+            if self.use_rxd_neuromodulation is None:
+                if "use_rxd_neuromodulation" in self.sim_info:
+                    self.use_rxd_neuromodulation = self.sim_info["use_rxd_neuromodulation"]
+                else:
+                    # Setting default to False
+                    self.use_rxd_neuromodulation = False
+
+            if self.use_rxd_neuromodulation:
+                print(f"RxD for neuromodulation: {'ENABLED' if self.use_rxd_neuromodulation else 'DiSABLED'}.")
 
             if "rxd_enable_extracellular" in self.sim_info:
                 import neuron.rxd as rxd
