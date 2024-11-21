@@ -9,7 +9,6 @@ import numpy as np
 import bluepyopt.ephys as ephys
 
 from snudda.neurons.neuron_prototype import NeuronPrototype
-from snudda.neurons.neuron_modulation import NeuronModulation
 
 
 class NeuronModel(ephys.models.CellModel):
@@ -123,6 +122,9 @@ class NeuronModel(ephys.models.CellModel):
                                           mechs=mechs, params=params)
 
         if reaction_diffusion_file and self.use_rxd_neuromodulation:
+            # Only load the module if actually used, this avoids weird RxD stuff happening in NEURON when not needed
+            from snudda.neurons.neuron_modulation import NeuronModulation
+
             self.modulation = NeuronModulation(neuron=self)
             self.modulation.config_file = reaction_diffusion_file
         else:
