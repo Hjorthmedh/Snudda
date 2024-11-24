@@ -665,7 +665,7 @@ class InputTuning(object):
                 print(f"Parameter key {parameter_key}, morphology key {morphology_key} not found in {meta_file} -- was it manually removed?")
                 continue
 
-            print(f"Writing {parameter_key = }, {morphology_key = }")
+            # print(f"Writing {parameter_key = }, {morphology_key = }")
             if overwrite:
                 meta_data[parameter_key][morphology_key]["input"] = new_config
             else:
@@ -890,8 +890,8 @@ class InputTuning(object):
             plt.xlabel("Time (ms)")
             plt.ylabel("Voltage (mV)")
 
-            fig_path = os.path.join(self.network_path, "figures",
-                                    f"Bad-trace-{neuron_type}-{full_param_key}-{full_morph_key}.png")
+            fig_path = os.path.join(self.network_path, "figures", "_bad",
+                                    f"{full_morph_key}-{full_param_key}-{neuron_type}-BAD-trace.png")
 
             if not os.path.exists(os.path.dirname(fig_path)):
                 os.mkdir(os.path.dirname(fig_path))
