@@ -1,6 +1,9 @@
 import os
 import numpy as np
 import pandas as pd
+import json
+
+# See convert_sbtab_to_json.sh -- example
 
 
 class ReadSBtab:
@@ -82,7 +85,6 @@ class ReadSBtab:
 
         conc_unit = nM_unit
 
-
         for row_idx, row in self.compounds_data.iterrows():
 
             species_name = row["!Name"]
@@ -109,13 +111,30 @@ class ReadSBtab:
     def get_parameters(self):
 
         for row_idx, row in self.parameters_data.iterrows():
+            parameter_name = row["!Name"]
+            parameter_value = row["!Value:linspace"]
+
+            # We need to convert to SI units...
+
             scale = row["!Scale"]
 
             # Vi behöver ta hänsyn till om det är log10 eller annan skala, eller använda linjära värdet -- vilket är bäst?
             # Hämta ut K_forward, K_backwards (om det finns), spara i self.parameters
             # Vi vet vilket namn den har från !ID:et
 
+            # 2024-11-25:
+            # Vi behöver veta antalet reaktanter i !ReactionFormula (per rad), för att ta fram målenheten
+            # A + 2 B, dels för vänsterledet (kf_XXX) och för högerledet (kr_xxx)
+            #
+            # Vi använder pq.UnitQuantity (se parse)
+            # -- ev använd rexexp för detta?
+
             # TODO: Continue here!!
+
+            self.parameters[parameter_name] = parameter_value
+
+            import pdb
+            pdb.set_trace()
 
         pass
 
