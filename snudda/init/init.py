@@ -1078,19 +1078,29 @@ class SnuddaInit(object):
 
         # Add the neurons
 
-        self.add_neurons(name="FS", neuron_dir=FS_dir,
-                         num_neurons=self.num_FS,
-                         volume_id="Striatum")
+        if os.path.isdir(snudda_parse_path(FS_dir, self.snudda_data)):
+            self.add_neurons(name="FS", neuron_dir=FS_dir,
+                             num_neurons=self.num_FS,
+                             volume_id="Striatum")
+        else:
+            print(f"Warning: No directory {FS_dir} skipping FS neurons.")
 
-        self.add_neurons(name="dSPN", neuron_dir=dSPN_dir,
-                         num_neurons=self.num_dSPN,
-                         volume_id="Striatum",
-                         stay_inside=stay_inside)
+        if os.path.isdir(snudda_parse_path(dSPN_dir, self.snudda_data)):
+            self.add_neurons(name="dSPN", neuron_dir=dSPN_dir,
+                             num_neurons=self.num_dSPN,
+                             volume_id="Striatum",
+                             stay_inside=stay_inside)
+        else:
+            print(f"Warning: No directory {dSPN_dir} skipping dSPN neurons.")
 
-        self.add_neurons(name="iSPN", neuron_dir=iSPN_dir,
-                         num_neurons=self.num_iSPN,
-                         volume_id="Striatum",
-                         stay_inside=stay_inside)
+        if os.path.isdir(snudda_parse_path(iSPN_dir, self.snudda_data)):
+            self.add_neurons(name="iSPN", neuron_dir=iSPN_dir,
+                             num_neurons=self.num_iSPN,
+                             volume_id="Striatum",
+                             stay_inside=stay_inside)
+        else:
+            print(f"Warning: No directory {iSPN_dir} skipping iSPN neurons.")
+
 
         # ChIN axon density,
         # We start with the axon length per unit volume, then we scale it
@@ -1121,10 +1131,13 @@ class SnuddaInit(object):
         # OLD: ChIN_axon_density = ("r", "5000*1e12/3*np.exp(-r/120e-6)", 350e-6)
         ChIN_axon_density = ("r", "5000*1e12/3*exp(-r/120e-6)", 350e-6)
 
-        self.add_neurons(name="ChIN", neuron_dir=ChIN_dir,
-                         num_neurons=self.num_ChIN,
-                         axon_density=ChIN_axon_density,
-                         volume_id="Striatum")
+        if os.path.isdir(snudda_parse_path(ChIN_dir, self.snudda_data)):
+            self.add_neurons(name="ChIN", neuron_dir=ChIN_dir,
+                             num_neurons=self.num_ChIN,
+                             axon_density=ChIN_axon_density,
+                             volume_id="Striatum")
+        else:
+            print(f"Warning: No directory {ChIN_dir} skipping ChIN neurons.")
 
         ############################################################################
 
@@ -1147,10 +1160,13 @@ class SnuddaInit(object):
 
         # !!! Remember to update bounding box
 
-        self.add_neurons(name="LTS", neuron_dir=LTS_dir,
-                         num_neurons=self.num_LTS,
-                         axon_density=LTS_axon_density,
-                         volume_id="Striatum")
+        if os.path.isdir(snudda_parse_path(LTS_dir, self.snudda_data)):
+            self.add_neurons(name="LTS", neuron_dir=LTS_dir,
+                             num_neurons=self.num_LTS,
+                             axon_density=LTS_axon_density,
+                             volume_id="Striatum")
+        else:
+            print(f"Warning: No directory {LTS_dir} skipping LTS neurons.")
 
         # NGF
         if os.path.isdir(snudda_parse_path(NGF_dir, self.snudda_data)):
