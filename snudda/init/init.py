@@ -398,21 +398,25 @@ class SnuddaInit(object):
 
         assert isinstance(connection_dict, dict)
 
-        updated_config = False
+        region_found = False
 
         for region_name in self.network_data["regions"].keys():
-            if region_name in connection_dict["regions"]:
+            # If region specified in connection dict, use that, otherwise use the same connectivity for all regions
+            if "regions" not in connection_dict:
+                self.network_data["regions"][region_name]["connectivity"] = connection_dict.copy()
+
+            elif region_name in connection_dict["regions"]:
                 try:
-                    self.network_data["regions"][region_name]["connectivity"] = connection_dict["regions"][region_name]["connectivity"]
-                    updated_config = True
+                    self.network_data["regions"][region_name]["connectivity"] = connection_dict["regions"][region_name]["connectivity"].copy()
+                    region_found = True
                 except:
                     import traceback
                     print(traceback.format_exc())
                     import pdb
                     pdb.set_trace()
 
-        if not updated_config:
-            raise ValueError(f"No regions defined in the replacement connectivity (connectivity is now stored per region in json file)")
+        if not region_found:
+            print(f"Warning, no 'regions' defined in connnectivity.json, so added to all regions.")
 
     ############################################################################
 

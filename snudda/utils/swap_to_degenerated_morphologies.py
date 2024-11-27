@@ -188,9 +188,15 @@ class SwapToDegeneratedMorphologies:
         num_synapses = np.zeros((1,), dtype=np.uint64)
         self.new_hdf5["network"].create_dataset("num_synapses", data=syn_ctr, dtype=np.uint64)
 
-        print(f"Keeping {self.new_hdf5['network/num_synapses'][()]} "
-              f"out of {self.old_hdf5['network/num_synapses'][()]} synapses "
-              f"({self.new_hdf5['network/num_synapses'][()] / np.max(1,self.old_hdf5['network/num_synapses'][()])*100:.3f} %)")
+        try:
+            print(f"Keeping {self.new_hdf5['network/num_synapses'][()]} "
+                  f"out of {self.old_hdf5['network/num_synapses'][()]} synapses "
+                  f"({self.new_hdf5['network/num_synapses'][()] / max(1,self.old_hdf5['network/num_synapses'][()])*100:.3f} %)")
+        except:
+            import traceback
+            print(traceback.format_exc())
+            import pdb
+            pdb.set_trace()
 
     def filter_gap_junctions(self):
         # First version, will keep all synapses in memory to write a more efficient file

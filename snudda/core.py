@@ -855,6 +855,7 @@ class Snudda(object):
         sim = SnuddaSimulate(network_file=network_file,
                              input_file=input_file,
                              output_file=output_file,
+                             snudda_data=snudda_data,
                              disable_gap_junctions=disable_gj,
                              disable_synapses=disable_synapses,
                              log_file=log_file,

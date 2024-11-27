@@ -194,7 +194,7 @@ class NeuronModel(ephys.models.CellModel):
             # Multiple parameters, pick one
 
             if parameter_key is not None:
-                assert parameter_key in param_configs, f"Missing parameter key {parameter_key}"
+                assert parameter_key in param_configs, f"Missing parameter key {parameter_key} in {parameter_config}"
                 p_config = param_configs[parameter_key]
 
                 if parameter_id is not None:
