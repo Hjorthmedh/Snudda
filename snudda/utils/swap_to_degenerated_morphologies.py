@@ -190,7 +190,7 @@ class SwapToDegeneratedMorphologies:
 
         print(f"Keeping {self.new_hdf5['network/num_synapses'][()]} "
               f"out of {self.old_hdf5['network/num_synapses'][()]} synapses "
-              f"({self.new_hdf5['network/num_synapses'][()] / self.old_hdf5['network/num_synapses'][()]*100:.3f} %)")
+              f"({self.new_hdf5['network/num_synapses'][()] / np.max(1,self.old_hdf5['network/num_synapses'][()])*100:.3f} %)")
 
     def filter_gap_junctions(self):
         # First version, will keep all synapses in memory to write a more efficient file

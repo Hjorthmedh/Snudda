@@ -5,10 +5,30 @@ from snudda.plotting.plot_input_locations import SnuddaPlotInputLocations
 
 class PlotDegeneration:
 
-    def __init__(self, original_network_path, degenerated_network_path):
+    def __init__(self, original_network_path, degenerated_network_path,
+                 original_input=None, degenerated_input=None,
+                 original_snudda_data=None, degenerated_snudda_data=None):
 
-        self.original_plot = SnuddaPlotInputLocations(network_path=original_network_path)
-        self.degenerated_plot = SnuddaPlotInputLocations(network_path=degenerated_network_path)
+        if os.path.isfile(original_network_path):
+            original_network_file = original_network_path
+            original_network_path = os.path.dirname(original_network_path)
+        else:
+            original_network_file = None
+
+        if os.path.isfile(degenerated_network_path):
+            degenerated_network_file = degenerated_network_path
+            degenerated_network_path = os.path.dirname(degenerated_network_path)
+        else:
+            degenerated_network_file = None
+
+        self.original_plot = SnuddaPlotInputLocations(network_path=original_network_path,
+                                                      network_file=original_network_file,
+                                                      input_file=original_input,
+                                                      snudda_data=original_snudda_data)
+        self.degenerated_plot = SnuddaPlotInputLocations(network_path=degenerated_network_path,
+                                                         network_file=degenerated_network_file,
+                                                         input_file=degenerated_input,
+                                                         snudda_data=degenerated_snudda_data)
 
         self.fig_path = os.path.join(degenerated_network_path, "figures")
         if not os.path.exists(self.fig_path):
