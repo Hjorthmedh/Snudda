@@ -156,6 +156,8 @@ class SnuddaSimulate(object):
         self.node_id = int(self.pc.id())
         self.total_nodes = int(self.pc.nhost())
 
+        self.post_init_mods = dict()
+
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
         size = comm.Get_size()
@@ -239,6 +241,9 @@ class SnuddaSimulate(object):
                 # This is merged with current injection info read from file (above)
                 self.current_injection_info |= self.sim_info["current_injection_info"]
                 self.write_log(f"Updating current_injection_info from config file")
+
+            if "post_init_modifications" in self.sim_info:
+                self.post_init_mods = self.sim_info["post_init_modifications"]
 
         else:
             self.sim_info = None
@@ -836,6 +841,10 @@ class SnuddaSimulate(object):
             if not self.network_info["neurons"][ID]["virtual_neuron"] \
                     and self.neurons[neuron_id].modulation is not None:
                 self.neurons[neuron_id].modulation.build_node_cache()
+
+        # This allows us to modify ion channel conductance on the fly before runnigg simulation
+        # Can be useful to e.g. increase KIR channel conductance
+        self.post_initialisation_modifications()
 
     ############################################################################
 
@@ -2143,6 +2152,29 @@ class SnuddaSimulate(object):
             if sim_end_time > bath_max_time:
                 raise ValueError(f"Simulation duration {sim_end_time} is "
                                  f"longer than time vector for bath application of {species_name}")
+
+    def post_initialisation_modifications(self):
+
+        if len(self.post_init_mods) == 0:
+            return
+
+        print(f"Applying post_initialisation_modifications")
+        # This allows us to modify ion channel conductance on the fly before runnigg simulation
+        # Can be useful to e.g. increase KIR channel conductance
+
+        for n in self.neurons.values():
+            try:
+                if n.type in self.post_init_mods:
+                    for ion_channel, channel_mod_factor in self.post_init_mods[n.type].items():
+                        for sec in n.icell.all:
+                            for seg in sec:
+                                channel = getattr(seg, ion_channel, None)
+                                setattr(channel, "gbar", getattr(channel, "gbar") * channel_mod_factor)
+            except:
+                import traceback
+                self.write_log(traceback.format_exc())
+                import pdb
+                pdb.set_trace()
 
     def run(self, t=None, hold_v=None):
 
