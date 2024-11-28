@@ -153,18 +153,20 @@ class SnuddaSimulate(object):
         self.current_injection_info = dict()
         self.current_clamps = dict()
 
-        node_id = int(self.pc.id())
-        total_nodes = int(self.pc.nhost())
+        self.node_id = int(self.pc.id())
+        self.total_nodes = int(self.pc.nhost())
 
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
         size = comm.Get_size()
-        print(f"MPI Rank: {rank}, Size: {size} -- NEURON: This is node {node_id} out of {total_nodes}")
+        print(f"MPI Rank: {rank}, Size: {size} -- NEURON: This is node {self.node_id} out of {self.total_nodes}")
 
         if simulation_config:
+            print(f"Reading config: {simulation_config}")
 
             if type(simulation_config) == dict:
                 self.sim_info = simulation_config
+
             elif os.path.isfile(simulation_config):
                 print(f"Loading simulation_config from {simulation_config}")
                 with open(simulation_config, "r") as f:
@@ -174,19 +176,30 @@ class SnuddaSimulate(object):
                 sys.exit(-1)
 
             if "log_file" in self.sim_info:
-                self.log_file = open(self.sim_info["log_file"], "w")
+
+                if self.total_nodes > 1:
+                    log_file_name = f"{self.sim_info['log_file']}-{self.node_id}"
+                else:
+                    log_file_name = self.sim_info["log_file"]
+
+                self.log_file = open(log_file_name, "w")
+                self.write_log(f"Using log file {self.log_file}")
 
             if "network_path" in self.sim_info:
                 self.network_path = self.sim_info["network_path"]
+                self.write_log(f"Network path: {self.network_file}")
 
             if "network_file" in self.sim_info:
                 self.network_file = self.sim_info["network_file"]
+                self.write_log(f"Network file: {self.network_file}")
 
             if "input_file" in self.sim_info:
                 self.input_file = self.sim_info["input_file"]
+                self.write_log(f"Input file: {self.input_file}")
 
             if "output_file" in self.sim_info:
                 self.output_file = self.sim_info["output_file"]
+                self.write_log(f"Output file: {self.output_file}")
 
             if "sim_dt" in self.sim_info:
                 self.sim_dt = self.sim_info["sim_dt"] * 1e3  # OBS, converted to ms for NEURON
@@ -194,12 +207,15 @@ class SnuddaSimulate(object):
 
             if "sample_dt" in self.sim_info:
                 self.sample_dt = self.sim_info["sample_dt"]
+                self.write_log(f"Sample dt: {self.sample_dt}")
 
             if "disable_synapses" in self.sim_info:
                 self.disable_synapses = self.sim_info["disable_synapses"]
+                self.write_log(f"Disable synapses: {self.disable_synapses}")
 
             if "disable_gap_junctions" in self.sim_info:
                 self.disable_gap_junctions = self.sim_info["disable_gap_junctions"]
+                self.write_log(f"Disable gap junctions: {self.disable_gap_junctions}")
 
             if "verbose" in self.sim_info:
                 self.verbose = self.sim_info["verbose"]
@@ -207,6 +223,7 @@ class SnuddaSimulate(object):
             if "snudda_data" in self.sim_info:
                 # Do not change this unless you know what you are doing
                 self.snudda_data = self.sim_info["snudda_data"]
+                self.write_log(f"Reading snudda_data {self.snudda_data}")
 
             if "current_injection_file" in self.sim_info:
                 current_file = self.sim_info["current_injection_file"]
@@ -216,9 +233,12 @@ class SnuddaSimulate(object):
                 with open(current_file, "rt") as f:
                     self.current_injection_info = json.load(f)
 
+                self.write_log(f"Current injection file: {current_file}")
+
             if "current_injection_info" in self.sim_info:
                 # This is merged with current injection info read from file (above)
                 self.current_injection_info |= self.sim_info["current_injection_info"]
+                self.write_log(f"Updating current_injection_info from config file")
 
         else:
             self.sim_info = None
@@ -294,7 +314,7 @@ class SnuddaSimulate(object):
             self.write_log("No network path or file specified, not loading network.")
 
         self.record = SnuddaSaveNetworkRecordings(output_file=self.output_file, network_data=self.network_info,
-                                                  sample_dt=self.sample_dt, node_id=node_id)
+                                                  sample_dt=self.sample_dt, node_id=self.node_id)
         self.record.add_unit(data_type="voltage", target_unit="V", conversion_factor=1e-3)
         self.record.add_unit(data_type="synaptic_current", target_unit="A", conversion_factor=1e-9)
         self.record.add_unit(data_type="spikes", target_unit="s", conversion_factor=1e-3)

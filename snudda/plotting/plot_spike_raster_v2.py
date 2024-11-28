@@ -265,6 +265,7 @@ class SnuddaPlotSpikeRaster2:
 
         print(f"Writing figure to {fig_file}")
         plt.tight_layout()
+        self.make_figures_directory()
         plt.savefig(fig_file, dpi=300)
 
         plt.ion()
@@ -346,6 +347,8 @@ class SnuddaPlotSpikeRaster2:
         if fig_file:
             fig_path = os.path.join(self.figure_path, fig_file)
             print(f"Writing figure {fig_path}")
+            self.make_figures_directory()
+
             plt.savefig(fig_path)
 
         if show_figure:
@@ -446,6 +449,8 @@ class SnuddaPlotSpikeRaster2:
         if save_figure:
             print(f"Saving figure {fig_file}")
             plt.tight_layout()
+            self.make_figures_directory()
+
             plt.savefig(fig_file, dpi=300)
 
         if show_figure:
@@ -511,6 +516,8 @@ class SnuddaPlotSpikeRaster2:
             fig_file = os.path.join(self.figure_path, fig_file)
 
         if save_figure:
+            self.make_figures_directory()
+
             print(f"Saving figure {fig_file}")
             plt.tight_layout()
             plt.savefig(fig_file, dpi=300)
@@ -522,7 +529,7 @@ class SnuddaPlotSpikeRaster2:
         return ax
 
     def plot_spike_raster(self, type_order=None, skip_time=0, end_time=None, fig_size=None, fig_file=None,
-                          time_range=None):
+                          time_range=None, title=None):
 
         self.make_figures_directory()
 
@@ -614,16 +621,20 @@ class SnuddaPlotSpikeRaster2:
         if fig_file is None:
             fig_file = "spike_raster.pdf"
 
+        if title is not None:
+            ax.set_title(title)
+
         fig_file = os.path.join(self.figure_path, fig_file)
 
         print(f"Saving figure to {fig_file}")
         plt.tight_layout()
+        self.make_figures_directory()
         plt.savefig(fig_file, dpi=300)
 
         plt.ion()
         plt.show()
 
-    def plot_firing_frequency_distribution(self, time_range=None, figure_name=None, bins=20):
+    def plot_firing_frequency_distribution(self, time_range=None, figure_name=None, bins=20, title=None):
 
         neuron_types = self.snudda_load.get_neuron_types(return_set=True)
 
@@ -651,10 +662,15 @@ class SnuddaPlotSpikeRaster2:
         plt.xlabel("Frequency (Hz)")
         plt.ylabel("Count")
 
+        if title is not None:
+            plt.title(title)
+
         plt.ion()
         plt.show()
 
         if figure_name is not None:
+            self.make_figures_directory()
+
             plt.savefig(os.path.join(self.figure_path, figure_name))
 
     def plot_population_frequency(self, population_id, time_ranges=None):
