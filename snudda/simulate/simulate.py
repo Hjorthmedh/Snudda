@@ -2169,10 +2169,11 @@ class SnuddaSimulate(object):
                         for sec in n.icell.all:
                             for seg in sec:
                                 channel = getattr(seg, ion_channel, None)
-                                setattr(channel, "gbar", getattr(channel, "gbar") * channel_mod_factor)
+                                if channel is not None:
+                                    setattr(channel, "gbar", getattr(channel, "gbar") * channel_mod_factor)
             except:
                 import traceback
-                self.write_log(traceback.format_exc())
+                self.write_log(traceback.format_exc(), is_error=True)
                 import pdb
                 pdb.set_trace()
 
