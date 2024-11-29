@@ -353,6 +353,8 @@ class SnuddaPlotSpikeRaster2:
         plt.ylabel("Frequency (Hz)", fontsize=20)
         ax.legend(loc=legend_loc, bbox_to_anchor=bbox_anchor)
 
+        plt.tight_layout()
+
         if fig_file:
             fig_path = os.path.join(self.figure_path, fig_file)
             print(f"Writing figure {fig_path}")
