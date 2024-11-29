@@ -1865,14 +1865,18 @@ class SnuddaInput(object):
                                                   modulation_key=modulation_key)
 
         elif neuron_name in self.neuron_cache:
-            self.write_log(f"About to clone cache of {neuron_name}.")
+            if self.verbose:
+                self.write_log(f"About to clone cache of {neuron_name}.")
+
             # Since we do not care about location of neuron in space, we can use get_cache_original
             morphology = self.neuron_cache[neuron_name].clone(parameter_key=parameter_key,
                                                               morphology_key=morphology_key,
                                                               position=None, rotation=None,
                                                               get_cache_original=True)
         else:
-            self.write_log(f"Creating prototype {neuron_name}")
+            if self.verbose:
+                self.write_log(f"Creating prototype {neuron_name}")
+
             morphology_prototype = NeuronPrototype(neuron_name=neuron_name,
                                                    snudda_data=self.snudda_data,
                                                    neuron_path=neuron_path)
@@ -1882,7 +1886,8 @@ class SnuddaInput(object):
                                                     position=None, rotation=None,
                                                     get_cache_original=True)
 
-        self.write_log(f"morphology = {morphology}")
+        if self.verbose:
+            self.write_log(f"morphology = {morphology}")
 
         # input_info = self.neuron_cache[neuron_name].get_input_parameters(parameter_id=parameter_id,
         #                                                                  morphology_id=morphology_id,

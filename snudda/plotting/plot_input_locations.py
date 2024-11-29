@@ -217,7 +217,7 @@ class SnuddaPlotInputLocations:
 
     def load_input_config(self):
 
-        self.input_config = deepcopy(self.input_data["config"])
+        self.input_config = deepcopy(self.input_data["config"][()])
 
     def get_max_dendrite_distance(self, neuron_type):
 
@@ -359,6 +359,8 @@ class SnuddaPlotInputLocations:
         if neuron_id not in self.neuron_cache:
             neuron_info = self.snudda_load.data["neurons"][neuron_id]
 
+            # print(f"Loading: {snudda_parse_path(neuron_info['neuron_path'], self.snudda_data)}")
+
             prot = NeuronPrototype(neuron_path=neuron_info["neuron_path"], neuron_name=neuron_info["name"],
                                    snudda_data=self.snudda_data)
 
@@ -372,6 +374,8 @@ class SnuddaPlotInputLocations:
             nm = prot.clone(parameter_key=neuron_info["parameter_key"], morphology_key=neuron_info["morphology_key"],
                             position=position, rotation=rotation)
             self.neuron_cache[neuron_id] = nm
+
+            print(f"Loading morphology: {nm.swc_filename}")
 
         return self.neuron_cache[neuron_id]
 

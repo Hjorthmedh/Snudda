@@ -1,0 +1,19 @@
+Dear all,
+
+Please find below the process to get access to our VBT project in JUWELS:
+
+1. Get an LDAP account here (please use the email address in which you are receiving these instructions): https://judoor.fz-juelich.de/register
+
+2. Follow this link to request access to our project: https://judoor.fz-juelich.de/projects/join/vbt
+
+3. You will get a notification once your request has been accepted. After this, you can sign the user agreement for the JUWELS system by logging in to JUDOOR here: https://judoor.fz-juelich.de/login
+
+4. Upload your ssh keys and you can then start using the JUWELS system.
+
+Here some useful information about the system for your convenience: https://apps.fz-juelich.de/jsc/hps/juwels/
+
+If you have questions about using the system please let me know.
+
+All the best,
+Sandra
+

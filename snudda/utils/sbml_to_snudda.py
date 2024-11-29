@@ -1,7 +1,7 @@
 # This script reads an SBML file, and creates a snudda neuromodulation file
 import os
 import json
-import libsbml
+import libsbml   # If missing, use:  pip install python-libsbml
 import numpy as np
 
 

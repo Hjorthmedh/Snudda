@@ -382,6 +382,13 @@ class InputTuning(object):
                                               neuron_info["parameter_key"],
                                               neuron_info["morphology_key"])
 
+            if neuron_info["parameter_key"] not in neuron_name \
+                    or neuron_info["morphology_key"] not in neuron_name:
+                print(f"{neuron_name = }, {neuron_info['parameter_key'] = }, {neuron_info['morphology_key'] = }")
+                print(f"Did you accidentally use different networks for the runs?")
+                import pdb
+                pdb.set_trace()
+
             # Just an idiot check to make sure all neurons we are comparing are the same
             for nid in neuron_id:
                 assert network_info.data["neurons"][neuron_id[0]]["name"] == network_info.data["neurons"][nid]["name"]
@@ -408,6 +415,14 @@ class InputTuning(object):
 
     def get_best_config(self, data, requested_value, neuron_id, input_config, network_info,
                         depol_block_flag):
+
+        all_morph_keys = np.array([network_info.data["neurons"][nid]["morphology_key"] for nid in neuron_id])
+        all_param_keys = np.array([network_info.data["neurons"][nid]["parameter_key"] for nid in neuron_id])
+
+        assert (all_param_keys == all_param_keys[0]).all(), \
+            f"Internal error: All parameter_key should be the same {all_param_keys}"
+        assert (all_morph_keys == all_morph_keys[0]).all(), \
+            f"Internal error: All morphology_keys should be the same {all_morph_keys}"
 
         idx_above = np.argmax(data > requested_value)
 
@@ -650,6 +665,7 @@ class InputTuning(object):
                 print(f"Parameter key {parameter_key}, morphology key {morphology_key} not found in {meta_file} -- was it manually removed?")
                 continue
 
+            # print(f"Writing {parameter_key = }, {morphology_key = }")
             if overwrite:
                 meta_data[parameter_key][morphology_key]["input"] = new_config
             else:
@@ -874,8 +890,8 @@ class InputTuning(object):
             plt.xlabel("Time (ms)")
             plt.ylabel("Voltage (mV)")
 
-            fig_path = os.path.join(self.network_path, "figures",
-                                    f"Bad-trace-{neuron_type}-{full_param_key}-{full_morph_key}.png")
+            fig_path = os.path.join(self.network_path, "figures", "_bad",
+                                    f"{full_morph_key}-{full_param_key}-{neuron_type}-BAD-trace.png")
 
             if not os.path.exists(os.path.dirname(fig_path)):
                 os.mkdir(os.path.dirname(fig_path))

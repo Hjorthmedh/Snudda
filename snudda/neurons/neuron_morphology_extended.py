@@ -244,7 +244,14 @@ class NeuronMorphologyExtended:
         if "neuron" not in self.morphology_data or 3 not in self.morphology_data["neuron"].sections:
             raise ValueError(f"No dendrites loaded for neuron {self.swc_filename}")
 
-        section = self.morphology_data["neuron"].sections[3][section_id]
+        try:
+            section = self.morphology_data["neuron"].sections[3][section_id]
+        except:
+            import traceback
+            print(traceback.format_exc())
+            import pdb
+            pdb.set_trace()
+
         sec_x = section.section_x
         pos = section.position
 

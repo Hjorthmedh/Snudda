@@ -1,0 +1,5 @@
+!!SBtab	SBtabVersion='1.0' Document='Nair_2016_optimized' TableName='Expression' TableTitle='Expression' TableType = 'Expression'			
+!ID	!Name	!Formula	!Unit	!Location
+EX0	ATP_expression	5000000	nanomole/liter	Spine
+EX1	Ca_expression	1	nanomole/liter	Spine
+EX2	DA_expression	DA_basal+(1/(1+exp((-10E+10)*(time-DA_start)))*(DA_max/(exp(-tau_DA1*tau_DA2/(tau_DA2-tau_DA1)*log(tau_DA2/tau_DA1)/tau_DA1)-exp(-tau_DA1*tau_DA2/(tau_DA2-tau_DA1)*log(tau_DA2/tau_DA1)/tau_DA2))*(exp(-(time-DA_start)/tau_DA1)-exp(-(time-DA_start)/tau_DA2))))	nanomole/liter	Spine
