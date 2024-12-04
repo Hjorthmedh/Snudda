@@ -554,7 +554,12 @@ class OptimiseSynapsesFull(object):
         if n_synapses_override is not None:
             n_synapses = n_synapses_override
         else:
-            n_synapses = c_prop["num_synapses"]
+            if "num_synapses" in c_prop:
+                n_synapses = c_prop["num_synapses"]
+            elif 'nSynapses' in c_prop:
+                n_synapses = c_prop['nSynapses']
+            else:
+                raise Exception('Setup error: number of synapses not no specified in setup file (which ever that is?)')
 
         if "holding_current" in c_prop:
             holding_current = c_prop["holding_current"]
