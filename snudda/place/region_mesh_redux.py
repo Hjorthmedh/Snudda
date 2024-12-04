@@ -153,6 +153,8 @@ class NeuronPlacer:
         putative_points = self.remove_close_neurons(putative_points)
         putative_points = self.remove_outside(putative_points)
 
+        print(f"Managed to create {len(putative_points)} putative points within the volume.")
+
         self.putative_points = putative_points
         self.allocated_points = np.zeros(shape=(putative_points.shape[0],), dtype=bool)
 
