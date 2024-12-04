@@ -153,7 +153,9 @@ class NeuronPlacer:
         putative_points = self.remove_close_neurons(putative_points)
         putative_points = self.remove_outside(putative_points)
 
-        print(f"Managed to create {len(putative_points)} putative points within the volume.")
+        if len(putative_points) < 0.05 * n_putative_points:
+            print(f"Managed to create {len(putative_points)} putative points within the volume "
+                  f"(is the volume too small? You can create new cube mesh using create_cube_mesh.py)")
 
         self.putative_points = putative_points
         self.allocated_points = np.zeros(shape=(putative_points.shape[0],), dtype=bool)
