@@ -158,8 +158,9 @@ class NeuronPlacer:
                   f"  WARNING --> is the volume too small? You can create new cube mesh using create_cube_mesh.py\n\n"
                   f"Example how to use create_cube_mesh.py:\n"
                   f"from snudda.place.create_cube_mesh import create_cube_mesh\n"
-                  f"create_cube_mesh('your_cube_mesh_name.obj', (0,0,0), 300e-6,\n"
-                  f"                 description='Example, you need to adjust size yourself')\n"
+                  f"create_cube_mesh(file_name='your_cube_mesh_name.obj', \n"
+                  f"                 centre_point=(0,0,0), side_len=300e-6,\n"
+                  f"                 description='Adjust side_len to get correct neuron density')\n"
                   )
 
         self.putative_points = putative_points
