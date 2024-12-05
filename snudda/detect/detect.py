@@ -2613,27 +2613,8 @@ class SnuddaDetect(object):
 
         self.write_log(f"setup_parallel: {d_view = }")
 
-        # with d_view.sync_imports():
-        #     from snudda import SnuddaDetect
-
-        import_cmd = """
-try:
-    import os
-    import traceback
-    import uuid
-
-    tmp = open(os.path.join(f"worker-error-file-{uuid.uuid4()}"), 'w')
-    tmp.write("About to do import of SnuddaDetect")
-    from snudda import SnuddaDetect
-except Exception as e:
-   
-    tstr = traceback.format_exc()
-    tmp.write(f"Exception: {e}\n")
-    tmp.write(f"Exception: {tstr}\n")
-    tmp.close()
-    raise
-"""
-        d_view.execute(import_cmd, block=True)
+        with d_view.sync_imports():
+            from snudda import SnuddaDetect
 
         self.write_log(f"Setting up workers: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
 
