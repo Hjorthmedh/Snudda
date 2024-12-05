@@ -2616,15 +2616,23 @@ class SnuddaDetect(object):
         try:
             with d_view.sync_imports():
                 from snudda.detect.detect import SnuddaDetect
-                
+
         except Exception as e:
             self.write_log("Error during sync_imports:")
             self.write_log(str(e))
 
-            worker_errors = d_view.apply_sync(lambda: str(e)).values()
+            cmd_errorstr = """
+import os
+import traceback
+import uuid
+import traceback
 
-            for engine_id, error in enumerate(worker_errors):
-                self.write_log(f"Engine {engine_id}: {error}")
+tstr = traceback.format_exc()
+tmp = open(os.path.join(f"worker-error-file-{uuid.uuid4()}"), 'w')
+tmp.write(f"Exception: {tstr}")
+tmp.close()
+"""
+            d_view.execute(cmd_errorstr, block=True)
 
             raise  # Re-raise the exception to stop the job
 
