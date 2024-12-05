@@ -2611,8 +2611,22 @@ class SnuddaDetect(object):
             self.write_log("Workers already initialised.")
             return
 
-        with d_view.sync_imports():
-            from snudda.detect.detect import SnuddaDetect
+        self.write_log(f"setup_parallel: {d_view = }")
+
+        try:
+            with d_view.sync_imports():
+                from snudda.detect.detect import SnuddaDetect
+                
+        except Exception as e:
+            self.write_log("Error during sync_imports:")
+            self.write_log(str(e))
+
+            worker_errors = d_view.apply_sync(lambda: str(e)).values()
+
+            for engine_id, error in enumerate(worker_errors):
+                self.write_log(f"Engine {engine_id}: {error}")
+
+            raise  # Re-raise the exception to stop the job
 
         self.write_log(f"Setting up workers: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
 
