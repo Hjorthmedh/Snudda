@@ -80,6 +80,8 @@ class ReadSBtab:
         self.data["rates"] = dict()
         self.data["reactions"] = dict()
 
+        original_sbtab_units = dict()
+
         nmol_unit = pq.UnitQuantity('nanomole', pq.nano * pq.mole, symbol='nmol')
         nM_unit = pq.UnitQuantity('nanomolar', pq.nano * pq.molar, symbol='nM')
 
@@ -101,6 +103,9 @@ class ReadSBtab:
                              }
 
             self.data["species"][species_name] = species_data
+            original_sbtab_units[species_name] = species_unit.symbol  # Wilhelm är bombsäker(!)
+
+        self.get_parameters()  # TODO, not finished yet!
 
         for row_idx, row in self.reactions_data.iterrows():
             reaction_name = row["!Name"]
@@ -113,6 +118,57 @@ class ReadSBtab:
         for row_idx, row in self.parameters_data.iterrows():
             parameter_name = row["!Name"]
             parameter_value = row["!Value:linspace"]
+
+            # We assume that reaction name kf_R0, kr_R0 are related to R0 reaction.
+            reaction_name = row["!Name"].split("_")[-1]
+
+            import pdb
+            pdb.set_trace()
+
+            reaction_row = self.reactions_data[self.reactions_data["!ID"] == reaction_name]
+
+            if len(reaction_row) != 1:
+                raise KeyError(f"Unable to find exactly one line for reaction {reaction_name} "
+                               f"in {self.reactions_filename} (found {len(reaction_row)})")
+
+            kinetic_law = reaction_row["!KineticLaw"][0]
+
+            reaction_components = None
+
+            for part_kinetic in kinetic_law.split("-"):
+                reaction_parts = part_kinetic.split("*")
+
+                # Hidden assumption, the reaction rate is before components
+                if parameter_name in reaction_parts[0]:
+                    reaction_components = reaction_parts[1:]
+
+            if reaction_components is None:
+                raise KeyError(f"Unable to find reaction {parameter_name}, we assume "
+                               f"it is before compounds in {self.reactions_filename} column !KineticLaw")
+
+            unit_str = ""
+
+            # Next we replace components with their units, and use the quantities library to calculate conversion factor
+            for rc in reaction_components:
+                rc_name = rc.split("^")[0]
+                compound_row = self.compounds_data[self.constants_data["!Name"] == rc_name]
+
+                if len(compound_row) != 1:
+                    raise KeyError(f"The compound {rc_name} does not appear on a unique row in {self.compounds_filename}")
+
+                if unit_str != "":
+                    unit_str += " * "
+
+                unit_str += f"({compound_row['!Unit'][0]})"
+
+                if "^" in rc:
+                    unit_str += f"^{rc.split('^')[1]}"
+
+
+
+
+            import pdb
+            pdb.set_trace()
 
             # We need to convert to SI units...
 
