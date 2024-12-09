@@ -894,7 +894,7 @@ class InputTuning(object):
                                     f"{full_morph_key}-{full_param_key}-{neuron_type}-BAD-trace.png")
 
             if not os.path.exists(os.path.dirname(fig_path)):
-                os.mkdir(os.path.dirname(fig_path))
+                os.makedirs(os.path.dirname(fig_path))
 
             plt.savefig(fig_path, dpi=300)
 
