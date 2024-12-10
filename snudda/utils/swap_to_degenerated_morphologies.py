@@ -490,6 +490,8 @@ class SwapToDegeneratedMorphologies:
         # Pick one of the key pairs
         idx = np.random.randint(low=0, high=len(possible_keys))
         new_param_key, new_morph_key, new_morph_name = possible_keys[idx]
+        new_morph_name = snudda_simplify_path(os.path.join(new_neuron_path, "morphology", new_morph_name),
+                                              self.new_snudda_data_dir)
 
         # We also need parameter_id and morphology_id
         parameter_id = np.where([x == new_param_key for x in new_meta_info.keys()])[0][0]
