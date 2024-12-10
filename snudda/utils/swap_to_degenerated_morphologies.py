@@ -4,6 +4,7 @@ import os
 import h5py
 import numpy as np
 from scipy.spatial import cKDTree
+import glob
 
 from argparse import ArgumentParser, RawTextHelpFormatter
 
@@ -409,6 +410,22 @@ class SwapToDegeneratedMorphologies:
         new_neuron_path = orig_neuron_path.replace(os.path.realpath(self.original_snudda_data_dir),
                                                    os.path.realpath(self.new_snudda_data_dir))
 
+        if not os.path.isdir(new_neuron_path):
+            # We did not find an exact match, see if we find a dir that contains a substring
+            last_dir = os.path.basename(os.path.realpath(new_neuron_path))
+            parent_dir = os.path.dirname(os.path.realpath(new_neuron_path))
+
+            # Find all the directories in that, and see if any of them contains 'last_dir'
+            potential_dir = glob.glob(os.path.join(parent_dir, '*'))
+            candidate_dir = [os.path.join(last_dir, x) for x in potential_dir if last_dir in os.path.basename(x)]
+
+            if len(candidate_dir) != 1:
+                raise ValueError(f"Unable to find {new_neuron_path}, also tried looking for similar folders in {parent_dir}")
+
+            else:
+                print(f"Did not find exact directory match, using {candidate_dir[0]} instead of {new_neuron_path}")
+                new_neuron_path = candidate_dir[0]
+
         if orig_morph_key is None or orig_morph_key == '':
             # Only a single morphology
 
@@ -434,11 +451,38 @@ class SwapToDegeneratedMorphologies:
         for param_key, param_data in new_meta_info.items():
             for morph_key, morph_data in param_data.items():
                 morph_name = morph_data["morphology"]
+                print(f"-- Comparing {orig_morph_name} {morph_name}")
+
                 if orig_morph_name == morph_name:
                     possible_keys.append((param_key, morph_key))
+                    print(f"Matching {orig_morph_name} with {morph_name}")
 
-        assert len(possible_keys) > 0, \
-            f"No morphology matching for {orig_morph_name}, unable to pick parameter_key and morphology_key"
+                # We also need to be able to handle Treem adding tags to the new filename
+                elif os.path.splitext(os.path.basename(orig_morph_name))[0] in morph_name:
+
+                    # Hack, so we do not match a non-var morphology to a var morphology
+                    # We allow non-var to match with var0 (which is alias for non-var)
+                    if "var" not in os.path.splitext(os.path.basename(orig_morph_name))[0] \
+                            and "var" in os.path.splitext(os.path.basename(morph_name))[0] \
+                            and not "var0" in os.path.splitext(os.path.basename(morph_name))[0]:
+                        print(f"Skipping match : {orig_morph_name} -- {morph_name}")
+                        continue
+
+                    possible_keys.append((param_key, morph_key))
+                    print(f"Matching (close) {orig_morph_name} with {morph_name}")
+
+                elif "var0" in os.path.splitext(os.path.basename(orig_morph_name))[0]:
+                    # Also need to check if var0 has a corresponding morphology without var0 in name
+                    new_candidate = orig_morph_name.replace("-var0", "")
+                    if new_candidate == morph_name:
+                        possible_keys.append((param_key, morph_key))
+                        print(f"Matching (close2) {orig_morph_name} with {morph_name}")
+
+        if len(possible_keys) == 0:
+            import pdb
+            pdb.set_trace()
+            raise ValueError(f"No morphology matching for {orig_morph_name}, "
+                             f"unable to pick parameter_key and morphology_key")
 
         # Pick one of the key pairs
         idx = np.random.randint(low=0, high=len(possible_keys))
