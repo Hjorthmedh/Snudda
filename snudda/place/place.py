@@ -949,7 +949,9 @@ class SnuddaPlace(object):
 
         neuron_path = [snudda_simplify_path(n.neuron_path, self.snudda_data).encode("ascii", "ignore") for n in self.neurons]
         max_np_len = max([len(x) for x in neuron_path])
-        neuron_group.create_dataset("neuron_path", (len(neuron_path),), f"S{max_np_len}", neuron_path)
+        # neuron_group.create_dataset("neuron_path", (len(neuron_path),), f"S{max_np_len}", neuron_path)
+        neuron_group.create_dataset("neuron_path", (len(neuron_path),), data=neuron_path,
+                                    dtype=h5py.special_dtype(vlen=str))
 
         virtual_neuron_list = np.array([n.virtual_neuron for n in self.neurons], dtype=bool)
         virtual_neuron = neuron_group.create_dataset("virtual_neuron",
@@ -1127,6 +1129,8 @@ class SnuddaPlace(object):
         neuron_group.create_dataset("axon_density_bounds_xyz", data=axon_density_bounds_xyz)
 
         pos_file.close()
+
+        self.write_log(f"Write done.")
 
     ############################################################################
 

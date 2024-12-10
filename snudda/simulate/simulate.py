@@ -225,7 +225,7 @@ class SnuddaSimulate(object):
             if "snudda_data" in self.sim_info:
                 # Do not change this unless you know what you are doing
                 self.snudda_data = self.sim_info["snudda_data"]
-                self.write_log(f"Reading snudda_data {self.snudda_data}")
+                self.write_log(f"Reading snudda_data {self.snudda_data} from config file", force_print=True)
 
             if "current_injection_file" in self.sim_info:
                 current_file = self.sim_info["current_injection_file"]

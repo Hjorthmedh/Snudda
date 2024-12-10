@@ -97,12 +97,15 @@ class SwapToDegeneratedMorphologies:
         # Update parameter keys and morphology keys
         for idx, neuron_id in enumerate(self.new_hdf5["network/neurons/neuron_id"]):
             assert idx == neuron_id, "There should be no gaps in numbering."
-            param_key, morph_key, neuron_path, param_id, morph_id = self.find_morpology(neuron_id)
+            param_key, morph_key, neuron_path, new_morph_name, param_id, morph_id = self.find_morpology(neuron_id)
 
             if self.forced_param_key:
-                param_key=self.forced_param_key
+                param_key = self.forced_param_key
+
             self.new_hdf5[f"network/neurons/parameter_key"][idx] = param_key
             self.new_hdf5[f"network/neurons/morphology_key"][idx] = morph_key
+            self.new_hdf5[f"network/neurons/neuron_path"][idx] = neuron_path
+            self.new_hdf5[f"network/neurons/morphology"][idx] = new_morph_name
             # self.new_hdf5[f"network/neurons/parameter_id"][idx] = param_id
             # self.new_hdf5[f"network/neurons/morphology_id"][idx] = morph_id
 
@@ -454,7 +457,7 @@ class SwapToDegeneratedMorphologies:
                 print(f"-- Comparing {orig_morph_name} {morph_name}")
 
                 if orig_morph_name == morph_name:
-                    possible_keys.append((param_key, morph_key))
+                    possible_keys.append((param_key, morph_key, morph_name))
                     print(f"Matching {orig_morph_name} with {morph_name}")
 
                 # We also need to be able to handle Treem adding tags to the new filename
@@ -468,14 +471,14 @@ class SwapToDegeneratedMorphologies:
                         print(f"Skipping match : {orig_morph_name} -- {morph_name}")
                         continue
 
-                    possible_keys.append((param_key, morph_key))
+                    possible_keys.append((param_key, morph_key, morph_name))
                     print(f"Matching (close) {orig_morph_name} with {morph_name}")
 
                 elif "var0" in os.path.splitext(os.path.basename(orig_morph_name))[0]:
                     # Also need to check if var0 has a corresponding morphology without var0 in name
                     new_candidate = orig_morph_name.replace("-var0", "")
                     if new_candidate == morph_name:
-                        possible_keys.append((param_key, morph_key))
+                        possible_keys.append((param_key, morph_key, morph_name))
                         print(f"Matching (close2) {orig_morph_name} with {morph_name}")
 
         if len(possible_keys) == 0:
@@ -486,13 +489,13 @@ class SwapToDegeneratedMorphologies:
 
         # Pick one of the key pairs
         idx = np.random.randint(low=0, high=len(possible_keys))
-        new_param_key, new_morph_key = possible_keys[idx]
+        new_param_key, new_morph_key, new_morph_name = possible_keys[idx]
 
         # We also need parameter_id and morphology_id
         parameter_id = np.where([x == new_param_key for x in new_meta_info.keys()])[0][0]
         morphology_id = np.where([x == new_morph_key for x in new_meta_info[new_param_key].keys()])[0][0]
 
-        return new_param_key, new_morph_key, new_neuron_path, parameter_id, morphology_id
+        return new_param_key, new_morph_key, new_neuron_path, new_morph_name, parameter_id, morphology_id
 
     def get_sec_location(self, coords, neuron_path, snudda_data,
                          parameter_key, morphology_key, max_dist=5.41e-6):
@@ -688,7 +691,7 @@ class SwapToDegeneratedMorphologies:
 
         old_param_key, old_morph_key, old_path = self.find_old_morphology(neuron_id=neuron_id)
 
-        new_param_key, new_morph_key, new_path, _, _ = self.find_morpology(neuron_id=neuron_id)
+        new_param_key, new_morph_key, new_path, new_morph_path, _, _ = self.find_morpology(neuron_id=neuron_id)
 
         if (old_param_key, old_morph_key, old_path) in self.section_lookup:
             # We already have the morphology in the section_lookup
