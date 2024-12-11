@@ -482,8 +482,6 @@ class SwapToDegeneratedMorphologies:
                         print(f"Matching (close2) {orig_morph_name} with {morph_name}")
 
         if len(possible_keys) == 0:
-            import pdb
-            pdb.set_trace()
             raise ValueError(f"No morphology matching for {orig_morph_name}, "
                              f"unable to pick parameter_key and morphology_key")
 
