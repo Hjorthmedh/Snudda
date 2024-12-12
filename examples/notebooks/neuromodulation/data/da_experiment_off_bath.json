@@ -5,6 +5,9 @@
     "log_file": "networks/neuromodulation_ON_OFF_bath/log/network-simulation-OFF.txt",
     "time": 25.0,
     "record_all_soma": true,
+    
+    "use_rxd_neuromodulation": false,
+
     "record_density_mechanism": {
 	"kir_ms.modulation_factor": {
 	    "neuron_id": [0, 1],

@@ -40,7 +40,7 @@ class NeuromodulationTestCase(unittest.TestCase):
         mech_dir = "../validation/mechanisms"   # Added the kirrxd and DASyn as symbolic links to mechanisms
 
         # self.snudda.compile_mechanisms(mech_dir=mech_dir)
-        self.sim = self.snudda.simulate(time=0, mech_dir=mech_dir)
+        self.sim = self.snudda.simulate(time=0, mech_dir=mech_dir, use_rxd_neuromodulation=True)
 
     def test_reaction(self):
 

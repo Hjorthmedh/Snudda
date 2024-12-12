@@ -2611,8 +2611,10 @@ class SnuddaDetect(object):
             self.write_log("Workers already initialised.")
             return
 
+        self.write_log(f"setup_parallel: {d_view = }")
+
         with d_view.sync_imports():
-            from snudda.detect.detect import SnuddaDetect
+            from snudda import SnuddaDetect
 
         self.write_log(f"Setting up workers: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
 
@@ -2643,6 +2645,29 @@ class SnuddaDetect(object):
                    "snudda_data=snudda_data,"
                    "hyper_voxel_size=hyper_voxel_size,verbose=verbose,logfile_name=logfile_name[0],"
                    "save_file=save_file,slurm_id=slurm_id,role='worker', random_seed=random_seed)")
+
+        cmd_str = """
+try:
+    sd = SnuddaDetect(config_file=config_file, position_file=position_file,voxel_size=voxel_size,
+                      snudda_data=snudda_data,
+                      hyper_voxel_size=hyper_voxel_size,verbose=verbose,logfile_name=logfile_name[0],
+                      save_file=save_file,slurm_id=slurm_id,role='worker', random_seed=random_seed)
+except Exception as e:
+    import os
+    import datetime
+    import traceback
+    engine_id = os.getpid()
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_file_name = f"worker_error_{engine_id}_{timestamp}.log"
+    with open(log_file_name, "w") as log_file:
+        log_file.write(f"Error initializing SnuddaDetect:\\n{traceback.format_exc()}\\n")
+        log_file.write(f"Engine ID: {engine_id}\\n")
+        log_file.write(f"Timestamp: {timestamp}\\n")
+        log_file.write(f"Parameters: config_file={config_file}, position_file={position_file}, voxel_size={voxel_size}\\n")
+    
+    raise  # Rethrow exception
+        """
+
         d_view.execute(cmd_str, block=True)
 
         self.write_log(f"Workers setup: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")

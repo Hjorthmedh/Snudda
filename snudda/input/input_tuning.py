@@ -382,24 +382,35 @@ class InputTuning(object):
                                               neuron_info["parameter_key"],
                                               neuron_info["morphology_key"])
 
+            if neuron_info["parameter_key"] not in neuron_name \
+                    or neuron_info["morphology_key"] not in neuron_name:
+                print(f"{neuron_name = }, {neuron_info['parameter_key'] = }, {neuron_info['morphology_key'] = }")
+                print(f"Did you accidentally use different networks for the runs?")
+                import pdb
+                pdb.set_trace()
+
             # Just an idiot check to make sure all neurons we are comparing are the same
             for nid in neuron_id:
                 assert network_info.data["neurons"][neuron_id[0]]["name"] == network_info.data["neurons"][nid]["name"]
 
             # Check if spike frequency is too low, if so give image a different name
 
+            move_bad = False
+
             if depol_block:
                 label = f"signal-{requested_frequency}-Hz-BLOCKED"
+                move_bad = True
             else:
                 label = f"signal-{requested_frequency}-Hz"
 
             if np.max(spike_count_mean) < requested_spikes:
                 label = f"{label}-TOO-LOW-FREQ"
+                move_bad = True
 
             self.plot_signal_info(neuron_id=neuron_id, neuron_info=neuron_info, best_config=best_config,
                                   spike_count=spike_count, input_config=input_config, max_time=np.max(time),
                                   requested_frequency=requested_frequency, depol_block_flag=depol_block_flag,
-                                  label=label, show_plot=show_plot)
+                                  label=label, show_plot=show_plot, move_bad=move_bad)
 
         for name in bad_neuron_list:
             print(f"Found early depolarisation block: {name}")
@@ -408,6 +419,14 @@ class InputTuning(object):
 
     def get_best_config(self, data, requested_value, neuron_id, input_config, network_info,
                         depol_block_flag):
+
+        all_morph_keys = np.array([network_info.data["neurons"][nid]["morphology_key"] for nid in neuron_id])
+        all_param_keys = np.array([network_info.data["neurons"][nid]["parameter_key"] for nid in neuron_id])
+
+        assert (all_param_keys == all_param_keys[0]).all(), \
+            f"Internal error: All parameter_key should be the same {all_param_keys}"
+        assert (all_morph_keys == all_morph_keys[0]).all(), \
+            f"Internal error: All morphology_keys should be the same {all_morph_keys}"
 
         idx_above = np.argmax(data > requested_value)
 
@@ -557,15 +576,18 @@ class InputTuning(object):
     def plot_signal_info(self, neuron_id, neuron_info, best_config, spike_count, input_config,
                          max_time, requested_frequency, skip_time=0,
                          label="background-inputs", show_plot=True,
-                         depol_block_flag=None):
+                         depol_block_flag=None, move_bad=False):
 
         import matplotlib.pyplot as plt
 
         n_inputs_total = np.zeros((len(neuron_id),), dtype=int)
         fig_dir = os.path.join(self.network_path, "figures")
 
+        if move_bad:
+            fig_dir = os.path.join(fig_dir, "_BAD")
+
         if not os.path.isdir(fig_dir):
-            os.mkdir(fig_dir)
+            os.makedirs(fig_dir)
 
         fig_name = os.path.join(fig_dir, f"{neuron_info['morphology_key']}-{neuron_info['parameter_key']}-{neuron_info['name']}-{label}.png")
 
@@ -650,6 +672,7 @@ class InputTuning(object):
                 print(f"Parameter key {parameter_key}, morphology key {morphology_key} not found in {meta_file} -- was it manually removed?")
                 continue
 
+            # print(f"Writing {parameter_key = }, {morphology_key = }")
             if overwrite:
                 meta_data[parameter_key][morphology_key]["input"] = new_config
             else:
@@ -874,11 +897,11 @@ class InputTuning(object):
             plt.xlabel("Time (ms)")
             plt.ylabel("Voltage (mV)")
 
-            fig_path = os.path.join(self.network_path, "figures",
-                                    f"Bad-trace-{neuron_type}-{full_param_key}-{full_morph_key}.png")
+            fig_path = os.path.join(self.network_path, "figures", "_bad",
+                                    f"{full_morph_key}-{full_param_key}-{neuron_type}-BAD-trace.png")
 
             if not os.path.exists(os.path.dirname(fig_path)):
-                os.mkdir(os.path.dirname(fig_path))
+                os.makedirs(os.path.dirname(fig_path))
 
             plt.savefig(fig_path, dpi=300)
 

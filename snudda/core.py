@@ -45,7 +45,9 @@ import sys
 import timeit
 from collections import OrderedDict
 
-import pkg_resources
+# import pkg_resources
+from importlib import resources
+
 import json
 import numpy as np
 
@@ -55,9 +57,17 @@ from snudda.utils.snudda_path import snudda_isfile, get_snudda_data
 
 def get_data_file(*dirs):
     path = os.path.join("data", *dirs)
-    if not pkg_resources.resource_exists(__package__, path):
-        raise FileNotFoundError("Data file '{}' not found".format(path))
-    return pkg_resources.resource_filename(__package__, path)
+
+    try:
+        return resources.files(__package__).joinpath(path).as_posix()
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Data file '{path}' not found")
+
+# def get_data_file(*dirs):
+#     path = os.path.join("data", *dirs)
+#     if not pkg_resources.resource_exists(__package__, path):
+#         raise FileNotFoundError("Data file '{}' not found".format(path))
+#     return pkg_resources.resource_filename(__package__, path)
 
 
 class Snudda(object):
@@ -167,6 +177,7 @@ class Snudda(object):
     ############################################################################
 
     def init_tiny(self, neuron_paths, neuron_names, number_of_neurons,
+                  snudda_data=None,
                   morphology_key=None, parameter_key=None,
                   connection_config=None, random_seed=None, density=80500, d_min=15e-6):
 
@@ -181,6 +192,7 @@ class Snudda(object):
         n_total = np.sum(number_of_neurons)
 
         si = SnuddaInit(network_path=self.network_path,
+                        snudda_data=snudda_data,
                         random_seed=random_seed)
 
         si.define_structure(struct_name="Cube",
@@ -722,6 +734,17 @@ class Snudda(object):
 
         print(f"args: {args}")
 
+        assert args.enable_rxd_neuromodulation is None or args.disable_rxd_neuromodulation is None, \
+            "You can only specify enable_rxd_neuromodulation or disable_rxd_neuromodulation, not both"
+
+        use_rxd_neuromodulation = None
+
+        if args.enable_rxd_neuromodulation == True:
+            use_rxd_neuromodulation = True
+
+        if args.disable_rxd_neuromodulation == True:
+            use_rxd_neuromodulation = False
+
         sim = self.simulate(network_file=args.network_file, input_file=args.input_file,
                             output_file=args.output_file, snudda_data=args.snudda_data,
                             time=args.time,
@@ -733,7 +756,7 @@ class Snudda(object):
                             record_all=args.record_all,
                             simulation_config=args.simulation_config,
                             export_core_neuron=args.exportCoreNeuron,
-                            use_rxd_neuromodulation=args.use_rxd_neuromodulation,
+                            use_rxd_neuromodulation=use_rxd_neuromodulation,
                             verbose=args.verbose)
 
         sim.clear_neuron()
@@ -753,7 +776,7 @@ class Snudda(object):
                  sample_dt=None,
                  simulation_config=None,
                  export_core_neuron=False,
-                 use_rxd_neuromodulation=True,
+                 use_rxd_neuromodulation=None,
                  verbose=False):
 
         start = timeit.default_timer()
@@ -832,6 +855,7 @@ class Snudda(object):
         sim = SnuddaSimulate(network_file=network_file,
                              input_file=input_file,
                              output_file=output_file,
+                             snudda_data=snudda_data,
                              disable_gap_junctions=disable_gj,
                              disable_synapses=disable_synapses,
                              log_file=log_file,

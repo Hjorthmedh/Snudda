@@ -4,6 +4,7 @@ import os
 import h5py
 import numpy as np
 from scipy.spatial import cKDTree
+import glob
 
 from argparse import ArgumentParser, RawTextHelpFormatter
 
@@ -96,12 +97,15 @@ class SwapToDegeneratedMorphologies:
         # Update parameter keys and morphology keys
         for idx, neuron_id in enumerate(self.new_hdf5["network/neurons/neuron_id"]):
             assert idx == neuron_id, "There should be no gaps in numbering."
-            param_key, morph_key, neuron_path, param_id, morph_id = self.find_morpology(neuron_id)
+            param_key, morph_key, neuron_path, new_morph_name, param_id, morph_id = self.find_morpology(neuron_id)
 
             if self.forced_param_key:
-                param_key=self.forced_param_key
+                param_key = self.forced_param_key
+
             self.new_hdf5[f"network/neurons/parameter_key"][idx] = param_key
             self.new_hdf5[f"network/neurons/morphology_key"][idx] = morph_key
+            self.new_hdf5[f"network/neurons/neuron_path"][idx] = neuron_path
+            self.new_hdf5[f"network/neurons/morphology"][idx] = new_morph_name
             # self.new_hdf5[f"network/neurons/parameter_id"][idx] = param_id
             # self.new_hdf5[f"network/neurons/morphology_id"][idx] = morph_id
 
@@ -188,9 +192,15 @@ class SwapToDegeneratedMorphologies:
         num_synapses = np.zeros((1,), dtype=np.uint64)
         self.new_hdf5["network"].create_dataset("num_synapses", data=syn_ctr, dtype=np.uint64)
 
-        print(f"Keeping {self.new_hdf5['network/num_synapses'][()]} "
-              f"out of {self.old_hdf5['network/num_synapses'][()]} synapses "
-              f"({self.new_hdf5['network/num_synapses'][()] / self.old_hdf5['network/num_synapses'][()]*100:.3f} %)")
+        try:
+            print(f"Keeping {self.new_hdf5['network/num_synapses'][()]} "
+                  f"out of {self.old_hdf5['network/num_synapses'][()]} synapses "
+                  f"({self.new_hdf5['network/num_synapses'][()] / max(1,self.old_hdf5['network/num_synapses'][()])*100:.3f} %)")
+        except:
+            import traceback
+            print(traceback.format_exc())
+            import pdb
+            pdb.set_trace()
 
     def filter_gap_junctions(self):
         # First version, will keep all synapses in memory to write a more efficient file
@@ -403,6 +413,22 @@ class SwapToDegeneratedMorphologies:
         new_neuron_path = orig_neuron_path.replace(os.path.realpath(self.original_snudda_data_dir),
                                                    os.path.realpath(self.new_snudda_data_dir))
 
+        if not os.path.isdir(new_neuron_path):
+            # We did not find an exact match, see if we find a dir that contains a substring
+            last_dir = os.path.basename(os.path.realpath(new_neuron_path))
+            parent_dir = os.path.dirname(os.path.realpath(new_neuron_path))
+
+            # Find all the directories in that, and see if any of them contains 'last_dir'
+            potential_dir = glob.glob(os.path.join(parent_dir, '*'))
+            candidate_dir = [os.path.join(last_dir, x) for x in potential_dir if last_dir in os.path.basename(x)]
+
+            if len(candidate_dir) != 1:
+                raise ValueError(f"Unable to find {new_neuron_path}, also tried looking for similar folders in {parent_dir}")
+
+            else:
+                print(f"Did not find exact directory match, using {candidate_dir[0]} instead of {new_neuron_path}")
+                new_neuron_path = candidate_dir[0]
+
         if orig_morph_key is None or orig_morph_key == '':
             # Only a single morphology
 
@@ -428,21 +454,48 @@ class SwapToDegeneratedMorphologies:
         for param_key, param_data in new_meta_info.items():
             for morph_key, morph_data in param_data.items():
                 morph_name = morph_data["morphology"]
-                if orig_morph_name == morph_name:
-                    possible_keys.append((param_key, morph_key))
+                print(f"-- Comparing {orig_morph_name} {morph_name}")
 
-        assert len(possible_keys) > 0, \
-            f"No morphology matching for {orig_morph_name}, unable to pick parameter_key and morphology_key"
+                if orig_morph_name == morph_name:
+                    possible_keys.append((param_key, morph_key, morph_name))
+                    print(f"Matching {orig_morph_name} with {morph_name}")
+
+                # We also need to be able to handle Treem adding tags to the new filename
+                elif os.path.splitext(os.path.basename(orig_morph_name))[0] in morph_name:
+
+                    # Hack, so we do not match a non-var morphology to a var morphology
+                    # We allow non-var to match with var0 (which is alias for non-var)
+                    if "var" not in os.path.splitext(os.path.basename(orig_morph_name))[0] \
+                            and "var" in os.path.splitext(os.path.basename(morph_name))[0] \
+                            and not "var0" in os.path.splitext(os.path.basename(morph_name))[0]:
+                        print(f"Skipping match : {orig_morph_name} -- {morph_name}")
+                        continue
+
+                    possible_keys.append((param_key, morph_key, morph_name))
+                    print(f"Matching (close) {orig_morph_name} with {morph_name}")
+
+                elif "var0" in os.path.splitext(os.path.basename(orig_morph_name))[0]:
+                    # Also need to check if var0 has a corresponding morphology without var0 in name
+                    new_candidate = orig_morph_name.replace("-var0", "")
+                    if new_candidate == morph_name:
+                        possible_keys.append((param_key, morph_key, morph_name))
+                        print(f"Matching (close2) {orig_morph_name} with {morph_name}")
+
+        if len(possible_keys) == 0:
+            raise ValueError(f"No morphology matching for {orig_morph_name}, "
+                             f"unable to pick parameter_key and morphology_key")
 
         # Pick one of the key pairs
         idx = np.random.randint(low=0, high=len(possible_keys))
-        new_param_key, new_morph_key = possible_keys[idx]
+        new_param_key, new_morph_key, new_morph_name = possible_keys[idx]
+        new_morph_name = snudda_simplify_path(os.path.join(new_neuron_path, "morphology", new_morph_name),
+                                              self.new_snudda_data_dir)
 
         # We also need parameter_id and morphology_id
         parameter_id = np.where([x == new_param_key for x in new_meta_info.keys()])[0][0]
         morphology_id = np.where([x == new_morph_key for x in new_meta_info[new_param_key].keys()])[0][0]
 
-        return new_param_key, new_morph_key, new_neuron_path, parameter_id, morphology_id
+        return new_param_key, new_morph_key, new_neuron_path, new_morph_name, parameter_id, morphology_id
 
     def get_sec_location(self, coords, neuron_path, snudda_data,
                          parameter_key, morphology_key, max_dist=5.41e-6):
@@ -638,7 +691,7 @@ class SwapToDegeneratedMorphologies:
 
         old_param_key, old_morph_key, old_path = self.find_old_morphology(neuron_id=neuron_id)
 
-        new_param_key, new_morph_key, new_path, _, _ = self.find_morpology(neuron_id=neuron_id)
+        new_param_key, new_morph_key, new_path, new_morph_path, _, _ = self.find_morpology(neuron_id=neuron_id)
 
         if (old_param_key, old_morph_key, old_path) in self.section_lookup:
             # We already have the morphology in the section_lookup

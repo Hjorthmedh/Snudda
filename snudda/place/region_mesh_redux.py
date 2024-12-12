@@ -153,6 +153,16 @@ class NeuronPlacer:
         putative_points = self.remove_close_neurons(putative_points)
         putative_points = self.remove_outside(putative_points)
 
+        if putative_points.shape[0] < 0.05 * n_putative_points:
+            print(f"Managed to create {putative_points.shape[0]} putative points within the volume.\n"
+                  f"  WARNING --> is the volume too small? You can create new cube mesh using create_cube_mesh.py\n\n"
+                  f"Example how to use create_cube_mesh.py:\n"
+                  f"from snudda.place.create_cube_mesh import create_cube_mesh\n"
+                  f"create_cube_mesh(file_name='your_cube_mesh_name.obj', \n"
+                  f"                 centre_point=(0,0,0), side_len=300e-6,\n"
+                  f"                 description='Adjust side_len to get correct neuron density')\n"
+                  )
+
         self.putative_points = putative_points
         self.allocated_points = np.zeros(shape=(putative_points.shape[0],), dtype=bool)
 

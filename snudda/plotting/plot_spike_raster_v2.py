@@ -265,6 +265,7 @@ class SnuddaPlotSpikeRaster2:
 
         print(f"Writing figure to {fig_file}")
         plt.tight_layout()
+        self.make_figures_directory()
         plt.savefig(fig_file, dpi=300)
 
         plt.ion()
@@ -297,15 +298,15 @@ class SnuddaPlotSpikeRaster2:
         return vs
 
     def plot_spike_histogram_type(self, neuron_type, time_range=None, bin_size=50e-3, fig_size=None,
-                                  fig_file=None, label_text=None, show_figure=True, n_core=None, linestyle="-",
-                                  legend_loc="best", ax=None):
+                                  fig_file=None, label_text=None, show_figure=True, n_core=None,
+                                  linestyle="-", line_colours=None, linewidth=3,
+                                  legend_loc="best", bbox_anchor=None, ax=None):
 
         self.make_figures_directory()
 
         plt.rcParams.update({'font.size': 24,
                              'xtick.labelsize': 20,
-                             'ytick.labelsize': 20,
-                             'legend.loc': legend_loc})
+                             'ytick.labelsize': 20})
 
         assert type(neuron_type) == list, "neuron_type should be a list of neuron types"
 
@@ -336,16 +337,29 @@ class SnuddaPlotSpikeRaster2:
             fig = plt.figure(figsize=fig_size)
             ax = fig.add_subplot()
 
-        ax.hist(x=all_spikes.values(), bins=bins, weights=weights, linewidth=3, linestyle=linestyle,
-                histtype="step", color=[self.get_colours(x) for x in all_spikes.keys()],
-                label=[f"{label_text}{x}" for x in all_spikes.keys()])
+        if len(all_spikes.keys()) > 1:
+            all_labels = [f"{label_text}{x}" for x in all_spikes.keys()]
+        else:
+            all_labels = [label_text]
+
+        if line_colours is None:
+            line_colours = [self.get_colours(x) for x in all_spikes.keys()]
+
+        ax.hist(x=all_spikes.values(), bins=bins, weights=weights, linewidth=linewidth, linestyle=linestyle,
+                histtype="step", color=line_colours,
+                label=all_labels)
+
         plt.xlabel("Time (s)", fontsize=20)
         plt.ylabel("Frequency (Hz)", fontsize=20)
-        ax.legend()
+        ax.legend(loc=legend_loc, bbox_to_anchor=bbox_anchor)
+
+        plt.tight_layout()
 
         if fig_file:
             fig_path = os.path.join(self.figure_path, fig_file)
             print(f"Writing figure {fig_path}")
+            self.make_figures_directory()
+
             plt.savefig(fig_path)
 
         if show_figure:
@@ -357,7 +371,7 @@ class SnuddaPlotSpikeRaster2:
     def plot_spike_histogram(self, population_id=None, neuron_type=None,
                              skip_time=0, end_time=None, fig_size=None, bin_size=50e-3,
                              fig_file=None, ax=None, label_text=None, show_figure=True, save_figure=True, colour=None,
-                             linestyle="-", legend_loc="best", title=None):
+                             linestyle="-", legend_loc="best", title=None, bbox_anchor=None):
 
         if population_id is None:
             population_id = self.snudda_load.get_neuron_population_units(return_set=True)
@@ -379,8 +393,8 @@ class SnuddaPlotSpikeRaster2:
 
         plt.rcParams.update({'font.size': 24,
                              'xtick.labelsize': 20,
-                             'ytick.labelsize': 20,
-                             'legend.loc': legend_loc})
+                             'ytick.labelsize': 20},
+                            )
 
         if ax is None:
             fig = plt.figure(figsize=fig_size)
@@ -421,7 +435,7 @@ class SnuddaPlotSpikeRaster2:
 
         if label_text is None:
             label_text = ""
-            
+
         N, bins, patches = ax.hist(x=pop_spikes.values(), bins=bins, weights=weights, linewidth=3, linestyle=linestyle,
                                    histtype="step", color=colour,
                                    label=[f"{label_text}{x}" for x in pop_spikes.keys()])
@@ -432,20 +446,22 @@ class SnuddaPlotSpikeRaster2:
 
         plt.xlabel("Time (s)", fontsize=20)
         plt.ylabel("Frequency (Hz)", fontsize=20)
-        ax.legend()
+        ax.legend(loc=legend_loc, bbox_to_anchor=bbox_anchor)
 
         if title:
             plt.title(title)
 
         if fig_file is None:
             fig_file = os.path.join(self.figure_path,
-                                    f"spike-frequency-pop-units{'-'.join([f'{x}' for x in pop_members.keys()])}.pdf")
+                                    f"spike-frequency-pop-units{'-'.join([f'{x}' for x in pop_members.keys()])}.png")
         else:
             fig_file = os.path.join(self.figure_path, fig_file)
 
         if save_figure:
             print(f"Saving figure {fig_file}")
             plt.tight_layout()
+            self.make_figures_directory()
+
             plt.savefig(fig_file, dpi=300)
 
         if show_figure:
@@ -511,6 +527,8 @@ class SnuddaPlotSpikeRaster2:
             fig_file = os.path.join(self.figure_path, fig_file)
 
         if save_figure:
+            self.make_figures_directory()
+
             print(f"Saving figure {fig_file}")
             plt.tight_layout()
             plt.savefig(fig_file, dpi=300)
@@ -522,7 +540,7 @@ class SnuddaPlotSpikeRaster2:
         return ax
 
     def plot_spike_raster(self, type_order=None, skip_time=0, end_time=None, fig_size=None, fig_file=None,
-                          time_range=None):
+                          time_range=None, title=None):
 
         self.make_figures_directory()
 
@@ -614,16 +632,20 @@ class SnuddaPlotSpikeRaster2:
         if fig_file is None:
             fig_file = "spike_raster.pdf"
 
+        if title is not None:
+            ax.set_title(title)
+
         fig_file = os.path.join(self.figure_path, fig_file)
 
         print(f"Saving figure to {fig_file}")
         plt.tight_layout()
+        self.make_figures_directory()
         plt.savefig(fig_file, dpi=300)
 
         plt.ion()
         plt.show()
 
-    def plot_firing_frequency_distribution(self, time_range=None, figure_name=None, bins=20):
+    def plot_firing_frequency_distribution(self, time_range=None, figure_name=None, bins=20, title=None):
 
         neuron_types = self.snudda_load.get_neuron_types(return_set=True)
 
@@ -643,6 +665,10 @@ class SnuddaPlotSpikeRaster2:
                         / (time_range[1] - time_range[0])
                         for s in spikes.values()]
 
+            if not isinstance(bins, int):
+                if np.max(freq) > max(bins):
+                    raise ValueError(f"Max frequency {np.max(freq)} larger than bin range specified {max(bins)}.")
+
             colour = SnuddaPlotSpikeRaster2.get_colours(nt)
             count, bin = np.histogram(freq, bins=bins)
             plt.stairs(count, bin, label=nt, color=colour, linewidth=3)
@@ -651,11 +677,18 @@ class SnuddaPlotSpikeRaster2:
         plt.xlabel("Frequency (Hz)")
         plt.ylabel("Count")
 
-        plt.ion()
-        plt.show()
+        if title is not None:
+            plt.title(title)
+
+        plt.tight_layout()
 
         if figure_name is not None:
+            self.make_figures_directory()
+
             plt.savefig(os.path.join(self.figure_path, figure_name))
+
+        plt.ion()
+        plt.show()
 
     def plot_population_frequency(self, population_id, time_ranges=None):
 

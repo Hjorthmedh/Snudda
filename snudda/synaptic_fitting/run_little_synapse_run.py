@@ -160,7 +160,7 @@ class RunLittleSynapseRun(object):
         # Remove VClamp
         self.v_clamp = None
 
-        self.i_clamp = neuron.h.i_clamp(self.soma(0.5))
+        self.i_clamp = neuron.h.IClamp(self.soma(0.5))
         self.i_clamp.amp = cur  # nA
         self.i_clamp.dur = 2 * self.time * 1e3
 
@@ -248,9 +248,9 @@ class RunLittleSynapseRun(object):
         # Convert from SI units to natural units that Neuron uses
         self.nc_syn.weight[0] = 1 * cond * 1e6
         self.little_synapse.tau = tau * 1e3
-        self.little_synapse.tau_r = tau_r * 1e3
-        self.little_synapse.tau_f = tau_f * 1e3
-        self.little_synapse.u = u
+        self.little_synapse.tauR = tau_r * 1e3
+        self.little_synapse.tauF = tau_f * 1e3
+        self.little_synapse.U = u
 
         # print(self.littleSynapse.tau)
 

@@ -1,0 +1,6 @@
+!!SBtab	SBtabVersion='1.0' Document='Nair_2016_optimized' TableName='Constant' TableTitle='Constant' TableType = 'Constant'		
+!ID	!Name	!Value	!Unit
+C0	tau_DA1	34.979	millisecond
+C1	tau_DA2	420	millisecond
+C2	DA_basal	20	nanomole/liter
+C3	Ca_basal	60	nanomole/liter
