@@ -395,18 +395,22 @@ class InputTuning(object):
 
             # Check if spike frequency is too low, if so give image a different name
 
+            move_bad = False
+
             if depol_block:
                 label = f"signal-{requested_frequency}-Hz-BLOCKED"
+                move_bad = True
             else:
                 label = f"signal-{requested_frequency}-Hz"
 
             if np.max(spike_count_mean) < requested_spikes:
                 label = f"{label}-TOO-LOW-FREQ"
+                move_bad = True
 
             self.plot_signal_info(neuron_id=neuron_id, neuron_info=neuron_info, best_config=best_config,
                                   spike_count=spike_count, input_config=input_config, max_time=np.max(time),
                                   requested_frequency=requested_frequency, depol_block_flag=depol_block_flag,
-                                  label=label, show_plot=show_plot)
+                                  label=label, show_plot=show_plot, move_bad=move_bad)
 
         for name in bad_neuron_list:
             print(f"Found early depolarisation block: {name}")
@@ -572,15 +576,18 @@ class InputTuning(object):
     def plot_signal_info(self, neuron_id, neuron_info, best_config, spike_count, input_config,
                          max_time, requested_frequency, skip_time=0,
                          label="background-inputs", show_plot=True,
-                         depol_block_flag=None):
+                         depol_block_flag=None, move_bad=False):
 
         import matplotlib.pyplot as plt
 
         n_inputs_total = np.zeros((len(neuron_id),), dtype=int)
         fig_dir = os.path.join(self.network_path, "figures")
 
+        if move_bad:
+            fig_dir = os.path.join(fig_dir, "_BAD")
+
         if not os.path.isdir(fig_dir):
-            os.mkdir(fig_dir)
+            os.makedirs(fig_dir)
 
         fig_name = os.path.join(fig_dir, f"{neuron_info['morphology_key']}-{neuron_info['parameter_key']}-{neuron_info['name']}-{label}.png")
 
@@ -894,7 +901,7 @@ class InputTuning(object):
                                     f"{full_morph_key}-{full_param_key}-{neuron_type}-BAD-trace.png")
 
             if not os.path.exists(os.path.dirname(fig_path)):
-                os.mkdir(os.path.dirname(fig_path))
+                os.makedirs(os.path.dirname(fig_path))
 
             plt.savefig(fig_path, dpi=300)
 

@@ -392,6 +392,10 @@ class OptimisePruning:
 
         self.log_file.close()
 
+        # Clear the cache of OptimisePruning, so people can do other networks in same program
+        if "op" in vars(OptimisePruning):
+            del OptimisePruning.op
+
         return res
 
     @staticmethod
