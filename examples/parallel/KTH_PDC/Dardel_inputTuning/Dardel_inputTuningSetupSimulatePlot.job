@@ -9,6 +9,10 @@ echo "JOB START "`date`
 #Set NETWORK_DIR, PROJECT_DIR, SNUDDA_DATA, and more 
 source setup_env.sh
 
+# This is important, otherwise Snudda import will fail
+unset DISPLAY
+
+
 # Synapse file
 SNUDDA_DIR=$PROJECT_DIR/Snudda/snudda
 echo "Project directory is = $SNUDDA_DIR"

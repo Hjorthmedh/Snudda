@@ -15,6 +15,9 @@ module load snic-env
 
 ulimit -s unlimited
 
+# This is important, otherwise Snudda import will fail
+unset DISPLAY
+
 
 #let NWORKERS="$SLURM_NTASKS-2"
 let NWORKERS="100"

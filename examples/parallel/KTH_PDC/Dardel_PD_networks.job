@@ -11,6 +11,9 @@
 
 module load snic-env
 
+# This is important, otherwise Snudda import will fail
+unset DISPLAY
+
 export IPYTHONDIR="/cfs/klemming/scratch/${USER:0:1}/$USER/.ipython"
 rm -r $IPYTHONDIR
 export IPYTHON_PROFILE=default

@@ -11,6 +11,10 @@
 
 # --- Tegner has 24 cores per node
 
+# This is important, otherwise Snudda import will fail
+unset DISPLAY
+
+
 # Run projinfo if you need to see which project for the allocation
 
 module load snic-env

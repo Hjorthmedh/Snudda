@@ -13,6 +13,10 @@
 # push to the stack somewhere in the neuron code)
 let N_WORKERS="$SLURM_NNODES * 32"
 
+# This is important, otherwise Snudda import will fail
+unset DISPLAY
+
+
 HOME=/cfs/klemming/nobackup/"${USER:0:1}"/$USER/Snudda
 
 # If the BasalGangliaData directory exists, then use that for our data

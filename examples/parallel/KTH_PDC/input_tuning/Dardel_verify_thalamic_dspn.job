@@ -14,6 +14,10 @@
 export SNUDDA_TUNE_NEURON="dspn"
 export INPUT_TYPE="thalamic"
 
+# This is important, otherwise Snudda import will fail
+unset DISPLAY
+
+
 # You need to point this as the directory where you created the network in
 #NETWORK_DIR=/cfs/klemming/home/${USER:0:1}/$USER/Snudda/examples/parallel/KTH_PDC/networks/test_10k
 NETWORK_DIR=networks/verify_input_${SNUDDA_TUNE_NEURON}_${INPUT_TYPE}

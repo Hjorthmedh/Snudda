@@ -15,6 +15,10 @@ rm -r $IPYTHONDIR
 export IPYTHON_PROFILE=mpi
 source ../../../../../snudda_env/bin/activate
 
+# This is important, otherwise Snudda import will fail
+unset DISPLAY
+
+
 chmod +x Beskow_runSnudda.sh
 #./Beskow_runSnudda.sh PD0
 #./Beskow_runSnudda.sh PD1

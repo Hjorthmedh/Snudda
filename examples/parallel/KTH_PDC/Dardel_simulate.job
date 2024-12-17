@@ -15,6 +15,9 @@ NETWORK_DIR=/cfs/klemming/home/${USER:0:1}/$USER/Snudda/examples/parallel/KTH_PD
 
 export N_WORKERS=$SLURM_NTASKS
 
+# This is important, otherwise Snudda import will fail
+unset DISPLAY
+
 module load snic-env
 source $HOME/Snudda/snudda_env/bin/activate
 SNUDDA_DIR=/cfs/klemming/home/"${USER:0:1}"/$USER/Snudda

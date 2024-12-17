@@ -10,6 +10,10 @@
 #SBATCH --tasks-per-node=50
 #SBATCH --mail-type=ALL
 
+# This is important, otherwise Snudda import will fail
+unset DISPLAY
+
+
 # 2024-02-16: 40 cores per node worked, had 28% free... trying increasing to 45 cores per node
 # 2024-02-18: Increasing back up to 128 cores. Memory free is probably more
 #             dependent on total number of nodes allocated
