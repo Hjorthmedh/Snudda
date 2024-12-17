@@ -6,7 +6,7 @@
 #SBATCH --time-min=2:59:00
 #SBATCH -J InputTuning
 #SBATCH -A naiss2024-5-306
-#SBATCH --nodes=4
+#SBATCH --nodes=16-20
 #SBATCH --tasks-per-node=128
 #SBATCH --mem-per-cpu=930M
 #SBATCH --mail-type=ALL

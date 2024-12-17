@@ -2,7 +2,7 @@
 #SBATCH --partition=main
 #SBATCH -o log/Simulate-%j-output.txt
 #SBATCH -e log/Simulate-%j-error.txt
-#SBATCH -t 0:59:00
+#SBATCH -t 1:59:00
 #SBATCH --time-min=0:59:00
 #SBATCH -J Simulate
 #SBATCH -A naiss2024-5-306
