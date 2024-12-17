@@ -18,6 +18,10 @@ SNUDDA_DIR=/cfs/klemming/home/"${USER:0:1}"/$USER/Snudda
 
 export SNUDDA_DATA="/cfs/klemming/home/${USER:0:1}/$USER/BasalGangliaData/data"
 
+# This is important, otherwise Snudda import will fail
+unset DISPLAY
+
+
 # Create the network
 
 export N_WORKERS=$SLURM_NTASKS

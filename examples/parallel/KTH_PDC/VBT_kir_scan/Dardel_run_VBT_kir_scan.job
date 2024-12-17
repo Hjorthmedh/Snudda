@@ -11,6 +11,10 @@
 #SBATCH --mem-per-cpu=930M
 #SBATCH --mail-type=ALL
 
+# This is important, otherwise Snudda import will fail
+unset DISPLAY
+
+
 NETWORK_PATH=networks/VBT_kir_scan
 SIM_TIME=10
 

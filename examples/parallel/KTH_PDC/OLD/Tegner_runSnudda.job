@@ -12,6 +12,10 @@
 
 # Run projinfo if you need to see which project for the allocation
 
+# This is important, otherwise Snudda import will fail
+unset DISPLAY
+
+
 module load snic-env
 L=/cfs/klemming/nobackup/${USER:0:1}/$USER/local/$SNIC_RESOURCE
 

@@ -17,6 +17,9 @@ export OMP_NUM_THREADS=1
 let NWORKERS="$SLURM_NTASKS-1"
 export IPNWORKERS=$NWORKERS
 
+# This is important, otherwise Snudda import will fail
+unset DISPLAY
+
 
 export IPYTHONDIR="/cfs/klemming/scratch/${USER:0:1}/$USER/.ipython"
 rm -r $IPYTHONDIR

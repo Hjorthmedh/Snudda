@@ -17,6 +17,9 @@ NETWORK_DIR=../networks/lateral_twopop
 NETWORK_WITH_SYNAPSES_OUTPUT=$NETWORK_DIR/simulations/output-with-synapses-12Hz.hdf5
 NETWORK_NO_SYNAPSES_OUTPUT=$NETWORK_DIR/simulations/output-no-synapses-12Hz.hdf5
 
+# This is important, otherwise Snudda import will fail
+unset DISPLAY
+
 
 export N_WORKERS=$SLURM_NTASKS
 
