@@ -298,7 +298,6 @@ class NeuronModel(ephys.models.CellModel):
     ##############################################################################
 
     # Helper function
-
     def define_morphology(self, replace_axon=True, morph_file=None,
                           replace_axon_length=60e-6,
                           replace_axon_nseg_frequency=40e-6,
@@ -314,9 +313,15 @@ class NeuronModel(ephys.models.CellModel):
 
         assert (morph_file is not None)
 
+        if replace_axon_length is not None:
+            replace_axon_length *= 1e6  # Convert to micrometers
+
+        if replace_axon_nseg_frequency is not None:
+            replace_axon_nseg_frequency *= 1e6  # Convert to micrometers
+
         return ephys.morphologies.NrnFileMorphology(morph_file, do_replace_axon=replace_axon,
-                                                    axon_stub_length=replace_axon_length*1e6,
-                                                    axon_nseg_frequency=replace_axon_nseg_frequency*1e6,
+                                                    axon_stub_length=replace_axon_length,
+                                                    axon_nseg_frequency=replace_axon_nseg_frequency,
                                                     replace_axon_hoc=replace_axon_hoc)
 
     ##############################################################################

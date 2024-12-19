@@ -759,6 +759,10 @@ class SnuddaSimulate(object):
                                                                                     axon_diameter=axon_diameter,
                                                                                     axon_nseg=axon_nseg)
 
+                                # We already have the replace_axon_hoc, clear these variables
+                                axon_length = None
+                                axon_nseg_frequency = None
+
                                 print(f"Using legacy replace axon hoc for neuron "
                                       f"{self.network_info['neurons'][ID]['name']} {ID}, "
                                       f"{axon_length = }, {axon_diameter}, {axon_nseg = }")
