@@ -746,12 +746,13 @@ class SnuddaSimulate(object):
                             axon_nseg_frequency = replace_info.get("axon_nseg_frequency", 40e-6)
 
                             if "axon_diameter" in meta_data[meta_parameter_key][meta_morphology_key]:
-                                axon_diameter = meta_data[meta_parameter_key][meta_morphology_key]["axon_diameter"]
+                                axon_diameter = np.array(meta_data[meta_parameter_key][meta_morphology_key]["axon_diameter"])
+                                axon_length = np.array(axon_length)
 
                                 if "axon_nseg" in meta_data[meta_parameter_key][meta_morphology_key]:
-                                    axon_nseg = meta_data[meta_parameter_key][meta_morphology_key]["axon_nseg"]
+                                    axon_nseg = np.array(meta_data[meta_parameter_key][meta_morphology_key]["axon_nseg"])
                                 else:
-                                    axon_nseg = [1]*len(axon_diameter)
+                                    axon_nseg = np.array([1]*len(axon_diameter))
 
                                 # We need to use the old legacy code
                                 replace_axon_hoc = NeuronModel.get_replacement_axon(axon_length=axon_length,
