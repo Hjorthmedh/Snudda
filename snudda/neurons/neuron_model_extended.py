@@ -34,7 +34,8 @@ class NeuronModel(ephys.models.CellModel):
                  modulation_key=None,
                  use_rxd_neuromodulation=True,
                  replace_axon_length=60e-6,
-                 replace_axon_nseg_frequency=40e-6):
+                 replace_axon_nseg_frequency=40e-6,
+                 replace_axon_hoc=None):
 
         """
         Constructor
@@ -52,7 +53,7 @@ class NeuronModel(ephys.models.CellModel):
             parameter_key (str): parameter key for lookup in parameter.json
             morphology_key (str): morphology key, together with parameter_key lookup in meta.json
             modulation_key (str): modulation key, lookup in modulation.json
-
+            replace_axon_hoc (str): replacement axon, hoc format
         """
 
         # OBS, modulation_id is not used. morphology_id, parameter_id and modulation_id will be deprecated
@@ -105,7 +106,8 @@ class NeuronModel(ephys.models.CellModel):
 
         morph = self.define_morphology(replace_axon=True, morph_file=morph_file,
                                        replace_axon_length=replace_axon_length,
-                                       replace_axon_nseg_frequency=replace_axon_nseg_frequency)
+                                       replace_axon_nseg_frequency=replace_axon_nseg_frequency,
+                                       replace_axon_hoc=replace_axon_hoc)
 
         mechs = self.define_mechanisms(mechanism_config=mech_file)
         params = self.define_parameters(param_file, parameter_id, parameter_key)
@@ -299,20 +301,23 @@ class NeuronModel(ephys.models.CellModel):
 
     def define_morphology(self, replace_axon=True, morph_file=None,
                           replace_axon_length=60e-6,
-                          replace_axon_nseg_frequency=40e-6):   # This only supported by hoc replacement
+                          replace_axon_nseg_frequency=40e-6,
+                          replace_axon_hoc=None):   # This only supported by hoc replacement
         """
         Define morphology. Handles SWC and ASC.
 
         Args:
             replace_axon (bool): Is axon replaced with a stump for simulation, default True
             morph_file (str): Path to morphology
+            replace_axon_hoc (str): Override the axon hoc
         """
 
         assert (morph_file is not None)
 
         return ephys.morphologies.NrnFileMorphology(morph_file, do_replace_axon=replace_axon,
                                                     axon_stub_length=replace_axon_length*1e6,
-                                                    axon_nseg_frequency=replace_axon_nseg_frequency*1e6)
+                                                    axon_nseg_frequency=replace_axon_nseg_frequency*1e6,
+                                                    replace_axon_hoc=replace_axon_hoc)
 
     ##############################################################################
 
@@ -471,9 +476,11 @@ class NeuronModel(ephys.models.CellModel):
 
     ############################################################################
 
-    def get_replacement_axon(self, axon_length=60e-6, axon_diameter=None, axon_nseg=None):
+    @staticmethod
+    def get_replacement_axon(axon_length=60e-6, axon_diameter=None, axon_nseg=None):
 
-        raise DeprecationWarning("This function is now orphaned. Might need to re-update it if we switch to using hoc")
+        # Legacy code is now used again
+        # raise DeprecationWarning("This function is now orphaned. Might need to re-update it if we switch to using hoc")
 
         """
             If axon_length is given as a scalar, then the code is similar to the BluePyOpt hoc, with the modification
