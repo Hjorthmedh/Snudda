@@ -175,6 +175,7 @@ class SnuddaSimulate(object):
                     self.sim_info = json.load(f, object_pairs_hook=OrderedDict)
             else:
                 print(f"Unable to find simulation_config file: {simulation_config}")
+                import sys
                 sys.exit(-1)
 
             if "log_file" in self.sim_info:
