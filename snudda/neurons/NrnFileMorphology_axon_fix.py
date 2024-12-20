@@ -46,7 +46,7 @@ class NrnFileMorphology_axon_fix(ephys.morphologies.NrnFileMorphology):
         # Create new axon array
         sim.neuron.h.execute(f"create axon[{len(self.axon_length)}]", icell)
 
-        for index, (section, ax_len, ax_dia) in enumerate(zip(icell.axon, self.axon_length, self.axon.diameter)):
+        for index, (section, ax_len, ax_dia) in enumerate(zip(icell.axon, self.axon_length, self.axon_diameter)):
             section.L = ax_len * 1e6  # Convert to micrometers
             section.nseg = 1 + 2 * int(section.L / self.axon_nseg_frequency)
             section.diam = ax_dia * 1e6  # Convert to micrometers
