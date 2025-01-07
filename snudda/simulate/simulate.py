@@ -742,6 +742,8 @@ class SnuddaSimulate(object):
                     if meta_morphology_key in meta_data[meta_parameter_key]:
                         if "axon_stump" in meta_data[meta_parameter_key][meta_morphology_key]:
                             replace_info = meta_data[meta_parameter_key][meta_morphology_key]["axon_stump"]
+                            # axon_length is normally a scalar, but if axon_diameter given
+                            # then axon_length must also be a list
                             axon_length = replace_info.get("axon_length", 60e-6)
                             axon_nseg_frequency = replace_info.get("axon_nseg_frequency", 40e-6)
 

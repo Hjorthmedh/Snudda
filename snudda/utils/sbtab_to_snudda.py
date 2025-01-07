@@ -134,8 +134,7 @@ class ReadSBtab:
                 raise KeyError(f"Unable to find exactly one line for reaction {reaction_name} "
                                f"in {self.reactions_filename} (found {len(reaction_row)})")
 
-            kinetic_law = reaction_row["!KineticLaw"][0]
-
+            kinetic_law = reaction_row["!KineticLaw"].iloc[0]
             reaction_components = None
 
             for part_kinetic in kinetic_law.split("-"):
@@ -171,11 +170,6 @@ class ReadSBtab:
                     original_unit_str += " * "
                     target_unit_str += " * "
 
-                import pdb
-                pdb.set_trace()
-
-                # TODO: 2024-12-06, verify unit scaling for k_f and k_r
-
                 original_unit_str += f"({compound_row['!Unit'].iloc[0]})"
                 target_unit_str += f"({self.default_concentration_unit})"
 
@@ -189,31 +183,16 @@ class ReadSBtab:
             original_unit = pq.CompoundUnit(original_unit_str)
             target_unit = pq.CompoundUnit(target_unit_str)
 
-            scale = original_unit.rescale(target_unit)
+            scale = float(original_unit.rescale(target_unit).base)
 
-            # We need to convert to SI units...
+            print(f"{original_unit_str = }, {target_unit_str = }, {scale = }")
 
-            # scale = row["!Scale"]
-
-            # Vi behöver ta hänsyn till om det är log10 eller annan skala, eller använda linjära värdet -- vilket är bäst?
-            # Hämta ut K_forward, K_backwards (om det finns), spara i self.parameters
-            # Vi vet vilket namn den har från !ID:et
-
-            # 2024-11-25:
-            # Vi behöver veta antalet reaktanter i !ReactionFormula (per rad), för att ta fram målenheten
-            # A + 2 B, dels för vänsterledet (kf_XXX) och för högerledet (kr_xxx)
-            #
-            # Vi använder pq.UnitQuantity (se parse)
-            # -- ev använd rexexp för detta?
-
-            # TODO: Continue here!!
-
-            self.parameters[parameter_name] = parameter_value * scale
-
-            import pdb
-            pdb.set_trace()
-
-        pass
+            try:
+                self.parameters[parameter_name] = parameter_value * scale
+            except Exception as e:
+                print(e)
+                import pdb
+                pdb.set_trace()
 
     def _get_rates(self, rate_str):
         split_str = rate_str.split("-")
