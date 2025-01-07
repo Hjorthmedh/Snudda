@@ -91,7 +91,10 @@ class ReadSBtab:
         nmol_unit = self.unit_dict["nmol_unit"]
         nM_unit = self.unit_dict["nM_unit"]
 
-        conc_unit = nM_unit
+        # conc_unit = nM_unit
+        conc_unit = pq.M
+
+        # TODO: Should UNITS be nano Molar or Molar?
 
         for row_idx, row in self.compounds_data.iterrows():
 
@@ -111,13 +114,30 @@ class ReadSBtab:
             self.data["species"][species_name] = species_data
             original_sbtab_units[species_name] = species_unit.symbol 
 
-        self.get_parameters()  # TODO, not finished yet!
+        self.get_parameters()
 
         for row_idx, row in self.reactions_data.iterrows():
             reaction_name = row["!Name"]
+            reactants, products = row["!ReactionFormula"].split("<=>")
+            kinetic_law = row["!KineticLaw"].split("-")
 
-            import pdb
-            pdb.set_trace()
+            param_name_forward = kinetic_law[0].split("*")[0]
+            forward_rate = self.parameters[param_name_forward]
+
+            if len(kinetic_law) == 2:
+                param_name_backward = kinetic_law[1].split("*")[0]
+                backward_rate = self.parameters[param_name_backward]
+            else:
+                backward_rate = None
+
+            # TODO: Allow user to specify regions
+            reaction_info = {"reactants": reactants,
+                             "products": products,
+                             "forward_rate": forward_rate,
+                             "backward_rate": backward_rate,
+                             "regions": ["soma_internal", "dend_internal"]}
+
+            self.data["reactions"][reaction_name] = reaction_info
 
     def get_parameters(self):
 
@@ -189,8 +209,9 @@ class ReadSBtab:
 
             try:
                 self.parameters[parameter_name] = parameter_value * scale
-            except Exception as e:
-                print(e)
+            except:
+                import traceback
+                print(traceback.format_exc())
                 import pdb
                 pdb.set_trace()
 
@@ -198,7 +219,6 @@ class ReadSBtab:
         split_str = rate_str.split("-")
         if len(split_str) == 1:
             forward_rate_name = split_str.split("*")[0]
-
 
     def write(self, out_file=None):
 
@@ -239,6 +259,7 @@ def cli():
                    out_filename=args.json_file)
 
     rs.parse()
+    rs.write(args.json_file)
 
 
 if __name__ == "__main__":
