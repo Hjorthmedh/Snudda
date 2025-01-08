@@ -119,25 +119,42 @@ class ReadSBtab:
         for row_idx, row in self.reactions_data.iterrows():
             reaction_name = row["!Name"]
             reactants, products = row["!ReactionFormula"].split("<=>")
+            reactants = self._format_component_str(reactants)
+            products = self._format_component_str(products)
             kinetic_law = row["!KineticLaw"].split("-")
 
             param_name_forward = kinetic_law[0].split("*")[0]
-            forward_rate = self.parameters[param_name_forward]
+            forward_rate = self.parameters[param_name_forward]["value"]
+            forward_unit = self.parameters[param_name_forward]["unit"]
 
             if len(kinetic_law) == 2:
                 param_name_backward = kinetic_law[1].split("*")[0]
-                backward_rate = self.parameters[param_name_backward]
+                backward_rate = self.parameters[param_name_backward]["value"]
+                backward_unit = self.parameters[param_name_backward]["unit"]
             else:
                 backward_rate = None
+                backward_unit = None
 
             # TODO: Allow user to specify regions
             reaction_info = {"reactants": reactants,
                              "products": products,
                              "forward_rate": forward_rate,
                              "backward_rate": backward_rate,
+                             "forward_rate_unit": forward_unit,
+                             "backward_rate_unit": backward_unit,
                              "regions": ["soma_internal", "dend_internal"]}
 
             self.data["reactions"][reaction_name] = reaction_info
+
+    def _format_component_str(self, component_str):
+
+        new_str = ""
+        for comp in component_str.strip().split(" "):
+            new_str += f" {comp}"
+            if comp.isdigit():
+                new_str += " *"
+
+        return new_str
 
     def get_parameters(self):
 
@@ -168,34 +185,9 @@ class ReadSBtab:
                 raise KeyError(f"Unable to find reaction {parameter_name}, we assume "
                                f"it is before compounds in {self.reactions_filename} column !KineticLaw")
 
-            original_unit_str = ""
-            target_unit_str = ""
-
-            # Next we replace components with their units, and use the quantities library to calculate conversion factor
-            for rc in reaction_components:
-                rc_name = rc.split("^")[0]
-
-                try:
-                    compound_row = self.compounds_data[self.compounds_data["!Name"] == rc_name]
-                except:
-                    import traceback
-                    print(traceback.format_exc())
-                    import pdb
-                    pdb.set_trace()
-
-                if len(compound_row) != 1:
-                    raise KeyError(f"The compound {rc_name} does not appear on a unique row in {self.compounds_filename}")
-
-                if original_unit_str != "":
-                    original_unit_str += " * "
-                    target_unit_str += " * "
-
-                original_unit_str += f"({compound_row['!Unit'].iloc[0]})"
-                target_unit_str += f"({self.default_concentration_unit})"
-
-                if "^" in rc:
-                    original_unit_str += f"^{rc.split('^')[1]}"
-                    target_unit_str += f"^{rc.split('^')[1]}"
+            original_unit_str = row["!Unit"]
+            target_unit_str = original_unit_str.replace("milli", "").replace("nano", "")\
+                .replace("pico", "").replace("femto", "")
 
             nmol_unit = self.unit_dict["nmol_unit"]
             nM_unit = self.unit_dict["nM_unit"]
@@ -208,7 +200,7 @@ class ReadSBtab:
             print(f"{original_unit_str = }, {target_unit_str = }, {scale = }")
 
             try:
-                self.parameters[parameter_name] = parameter_value * scale
+                self.parameters[parameter_name] = {"value": parameter_value * scale, "unit": target_unit_str}
             except:
                 import traceback
                 print(traceback.format_exc())
