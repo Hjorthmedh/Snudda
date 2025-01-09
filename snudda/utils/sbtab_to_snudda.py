@@ -123,12 +123,12 @@ class ReadSBtab:
             products = self._format_component_str(products)
             kinetic_law = row["!KineticLaw"].split("-")
 
-            param_name_forward = kinetic_law[0].split("*")[0]
+            param_name_forward = kinetic_law[0].split("*")[0].strip()
             forward_rate = self.parameters[param_name_forward]["value"]
             forward_unit = self.parameters[param_name_forward]["unit"]
 
             if len(kinetic_law) == 2:
-                param_name_backward = kinetic_law[1].split("*")[0]
+                param_name_backward = kinetic_law[1].split("*")[0].strip()
                 backward_rate = self.parameters[param_name_backward]["value"]
                 backward_unit = self.parameters[param_name_backward]["unit"]
             else:
@@ -163,27 +163,30 @@ class ReadSBtab:
             parameter_value = row["!Value:linspace"]
 
             # We assume that reaction name kf_R0, kr_R0 are related to R0 reaction.
-            reaction_name = row["!Name"].split("_")[-1]
+            #reaction_name = row["!Name"].split("_")[-1]
 
-            reaction_row = self.reactions_data[self.reactions_data["!ID"] == reaction_name]
+            #reaction_row = self.reactions_data[self.reactions_data["!ID"] == reaction_name]
 
-            if len(reaction_row) != 1:
-                raise KeyError(f"Unable to find exactly one line for reaction {reaction_name} "
-                               f"in {self.reactions_filename} (found {len(reaction_row)})")
+            #if len(reaction_row) != 1:
+            #    raise KeyError(f"Unable to find exactly one line for reaction {reaction_name} "
+            #                   f"in {self.reactions_filename} (found {len(reaction_row)})")
 
-            kinetic_law = reaction_row["!KineticLaw"].iloc[0]
-            reaction_components = None
+            # kinetic_law = reaction_row["!KineticLaw"].iloc[0]
+            #reaction_components = None
 
-            for part_kinetic in kinetic_law.split("-"):
-                reaction_parts = part_kinetic.split("*")
-
-                # Hidden assumption, the reaction rate is before components
-                if parameter_name in reaction_parts[0]:
-                    reaction_components = reaction_parts[1:]
-
-            if reaction_components is None:
-                raise KeyError(f"Unable to find reaction {parameter_name}, we assume "
-                               f"it is before compounds in {self.reactions_filename} column !KineticLaw")
+            #for part_kinetic in kinetic_law.split("-"):
+            #    reaction_parts = part_kinetic.split("*")
+#
+            #    # Hidden assumption, the reaction rate is before components
+            #    if parameter_name in reaction_parts[0]:
+            #        reaction_components = reaction_parts[1:]
+#
+            # if reaction_components is None:
+            #     import pdb; pdb.set_trace()
+            #     raise KeyError(f"Unable to find reaction {parameter_name}, we assume "
+            #                    f"it is before compounds in {self.reactions_filename} column !KineticLaw "
+            #                    f"({kinetic_law = })"
+            #                    )
 
             original_unit_str = row["!Unit"]
             target_unit_str = original_unit_str.replace("milli", "").replace("nano", "")\
