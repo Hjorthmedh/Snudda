@@ -142,6 +142,7 @@ class SnuddaSimulate(object):
         self.last_sim_report_time = 0
         self.sample_dt = sample_dt  # None means all values, 0.0005 means 0.5ms time resolution in saved files
         self.sim_dt = 0.025
+        self.use_cvode = False
 
         self.pc = h.ParallelContext()
 
@@ -203,6 +204,11 @@ class SnuddaSimulate(object):
             if "output_file" in self.sim_info:
                 self.output_file = self.sim_info["output_file"]
                 self.write_log(f"Output file: {self.output_file}")
+
+            if "use_cvode" in self.sim_info:
+                self.use_cvode = self.sim_info["use_cvode"]
+                if self.use_cvode:
+                    print(f"Using CVODE for NEURON simulation")
 
             if "sim_dt" in self.sim_info:
                 self.sim_dt = self.sim_info["sim_dt"] * 1e3  # OBS, converted to ms for NEURON
@@ -663,7 +669,7 @@ class SnuddaSimulate(object):
 
         self.write_log("Setup neurons")
 
-        self.sim = NrnSimulatorParallel(cvode_active=False)
+        self.sim = NrnSimulatorParallel(cvode_active=self.use_cvode)
 
         # We need to load all the synapse parameters
         self.load_synapse_parameters()
