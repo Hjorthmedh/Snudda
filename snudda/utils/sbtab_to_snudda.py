@@ -154,7 +154,7 @@ class ReadSBtab:
             if comp.isdigit():
                 new_str += " *"
 
-        return new_str
+        return new_str.strip()
 
     def get_parameters(self):
 

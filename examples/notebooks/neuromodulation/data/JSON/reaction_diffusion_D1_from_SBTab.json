@@ -1,98 +1,98 @@
 {
     "species": {
         "AC5": {
-            "initial_concentration": 2.6535270892155248e-09,
+            "initial_concentration": 7.000000000000002e-07,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 2.6535270892155248e-09,
+            "concentration": 7.000000000000002e-07,
             "boundary_condition": false,
             "unit": "M"
         },
         "AC5_ATP": {
-            "initial_concentration": 6.634835226146569e-07,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 6.634835226146569e-07,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "AC5_Ca": {
-            "initial_concentration": 1.5922343631404194e-11,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.5922343631404194e-11,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "AC5_Ca_ATP": {
-            "initial_concentration": 3.980899954591823e-09,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 3.980899954591823e-09,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "AC5_Ca_GaolfGTP": {
-            "initial_concentration": 7.069968632519444e-13,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 7.069968632519444e-13,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "AC5_Ca_GaolfGTP_ATP": {
-            "initial_concentration": 1.7742100313412797e-10,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.7742100313412797e-10,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "AC5_GaolfGTP": {
-            "initial_concentration": 1.1738995893720593e-10,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.1738995893720593e-10,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "AC5_GaolfGTP_ATP": {
-            "initial_concentration": 2.9570610040625972e-08,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 2.9570610040625972e-08,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
@@ -121,170 +121,170 @@
             "unit": "M"
         },
         "B56PP2A": {
-            "initial_concentration": 9.114516927202488e-07,
+            "initial_concentration": 2.0000000000000003e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 9.114516927202488e-07,
+            "concentration": 2.0000000000000003e-06,
             "boundary_condition": false,
             "unit": "M"
         },
         "B56PP2A_D32p75": {
-            "initial_concentration": 7.555419232276735e-07,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 7.555419232276735e-07,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "B56PP2A_pARPP21": {
-            "initial_concentration": 2.115400010955157e-08,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 2.115400010955157e-08,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "B56PP2Ap": {
-            "initial_concentration": 1.228591130787324e-07,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.228591130787324e-07,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "B56PP2Ap_D32p75": {
-            "initial_concentration": 1.7946333513728434e-07,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.7946333513728434e-07,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "B56PP2Ap_pARPP21": {
-            "initial_concentration": 4.581765400916624e-09,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 4.581765400916624e-09,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "B72PP2A": {
-            "initial_concentration": 9.989724647647074e-07,
+            "initial_concentration": 2.0000000000000003e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 9.989724647647074e-07,
+            "concentration": 2.0000000000000003e-06,
             "boundary_condition": false,
             "unit": "M"
         },
         "B72PP2A_D32p34": {
-            "initial_concentration": 2.2161689899797975e-11,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 2.2161689899797975e-11,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "B72PP2A_D32p75": {
-            "initial_concentration": 8.28091661704002e-07,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 8.28091661704002e-07,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "B72PP2A_pARPP21": {
-            "initial_concentration": 2.318528007561393e-08,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 2.318528007561393e-08,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "B72PP2A_Ca_D32p34": {
-            "initial_concentration": 1.3297017613828533e-12,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.3297017613828533e-12,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "B72PP2A_Ca_D32p75": {
-            "initial_concentration": 8.755346525237348e-08,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 8.755346525237348e-08,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "B72PP2A_Ca": {
-            "initial_concentration": 5.993836443165208e-08,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 5.993836443165208e-08,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "B72PP2A_Ca_pARPP21": {
-            "initial_concentration": 2.235272380034225e-09,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 2.235272380034225e-09,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
@@ -301,890 +301,890 @@
             "unit": "M"
         },
         "CaM": {
-            "initial_concentration": 3.201617388858076e-06,
+            "initial_concentration": 9.000000000000002e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 3.201617388858076e-06,
+            "concentration": 9.000000000000002e-06,
             "boundary_condition": false,
             "unit": "M"
         },
         "CaM_Ca2": {
-            "initial_concentration": 5.762910069492349e-08,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 5.762910069492349e-08,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "CaM_Ca4": {
-            "initial_concentration": 3.457734753922697e-10,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 3.457734753922697e-10,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "CaM_Ca4_pARPP21": {
-            "initial_concentration": 1.0131699850287065e-08,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.0131699850287065e-08,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "CaMKII": {
-            "initial_concentration": 1.6790182757206294e-05,
+            "initial_concentration": 2.0000000000000005e-05,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.6790182757206294e-05,
+            "concentration": 2.0000000000000005e-05,
             "boundary_condition": false,
             "unit": "M"
         },
         "CaMKII_CaM_Ca4": {
-            "initial_concentration": 1.4454834432536982e-08,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.4454834432536982e-08,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "CaMKII_CaM": {
-            "initial_concentration": 1.3437400591391515e-06,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.3437400591391515e-06,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "CaMKII_CaM_Ca2": {
-            "initial_concentration": 2.4161616634623497e-07,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 2.4161616634623497e-07,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "CaMKII_CaM_Ca2_psd": {
-            "initial_concentration": 2.132162414434388e-08,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 2.132162414434388e-08,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "CaMKII_CaM_psd": {
-            "initial_concentration": 1.170258825997824e-07,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.170258825997824e-07,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "CaMKII_CaM_Ca4_psd": {
-            "initial_concentration": 1.321339906196111e-09,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.321339906196111e-09,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "CaMKII_psd": {
-            "initial_concentration": 1.4601671674192244e-06,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.4601671674192244e-06,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "cAMP": {
-            "initial_concentration": 3.801934333572184e-08,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 3.801934333572184e-08,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "Substrate": {
-            "initial_concentration": 2.8965330908899492e-06,
+            "initial_concentration": 3.000000000000001e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 2.8965330908899492e-06,
+            "concentration": 3.000000000000001e-06,
             "boundary_condition": false,
             "unit": "M"
         },
         "CDK5": {
-            "initial_concentration": 1.3488512216829935e-06,
+            "initial_concentration": 1.8000000000000006e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.3488512216829935e-06,
+            "concentration": 1.8000000000000006e-06,
             "boundary_condition": false,
             "unit": "M"
         },
         "CDK5_D32": {
-            "initial_concentration": 4.511487783170833e-07,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 4.511487783170833e-07,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "D1R": {
-            "initial_concentration": 1.4769984715551417e-06,
+            "initial_concentration": 2.0000000000000003e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.4769984715551417e-06,
+            "concentration": 2.0000000000000003e-06,
             "boundary_condition": false,
             "unit": "M"
         },
         "D1R_DA": {
-            "initial_concentration": 5.959225327877009e-09,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 5.959225327877009e-09,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "D1R_Golf_DA": {
-            "initial_concentration": 2.0089021621628077e-09,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 2.0089021621628077e-09,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "D1R_Golf": {
-            "initial_concentration": 5.150334009548121e-07,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 5.150334009548121e-07,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "D32p34": {
-            "initial_concentration": 1.774762761663925e-10,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.774762761663925e-10,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "D32p75": {
-            "initial_concentration": 1.0517219307048654e-05,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.0517219307048654e-05,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "D32": {
-            "initial_concentration": 3.6791579149632705e-05,
+            "initial_concentration": 5.0000000000000016e-05,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 3.6791579149632705e-05,
+            "concentration": 5.0000000000000016e-05,
             "boundary_condition": false,
             "unit": "M"
         },
         "DA": {
-            "initial_concentration": 2e-08,
+            "initial_concentration": 2.0000000000000007e-08,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 2e-08,
+            "concentration": 2.0000000000000007e-08,
             "boundary_condition": true,
             "unit": "M"
         },
         "GaolfGDP": {
-            "initial_concentration": 1.0083120895162211e-11,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.0083120895162211e-11,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "GaolfGTP": {
-            "initial_concentration": 8.913481096047994e-12,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 8.913481096047994e-12,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "Gbgolf": {
-            "initial_concentration": 2.9885124601550496e-08,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 2.9885124601550496e-08,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "Golf": {
-            "initial_concentration": 1.4530725722815986e-06,
+            "initial_concentration": 2.0000000000000003e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.4530725722815986e-06,
+            "concentration": 2.0000000000000003e-06,
             "boundary_condition": false,
             "unit": "M"
         },
         "pCaMKII": {
-            "initial_concentration": 9.08167740515636e-12,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 9.08167740515636e-12,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "pCaMKII_CaM_Ca4": {
-            "initial_concentration": 1.847702628940435e-12,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.847702628940435e-12,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "pCaMKII_CaM": {
-            "initial_concentration": 7.260991927879648e-12,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 7.260991927879648e-12,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "pCaMKII_CaM_Ca2": {
-            "initial_concentration": 1.5140058192287236e-12,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.5140058192287236e-12,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "pCaMKII_CaM_Ca2_psd": {
-            "initial_concentration": 1.4087530193467778e-12,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.4087530193467778e-12,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "pCaMKII_CaM_psd": {
-            "initial_concentration": 7.582887155162507e-12,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 7.582887155162507e-12,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "pCaMKII_CaM_Ca4_psd": {
-            "initial_concentration": 9.604726716156378e-13,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 9.604726716156378e-13,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "pCaMKII_psd": {
-            "initial_concentration": 9.46223086350725e-12,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 9.46223086350725e-12,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "pSubstrate": {
-            "initial_concentration": 8.323633011196781e-08,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 8.323633011196781e-08,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "PDE4": {
-            "initial_concentration": 1.508432038052564e-06,
+            "initial_concentration": 2.0000000000000003e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.508432038052564e-06,
+            "concentration": 2.0000000000000003e-06,
             "boundary_condition": false,
             "unit": "M"
         },
         "PDE4_cAMP": {
-            "initial_concentration": 4.915679619474877e-07,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 4.915679619474877e-07,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "PDE10r": {
-            "initial_concentration": 3.9721037957620167e-07,
+            "initial_concentration": 7.000000000000002e-07,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 3.9721037957620167e-07,
+            "concentration": 7.000000000000002e-07,
             "boundary_condition": false,
             "unit": "M"
         },
         "PDE10r_cAMP": {
-            "initial_concentration": 3.0203355597236295e-07,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 3.0203355597236295e-07,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "PDE10c": {
-            "initial_concentration": 5.74155873934111e-10,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 5.74155873934111e-10,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "PDE10c_cAMP": {
-            "initial_concentration": 1.8190857751713512e-10,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.8190857751713512e-10,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "PKA": {
-            "initial_concentration": 1.1444655087118378e-06,
+            "initial_concentration": 1.2000000000000004e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.1444655087118378e-06,
+            "concentration": 1.2000000000000004e-06,
             "boundary_condition": false,
             "unit": "M"
         },
         "PKAc": {
-            "initial_concentration": 2.7144558998643565e-09,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 2.7144558998643565e-09,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "PKAc_B56PP2A": {
-            "initial_concentration": 4.948170325555225e-09,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 4.948170325555225e-09,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "PKAc_D32": {
-            "initial_concentration": 4.7556722311550094e-09,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 4.7556722311550094e-09,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "PKAc_ARPP21": {
-            "initial_concentration": 1.1250313170778073e-08,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.1250313170778073e-08,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "PKA_Ca2MP": {
-            "initial_concentration": 3.232307488260873e-09,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 3.232307488260873e-09,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "PKA_Ca4MP": {
-            "initial_concentration": 8.50423503290183e-11,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 8.50423503290183e-11,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "PKAc_D32p75": {
-            "initial_concentration": 2.8548529822214275e-08,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 2.8548529822214275e-08,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "PKAreg": {
-            "initial_concentration": 5.22171414495681e-08,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 5.22171414495681e-08,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "PP1": {
-            "initial_concentration": 2.6735479528806913e-06,
+            "initial_concentration": 3.000000000000001e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 2.6735479528806913e-06,
+            "concentration": 3.000000000000001e-06,
             "boundary_condition": false,
             "unit": "M"
         },
         "PP1_pCaMKII_psd": {
-            "initial_concentration": 1.0119090973513738e-11,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.0119090973513738e-11,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "PP1_pSubstrate": {
-            "initial_concentration": 1.0115287249864694e-08,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.0115287249864694e-08,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "PP1_D32p34": {
-            "initial_concentration": 3.163266407784791e-07,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 3.163266407784791e-07,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "CaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd": {
-            "initial_concentration": 7.305904856089933e-14,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 7.305904856089933e-14,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "pCaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd": {
-            "initial_concentration": 1.3967356665835827e-19,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.3967356665835827e-19,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "CaMKII_CaM_Ca4_CaMKII_CaM_Ca4": {
-            "initial_concentration": 2.7465596816502286e-12,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 2.7465596816502286e-12,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "pCaMKII_CaM_Ca4_CaMKII_CaM_Ca4": {
-            "initial_concentration": 2.9361735855434245e-18,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 2.9361735855434245e-18,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "PP2B": {
-            "initial_concentration": 1.9344690046138076e-08,
+            "initial_concentration": 4.000000000000001e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.9344690046138076e-08,
+            "concentration": 4.000000000000001e-06,
             "boundary_condition": false,
             "unit": "M"
         },
         "PP2Bc": {
-            "initial_concentration": 2.229634094680729e-07,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 2.229634094680729e-07,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "PP2Bc_D32p34": {
-            "initial_concentration": 3.9570569179010873e-08,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 3.9570569179010873e-08,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "PP2B_CaM": {
-            "initial_concentration": 2.0644765344319303e-09,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 2.0644765344319303e-09,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "PP2B_CaM_Ca2": {
-            "initial_concentration": 3.716056854777808e-06,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 3.716056854777808e-06,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "pARPP21": {
-            "initial_concentration": 5.860304517555266e-07,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 5.860304517555266e-07,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "ARPP21": {
-            "initial_concentration": 1.934143121725702e-05,
+            "initial_concentration": 2.0000000000000005e-05,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.934143121725702e-05,
+            "concentration": 2.0000000000000005e-05,
             "boundary_condition": false,
             "unit": "M"
         },
         "pCaMKII_psd_Substrate": {
-            "initial_concentration": 6.851916017618638e-13,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 6.851916017618638e-13,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "pCaMKII_CaM_psd_Substrate": {
-            "initial_concentration": 5.49102073851789e-13,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 5.49102073851789e-13,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "pCaMKII_CaM_Ca2_psd_Substrate": {
-            "initial_concentration": 1.0201249066291752e-13,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.0201249066291752e-13,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "pCaMKII_CaM_Ca4_psd_Substrate": {
-            "initial_concentration": 6.955102023037058e-14,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 6.955102023037058e-14,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "CaMKII_CaM_psd_Substrate": {
-            "initial_concentration": 8.47423352667013e-09,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 8.47423352667013e-09,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "CaMKII_CaM_Ca2_psd_Substrate": {
-            "initial_concentration": 1.5439697454729105e-09,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 1.5439697454729105e-09,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         },
         "CaMKII_CaM_Ca4_psd_Substrate": {
-            "initial_concentration": 9.568261896582351e-11,
+            "initial_concentration": 0.0,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 9.568261896582351e-11,
+            "concentration": 0.0,
             "boundary_condition": false,
             "unit": "M"
         }
@@ -1192,8 +1192,8 @@
     "rates": {},
     "reactions": {
         "ReactionFlux0": {
-            "reactants": " GaolfGTP",
-            "products": " GaolfGDP",
+            "reactants": "GaolfGTP",
+            "products": "GaolfGDP",
             "forward_rate": 30.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -1204,8 +1204,8 @@
             ]
         },
         "ReactionFlux1": {
-            "reactants": " D1R_Golf_DA",
-            "products": " Gbgolf + D1R_DA + GaolfGTP",
+            "reactants": "D1R_Golf_DA",
+            "products": "Gbgolf + D1R_DA + GaolfGTP",
             "forward_rate": 15.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -1216,8 +1216,8 @@
             ]
         },
         "ReactionFlux2": {
-            "reactants": " D1R_Golf + DA",
-            "products": " D1R_Golf_DA",
+            "reactants": "D1R_Golf + DA",
+            "products": "D1R_Golf_DA",
             "forward_rate": 50000000.0,
             "backward_rate": 250.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1228,8 +1228,8 @@
             ]
         },
         "ReactionFlux3": {
-            "reactants": " D1R + DA",
-            "products": " D1R_DA",
+            "reactants": "D1R + DA",
+            "products": "D1R_DA",
             "forward_rate": 50000000.0,
             "backward_rate": 250.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1240,8 +1240,8 @@
             ]
         },
         "ReactionFlux4": {
-            "reactants": " AC5 + GaolfGTP",
-            "products": " AC5_GaolfGTP",
+            "reactants": "AC5 + GaolfGTP",
+            "products": "AC5_GaolfGTP",
             "forward_rate": 9999999999.999998,
             "backward_rate": 1.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1252,8 +1252,8 @@
             ]
         },
         "ReactionFlux5": {
-            "reactants": " CaM + Ca",
-            "products": " CaM_Ca2",
+            "reactants": "CaM + Ca",
+            "products": "CaM_Ca2",
             "forward_rate": 5999999.999999999,
             "backward_rate": 20.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1264,8 +1264,8 @@
             ]
         },
         "ReactionFlux6": {
-            "reactants": " PP2B + CaM",
-            "products": " PP2B_CaM",
+            "reactants": "PP2B + CaM",
+            "products": "PP2B_CaM",
             "forward_rate": 100000000.0,
             "backward_rate": 3000.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1276,8 +1276,8 @@
             ]
         },
         "ReactionFlux7": {
-            "reactants": " CaM_Ca4 + PP2B",
-            "products": " PP2Bc",
+            "reactants": "CaM_Ca4 + PP2B",
+            "products": "PP2Bc",
             "forward_rate": 100000000.0,
             "backward_rate": 0.003,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1288,8 +1288,8 @@
             ]
         },
         "ReactionFlux8": {
-            "reactants": " PKAc + D32",
-            "products": " PKAc_D32",
+            "reactants": "PKAc + D32",
+            "products": "PKAc_D32",
             "forward_rate": 10000000.0,
             "backward_rate": 200.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1300,8 +1300,8 @@
             ]
         },
         "ReactionFlux9": {
-            "reactants": " PKAc_D32",
-            "products": " D32p34 + PKAc",
+            "reactants": "PKAc_D32",
+            "products": "D32p34 + PKAc",
             "forward_rate": 10.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -1312,8 +1312,8 @@
             ]
         },
         "ReactionFlux10": {
-            "reactants": " PKAc + B56PP2A",
-            "products": " PKAc_B56PP2A",
+            "reactants": "PKAc + B56PP2A",
+            "products": "PKAc_B56PP2A",
             "forward_rate": 999999.9999999999,
             "backward_rate": 0.3,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1324,8 +1324,8 @@
             ]
         },
         "ReactionFlux11": {
-            "reactants": " PKAc_B56PP2A",
-            "products": " B56PP2Ap + PKAc",
+            "reactants": "PKAc_B56PP2A",
+            "products": "B56PP2Ap + PKAc",
             "forward_rate": 0.2,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -1336,8 +1336,8 @@
             ]
         },
         "ReactionFlux12": {
-            "reactants": " D32p34 + PP1",
-            "products": " PP1_D32p34",
+            "reactants": "D32p34 + PP1",
+            "products": "PP1_D32p34",
             "forward_rate": 999999999.9999999,
             "backward_rate": 1.5,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1348,8 +1348,8 @@
             ]
         },
         "ReactionFlux13": {
-            "reactants": " CDK5 + D32",
-            "products": " CDK5_D32",
+            "reactants": "CDK5 + D32",
+            "products": "CDK5_D32",
             "forward_rate": 999999.9999999999,
             "backward_rate": 100.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1360,8 +1360,8 @@
             ]
         },
         "ReactionFlux14": {
-            "reactants": " CDK5_D32",
-            "products": " CDK5 + D32p75",
+            "reactants": "CDK5_D32",
+            "products": "CDK5 + D32p75",
             "forward_rate": 10.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -1372,8 +1372,8 @@
             ]
         },
         "ReactionFlux15": {
-            "reactants": " D32p75 + PKAc",
-            "products": " PKAc_D32p75",
+            "reactants": "D32p75 + PKAc",
+            "products": "PKAc_D32p75",
             "forward_rate": 100000000.0,
             "backward_rate": 100.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1384,8 +1384,8 @@
             ]
         },
         "ReactionFlux16": {
-            "reactants": " B72PP2A + Ca",
-            "products": " B72PP2A_Ca",
+            "reactants": "B72PP2A + Ca",
+            "products": "B72PP2A_Ca",
             "forward_rate": 10000000.0,
             "backward_rate": 10.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1396,8 +1396,8 @@
             ]
         },
         "ReactionFlux17": {
-            "reactants": " B56PP2Ap + D32p75",
-            "products": " B56PP2Ap_D32p75",
+            "reactants": "B56PP2Ap + D32p75",
+            "products": "B56PP2Ap_D32p75",
             "forward_rate": 14999999.999999998,
             "backward_rate": 100.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1408,8 +1408,8 @@
             ]
         },
         "ReactionFlux18": {
-            "reactants": " B72PP2A + D32p75",
-            "products": " B72PP2A_D32p75",
+            "reactants": "B72PP2A + D32p75",
+            "products": "B72PP2A_D32p75",
             "forward_rate": 7999999.999999999,
             "backward_rate": 100.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1420,8 +1420,8 @@
             ]
         },
         "ReactionFlux19": {
-            "reactants": " D32p75 + B72PP2A_Ca",
-            "products": " B72PP2A_Ca_D32p75",
+            "reactants": "D32p75 + B72PP2A_Ca",
+            "products": "B72PP2A_Ca_D32p75",
             "forward_rate": 14999999.999999998,
             "backward_rate": 100.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1432,8 +1432,8 @@
             ]
         },
         "ReactionFlux20": {
-            "reactants": " B56PP2Ap_D32p75",
-            "products": " B56PP2Ap + D32",
+            "reactants": "B56PP2Ap_D32p75",
+            "products": "B56PP2Ap + D32",
             "forward_rate": 8.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -1444,8 +1444,8 @@
             ]
         },
         "ReactionFlux21": {
-            "reactants": " B72PP2A_D32p75",
-            "products": " B72PP2A + D32",
+            "reactants": "B72PP2A_D32p75",
+            "products": "B72PP2A + D32",
             "forward_rate": 1.5,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -1456,8 +1456,8 @@
             ]
         },
         "ReactionFlux22": {
-            "reactants": " B72PP2A_Ca_D32p75",
-            "products": " B72PP2A_Ca + D32",
+            "reactants": "B72PP2A_Ca_D32p75",
+            "products": "B72PP2A_Ca + D32",
             "forward_rate": 8.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -1468,8 +1468,8 @@
             ]
         },
         "ReactionFlux23": {
-            "reactants": " D32p34 + PP2Bc",
-            "products": " PP2Bc_D32p34",
+            "reactants": "D32p34 + PP2Bc",
+            "products": "PP2Bc_D32p34",
             "forward_rate": 1299999999.9999998,
             "backward_rate": 0.1,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1480,8 +1480,8 @@
             ]
         },
         "ReactionFlux24": {
-            "reactants": " CaM_Ca2 + Ca",
-            "products": " CaM_Ca4",
+            "reactants": "CaM_Ca2 + Ca",
+            "products": "CaM_Ca4",
             "forward_rate": 100000000.0,
             "backward_rate": 1000.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1492,8 +1492,8 @@
             ]
         },
         "ReactionFlux25": {
-            "reactants": " Ca + PP2B_CaM",
-            "products": " PP2B_CaM_Ca2",
+            "reactants": "Ca + PP2B_CaM",
+            "products": "PP2B_CaM_Ca2",
             "forward_rate": 5999999.999999999,
             "backward_rate": 0.00019999999999999998,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1504,8 +1504,8 @@
             ]
         },
         "ReactionFlux26": {
-            "reactants": " Ca + PP2B_CaM_Ca2",
-            "products": " PP2Bc",
+            "reactants": "Ca + PP2B_CaM_Ca2",
+            "products": "PP2Bc",
             "forward_rate": 100000000.0,
             "backward_rate": 100.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1516,8 +1516,8 @@
             ]
         },
         "ReactionFlux27": {
-            "reactants": " CaM_Ca2 + PP2B",
-            "products": " PP2B_CaM_Ca2",
+            "reactants": "CaM_Ca2 + PP2B",
+            "products": "PP2B_CaM_Ca2",
             "forward_rate": 100000000.0,
             "backward_rate": 0.030000000000000002,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1528,8 +1528,8 @@
             ]
         },
         "ReactionFlux28": {
-            "reactants": " AC5 + Ca",
-            "products": " AC5_Ca",
+            "reactants": "AC5 + Ca",
+            "products": "AC5_Ca",
             "forward_rate": 999999.9999999999,
             "backward_rate": 10.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1540,8 +1540,8 @@
             ]
         },
         "ReactionFlux29": {
-            "reactants": " AC5_Ca + GaolfGTP",
-            "products": " AC5_Ca_GaolfGTP",
+            "reactants": "AC5_Ca + GaolfGTP",
+            "products": "AC5_Ca_GaolfGTP",
             "forward_rate": 9999999999.999998,
             "backward_rate": 1.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1552,8 +1552,8 @@
             ]
         },
         "ReactionFlux30": {
-            "reactants": " D32p75 + B56PP2A",
-            "products": " B56PP2A_D32p75",
+            "reactants": "D32p75 + B56PP2A",
+            "products": "B56PP2A_D32p75",
             "forward_rate": 7999999.999999999,
             "backward_rate": 100.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1564,8 +1564,8 @@
             ]
         },
         "ReactionFlux31": {
-            "reactants": " B56PP2A_D32p75",
-            "products": " B56PP2A + D32",
+            "reactants": "B56PP2A_D32p75",
+            "products": "B56PP2A + D32",
             "forward_rate": 1.5,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -1576,8 +1576,8 @@
             ]
         },
         "ReactionFlux32": {
-            "reactants": " B72PP2A_Ca_D32p34",
-            "products": " B72PP2A_Ca + D32",
+            "reactants": "B72PP2A_Ca_D32p34",
+            "products": "B72PP2A_Ca + D32",
             "forward_rate": 3.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -1588,8 +1588,8 @@
             ]
         },
         "ReactionFlux33": {
-            "reactants": " B72PP2A_D32p34",
-            "products": " D32 + B72PP2A",
+            "reactants": "B72PP2A_D32p34",
+            "products": "D32 + B72PP2A",
             "forward_rate": 3.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -1600,8 +1600,8 @@
             ]
         },
         "ReactionFlux34": {
-            "reactants": " D32p34 + B72PP2A_Ca",
-            "products": " B72PP2A_Ca_D32p34",
+            "reactants": "D32p34 + B72PP2A_Ca",
+            "products": "B72PP2A_Ca_D32p34",
             "forward_rate": 499999.99999999994,
             "backward_rate": 1.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1612,8 +1612,8 @@
             ]
         },
         "ReactionFlux35": {
-            "reactants": " D32p34 + B72PP2A",
-            "products": " B72PP2A_D32p34",
+            "reactants": "D32p34 + B72PP2A",
+            "products": "B72PP2A_D32p34",
             "forward_rate": 499999.99999999994,
             "backward_rate": 1.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1624,8 +1624,8 @@
             ]
         },
         "ReactionFlux36": {
-            "reactants": " PP2Bc_D32p34",
-            "products": " D32 + PP2Bc",
+            "reactants": "PP2Bc_D32p34",
+            "products": "D32 + PP2Bc",
             "forward_rate": 1.2,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -1636,8 +1636,8 @@
             ]
         },
         "ReactionFlux37": {
-            "reactants": " B56PP2Ap",
-            "products": " B56PP2A",
+            "reactants": "B56PP2Ap",
+            "products": "B56PP2A",
             "forward_rate": 0.008,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -1648,8 +1648,8 @@
             ]
         },
         "ReactionFlux38": {
-            "reactants": " cAMP + PKA",
-            "products": " PKA_Ca2MP",
+            "reactants": "cAMP + PKA",
+            "products": "PKA_Ca2MP",
             "forward_rate": 25999999.999999996,
             "backward_rate": 350.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1660,8 +1660,8 @@
             ]
         },
         "ReactionFlux39": {
-            "reactants": " cAMP + PKA_Ca2MP",
-            "products": " PKA_Ca4MP",
+            "reactants": "cAMP + PKA_Ca2MP",
+            "products": "PKA_Ca4MP",
             "forward_rate": 34600000.0,
             "backward_rate": 50.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1672,8 +1672,8 @@
             ]
         },
         "ReactionFlux40": {
-            "reactants": " PKA_Ca4MP",
-            "products": " PKAc + PKAreg",
+            "reactants": "PKA_Ca4MP",
+            "products": "PKAc + PKAreg",
             "forward_rate": 50.0,
             "backward_rate": 29999999.999999996,
             "forward_rate_unit": "1/second",
@@ -1684,8 +1684,8 @@
             ]
         },
         "ReactionFlux41": {
-            "reactants": " cAMP + PDE4",
-            "products": " PDE4_cAMP",
+            "reactants": "cAMP + PDE4",
+            "products": "PDE4_cAMP",
             "forward_rate": 29999999.999999996,
             "backward_rate": 1.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1696,8 +1696,8 @@
             ]
         },
         "ReactionFlux42": {
-            "reactants": " PDE4_cAMP",
-            "products": " PDE4 + AMP",
+            "reactants": "PDE4_cAMP",
+            "products": "PDE4 + AMP",
             "forward_rate": 2.5,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -1708,8 +1708,8 @@
             ]
         },
         "ReactionFlux43": {
-            "reactants": " PDE10r + 2 * cAMP",
-            "products": " PDE10c",
+            "reactants": "PDE10r + 2 * cAMP",
+            "products": "PDE10c",
             "forward_rate": 999999999999.9999,
             "backward_rate": 1.0,
             "forward_rate_unit": "liter^2/(mole^2*second)",
@@ -1720,8 +1720,8 @@
             ]
         },
         "ReactionFlux44": {
-            "reactants": " PDE10r_cAMP",
-            "products": " PDE10r + AMP",
+            "reactants": "PDE10r_cAMP",
+            "products": "PDE10r + AMP",
             "forward_rate": 3.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -1732,8 +1732,8 @@
             ]
         },
         "ReactionFlux45": {
-            "reactants": " cAMP + PDE10r",
-            "products": " PDE10r_cAMP",
+            "reactants": "cAMP + PDE10r",
+            "products": "PDE10r_cAMP",
             "forward_rate": 100000000.0,
             "backward_rate": 2.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1744,8 +1744,8 @@
             ]
         },
         "ReactionFlux46": {
-            "reactants": " PDE10c_cAMP",
-            "products": " PDE10c + AMP",
+            "reactants": "PDE10c_cAMP",
+            "products": "PDE10c + AMP",
             "forward_rate": 10.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -1756,8 +1756,8 @@
             ]
         },
         "ReactionFlux47": {
-            "reactants": " GaolfGDP + Gbgolf",
-            "products": " Golf",
+            "reactants": "GaolfGDP + Gbgolf",
+            "products": "Golf",
             "forward_rate": 100000000000.0,
             "backward_rate": null,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1768,8 +1768,8 @@
             ]
         },
         "ReactionFlux48": {
-            "reactants": " AC5_GaolfGTP + ATP",
-            "products": " AC5_GaolfGTP_ATP",
+            "reactants": "AC5_GaolfGTP + ATP",
+            "products": "AC5_GaolfGTP_ATP",
             "forward_rate": 2550000.0,
             "backward_rate": 1.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1780,8 +1780,8 @@
             ]
         },
         "ReactionFlux49": {
-            "reactants": " AC5 + ATP",
-            "products": " AC5_ATP",
+            "reactants": "AC5 + ATP",
+            "products": "AC5_ATP",
             "forward_rate": 99999.99999999999,
             "backward_rate": 1.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1792,8 +1792,8 @@
             ]
         },
         "ReactionFlux50": {
-            "reactants": " AC5_Ca + ATP",
-            "products": " AC5_Ca_ATP",
+            "reactants": "AC5_Ca + ATP",
+            "products": "AC5_Ca_ATP",
             "forward_rate": 74999.99999999999,
             "backward_rate": 1.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1804,8 +1804,8 @@
             ]
         },
         "ReactionFlux51": {
-            "reactants": " AC5_Ca_GaolfGTP + ATP",
-            "products": " AC5_Ca_GaolfGTP_ATP",
+            "reactants": "AC5_Ca_GaolfGTP + ATP",
+            "products": "AC5_Ca_GaolfGTP_ATP",
             "forward_rate": 1300000.0,
             "backward_rate": 1.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1816,8 +1816,8 @@
             ]
         },
         "ReactionFlux52": {
-            "reactants": " GaolfGTP + AC5_ATP",
-            "products": " AC5_GaolfGTP_ATP",
+            "reactants": "GaolfGTP + AC5_ATP",
+            "products": "AC5_GaolfGTP_ATP",
             "forward_rate": 9999999999.999998,
             "backward_rate": 1.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1828,8 +1828,8 @@
             ]
         },
         "ReactionFlux53": {
-            "reactants": " GaolfGTP + AC5_Ca_ATP",
-            "products": " AC5_Ca_GaolfGTP_ATP",
+            "reactants": "GaolfGTP + AC5_Ca_ATP",
+            "products": "AC5_Ca_GaolfGTP_ATP",
             "forward_rate": 9999999999.999998,
             "backward_rate": 1.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1840,8 +1840,8 @@
             ]
         },
         "ReactionFlux54": {
-            "reactants": " Ca + AC5_ATP",
-            "products": " AC5_Ca_ATP",
+            "reactants": "Ca + AC5_ATP",
+            "products": "AC5_Ca_ATP",
             "forward_rate": 999999.9999999999,
             "backward_rate": 10.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1852,8 +1852,8 @@
             ]
         },
         "ReactionFlux55": {
-            "reactants": " AC5_GaolfGTP_ATP",
-            "products": " cAMP + AC5_GaolfGTP",
+            "reactants": "AC5_GaolfGTP_ATP",
+            "products": "cAMP + AC5_GaolfGTP",
             "forward_rate": 50.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -1864,8 +1864,8 @@
             ]
         },
         "ReactionFlux56": {
-            "reactants": " cAMP + AC5_GaolfGTP",
-            "products": " AC5_GaolfGTP_ATP",
+            "reactants": "cAMP + AC5_GaolfGTP",
+            "products": "AC5_GaolfGTP_ATP",
             "forward_rate": 2550000000.0,
             "backward_rate": null,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1876,8 +1876,8 @@
             ]
         },
         "ReactionFlux57": {
-            "reactants": " AC5_ATP",
-            "products": " cAMP + AC5",
+            "reactants": "AC5_ATP",
+            "products": "cAMP + AC5",
             "forward_rate": 1.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -1888,8 +1888,8 @@
             ]
         },
         "ReactionFlux58": {
-            "reactants": " cAMP + AC5",
-            "products": " AC5_ATP",
+            "reactants": "cAMP + AC5",
+            "products": "AC5_ATP",
             "forward_rate": 1999999.9999999998,
             "backward_rate": null,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1900,8 +1900,8 @@
             ]
         },
         "ReactionFlux59": {
-            "reactants": " AC5_Ca_ATP",
-            "products": " cAMP + AC5_Ca",
+            "reactants": "AC5_Ca_ATP",
+            "products": "cAMP + AC5_Ca",
             "forward_rate": 0.5,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -1912,8 +1912,8 @@
             ]
         },
         "ReactionFlux60": {
-            "reactants": " cAMP + AC5_Ca",
-            "products": " AC5_Ca_ATP",
+            "reactants": "cAMP + AC5_Ca",
+            "products": "AC5_Ca_ATP",
             "forward_rate": 749999.9999999999,
             "backward_rate": null,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1924,8 +1924,8 @@
             ]
         },
         "ReactionFlux61": {
-            "reactants": " AC5_Ca_GaolfGTP_ATP",
-            "products": " cAMP + AC5_Ca_GaolfGTP",
+            "reactants": "AC5_Ca_GaolfGTP_ATP",
+            "products": "cAMP + AC5_Ca_GaolfGTP",
             "forward_rate": 25.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -1936,8 +1936,8 @@
             ]
         },
         "ReactionFlux62": {
-            "reactants": " cAMP + AC5_Ca_GaolfGTP",
-            "products": " AC5_Ca_GaolfGTP_ATP",
+            "reactants": "cAMP + AC5_Ca_GaolfGTP",
+            "products": "AC5_Ca_GaolfGTP_ATP",
             "forward_rate": 649999999.9999999,
             "backward_rate": null,
             "forward_rate_unit": "liter/(mole*second)",
@@ -1948,8 +1948,8 @@
             ]
         },
         "ReactionFlux63": {
-            "reactants": " AC5_GaolfGTP",
-            "products": " AC5 + GaolfGDP",
+            "reactants": "AC5_GaolfGTP",
+            "products": "AC5 + GaolfGDP",
             "forward_rate": 1.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -1960,8 +1960,8 @@
             ]
         },
         "ReactionFlux64": {
-            "reactants": " AC5_Ca_GaolfGTP",
-            "products": " AC5_Ca + GaolfGDP",
+            "reactants": "AC5_Ca_GaolfGTP",
+            "products": "AC5_Ca + GaolfGDP",
             "forward_rate": 1.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -1972,8 +1972,8 @@
             ]
         },
         "ReactionFlux65": {
-            "reactants": " AC5_GaolfGTP_ATP",
-            "products": " AC5_ATP + GaolfGDP",
+            "reactants": "AC5_GaolfGTP_ATP",
+            "products": "AC5_ATP + GaolfGDP",
             "forward_rate": 1.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -1984,8 +1984,8 @@
             ]
         },
         "ReactionFlux66": {
-            "reactants": " AC5_Ca_GaolfGTP_ATP",
-            "products": " AC5_Ca_ATP + GaolfGDP",
+            "reactants": "AC5_Ca_GaolfGTP_ATP",
+            "products": "AC5_Ca_ATP + GaolfGDP",
             "forward_rate": 1.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -1996,8 +1996,8 @@
             ]
         },
         "ReactionFlux67": {
-            "reactants": " D1R + Golf",
-            "products": " D1R_Golf",
+            "reactants": "D1R + Golf",
+            "products": "D1R_Golf",
             "forward_rate": 59999999.99999999,
             "backward_rate": 250.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2008,8 +2008,8 @@
             ]
         },
         "ReactionFlux68": {
-            "reactants": " Golf + D1R_DA",
-            "products": " D1R_Golf_DA",
+            "reactants": "Golf + D1R_DA",
+            "products": "D1R_Golf_DA",
             "forward_rate": 59999999.99999999,
             "backward_rate": 250.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2020,8 +2020,8 @@
             ]
         },
         "ReactionFlux69": {
-            "reactants": " cAMP + PDE10c",
-            "products": " PDE10c_cAMP",
+            "reactants": "cAMP + PDE10c",
+            "products": "PDE10c_cAMP",
             "forward_rate": 100000000.0,
             "backward_rate": 2.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2032,8 +2032,8 @@
             ]
         },
         "ReactionFlux70": {
-            "reactants": " CaMKII + CaM_Ca4",
-            "products": " CaMKII_CaM_Ca4",
+            "reactants": "CaMKII + CaM_Ca4",
+            "products": "CaMKII_CaM_Ca4",
             "forward_rate": 100000000.0,
             "backward_rate": 40.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2044,8 +2044,8 @@
             ]
         },
         "ReactionFlux71": {
-            "reactants": " CaM_Ca2 + CaMKII",
-            "products": " CaMKII_CaM_Ca2",
+            "reactants": "CaM_Ca2 + CaMKII",
+            "products": "CaMKII_CaM_Ca2",
             "forward_rate": 100000000.0,
             "backward_rate": 400.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2056,8 +2056,8 @@
             ]
         },
         "ReactionFlux72": {
-            "reactants": " CaM + CaMKII",
-            "products": " CaMKII_CaM",
+            "reactants": "CaM + CaMKII",
+            "products": "CaMKII_CaM",
             "forward_rate": 100000000.0,
             "backward_rate": 4000.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2068,8 +2068,8 @@
             ]
         },
         "ReactionFlux73": {
-            "reactants": " CaMKII_CaM_Ca2 + Ca",
-            "products": " CaMKII_CaM_Ca4",
+            "reactants": "CaMKII_CaM_Ca2 + Ca",
+            "products": "CaMKII_CaM_Ca4",
             "forward_rate": 100000000.0,
             "backward_rate": 100.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2080,8 +2080,8 @@
             ]
         },
         "ReactionFlux74": {
-            "reactants": " CaMKII_CaM + Ca",
-            "products": " CaMKII_CaM_Ca2",
+            "reactants": "CaMKII_CaM + Ca",
+            "products": "CaMKII_CaM_Ca2",
             "forward_rate": 5999999.999999999,
             "backward_rate": 2.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2092,8 +2092,8 @@
             ]
         },
         "ReactionFlux75": {
-            "reactants": " pCaMKII_CaM_Ca2 + Ca",
-            "products": " pCaMKII_CaM_Ca4",
+            "reactants": "pCaMKII_CaM_Ca2 + Ca",
+            "products": "pCaMKII_CaM_Ca4",
             "forward_rate": 100000000.0,
             "backward_rate": 10.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2104,8 +2104,8 @@
             ]
         },
         "ReactionFlux76": {
-            "reactants": " pCaMKII_CaM + Ca",
-            "products": " pCaMKII_CaM_Ca2",
+            "reactants": "pCaMKII_CaM + Ca",
+            "products": "pCaMKII_CaM_Ca2",
             "forward_rate": 5999999.999999999,
             "backward_rate": 2.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2116,8 +2116,8 @@
             ]
         },
         "ReactionFlux77": {
-            "reactants": " pCaMKII + CaM_Ca4",
-            "products": " pCaMKII_CaM_Ca4",
+            "reactants": "pCaMKII + CaM_Ca4",
+            "products": "pCaMKII_CaM_Ca4",
             "forward_rate": 100000000.0,
             "backward_rate": 0.4,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2128,8 +2128,8 @@
             ]
         },
         "ReactionFlux78": {
-            "reactants": " pCaMKII + CaM_Ca2",
-            "products": " pCaMKII_CaM_Ca2",
+            "reactants": "pCaMKII + CaM_Ca2",
+            "products": "pCaMKII_CaM_Ca2",
             "forward_rate": 100000000.0,
             "backward_rate": 40.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2140,8 +2140,8 @@
             ]
         },
         "ReactionFlux79": {
-            "reactants": " pCaMKII + CaM",
-            "products": " pCaMKII_CaM",
+            "reactants": "pCaMKII + CaM",
+            "products": "pCaMKII_CaM",
             "forward_rate": 100000000.0,
             "backward_rate": 400.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2152,8 +2152,8 @@
             ]
         },
         "ReactionFlux80": {
-            "reactants": " ARPP21 + PKAc",
-            "products": " PKAc_ARPP21",
+            "reactants": "ARPP21 + PKAc",
+            "products": "PKAc_ARPP21",
             "forward_rate": 45000000.0,
             "backward_rate": 200.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2164,8 +2164,8 @@
             ]
         },
         "ReactionFlux81": {
-            "reactants": " PKAc_ARPP21",
-            "products": " PKAc + pARPP21",
+            "reactants": "PKAc_ARPP21",
+            "products": "PKAc + pARPP21",
             "forward_rate": 10.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -2176,8 +2176,8 @@
             ]
         },
         "ReactionFlux82": {
-            "reactants": " pARPP21 + CaM_Ca4",
-            "products": " CaM_Ca4_pARPP21",
+            "reactants": "pARPP21 + CaM_Ca4",
+            "products": "CaM_Ca4_pARPP21",
             "forward_rate": 499999999.99999994,
             "backward_rate": 10.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2188,8 +2188,8 @@
             ]
         },
         "ReactionFlux83": {
-            "reactants": " B72PP2A_Ca_pARPP21",
-            "products": " ARPP21 + B72PP2A_Ca",
+            "reactants": "B72PP2A_Ca_pARPP21",
+            "products": "ARPP21 + B72PP2A_Ca",
             "forward_rate": 10.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -2200,8 +2200,8 @@
             ]
         },
         "ReactionFlux84": {
-            "reactants": " pARPP21 + B72PP2A_Ca",
-            "products": " B72PP2A_Ca_pARPP21",
+            "reactants": "pARPP21 + B72PP2A_Ca",
+            "products": "B72PP2A_Ca_pARPP21",
             "forward_rate": 6999999.999999999,
             "backward_rate": 100.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2212,8 +2212,8 @@
             ]
         },
         "ReactionFlux85": {
-            "reactants": " B72PP2A_pARPP21",
-            "products": " ARPP21 + B72PP2A",
+            "reactants": "B72PP2A_pARPP21",
+            "products": "ARPP21 + B72PP2A",
             "forward_rate": 1.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -2224,8 +2224,8 @@
             ]
         },
         "ReactionFlux86": {
-            "reactants": " pARPP21 + B72PP2A",
-            "products": " B72PP2A_pARPP21",
+            "reactants": "pARPP21 + B72PP2A",
+            "products": "B72PP2A_pARPP21",
             "forward_rate": 3999999.9999999995,
             "backward_rate": 100.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2236,8 +2236,8 @@
             ]
         },
         "ReactionFlux87": {
-            "reactants": " B56PP2Ap_pARPP21",
-            "products": " ARPP21 + B56PP2Ap",
+            "reactants": "B56PP2Ap_pARPP21",
+            "products": "ARPP21 + B56PP2Ap",
             "forward_rate": 10.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -2248,8 +2248,8 @@
             ]
         },
         "ReactionFlux88": {
-            "reactants": " pARPP21 + B56PP2Ap",
-            "products": " B56PP2Ap_pARPP21",
+            "reactants": "pARPP21 + B56PP2Ap",
+            "products": "B56PP2Ap_pARPP21",
             "forward_rate": 6999999.999999999,
             "backward_rate": 100.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2260,8 +2260,8 @@
             ]
         },
         "ReactionFlux89": {
-            "reactants": " B56PP2A_pARPP21",
-            "products": " ARPP21 + B56PP2A",
+            "reactants": "B56PP2A_pARPP21",
+            "products": "ARPP21 + B56PP2A",
             "forward_rate": 1.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -2272,8 +2272,8 @@
             ]
         },
         "ReactionFlux90": {
-            "reactants": " pARPP21 + B56PP2A",
-            "products": " B56PP2A_pARPP21",
+            "reactants": "pARPP21 + B56PP2A",
+            "products": "B56PP2A_pARPP21",
             "forward_rate": 3999999.9999999995,
             "backward_rate": 100.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2284,8 +2284,8 @@
             ]
         },
         "ReactionFlux91": {
-            "reactants": " pSubstrate + PP1",
-            "products": " PP1_pSubstrate",
+            "reactants": "pSubstrate + PP1",
+            "products": "PP1_pSubstrate",
             "forward_rate": 499999.99999999994,
             "backward_rate": 1.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2296,8 +2296,8 @@
             ]
         },
         "ReactionFlux92": {
-            "reactants": " PP1_pSubstrate",
-            "products": " PP1 + Substrate",
+            "reactants": "PP1_pSubstrate",
+            "products": "PP1 + Substrate",
             "forward_rate": 10.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -2308,8 +2308,8 @@
             ]
         },
         "ReactionFlux93": {
-            "reactants": " Substrate + pCaMKII_psd",
-            "products": " pCaMKII_psd_Substrate",
+            "reactants": "Substrate + pCaMKII_psd",
+            "products": "pCaMKII_psd_Substrate",
             "forward_rate": 499999.99999999994,
             "backward_rate": 10.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2320,8 +2320,8 @@
             ]
         },
         "ReactionFlux94": {
-            "reactants": " pCaMKII_psd_Substrate",
-            "products": " pCaMKII_psd + pSubstrate",
+            "reactants": "pCaMKII_psd_Substrate",
+            "products": "pCaMKII_psd + pSubstrate",
             "forward_rate": 10.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -2332,8 +2332,8 @@
             ]
         },
         "ReactionFlux95": {
-            "reactants": " pCaMKII",
-            "products": " CaMKII",
+            "reactants": "pCaMKII",
+            "products": "CaMKII",
             "forward_rate": 0.1,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -2344,8 +2344,8 @@
             ]
         },
         "ReactionFlux96": {
-            "reactants": " Substrate + pCaMKII_CaM_psd",
-            "products": " pCaMKII_CaM_psd_Substrate",
+            "reactants": "Substrate + pCaMKII_CaM_psd",
+            "products": "pCaMKII_CaM_psd_Substrate",
             "forward_rate": 499999.99999999994,
             "backward_rate": 10.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2356,8 +2356,8 @@
             ]
         },
         "ReactionFlux97": {
-            "reactants": " pCaMKII_CaM_psd_Substrate",
-            "products": " pCaMKII_CaM_psd + pSubstrate",
+            "reactants": "pCaMKII_CaM_psd_Substrate",
+            "products": "pCaMKII_CaM_psd + pSubstrate",
             "forward_rate": 10.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -2368,8 +2368,8 @@
             ]
         },
         "ReactionFlux98": {
-            "reactants": " Substrate + pCaMKII_CaM_Ca2_psd",
-            "products": " pCaMKII_CaM_Ca2_psd_Substrate",
+            "reactants": "Substrate + pCaMKII_CaM_Ca2_psd",
+            "products": "pCaMKII_CaM_Ca2_psd_Substrate",
             "forward_rate": 499999.99999999994,
             "backward_rate": 10.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2380,8 +2380,8 @@
             ]
         },
         "ReactionFlux99": {
-            "reactants": " pCaMKII_CaM_Ca2_psd_Substrate",
-            "products": " pCaMKII_CaM_Ca2_psd + pSubstrate",
+            "reactants": "pCaMKII_CaM_Ca2_psd_Substrate",
+            "products": "pCaMKII_CaM_Ca2_psd + pSubstrate",
             "forward_rate": 10.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -2392,8 +2392,8 @@
             ]
         },
         "ReactionFlux100": {
-            "reactants": " Substrate + pCaMKII_CaM_Ca4_psd",
-            "products": " pCaMKII_CaM_Ca4_psd_Substrate",
+            "reactants": "Substrate + pCaMKII_CaM_Ca4_psd",
+            "products": "pCaMKII_CaM_Ca4_psd_Substrate",
             "forward_rate": 499999.99999999994,
             "backward_rate": 10.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2404,8 +2404,8 @@
             ]
         },
         "ReactionFlux101": {
-            "reactants": " pCaMKII_CaM_Ca4_psd_Substrate",
-            "products": " pCaMKII_CaM_Ca4_psd + pSubstrate",
+            "reactants": "pCaMKII_CaM_Ca4_psd_Substrate",
+            "products": "pCaMKII_CaM_Ca4_psd + pSubstrate",
             "forward_rate": 10.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -2416,8 +2416,8 @@
             ]
         },
         "ReactionFlux102": {
-            "reactants": " Substrate + CaMKII_CaM_psd",
-            "products": " CaMKII_CaM_psd_Substrate",
+            "reactants": "Substrate + CaMKII_CaM_psd",
+            "products": "CaMKII_CaM_psd_Substrate",
             "forward_rate": 499999.99999999994,
             "backward_rate": 10.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2428,8 +2428,8 @@
             ]
         },
         "ReactionFlux103": {
-            "reactants": " CaMKII_CaM_psd_Substrate",
-            "products": " CaMKII_CaM_psd + pSubstrate",
+            "reactants": "CaMKII_CaM_psd_Substrate",
+            "products": "CaMKII_CaM_psd + pSubstrate",
             "forward_rate": 10.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -2440,8 +2440,8 @@
             ]
         },
         "ReactionFlux104": {
-            "reactants": " Substrate + CaMKII_CaM_Ca2_psd",
-            "products": " CaMKII_CaM_Ca2_psd_Substrate",
+            "reactants": "Substrate + CaMKII_CaM_Ca2_psd",
+            "products": "CaMKII_CaM_Ca2_psd_Substrate",
             "forward_rate": 499999.99999999994,
             "backward_rate": 10.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2452,8 +2452,8 @@
             ]
         },
         "ReactionFlux105": {
-            "reactants": " CaMKII_CaM_Ca2_psd_Substrate",
-            "products": " CaMKII_CaM_Ca2_psd + pSubstrate",
+            "reactants": "CaMKII_CaM_Ca2_psd_Substrate",
+            "products": "CaMKII_CaM_Ca2_psd + pSubstrate",
             "forward_rate": 10.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -2464,8 +2464,8 @@
             ]
         },
         "ReactionFlux106": {
-            "reactants": " Substrate + CaMKII_CaM_Ca4_psd",
-            "products": " CaMKII_CaM_Ca4_psd_Substrate",
+            "reactants": "Substrate + CaMKII_CaM_Ca4_psd",
+            "products": "CaMKII_CaM_Ca4_psd_Substrate",
             "forward_rate": 499999.99999999994,
             "backward_rate": 10.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2476,8 +2476,8 @@
             ]
         },
         "ReactionFlux107": {
-            "reactants": " CaMKII_CaM_Ca4_psd_Substrate",
-            "products": " CaMKII_CaM_Ca4_psd + pSubstrate",
+            "reactants": "CaMKII_CaM_Ca4_psd_Substrate",
+            "products": "CaMKII_CaM_Ca4_psd + pSubstrate",
             "forward_rate": 10.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -2488,8 +2488,8 @@
             ]
         },
         "ReactionFlux108": {
-            "reactants": " pCaMKII_CaM_Ca4",
-            "products": " pCaMKII_CaM_Ca4_psd",
+            "reactants": "pCaMKII_CaM_Ca4",
+            "products": "pCaMKII_CaM_Ca4_psd",
             "forward_rate": 0.5,
             "backward_rate": 0.001,
             "forward_rate_unit": "1/second",
@@ -2500,8 +2500,8 @@
             ]
         },
         "ReactionFlux109": {
-            "reactants": " pCaMKII_CaM_Ca2",
-            "products": " pCaMKII_CaM_Ca2_psd",
+            "reactants": "pCaMKII_CaM_Ca2",
+            "products": "pCaMKII_CaM_Ca2_psd",
             "forward_rate": 0.5,
             "backward_rate": 0.001,
             "forward_rate_unit": "1/second",
@@ -2512,8 +2512,8 @@
             ]
         },
         "ReactionFlux110": {
-            "reactants": " pCaMKII_CaM",
-            "products": " pCaMKII_CaM_psd",
+            "reactants": "pCaMKII_CaM",
+            "products": "pCaMKII_CaM_psd",
             "forward_rate": 0.5,
             "backward_rate": 0.001,
             "forward_rate_unit": "1/second",
@@ -2524,8 +2524,8 @@
             ]
         },
         "ReactionFlux111": {
-            "reactants": " pCaMKII",
-            "products": " pCaMKII_psd",
+            "reactants": "pCaMKII",
+            "products": "pCaMKII_psd",
             "forward_rate": 0.5,
             "backward_rate": 0.001,
             "forward_rate_unit": "1/second",
@@ -2536,8 +2536,8 @@
             ]
         },
         "ReactionFlux112": {
-            "reactants": " CaM_Ca4 + pCaMKII_psd",
-            "products": " pCaMKII_CaM_Ca4_psd",
+            "reactants": "CaM_Ca4 + pCaMKII_psd",
+            "products": "pCaMKII_CaM_Ca4_psd",
             "forward_rate": 100000000.0,
             "backward_rate": 0.4,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2548,8 +2548,8 @@
             ]
         },
         "ReactionFlux113": {
-            "reactants": " pCaMKII_psd + CaM_Ca2",
-            "products": " pCaMKII_CaM_Ca2_psd",
+            "reactants": "pCaMKII_psd + CaM_Ca2",
+            "products": "pCaMKII_CaM_Ca2_psd",
             "forward_rate": 100000000.0,
             "backward_rate": 40.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2560,8 +2560,8 @@
             ]
         },
         "ReactionFlux114": {
-            "reactants": " CaM + pCaMKII_psd",
-            "products": " pCaMKII_CaM_psd",
+            "reactants": "CaM + pCaMKII_psd",
+            "products": "pCaMKII_CaM_psd",
             "forward_rate": 100000000.0,
             "backward_rate": 400.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2572,8 +2572,8 @@
             ]
         },
         "ReactionFlux115": {
-            "reactants": " pCaMKII_CaM_psd + Ca",
-            "products": " pCaMKII_CaM_Ca2_psd",
+            "reactants": "pCaMKII_CaM_psd + Ca",
+            "products": "pCaMKII_CaM_Ca2_psd",
             "forward_rate": 5999999.999999999,
             "backward_rate": 2.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2584,8 +2584,8 @@
             ]
         },
         "ReactionFlux116": {
-            "reactants": " pCaMKII_CaM_Ca2_psd + Ca",
-            "products": " pCaMKII_CaM_Ca4_psd",
+            "reactants": "pCaMKII_CaM_Ca2_psd + Ca",
+            "products": "pCaMKII_CaM_Ca4_psd",
             "forward_rate": 100000000.0,
             "backward_rate": 10.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2596,8 +2596,8 @@
             ]
         },
         "ReactionFlux117": {
-            "reactants": " pCaMKII_psd + PP1",
-            "products": " PP1_pCaMKII_psd",
+            "reactants": "pCaMKII_psd + PP1",
+            "products": "PP1_pCaMKII_psd",
             "forward_rate": 799999.9999999999,
             "backward_rate": 1.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2608,8 +2608,8 @@
             ]
         },
         "ReactionFlux118": {
-            "reactants": " PP1_pCaMKII_psd",
-            "products": " PP1 + CaMKII_psd",
+            "reactants": "PP1_pCaMKII_psd",
+            "products": "PP1 + CaMKII_psd",
             "forward_rate": 1.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -2620,8 +2620,8 @@
             ]
         },
         "ReactionFlux119": {
-            "reactants": " CaMKII_psd",
-            "products": " CaMKII",
+            "reactants": "CaMKII_psd",
+            "products": "CaMKII",
             "forward_rate": 0.5,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -2632,8 +2632,8 @@
             ]
         },
         "ReactionFlux120": {
-            "reactants": " CaM_Ca4 + CaMKII_psd",
-            "products": " CaMKII_CaM_Ca4_psd",
+            "reactants": "CaM_Ca4 + CaMKII_psd",
+            "products": "CaMKII_CaM_Ca4_psd",
             "forward_rate": 100000000.0,
             "backward_rate": 40.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2644,8 +2644,8 @@
             ]
         },
         "ReactionFlux121": {
-            "reactants": " CaM_Ca2 + CaMKII_psd",
-            "products": " CaMKII_CaM_Ca2_psd",
+            "reactants": "CaM_Ca2 + CaMKII_psd",
+            "products": "CaMKII_CaM_Ca2_psd",
             "forward_rate": 100000000.0,
             "backward_rate": 400.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2656,8 +2656,8 @@
             ]
         },
         "ReactionFlux122": {
-            "reactants": " CaM + CaMKII_psd",
-            "products": " CaMKII_CaM_psd",
+            "reactants": "CaM + CaMKII_psd",
+            "products": "CaMKII_CaM_psd",
             "forward_rate": 100000000.0,
             "backward_rate": 4000.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2668,8 +2668,8 @@
             ]
         },
         "ReactionFlux123": {
-            "reactants": " CaMKII_CaM_Ca2_psd + Ca",
-            "products": " CaMKII_CaM_Ca4_psd",
+            "reactants": "CaMKII_CaM_Ca2_psd + Ca",
+            "products": "CaMKII_CaM_Ca4_psd",
             "forward_rate": 100000000.0,
             "backward_rate": 100.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2680,8 +2680,8 @@
             ]
         },
         "ReactionFlux124": {
-            "reactants": " CaMKII_CaM_psd + Ca",
-            "products": " CaMKII_CaM_Ca2_psd",
+            "reactants": "CaMKII_CaM_psd + Ca",
+            "products": "CaMKII_CaM_Ca2_psd",
             "forward_rate": 5999999.999999999,
             "backward_rate": 2.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2692,8 +2692,8 @@
             ]
         },
         "ReactionFlux125": {
-            "reactants": " CaMKII_CaM",
-            "products": " CaMKII_CaM_psd",
+            "reactants": "CaMKII_CaM",
+            "products": "CaMKII_CaM_psd",
             "forward_rate": 0.5,
             "backward_rate": 0.5,
             "forward_rate_unit": "1/second",
@@ -2704,8 +2704,8 @@
             ]
         },
         "ReactionFlux126": {
-            "reactants": " CaMKII_CaM_Ca2",
-            "products": " CaMKII_CaM_Ca2_psd",
+            "reactants": "CaMKII_CaM_Ca2",
+            "products": "CaMKII_CaM_Ca2_psd",
             "forward_rate": 0.5,
             "backward_rate": 0.5,
             "forward_rate_unit": "1/second",
@@ -2716,8 +2716,8 @@
             ]
         },
         "ReactionFlux127": {
-            "reactants": " CaMKII_CaM_Ca4",
-            "products": " CaMKII_CaM_Ca4_psd",
+            "reactants": "CaMKII_CaM_Ca4",
+            "products": "CaMKII_CaM_Ca4_psd",
             "forward_rate": 0.5,
             "backward_rate": 0.5,
             "forward_rate_unit": "1/second",
@@ -2728,8 +2728,8 @@
             ]
         },
         "ReactionFlux128": {
-            "reactants": " CaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd",
-            "products": " CaMKII_CaM_Ca4_CaMKII_CaM_Ca4",
+            "reactants": "CaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd",
+            "products": "CaMKII_CaM_Ca4_CaMKII_CaM_Ca4",
             "forward_rate": 0.5,
             "backward_rate": 0.5,
             "forward_rate_unit": "1/second",
@@ -2740,8 +2740,8 @@
             ]
         },
         "ReactionFlux129": {
-            "reactants": " pCaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd",
-            "products": " pCaMKII_CaM_Ca4_CaMKII_CaM_Ca4",
+            "reactants": "pCaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd",
+            "products": "pCaMKII_CaM_Ca4_CaMKII_CaM_Ca4",
             "forward_rate": 0.001,
             "backward_rate": 0.5,
             "forward_rate_unit": "1/second",
@@ -2752,8 +2752,8 @@
             ]
         },
         "ReactionFlux130": {
-            "reactants": " CaMKII_CaM_Ca4 + CaMKII_CaM_Ca4",
-            "products": " CaMKII_CaM_Ca4_CaMKII_CaM_Ca4",
+            "reactants": "CaMKII_CaM_Ca4 + CaMKII_CaM_Ca4",
+            "products": "CaMKII_CaM_Ca4_CaMKII_CaM_Ca4",
             "forward_rate": 359999.99999999994,
             "backward_rate": 23.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2764,8 +2764,8 @@
             ]
         },
         "ReactionFlux131": {
-            "reactants": " CaMKII_CaM_Ca4_CaMKII_CaM_Ca4",
-            "products": " pCaMKII_CaM_Ca4 + CaMKII_CaM_Ca4",
+            "reactants": "CaMKII_CaM_Ca4_CaMKII_CaM_Ca4",
+            "products": "pCaMKII_CaM_Ca4 + CaMKII_CaM_Ca4",
             "forward_rate": 3.9,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -2776,8 +2776,8 @@
             ]
         },
         "ReactionFlux132": {
-            "reactants": " pCaMKII_CaM_Ca4 + CaMKII_CaM_Ca4",
-            "products": " pCaMKII_CaM_Ca4_CaMKII_CaM_Ca4",
+            "reactants": "pCaMKII_CaM_Ca4 + CaMKII_CaM_Ca4",
+            "products": "pCaMKII_CaM_Ca4_CaMKII_CaM_Ca4",
             "forward_rate": 1100000.0,
             "backward_rate": 5.4,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2788,8 +2788,8 @@
             ]
         },
         "ReactionFlux133": {
-            "reactants": " pCaMKII_CaM_Ca4_CaMKII_CaM_Ca4",
-            "products": " pCaMKII_CaM_Ca4 + pCaMKII_CaM_Ca4",
+            "reactants": "pCaMKII_CaM_Ca4_CaMKII_CaM_Ca4",
+            "products": "pCaMKII_CaM_Ca4 + pCaMKII_CaM_Ca4",
             "forward_rate": 10000.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -2800,8 +2800,8 @@
             ]
         },
         "ReactionFlux134": {
-            "reactants": " CaMKII_CaM_Ca4_psd + CaMKII_CaM_Ca4_psd",
-            "products": " CaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd",
+            "reactants": "CaMKII_CaM_Ca4_psd + CaMKII_CaM_Ca4_psd",
+            "products": "CaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd",
             "forward_rate": 359999.99999999994,
             "backward_rate": 23.0,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2812,8 +2812,8 @@
             ]
         },
         "ReactionFlux135": {
-            "reactants": " CaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd",
-            "products": " pCaMKII_CaM_Ca4_psd + CaMKII_CaM_Ca4_psd",
+            "reactants": "CaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd",
+            "products": "pCaMKII_CaM_Ca4_psd + CaMKII_CaM_Ca4_psd",
             "forward_rate": 3.9,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
@@ -2824,8 +2824,8 @@
             ]
         },
         "ReactionFlux136": {
-            "reactants": " pCaMKII_CaM_Ca4_psd + CaMKII_CaM_Ca4_psd",
-            "products": " pCaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd",
+            "reactants": "pCaMKII_CaM_Ca4_psd + CaMKII_CaM_Ca4_psd",
+            "products": "pCaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd",
             "forward_rate": 1100000.0,
             "backward_rate": 5.4,
             "forward_rate_unit": "liter/(mole*second)",
@@ -2836,8 +2836,8 @@
             ]
         },
         "ReactionFlux137": {
-            "reactants": " pCaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd",
-            "products": " pCaMKII_CaM_Ca4_psd + pCaMKII_CaM_Ca4_psd",
+            "reactants": "pCaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd",
+            "products": "pCaMKII_CaM_Ca4_psd + pCaMKII_CaM_Ca4_psd",
             "forward_rate": 10000.0,
             "backward_rate": null,
             "forward_rate_unit": "1/second",
