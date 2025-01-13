@@ -38,7 +38,9 @@ class NeuronModel(ephys.models.CellModel):
                  use_rxd_neuromodulation=True,
                  replace_axon_length=60e-6,
                  replace_axon_nseg_frequency=40e-6,
-                 replace_axon_diameter=None):  # If this is not None, it uses special code to get diameter also
+                 replace_axon_diameter=None,  # If this is not None, it uses special code to get diameter also
+                 replace_axon_myelin_length=None,
+                 replace_axon_myelin_diameter=None):
 
         """
         Constructor
@@ -110,7 +112,9 @@ class NeuronModel(ephys.models.CellModel):
         morph = self.define_morphology(replace_axon=True, morph_file=morph_file,
                                        replace_axon_length=replace_axon_length,
                                        replace_axon_nseg_frequency=replace_axon_nseg_frequency,
-                                       replace_axon_diameter=replace_axon_diameter)
+                                       replace_axon_diameter=replace_axon_diameter,
+                                       replace_axon_myelin_length=replace_axon_myelin_length,
+                                       replace_axon_myelin_diameter=replace_axon_myelin_diameter)
 
         mechs = self.define_mechanisms(mechanism_config=mech_file)
         params = self.define_parameters(param_file, parameter_id, parameter_key)
@@ -305,7 +309,9 @@ class NeuronModel(ephys.models.CellModel):
     def define_morphology(self, replace_axon=True, morph_file=None,
                           replace_axon_length=60e-6,
                           replace_axon_nseg_frequency=40e-6,
-                          replace_axon_diameter=None):
+                          replace_axon_diameter=None,
+                          replace_axon_myelin_length=None,
+                          replace_axon_myelin_diameter=None):
         """
         Define morphology. Handles SWC and ASC.
 
@@ -316,7 +322,7 @@ class NeuronModel(ephys.models.CellModel):
 
         assert (morph_file is not None)
 
-        if replace_axon_diameter is None:
+        if replace_axon_diameter is None and replace_axon_myelin_length is None:
             nrn_morph = ephys.morphologies.NrnFileMorphology(morph_file, do_replace_axon=replace_axon,
                                                              axon_stub_length=replace_axon_length*1e6,
                                                              axon_nseg_frequency=replace_axon_nseg_frequency*1e6)
@@ -326,7 +332,9 @@ class NeuronModel(ephys.models.CellModel):
             nrn_morph = NrnFileMorphology_axon_fix(morphology_path=morph_file,
                                                    axon_length=replace_axon_length,
                                                    axon_diameter=replace_axon_diameter,
-                                                   axon_nseg_frequency=replace_axon_nseg_frequency)
+                                                   axon_nseg_frequency=replace_axon_nseg_frequency,
+                                                   replace_axon_myelin_length=replace_axon_myelin_length,
+                                                   replace_axon_myelin_diameter=replace_axon_myelin_diameter)
 
         return nrn_morph
 

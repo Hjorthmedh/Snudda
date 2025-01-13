@@ -736,6 +736,8 @@ class SnuddaSimulate(object):
             axon_length = 60e-6
             axon_nseg_frequency = 40e-6
             replace_axon_diameter = None
+            replace_axon_myelin_length = None
+            replace_axon_myelin_diameter = None
 
             if os.path.isfile(meta_file):
                 with open(meta_file, "r") as mf:
@@ -755,6 +757,10 @@ class SnuddaSimulate(object):
 
                             # Special treatment for Robert
                             replace_axon_diameter = replace_info.get("axon_diameter", None)
+
+                            # Special treatment for Wilhelm
+                            replace_axon_myelin_length = replace_info.get("axon_myelin_length", None)
+                            replace_axon_myelin_diameter = replace_info.get("axon_myelin_diameter", None)
 
             # Obs, neurons is a dictionary
             if self.network_info["neurons"][ID]["virtual_neuron"]:
@@ -802,7 +808,9 @@ class SnuddaSimulate(object):
                                                use_rxd_neuromodulation=self.use_rxd_neuromodulation,
                                                replace_axon_length=axon_length,
                                                replace_axon_nseg_frequency=axon_nseg_frequency,
-                                               replace_axon_diameter=replace_axon_diameter)
+                                               replace_axon_diameter=replace_axon_diameter,
+                                               replace_axon_myelin_length=replace_axon_myelin_length,
+                                               replace_axon_myelin_diameter=replace_axon_myelin_diameter)
 
                 # Register ID as belonging to this worker node
                 try:

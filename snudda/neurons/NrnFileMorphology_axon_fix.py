@@ -12,6 +12,8 @@ class NrnFileMorphology_axon_fix(ephys.morphologies.NrnFileMorphology):
                  replace_axon_hoc=None,
                  axon_nseg_frequency=40,
                  nseg_frequency=40,
+                 replace_axon_myelin_length=None,
+                 replace_axon_myelin_diameter=None,
                  morph_modifiers=None,
                  morph_modifiers_hoc=None,
                  morph_modifiers_kwargs=None):
@@ -29,6 +31,8 @@ class NrnFileMorphology_axon_fix(ephys.morphologies.NrnFileMorphology):
 
         self.axon_diameter = axon_diameter
         self.axon_length = axon_length
+        self.replace_axon_myelin_length = replace_axon_myelin_length
+        self.replace_axon_myelin_diameter = replace_axon_myelin_diameter
 
     def instantiate(self, sim=None, icell=None):
 
@@ -46,6 +50,8 @@ class NrnFileMorphology_axon_fix(ephys.morphologies.NrnFileMorphology):
         # Create new axon array
         sim.neuron.h.execute(f"create axon[{len(self.axon_length)}]", icell)
 
+        assert len(self.axon_length) == len(self.axon_diameter)
+
         for index, (section, ax_len, ax_dia) in enumerate(zip(icell.axon, self.axon_length, self.axon_diameter)):
             section.L = ax_len * 1e6  # Convert to micrometers
             section.nseg = 1 + 2 * int(section.L / self.axon_nseg_frequency)
@@ -58,3 +64,28 @@ class NrnFileMorphology_axon_fix(ephys.morphologies.NrnFileMorphology):
             icell.axon[index].connect(icell.axon[index-1], 1.0, 0.0)
 
         print(f"replace_axon2: {self.axon_length =}, {self.axon_diameter =}")
+
+        if self.replace_axon_myelin_length is not None:
+            print(f"Adding myelinated section to axon: {self.replace_axon_myelin_length =}, "
+                  f"{self.replace_axon_myelin_diameter =}")
+            
+            for section in icell.myelinated:
+                sim.neuron.h.delete_section(sec=section)
+
+            sim.neuron.h.execute(f"create myelin[{len(self.replace_axon_myelin_length)}]", icell)
+
+            assert len(self.replace_axon_myelin_length) == len(self.replace_axon_myelin_diameter)
+
+            for index, (section, ax_len, ax_dia) in enumerate(zip(icell.myelin,
+                                                                  self.replace_axon_myelin_length,
+                                                                  self.replace_axon_myelin_diameter)):
+                section.L = ax_len * 1e6  # Convert to micrometers
+                section.nseg = 1 + 2 * int(section.L / self.axon_nseg_frequency)
+                section.diam = ax_dia * 1e6  # Convert to micrometers
+                icell.myelinated.append(sec=section)
+                icell.all.append(sec=section)
+
+            icell.myelin[0].connect(icell.axon[len(self.axon_length)-1], 1.0, 0.0)
+            for index in range(1, len(self.replace_axon_myelin_length)):
+                icell.myelin[index].connect(icell.myelin[index - 1], 1.0, 0.0)
+
