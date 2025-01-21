@@ -3,7 +3,10 @@
 	"m1": {
 	    "morphology": "WT-0728MSN01-cor-rep-ax.swc",
 	    "axon_stump": {
-		"axon_length": 50e-6
+		"axon_length": [50e-6, 30e-6, 20e-6],
+		"axon_diameter": [2e-6, 2e-6, 1e-6],
+		"axon_myelin_length": [100e-6, 50e-6],
+		"axon_myelin_diameter": [1e-6, 1e-6]
 	    }    
 	},
 	"m2": {

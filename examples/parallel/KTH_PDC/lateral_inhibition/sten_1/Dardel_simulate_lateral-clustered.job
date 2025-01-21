@@ -10,6 +10,10 @@
 #SBATCH --tasks-per-node=128
 #SBATCH --mail-type=ALL
 
+# This is important, otherwise Snudda import will fail
+unset DISPLAY
+
+
 # You need to point this as the directory where you created the network in
 #NETWORK_DIR=/cfs/klemming/home/${USER:0:1}/$USER/Snudda/examples/parallel/KTH_PDC/networks/test_10k
 NETWORK_DIR=../networks/sten_1-clustered

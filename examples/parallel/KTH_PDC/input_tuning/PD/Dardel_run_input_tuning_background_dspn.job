@@ -11,6 +11,10 @@
 #SBATCH --mem-per-cpu=930M
 #SBATCH --mail-type=ALL
 
+# This is important, otherwise Snudda import will fail
+unset DISPLAY
+
+
 export SNUDDA_TUNE_NEURON="dspn"
 export SEED_LIST="[10,20,30,40,50]"
 

@@ -16,6 +16,10 @@ module load snic-env
 source $HOME/Snudda/snudda_env/bin/activate
 SNUDDA_DIR=/cfs/klemming/home/"${USER:0:1}"/$USER/Snudda
 
+# This is important, otherwise Snudda import will fail
+unset DISPLAY
+
+
 export SNUDDA_DATA="/cfs/klemming/home/${USER:0:1}/$USER/BasalGangliaData/data"
 
 # Create the network

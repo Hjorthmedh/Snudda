@@ -42,7 +42,7 @@ print("Constructor done, calling setup_network.")
 
 neurons_path = os.path.join("$DATA", "neurons", "striatum")
 input_tuning.setup_network(neurons_path=neurons_path, 
-                           num_replicas=5,
+                           num_replicas=25,  # Increased it 5 -> 25 for dspn
                            neuron_types=neuron_type)
 
 print("Calling setup_input")

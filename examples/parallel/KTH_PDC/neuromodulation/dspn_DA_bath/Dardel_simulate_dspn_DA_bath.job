@@ -2,7 +2,7 @@
 #SBATCH --partition=main
 #SBATCH -o log/Simulate-%j-output.txt
 #SBATCH -e log/Simulate-%j-error.txt
-#SBATCH -t 0:59:00
+#SBATCH -t 1:59:00
 #SBATCH --time-min=0:59:00
 #SBATCH -J Simulate
 #SBATCH -A naiss2024-5-306
@@ -17,6 +17,10 @@ source $HOME/Snudda/snudda_env/bin/activate
 SNUDDA_DIR=/cfs/klemming/home/"${USER:0:1}"/$USER/Snudda
 
 export SNUDDA_DATA="/cfs/klemming/home/${USER:0:1}/$USER/BasalGangliaData/data"
+
+# This is important, otherwise Snudda import will fail
+unset DISPLAY
+
 
 # Create the network
 

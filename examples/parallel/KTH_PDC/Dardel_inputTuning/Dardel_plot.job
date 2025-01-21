@@ -11,6 +11,10 @@
 
 echo "JOB START "`date` 
 
+# This is important, otherwise Snudda import will fail
+unset DISPLAY
+
+
 #NETWORK_NAME=PD2_1k_spn03
 #NETWORK_NAME=PD0_1k_spn02
 #NETWORK_NAME=PD0_1k_spn01

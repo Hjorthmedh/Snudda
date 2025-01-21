@@ -91,7 +91,10 @@ class ReadSBtab:
         nmol_unit = self.unit_dict["nmol_unit"]
         nM_unit = self.unit_dict["nM_unit"]
 
-        conc_unit = nM_unit
+        # conc_unit = nM_unit
+        conc_unit = pq.M
+
+        # TODO: Should UNITS be nano Molar or Molar?
 
         for row_idx, row in self.compounds_data.iterrows():
 
@@ -111,13 +114,47 @@ class ReadSBtab:
             self.data["species"][species_name] = species_data
             original_sbtab_units[species_name] = species_unit.symbol 
 
-        self.get_parameters()  # TODO, not finished yet!
+        self.get_parameters()
 
         for row_idx, row in self.reactions_data.iterrows():
             reaction_name = row["!Name"]
+            reactants, products = row["!ReactionFormula"].split("<=>")
+            reactants = self._format_component_str(reactants)
+            products = self._format_component_str(products)
+            kinetic_law = row["!KineticLaw"].split("-")
 
-            import pdb
-            pdb.set_trace()
+            param_name_forward = kinetic_law[0].split("*")[0].strip()
+            forward_rate = self.parameters[param_name_forward]["value"]
+            forward_unit = self.parameters[param_name_forward]["unit"]
+
+            if len(kinetic_law) == 2:
+                param_name_backward = kinetic_law[1].split("*")[0].strip()
+                backward_rate = self.parameters[param_name_backward]["value"]
+                backward_unit = self.parameters[param_name_backward]["unit"]
+            else:
+                backward_rate = None
+                backward_unit = None
+
+            # TODO: Allow user to specify regions
+            reaction_info = {"reactants": reactants,
+                             "products": products,
+                             "forward_rate": forward_rate,
+                             "backward_rate": backward_rate,
+                             "forward_rate_unit": forward_unit,
+                             "backward_rate_unit": backward_unit,
+                             "regions": ["soma_internal", "dend_internal"]}
+
+            self.data["reactions"][reaction_name] = reaction_info
+
+    def _format_component_str(self, component_str):
+
+        new_str = ""
+        for comp in component_str.strip().split(" "):
+            new_str += f" {comp}"
+            if comp.isdigit():
+                new_str += " *"
+
+        return new_str.strip()
 
     def get_parameters(self):
 
@@ -125,63 +162,10 @@ class ReadSBtab:
             parameter_name = row["!Name"]
             parameter_value = row["!Value:linspace"]
 
-            # We assume that reaction name kf_R0, kr_R0 are related to R0 reaction.
-            reaction_name = row["!Name"].split("_")[-1]
 
-            reaction_row = self.reactions_data[self.reactions_data["!ID"] == reaction_name]
-
-            if len(reaction_row) != 1:
-                raise KeyError(f"Unable to find exactly one line for reaction {reaction_name} "
-                               f"in {self.reactions_filename} (found {len(reaction_row)})")
-
-            kinetic_law = reaction_row["!KineticLaw"][0]
-
-            reaction_components = None
-
-            for part_kinetic in kinetic_law.split("-"):
-                reaction_parts = part_kinetic.split("*")
-
-                # Hidden assumption, the reaction rate is before components
-                if parameter_name in reaction_parts[0]:
-                    reaction_components = reaction_parts[1:]
-
-            if reaction_components is None:
-                raise KeyError(f"Unable to find reaction {parameter_name}, we assume "
-                               f"it is before compounds in {self.reactions_filename} column !KineticLaw")
-
-            original_unit_str = ""
-            target_unit_str = ""
-
-            # Next we replace components with their units, and use the quantities library to calculate conversion factor
-            for rc in reaction_components:
-                rc_name = rc.split("^")[0]
-
-                try:
-                    compound_row = self.compounds_data[self.compounds_data["!Name"] == rc_name]
-                except:
-                    import traceback
-                    print(traceback.format_exc())
-                    import pdb
-                    pdb.set_trace()
-
-                if len(compound_row) != 1:
-                    raise KeyError(f"The compound {rc_name} does not appear on a unique row in {self.compounds_filename}")
-
-                if original_unit_str != "":
-                    original_unit_str += " * "
-                    target_unit_str += " * "
-
-                import pdb
-                pdb.set_trace()
-
-                # TODO: 2024-12-06, verify unit scaling for k_f and k_r
-
-                original_unit_str += f"({compound_row['!Unit'].iloc[0]})"
-                target_unit_str += f"({self.default_concentration_unit})"
-
-                if "^" in rc:
-                    original_unit_str += f"^{rc.split('^')[1]}"
-                    target_unit_str += f"^{rc.split('^')[1]}"
+            original_unit_str = row["!Unit"]
+            target_unit_str = original_unit_str.replace("milli", "").replace("nano", "")\
+                .replace("pico", "").replace("femto", "")
 
             nmol_unit = self.unit_dict["nmol_unit"]
             nM_unit = self.unit_dict["nM_unit"]
@@ -189,37 +173,22 @@ class ReadSBtab:
             original_unit = pq.CompoundUnit(original_unit_str)
             target_unit = pq.CompoundUnit(target_unit_str)
 
-            scale = original_unit.rescale(target_unit)
+            scale = float(original_unit.rescale(target_unit).base)
 
-            # We need to convert to SI units...
+            print(f"{original_unit_str = }, {target_unit_str = }, {scale = }")
 
-            # scale = row["!Scale"]
-
-            # Vi behöver ta hänsyn till om det är log10 eller annan skala, eller använda linjära värdet -- vilket är bäst?
-            # Hämta ut K_forward, K_backwards (om det finns), spara i self.parameters
-            # Vi vet vilket namn den har från !ID:et
-
-            # 2024-11-25:
-            # Vi behöver veta antalet reaktanter i !ReactionFormula (per rad), för att ta fram målenheten
-            # A + 2 B, dels för vänsterledet (kf_XXX) och för högerledet (kr_xxx)
-            #
-            # Vi använder pq.UnitQuantity (se parse)
-            # -- ev använd rexexp för detta?
-
-            # TODO: Continue here!!
-
-            self.parameters[parameter_name] = parameter_value * scale
-
-            import pdb
-            pdb.set_trace()
-
-        pass
+            try:
+                self.parameters[parameter_name] = {"value": parameter_value * scale, "unit": target_unit_str}
+            except:
+                import traceback
+                print(traceback.format_exc())
+                import pdb
+                pdb.set_trace()
 
     def _get_rates(self, rate_str):
         split_str = rate_str.split("-")
         if len(split_str) == 1:
             forward_rate_name = split_str.split("*")[0]
-
 
     def write(self, out_file=None):
 
@@ -260,6 +229,7 @@ def cli():
                    out_filename=args.json_file)
 
     rs.parse()
+    rs.write(args.json_file)
 
 
 if __name__ == "__main__":

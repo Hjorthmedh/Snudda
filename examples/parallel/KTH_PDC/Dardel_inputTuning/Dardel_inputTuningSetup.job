@@ -8,6 +8,10 @@
 #Set NETWORK_DIR, PROJECT_DIR, SNUDDA_DATA, and more 
 source setup_env.sh
 
+# This is important, otherwise Snudda import will fail
+unset DISPLAY
+
+
 let N_WORKERS="$SLURM_NNODES * 32"
 echo "Number of workers is = $SLURM_NNODES"
 

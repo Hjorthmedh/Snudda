@@ -307,7 +307,7 @@ class NeuronModulation:
             if not isinstance(backward_rates, (tuple, list)):
                 backward_rates = [backward_rates] * len(reaction_data["regions"])
 
-            if not ( len(reaction_data["regions"]) == len(forward_rates) == len(backward_rates)):
+            if not (len(reaction_data["regions"]) == len(forward_rates) == len(backward_rates)):
                 raise ValueError(f"{reaction_data} incompatible lengths for regions, forward and backward rates")
 
             for region, forward_rate, backward_rate in zip(reaction_data["regions"], forward_rates, backward_rates):

@@ -8,6 +8,10 @@
 #Set NETWORK_DIR, PROJECT_DIR, SNUDDA_DATA, and more 
 source setup_env.sh
 
+# This is important, otherwise Snudda import will fail
+unset DISPLAY
+
+
 echo "STARTING analyse_data_and_create_meta.py"
 neurons_path=$SNUDDA_DATA/neurons/striatum/$neuronType/$singleNeuronType
 

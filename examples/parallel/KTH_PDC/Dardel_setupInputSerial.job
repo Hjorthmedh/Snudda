@@ -10,6 +10,9 @@
 
 module load snic-env
 
+# This is important, otherwise Snudda import will fail
+unset DISPLAY
+
 source $HOME/Snudda/snudda_env/bin/activate
 
 srun ./Dardel_setupInputSerial.sh

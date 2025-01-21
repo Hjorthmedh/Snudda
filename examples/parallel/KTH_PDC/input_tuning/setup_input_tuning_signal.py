@@ -33,8 +33,8 @@ else:
 if os.getenv("NUM_INPUT_MAX"):
     num_input_max = float(os.getenv("NUM_INPUT_MAX"))
 else:
-    # previously 250
-    num_input_max = 500
+    # previously 250, (500 for 40Hz), back to 300... for 10Hz requested freq
+    num_input_max = 300
 
 if os.getenv("NUM_REPLICAS"):
     num_replicas = os.getenv("NUM_REPLICAS")
