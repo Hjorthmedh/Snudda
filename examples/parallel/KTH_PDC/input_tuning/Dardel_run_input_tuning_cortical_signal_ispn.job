@@ -2,7 +2,7 @@
 #SBATCH --partition=main
 #SBATCH -o log/InputTuning-%j-output.txt
 #SBATCH -e log/InputTuning-%j-error.txt
-#SBATCH -t 7:59:00
+#SBATCH -t 8:59:00
 #SBATCH --time-min=8:59:00
 #SBATCH -J InputTuning
 #SBATCH -A naiss2024-5-306
@@ -15,6 +15,10 @@ export SNUDDA_TUNE_NEURON="ispn"
 export SEED_LIST="[10,20,30,40,50]"
 export INPUT_TYPE="cortical"
 export INPUT_FREQ=10
+
+# This is important, otherwise Snudda import will fail
+unset DISPLAY
+
 
 # You need to point this as the directory where you created the network in
 #NETWORK_DIR=/cfs/klemming/home/${USER:0:1}/$USER/Snudda/examples/parallel/KTH_PDC/networks/test_10k

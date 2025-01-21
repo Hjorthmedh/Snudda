@@ -12,6 +12,9 @@
 #module load snic-env
 #source ../../../snudda_env/bin/activate
 
+# This is important, otherwise Snudda import will fail
+unset DISPLAY
+
 
 chmod +x Beskow_simulate.sh
 #./Beskow_simulate.sh PD0

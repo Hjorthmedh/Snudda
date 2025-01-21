@@ -11,6 +11,10 @@
 #SBATCH --tasks-per-node=100
 #SBATCH --mail-type=ALL
 
+# This is important, otherwise Snudda import will fail
+unset DISPLAY
+
+
 # 2024-02-16: 40 nodes worked, had 28% free... trying increasing to 45 nodes
 # 2024-03-01: 60 nodes, 50 workers worked...
 # 2024-05-30: 60 nodes, trying 100 workers per node, with memory 440GB

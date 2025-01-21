@@ -15,6 +15,10 @@ source setup_env.sh
 module load snic-env
 #source ../../../../../snudda_env/bin/activate
 
+# This is important, otherwise Snudda import will fail
+unset DISPLAY
+
+
 #python plot_network_simulation.py
 #python plot_network_simulation.py PD0
 #python plot_network_simulation.py PD1

@@ -142,6 +142,7 @@ class SnuddaSimulate(object):
         self.last_sim_report_time = 0
         self.sample_dt = sample_dt  # None means all values, 0.0005 means 0.5ms time resolution in saved files
         self.sim_dt = 0.025
+        self.use_cvode = False
 
         self.pc = h.ParallelContext()
 
@@ -175,6 +176,7 @@ class SnuddaSimulate(object):
                     self.sim_info = json.load(f, object_pairs_hook=OrderedDict)
             else:
                 print(f"Unable to find simulation_config file: {simulation_config}")
+                import sys
                 sys.exit(-1)
 
             if "log_file" in self.sim_info:
@@ -202,6 +204,11 @@ class SnuddaSimulate(object):
             if "output_file" in self.sim_info:
                 self.output_file = self.sim_info["output_file"]
                 self.write_log(f"Output file: {self.output_file}")
+
+            if "use_cvode" in self.sim_info:
+                self.use_cvode = self.sim_info["use_cvode"]
+                if self.use_cvode:
+                    print(f"Using CVODE for NEURON simulation")
 
             if "sim_dt" in self.sim_info:
                 self.sim_dt = self.sim_info["sim_dt"] * 1e3  # OBS, converted to ms for NEURON
@@ -662,7 +669,7 @@ class SnuddaSimulate(object):
 
         self.write_log("Setup neurons")
 
-        self.sim = NrnSimulatorParallel(cvode_active=False)
+        self.sim = NrnSimulatorParallel(cvode_active=self.use_cvode)
 
         # We need to load all the synapse parameters
         self.load_synapse_parameters()
@@ -728,6 +735,9 @@ class SnuddaSimulate(object):
             meta_file = snudda_parse_path(os.path.join(neuron_path, "meta.json"), self.snudda_data)
             axon_length = 60e-6
             axon_nseg_frequency = 40e-6
+            replace_axon_diameter = None
+            replace_axon_myelin_length = None
+            replace_axon_myelin_diameter = None
 
             if os.path.isfile(meta_file):
                 with open(meta_file, "r") as mf:
@@ -740,8 +750,17 @@ class SnuddaSimulate(object):
                     if meta_morphology_key in meta_data[meta_parameter_key]:
                         if "axon_stump" in meta_data[meta_parameter_key][meta_morphology_key]:
                             replace_info = meta_data[meta_parameter_key][meta_morphology_key]["axon_stump"]
+                            # axon_length is normally a scalar, but if axon_diameter given
+                            # then axon_length must also be a list
                             axon_length = replace_info.get("axon_length", 60e-6)
                             axon_nseg_frequency = replace_info.get("axon_nseg_frequency", 40e-6)
+
+                            # Special treatment for Robert
+                            replace_axon_diameter = replace_info.get("axon_diameter", None)
+
+                            # Special treatment for Wilhelm
+                            replace_axon_myelin_length = replace_info.get("axon_myelin_length", None)
+                            replace_axon_myelin_diameter = replace_info.get("axon_myelin_diameter", None)
 
             # Obs, neurons is a dictionary
             if self.network_info["neurons"][ID]["virtual_neuron"]:
@@ -788,7 +807,10 @@ class SnuddaSimulate(object):
                                                modulation_key=modulation_key,
                                                use_rxd_neuromodulation=self.use_rxd_neuromodulation,
                                                replace_axon_length=axon_length,
-                                               replace_axon_nseg_frequency=axon_nseg_frequency)
+                                               replace_axon_nseg_frequency=axon_nseg_frequency,
+                                               replace_axon_diameter=replace_axon_diameter,
+                                               replace_axon_myelin_length=replace_axon_myelin_length,
+                                               replace_axon_myelin_diameter=replace_axon_myelin_diameter)
 
                 # Register ID as belonging to this worker node
                 try:

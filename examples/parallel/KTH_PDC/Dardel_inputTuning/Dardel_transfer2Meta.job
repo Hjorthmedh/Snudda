@@ -9,6 +9,10 @@
 #Set NETWORK_DIR, PROJECT_DIR, SNUDDA_DATA, and more 
 source setup_env.sh
 
+# This is important, otherwise Snudda import will fail
+unset DISPLAY
+
+
 # Synapse file
 SNUDDA_DIR=$PROJECT_DIR/Snudda/snudda
 NETWORK_INFO_FILE=$NETWORK_DIR/network-synapses.hdf5

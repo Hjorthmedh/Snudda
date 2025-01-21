@@ -1,0 +1,65 @@
+{
+    "network_file": "networks/neuromodulation_bath_current_SBTab/network-synapses.hdf5",
+    "output_file": "networks/neuromodulation_bath_current_SBTab/simulation/output_neuromodulation_ON.hdf5",
+    "log_file": "networks/neuromodulation_bath_current_SBTab/log/network-simulation-ON.txt",
+    "time": 5,
+    "sim_dt": 0.005,
+    "record_all_soma": true,
+    "use_rxd_neuromodulation": true,
+
+    "record_rxd_species_soma": [0, 1],
+    "record_density_mechanism": {	
+	"kir_ms.modulation_factor": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	},
+	"naf_ms.modulation_factor": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	},
+	"kaf_ms.modulation_factor_g": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	},
+	"kaf_ms.modulation_factor_shift": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	},
+	"kas_ms.modulation_factor": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	},
+
+	"cal12_ms.modulation_factor": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	},
+	"cal13_ms.modulation_factor": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	}
+	
+    },
+    "rxd_enable_extracellular": false,
+    "bath_application": {
+	"DA": {
+	    "!!time": [0, 0.9999, 1, 10.99, 11.0, 20.999, 21, 30.999, 31, 50],
+	    "!!concentration": [2e-9, 2e-9, 60e-6, 60e-6, 100e-6, 100e-6, 2e-9, 2e-9, 0, 0],
+	    "!time": [0, 9.99, 10.0, 19.99, 20, 29.99, 30, 39.99, 40, 49.99, 50, 59.99, 60, 70],
+	    "!concentration": [1e-9, 1e-9, 20e-9, 20e-9, 50e-9, 50e-9, 100e-9, 100e-9, 200e-9, 200e-9, 750e-9, 750e-9, 1e-6, 1e-6],
+	    "!time": [0, 500],
+	    "!concentration": [20e-9, 20e-9],
+	    "time": [0, 1, 1, 1.4, 1.4, 20],
+	    "concentration": [20e-9, 20e-9, 750e-9, 750e-9, 20e-9, 20e-9],
+	    "interpolate": true
+	}
+    },
+    "current_injection_file": "bath_current_injection.json"
+}

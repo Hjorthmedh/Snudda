@@ -12,6 +12,8 @@
 #SBATCH --mail-type=ALL                                                         
 module load snic-env
 
+# This is important, otherwise Snudda import will fail
+unset DISPLAY
 
 #..
 #export OMP_STACKSIZE=128G

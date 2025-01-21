@@ -3,7 +3,7 @@
     "output_file": "networks/neuromodulation_bath_current/simulation/output_neuromodulation_ON.hdf5",
     "log_file": "networks/neuromodulation_bath_current/log/network-simulation-ON.txt",
     "time": 5,
-    "!sim_dt": 0.005,
+    "sim_dt": 0.005,
     "record_all_soma": true,
     "use_rxd_neuromodulation": true,
 

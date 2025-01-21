@@ -9,6 +9,10 @@
 #SBATCH --tasks-per-node=128
 #SBATCH --mail-type=ALL
 
+# This is important, otherwise Snudda import will fail
+unset DISPLAY
+
+
 module load snic-env
 
 export IPYTHONDIR="/cfs/klemming/scratch/${USER:0:1}/$USER/.ipython"
