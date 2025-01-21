@@ -68,7 +68,7 @@ class NrnFileMorphology_axon_fix(ephys.morphologies.NrnFileMorphology):
         if self.replace_axon_myelin_length is not None:
             print(f"Adding myelinated section to axon: {self.replace_axon_myelin_length =}, "
                   f"{self.replace_axon_myelin_diameter =}")
-            
+
             for section in icell.myelinated:
                 sim.neuron.h.delete_section(sec=section)
 
