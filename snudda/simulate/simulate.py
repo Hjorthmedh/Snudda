@@ -681,6 +681,8 @@ class SnuddaSimulate(object):
             neuron_type = self.network_info["neurons"][ID]["type"]
 
             region = self.network_info["neurons"][ID]["volume_id"]
+            position = self.network_info["neurons"][ID]["position"]
+            rotation = self.network_info["neurons"][ID]["rotation"]
 
             # We need to get morphology from network_info, since it can now be redefined for bent morphologies
             morph = snudda_parse_path(self.network_info["neurons"][ID]["morphology"], self.snudda_data)
@@ -810,7 +812,9 @@ class SnuddaSimulate(object):
                                                replace_axon_nseg_frequency=axon_nseg_frequency,
                                                replace_axon_diameter=replace_axon_diameter,
                                                replace_axon_myelin_length=replace_axon_myelin_length,
-                                               replace_axon_myelin_diameter=replace_axon_myelin_diameter)
+                                               replace_axon_myelin_diameter=replace_axon_myelin_diameter,
+                                               position=position,
+                                               rotation=rotation)
 
                 # Register ID as belonging to this worker node
                 try:
@@ -2302,7 +2306,10 @@ class SnuddaSimulate(object):
         neuron_rotation = self.network_info["neurons"][dest_id]["rotation"]
 
         # Transform voxel coordinates to local neuron coordinates to match neuron
-        synapse_pos = (voxel_size * voxel_coords + simulation_origo - neuron_position) * 1e6
+        # synapse_pos = (voxel_size * voxel_coords + simulation_origo - neuron_position) * 1e6
+
+        # UPDATE 2025-01-24: Now the neuron NEURON coordinates should use the simulation coordinate system
+        synapse_pos = (voxel_size * voxel_coords + simulation_origo) * 1e6
 
         syn_pos_nrn = np.zeros((len(sec_list), 3))
         old_sec = None
@@ -2310,7 +2317,7 @@ class SnuddaSimulate(object):
 
         for i, (sec, sec_x) in enumerate(zip(sec_list, sec_x_list)):
 
-            # If statement is just so we dont recalculate the norm_arc_dist every time
+            # If statement is just so we don't recalculate the norm_arc_dist every time
             if old_sec is None or not sec.same(old_sec):
                 num_points = int(h.n3d(sec=sec))
                 arc_dist = np.array([sec.arc3d(x) for x in range(0, num_points)])
@@ -2326,8 +2333,11 @@ class SnuddaSimulate(object):
 
         # We need to rotate the neuron to match the big simulation
         # !!! OBS, this assumes that soma is in 0,0,0 local coordinates
-        syn_pos_nrn_rot = np.transpose(np.matmul(neuron_rotation,
-                                                 np.transpose(syn_pos_nrn)))
+        # syn_pos_nrn_rot = np.transpose(np.matmul(neuron_rotation,
+        #                                        np.transpose(syn_pos_nrn)))
+
+        # UPDATED 2025-01-24: NEURON neuron coordinates are now updated to use the simulation coordinate frame
+        syn_pos_nrn_rot = syn_pos_nrn
 
         syn_mismatch = np.sqrt(np.sum((syn_pos_nrn_rot - synapse_pos) ** 2, axis=1))
 
@@ -2342,7 +2352,7 @@ class SnuddaSimulate(object):
             # due to having only one point
             self.write_log(f"!!! Found {num_bad} synapses on "
                            f"{self.network_info['neurons'][dest_id]['name']} ({dest_id}) "
-                           f" that are further than {bad_threshold} mum away "
+                           f" that are farther than {bad_threshold} mum away "
                            f" (out of {len(syn_mismatch)} synapses)"
                            f" Max found was {np.max(syn_mismatch):.0f} mum from expected location."
                            f" morphology: {self.network_info['neurons'][dest_id]['morphology']}\n"
