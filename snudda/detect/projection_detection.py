@@ -1,10 +1,12 @@
 import json
+import os
 from collections import OrderedDict
 
 import numpy as np
 from scipy.interpolate import griddata
-
+from sklearn.mixture import GaussianMixture, BayesianGaussianMixture
 from snudda.utils import snudda_parse_path
+from snudda.place.region_mesh_redux import RegionMeshRedux
 
 
 class ProjectionDetection:
@@ -34,7 +36,17 @@ class ProjectionDetection:
             self.role = role
 
         self.parse_config()
-
+       
+        self.n_terminals_gmm = self.load_gmm_from_json(os.path.join('/Users/wst/Desktop/Karolinska/ReferenceData/GMMs', 'n_terminals_gmm.json'))
+        self.mst_gmm = self.load_gmm_from_json(os.path.join('/Users/wst/Desktop/Karolinska/ReferenceData/GMMs', 'mst_gmm.json'))
+        
+        self.sec_gmm = self.load_gmm_from_json(os.path.join('/Users/wst/Desktop/Karolinska/ReferenceData/GMMs', 'sec_gmm.json'))
+        self.branches_gmm = self.load_gmm_from_json( os.path.join('/Users/wst/Desktop/Karolinska/ReferenceData/GMMs', 'branches_gmm.json'))
+        
+        self.synth_coords = dict()
+        self.target_mesh = RegionMeshRedux(mesh_path= '/Users/wst/Desktop/Karolinska/Meshes/SNr/SNr_total.obj')
+        
+        
         if self.rc is not None:
             self.d_view = self.rc.direct_view(targets='all')
             self.setup_parallel()
@@ -148,7 +160,6 @@ class ProjectionDetection:
             import traceback
             t_str = traceback.format_exc()
             self.write_log(t_str, is_error=True)
-            print(t_str)
             import pdb
             pdb.set_trace()
 
@@ -168,7 +179,6 @@ class ProjectionDetection:
     def find_hyper_voxel_helper(self, neuron_id, neuron_type, random_seed):
 
         """ Returns hyper voxels that neuron_id (of neuron_type) projects to. """
-        print(self.projections)
         try:
             rng = np.random.default_rng(random_seed)
 
@@ -185,14 +195,16 @@ class ProjectionDetection:
                         rx = ry = rz = proj["radius"]
                             
                     # Find better way to calculate intersection between ellipsoid and hyper voxel cubes?
-                    pos = self.ellipsoid_coordinates(target_pos, rx, ry, rz, target_rotation, num_points, rng, jitter = True)
+                    #pos = self.ellipsoid_coordinates(target_pos, rx, ry, rz, target_rotation, num_points, rng, jitter = True)
 
-                    hv_idx = ((pos - self.snudda_detect.simulation_origo)
-                              / (self.snudda_detect.hyper_voxel_size * self.snudda_detect.voxel_size)).astype(int)
+                    pos = self.synthesize_coordinates(target_pos)
+                    print(len(pos))
+                    self.synth_coords[neuron_id] = pos
+
+                    hv_idx = ((pos - self.snudda_detect.simulation_origo)/ (self.snudda_detect.hyper_voxel_size * self.snudda_detect.voxel_size)).astype(int)
 
                     hv_id = map(lambda x, y, z: self.snudda_detect.hyper_voxel_id_lookup[x, y, z],
                                 hv_idx[:, 0], hv_idx[:, 1], hv_idx[:, 2])
-
                     hyper_voxels.update(hv_id)
 
         except:
@@ -225,7 +237,6 @@ class ProjectionDetection:
         r_scale = rnd_values[:, 2] ** (1 / 3)
         
         if jitter:
-            print('Jittering')
             rotation = rotation * rng.uniform(0.90, 1.10)
             rx = rx * rng.uniform(0.7, 1.1)
             ry = ry * rng.uniform(0.8, 1.50)
@@ -244,11 +255,179 @@ class ProjectionDetection:
 
         return pos
 
+    # def synthesize_coordinates(self, target_pos):
+        
+    #     # current = np.array([0.0075, target_pos[1], target_pos[2]])
+    #     # current = np.array([8200e-6, 5000e-6, 7300e-6])
+    #     current = target_pos - np.array([500e-6, 0, 0]) 
+    #     synth_terminals = []
+    #     n = max(2, int(round(self.n_terminals_gmm.sample(1)[0][0][0])))
+    #     print('Number of terminals: ' + str(n))
+        
+    #     sampled_vectors = self.mst_gmm.sample(n)[0] * 1e-6
+    #     reference_vector = np.mean(sampled_vectors, axis = 0)
+    #     angles = [self.angle_with_reference(vec, reference_vector) for vec in sampled_vectors]
+    #     sorted_indices = np.argsort(angles)
+    #     sorted_vectors = sampled_vectors[sorted_indices]
+    #     sampled_vectors = self.partial_shuffle(sorted_vectors, fraction=0.2)
+
+    #     v = 0
+    #     while len(synth_terminals) < len(sampled_vectors): 
+    
+    #         new_terminal = current + sampled_vectors[v]
+    #         synth_terminals.append(new_terminal)
+    #         current = new_terminal
+    #         if v > 1: 
+    #             # if not self.bounding_box_check(current, min_point, max_point):
+    #             #     current = synth_terminals[np.random.choice(len(synth_terminals))]
+    #             if self.target_mesh.distance_to_border(current.reshape(1, -1)) > 25e-6:
+    #                 current = synth_terminals[np.random.choice(len(synth_terminals))]
+    #         v+=1
+             
+    #     return np.array(synth_terminals)
+    
+    
+    
+    def synthesize_coordinates(self, target_pos):
+        
+        n = max(1, int(round(self.branches_gmm.sample(1)[0][0][0])))
+        
+        p = np.array(target_pos) - np.array([500e-6, 0, 0])   ## p = np.array([7500e-6, target_pos[1], target_pos[2]])
+        branch_points = [(p, 0)]
+        
+        vs = self.sec_gmm.sample(n)[0]*1e-6
+        # np.random.shuffle(vs)
+        vs = self.partial_shuffle(vs, fraction=0.2)
+        lengths = np.linalg.norm(vs, axis =1)
+        
+        all_coords = []
+        i = 0
+        depth = 0
+
+        while i < n:
+            v = vs[i]
+            all_coords.extend(self.generate_tortuous_path(start = p, end = p+v, num_points = int(round(lengths[i]/3e-6)), tortuosity = lengths[i]/20))
+            depth +=1
+            if lengths[i] > 25e-6:
+                p = all_coords[-1]
+                branch_points.append((p, depth))
+
+            if depth >= 7:
+                bp_idx = np.random.choice(range(len(branch_points)))
+                p = branch_points[bp_idx][0]
+                depth = branch_points[bp_idx][1]
+
+            if self.target_mesh.distance_to_border(p.reshape(1, -1)) > 25e-6:
+                bp_idx = np.random.choice(range(len(branch_points)))
+                p = branch_points[bp_idx][0]
+                depth = branch_points[bp_idx][1]
+
+            i+=1
+        all_coords = self.jitter_coordinates(np.array(all_coords), scale = 1e-6)
+
+        return all_coords
+    
+    def resample_coordinates(self, coords, resolution):
+        """
+        Resample a list of coordinates to a specified resolution.
+
+        Args:
+            coords (list of tuple): List of (x, y, z) coordinates.
+            resolution (float): Desired spacing between resampled points.
+
+        Returns:
+            list of tuple: Resampled coordinates.
+        """
+        resampled_coords = []
+        
+        for i in range(len(coords) - 1):
+            # Get the current and next point
+            p1 = np.array(coords[i])
+            p2 = np.array(coords[i + 1])
+            
+            # Calculate the distance and direction vector
+            distance = np.linalg.norm(p2 - p1)
+            direction = (p2 - p1) / distance
+            
+            # Add the starting point of the segment
+            if not resampled_coords or not np.allclose(resampled_coords[-1], p1):
+                resampled_coords.append(tuple(p1))
+            
+            # Interpolate points along the segment
+            num_points = int(np.floor(distance / resolution))
+            for j in range(1, num_points + 1):
+                new_point = p1 + direction * j * resolution
+                resampled_coords.append(tuple(new_point))
+        
+        # Add the last point
+        resampled_coords.append(tuple(coords[-1]))
+        
+        return resampled_coords
+
+    def jitter_coordinates(self, points, scale= 3e-6):
+        """
+        Add random noise (jitter) to 3D coordinates.
+
+        Parameters:
+        - points (np.ndarray): Array of shape (N, 3), where N is the number of 3D points.
+        - scale (float): The standard deviation of the jitter noise.
+
+        Returns:
+        - np.ndarray: Jittered coordinates of the same shape as `points`.
+        """
+        # Ensure the points are in a numpy array
+        points = np.asarray(points)
+        
+        # Generate random noise
+        noise = np.random.normal(loc=0.0, scale=scale, size=points.shape)
+        
+        # Add noise to the original points
+        jittered_points = points + noise
+        
+        return jittered_points
+    
+    def generate_tortuous_path(self, start, end, num_points, tortuosity=0.1):
+        """
+        Generate a tortuous path between two points in 3D.
+    
+        Args:
+            start (tuple): Starting coordinate (x, y, z).
+            end (tuple): Ending coordinate (x, y, z).
+            num_points (int): Number of points in the path.
+            tortuosity (float): Factor controlling the amount of deviation from a straight line.
+    
+        Returns:
+            numpy.ndarray: Array of shape (num_points, 3) with the path coordinates.
+        """
+        # Create a straight line path
+        straight_path = np.linspace(start, end, num_points)
+        
+        # Calculate the direction vector of the straight line
+        direction = np.array(end) - np.array(start)
+        
+        # Generate two orthogonal vectors to the direction
+        if np.allclose(direction, [0, 0, 0]):
+            raise ValueError("Start and end points cannot be the same.")
+        arbitrary_vector = np.array([1, 0, 0]) if direction[0] == 0 else np.array([0, 1, 0])
+        normal1 = np.cross(direction, arbitrary_vector)
+        normal1 /= np.linalg.norm(normal1)
+        normal2 = np.cross(direction, normal1)
+        normal2 /= np.linalg.norm(normal2)
+        
+        # Add sinusoidal or random deviations for tortuosity
+        deviations1 = np.sin(np.linspace(0, 2 * np.pi, num_points)) * tortuosity
+        deviations2 = np.cos(np.linspace(0, 2 * np.pi, num_points)) * tortuosity
+        tortuous_path = straight_path + deviations1[:, None] * normal1 + deviations2[:, None] * normal2
+        
+        return tortuous_path
+
+
+        
     def voxelise_projections(self):
 
         """ Add the projection of each neuron in pre_neuron_list to the axon space in currently active hyper voxel
          """
-
+        print('VOXELIZING')
         if self.snudda_detect.hyper_voxel_id not in self.hyper_voxel_projections:
             # No projections in this hyper voxel, skip it
             return
@@ -268,15 +447,15 @@ class ProjectionDetection:
                 else:
                     rx = ry = rz = proj["radius"]
 
-                pos = self.ellipsoid_coordinates(target_pos, rx, ry, rz, target_rotation, num_points, rng, jitter = True)
-
+                #pos = self.ellipsoid_coordinates(target_pos, rx, ry, rz, target_rotation, num_points, rng, jitter = True)
+                pos = self.synth_coords[neuron_id]
+                
                 # Convert to coordinates in the hyper voxel
                 voxel_coords = np.round((pos - self.snudda_detect.hyper_voxel_origo)
                                         / self.snudda_detect.voxel_size).astype(int)
 
-                inside_idx = np.where(np.sum(np.logical_and(0 <= voxel_coords,
-                                                            voxel_coords < self.snudda_detect.hyper_voxel_size),
-                                             axis=1) == 3)[0]
+                inside_idx = np.where(np.sum(np.logical_and(0 <= voxel_coords, voxel_coords < self.snudda_detect.hyper_voxel_size),axis=1) == 3)[0]
+                print(len(inside_idx))
 
                 for x, y, z in voxel_coords[inside_idx, :]:
                     if self.snudda_detect.axon_voxel_ctr[x, y, z] < self.snudda_detect.max_axon:
@@ -309,23 +488,52 @@ class ProjectionDetection:
     def parse_config(self):
         for region_name, region_data in self.snudda_detect.config["regions"].items():
             for con_name, con_info in region_data["connectivity"].items():
-                print(con_name)
                 for con_type, con_config in con_info.items():
                     if "projection_config_file" in con_config:
-                        print('Projection Config File')
+
                         pre_neuron_type = con_name.split(",")[0]
 
                         if "projection_name" in con_config:
                             projection_name = con_config["projection_name"]
                         else:
                             projection_name = f"{con_name},{con_type}"
-                        print(con_config["projection_config_file"])
                         self.add_projection(projection_name=projection_name, pre_neuron_type=pre_neuron_type,
                                             projection_file=snudda_parse_path(con_config["projection_config_file"],
                                                                               snudda_data=self.snudda_detect.snudda_data))
                         # self.add_projection(projection_name=projection_name, pre_neuron_type=pre_neuron_type,
                         #                     projection_file=con_config["projection_config_file"])
 
+    def angle_with_reference(self, v, ref):
+        cos_theta = np.dot(v, ref) / (np.linalg.norm(v) * np.linalg.norm(ref))
+        # Clip to avoid numerical errors
+        cos_theta = np.clip(cos_theta, -1.0, 1.0)
+        return np.arccos(cos_theta)
+    
+    def load_gmm_from_json(self, json_path):
+        
+        with open(json_path, 'r') as f:
+            gmm_params = json.load(f)
+        
+        gmm = BayesianGaussianMixture(covariance_type = 'full', n_components = len(gmm_params['weights']))    
+        gmm.weights_ = np.array(gmm_params['weights'])
+        gmm.means_ = np.array(gmm_params['means'])
+        gmm.covariances_ = np.array(gmm_params['covariances'])
+        return gmm
+    
+    
+    def partial_shuffle(self, array, fraction=0.1):
+        array = array.copy()
+        num_swaps = int(len(array) * fraction)
+        for _ in range(num_swaps):
+            i, j = np.random.randint(0, len(array), size=2)
+            array[i], array[j] = array[j], array[i]
+        return array
+
+    def bounding_box_check(self, point, min_point, max_point):
+        x, y, z = point
+        xmin, ymin, zmin = min_point
+        xmax, ymax, zmax = max_point
+        return xmin <= x <= xmax and ymin <= y <= ymax and zmin <= z <= zmax
 
 
     def add_projection(self, projection_name, pre_neuron_type, projection_file):
@@ -371,7 +579,7 @@ class ProjectionDetection:
         if "rotation" in projection_data[projection_name]:
             proj_info["rotation"] = np.array(proj_file_info["rotation"])  # n x 9 matrix
 
-        print(proj_info)
+
         # Pre-compute target centres for each neuron of pre_neuron_type
         neuron_id = self.get_neurons_of_type(pre_neuron_type)
         pre_positions = self.get_neuron_positions(neuron_id)

@@ -312,7 +312,6 @@ class SnuddaDetect(object):
             if not os.path.exists(os.path.dirname(self.save_file)):
                 self.write_log(f"Creating directory {os.path.dirname(self.save_file)}")
                 os.mkdir(os.path.dirname(self.save_file))
-                print(self.save_file)
             self.setup_parallel(d_view=d_view)
 
             if self.work_history_file is None:
@@ -823,7 +822,7 @@ class SnuddaDetect(object):
                 
                 if indices:  # If any indices are found
                     occupied.add(hid)
-                    print(len(occupied))
+
         del all_coords, tree
         gc.collect()  # Force garbage collection
         return list(occupied)
@@ -1075,7 +1074,6 @@ class SnuddaDetect(object):
         self.write_log("Writing neuron distribution history to file")
 
         assert "hyper_voxels" not in self.work_history, "save_neuron_distribution_history should only be called once"
-
         self.work_history.create_dataset("meta/hyper_voxel_ids", data=self.hyper_voxel_id_lookup)
         self.work_history.create_dataset("meta/num_hyper_voxels", data=self.num_hyper_voxels)
         self.work_history.create_dataset("meta/simulation_origo", data=self.simulation_origo)
