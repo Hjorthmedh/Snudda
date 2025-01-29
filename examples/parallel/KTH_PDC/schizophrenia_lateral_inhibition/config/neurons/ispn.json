@@ -1,0 +1,16 @@
+{
+    "iSPN": {
+	"neuron_path": {
+	    "iSPN_0": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e150908_c4_D2-m51-5-DE-v20220622",
+	    "iSPN_1": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e150917_c11_D2-mWT-MSN1-v20220623",
+	    "iSPN_2": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e151123_c1_D2-mWT-P270-09-v20220623",
+	    "iSPN_3": "$SNUDDA_DATA/neurons/striatum/ispn/str-ispn-e160118_c10_D2-m46-3-DE-v20220622"
+	},
+	
+        "neuron_type": "neuron",
+        "rotation_mode": "random",
+        "volume_id": "Striatum",
+	"stay_inside_mesh": false,
+        "fraction": 0.475
+    }
+}

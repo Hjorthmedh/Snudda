@@ -62,7 +62,8 @@ setuptools.setup(
                                       "snudda_load_simulation_data = snudda.utils.load_network_simulation:load_network_simulation_cli",
                                       "snudda_ablate_network = snudda.utils.ablate_network:snudda_ablate_network_cli",
                                       "snudda_plot_network = snudda.plotting.plot_network:snudda_plot_network_cli",
-                                      "snudda_plot_trace = snudda.plotting.plot_traces:snudda_plot_traces_cli"]},
+                                      "snudda_plot_trace = snudda.plotting.plot_traces:snudda_plot_traces_cli",
+                                      "snudda_create_cube_mesh = snudda.place.create_cube_mesh:cube_cli"]},
     install_requires=install_requires,
     extras_require={"dev": ["sphinx"]},
     setup_requires=['wheel']
