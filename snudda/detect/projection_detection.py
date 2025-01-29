@@ -37,11 +37,11 @@ class ProjectionDetection:
 
         self.parse_config()
        
-        self.n_terminals_gmm = self.load_gmm_from_json(os.path.join('/Users/wst/Desktop/Karolinska/ReferenceData/GMMs', 'n_terminals_gmm.json'))
-        self.mst_gmm = self.load_gmm_from_json(os.path.join('/Users/wst/Desktop/Karolinska/ReferenceData/GMMs', 'mst_gmm.json'))
+        #self.n_terminals_gmm = self.load_gmm_from_json(os.path.join('/Users/wst/Desktop/Karolinska/ReferenceData/GMMs', 'n_terminals_gmm.json'))
+        #self.mst_gmm = self.load_gmm_from_json(os.path.join('/Users/wst/Desktop/Karolinska/ReferenceData/GMMs', 'mst_gmm.json'))
         
-        self.sec_gmm = self.load_gmm_from_json(os.path.join('/Users/wst/Desktop/Karolinska/ReferenceData/GMMs', 'sec_gmm.json'))
-        self.branches_gmm = self.load_gmm_from_json( os.path.join('/Users/wst/Desktop/Karolinska/ReferenceData/GMMs', 'branches_gmm.json'))
+        #self.sec_gmm = self.load_gmm_from_json(os.path.join('/Users/wst/Desktop/Karolinska/ReferenceData/GMMs', 'sec_gmm.json'))
+        #self.branches_gmm = self.load_gmm_from_json( os.path.join('/Users/wst/Desktop/Karolinska/ReferenceData/GMMs', 'branches_gmm.json'))
         
         self.synth_coords = dict()
         self.target_mesh = RegionMeshRedux(mesh_path= '/Users/wst/Desktop/Karolinska/Meshes/SNr/SNr_total.obj')
@@ -287,7 +287,7 @@ class ProjectionDetection:
     #     return np.array(synth_terminals)
     
     
-    
+    '''
     def synthesize_coordinates(self, target_pos):
         
         n = max(1, int(round(self.branches_gmm.sample(1)[0][0][0])))
@@ -420,7 +420,7 @@ class ProjectionDetection:
         tortuous_path = straight_path + deviations1[:, None] * normal1 + deviations2[:, None] * normal2
         
         return tortuous_path
-
+    '''
 
         
     def voxelise_projections(self):
