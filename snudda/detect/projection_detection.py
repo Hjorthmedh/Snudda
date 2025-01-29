@@ -44,7 +44,7 @@ class ProjectionDetection:
         #self.branches_gmm = self.load_gmm_from_json( os.path.join('/Users/wst/Desktop/Karolinska/ReferenceData/GMMs', 'branches_gmm.json'))
         
         self.synth_coords = dict()
-        self.target_mesh = RegionMeshRedux(mesh_path= '/Users/wst/Desktop/Karolinska/Meshes/SNr/SNr_total.obj')
+        #self.target_mesh = RegionMeshRedux(mesh_path= '/Users/wst/Desktop/Karolinska/Meshes/SNr/SNr_total.obj')
         
         
         if self.rc is not None:
