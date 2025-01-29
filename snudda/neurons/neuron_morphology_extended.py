@@ -68,7 +68,6 @@ class NeuronMorphologyExtended:
         self.density_bin_size = 10e-6
         # Or are they required for axon densities?
 
-        print(swc_filename)
         if self.load_morphology and swc_filename is not None:
             self.add_morphology(swc_file=swc_filename, position=position, rotation=rotation)
 

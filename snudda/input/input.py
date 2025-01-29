@@ -877,6 +877,10 @@ class SnuddaInput(object):
 
                         if "num_soma_synapses" in input_inf:
                             n_soma_synapses = input_inf["num_soma_synapses"]
+                            
+                        elif "p_soma_synapses" in input_inf:
+                            n_soma_synapses = int(np.rint(input_inf["p_soma_synapses"]*num_spike_trains))
+                            
                         else:
                             n_soma_synapses = 0
 
@@ -1075,6 +1079,9 @@ class SnuddaInput(object):
 
                 if "num_soma_synapses" in input_inf:
                     n_soma_synapses = input_inf["num_soma_synapses"]
+                
+                elif "p_soma_synapses" in input_inf:
+                    n_soma_synapses = input_inf["p_soma_synapses"]*n_inp
                 else:
                     n_soma_synapses = 0
 
@@ -1906,7 +1913,7 @@ class SnuddaInput(object):
 
         xyz, sec_id, sec_x, dist_to_soma = input_loc
 
-        soma_xyz = np.atleast_2d(soma_pos).repeat(repeats=n_soma_synapses, axis=0)
+        soma_xyz = np.atleast_2d([0,0,0]).repeat(repeats=n_soma_synapses, axis=0)
         soma_sec_id = np.full((n_soma_synapses, ), -1)
         soma_sec_x = np.full((n_soma_synapses, ), 0.5)
         soma_dist_to_soma = np.zeros((n_soma_synapses, ))
@@ -1914,6 +1921,7 @@ class SnuddaInput(object):
         new_xyz = np.vstack((xyz, soma_xyz))
         new_sec_id = np.concatenate((sec_id, soma_sec_id))
         new_sec_x = np.concatenate((sec_x, soma_sec_x))
+        
         new_soma_dist = np.concatenate((dist_to_soma, soma_dist_to_soma))
 
         new_input_loc = (new_xyz, new_sec_id, new_sec_x, new_soma_dist)

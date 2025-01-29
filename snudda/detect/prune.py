@@ -1595,8 +1595,8 @@ class SnuddaPrune(object):
             chunk_size = 10000
 
             # Next we need to open all the relevant files
-            h_file_name_mask = self.voxel_files
-            # h_file_name_mask = os.path.join(self.network_path, "voxels", "network-putative-synapses-%s.hdf5")
+            #h_file_name_mask = self.voxel_files
+            h_file_name_mask = os.path.join(self.network_path, "voxels", "network-putative-synapses-%s.hdf5")
 
             max_axon_voxel_ctr = 0
             max_dend_voxel_ctr = 0
@@ -1621,6 +1621,7 @@ class SnuddaPrune(object):
                     continue
 
                 if n_syn > 0:
+                    print(h_id)
                     h_filename = h_file_name_mask % str(h_id)
                     self.write_log(f"Opening voxel file: {h_filename}")
 
