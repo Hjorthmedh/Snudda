@@ -2557,7 +2557,9 @@ class SnuddaDetect(object):
         d_view.scatter("neuron_idx", neuron_idx, block=True)
         d_view.scatter("distribution_seeds", distribution_seeds[neuron_idx], block=True)  # Need to preserve order
         d_view.push({"min_coord": min_coord, "max_coord": max_coord}, block=True)
-
+        
+        
+        self.occupied = self.find_occupied()
         self.write_log("Distributing neurons, parallel.")
 
         # For the master node, run with empty list
@@ -2565,7 +2567,6 @@ class SnuddaDetect(object):
 
         self.distribute_neurons(neuron_idx=[], min_coord=min_coord, max_coord=max_coord, distribution_seeds=[])
            
-        self.occupied = self.find_occupied()
         d_view.push({"sd.occupied": self.occupied}, block=True)
 
 
