@@ -808,11 +808,14 @@ class SnuddaInput(object):
                     csv_spikes = self.import_csv_spikes(csv_file=csv_file)
                     
                     if "num_inputs" in input_inf:
-                        csv_spikes = csv_spikes[:int(input_inf["num_inputs"])]
-                        rng_num_inputs = np.random.default_rng()
-
+                        if isinstance(input["num_inputs"], list):
+                            rng_num_inputs = np.random.default_rng()
+                            num_inputs = rng_num_inputs.normal(input["num_inputs"][0], input["num_inputs"][1])
+                        else:
+                            num_inputs = int(input_inf["num_inputs"])
+                        csv_spikes = csv_spikes[:num_inputs]
+                        
                     num_spike_trains = len(csv_spikes)
-                    
                     
                     rng_master = np.random.default_rng(self.random_seed + neuron_id + 10072)
                     
