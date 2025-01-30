@@ -810,7 +810,7 @@ class SnuddaInput(object):
                     if "num_inputs" in input_inf:
                         if isinstance(input_inf["num_inputs"], list):
                             rng_num_inputs = np.random.default_rng()
-                            num_inputs = rng_num_inputs.normal(input_inf["num_inputs"][0], input_inf["num_inputs"][1])
+                            num_inputs = np.max(1, int(rng_num_inputs.normal(input_inf["num_inputs"][0], input_inf["num_inputs"][1])))
                         else:
                             num_inputs = int(input_inf["num_inputs"])
                         csv_spikes = csv_spikes[:num_inputs]
