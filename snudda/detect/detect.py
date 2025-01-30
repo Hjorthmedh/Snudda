@@ -793,7 +793,6 @@ class SnuddaDetect(object):
         return np.array(bounds_list), hid_list
     
 
-    
     def find_occupied(self, neuron_idx: list = None) -> list:
         """Find occupied hyper-voxels based on neuron coordinates."""
         occupied = set()  # Use a set to avoid duplicates
@@ -2559,16 +2558,17 @@ class SnuddaDetect(object):
         d_view.push({"min_coord": min_coord, "max_coord": max_coord}, block=True)
         
         
-        self.occupied = self.find_occupied()
+
         self.write_log("Distributing neurons, parallel.")
 
         # For the master node, run with empty list
         # This sets up internal state of master
 
         self.distribute_neurons(neuron_idx=[], min_coord=min_coord, max_coord=max_coord, distribution_seeds=[])
-           
+        self.write_log("Finding Occupied HyperVoxels")
+        self.occupied = self.find_occupied()
         d_view.push({"sd.occupied": self.occupied}, block=True)
-
+        self.write_log("Pushing Occupied HyperVoxels to workers")
 
         cmd_str = ("sd.distribute_neurons(neuron_idx=neuron_idx, distribution_seeds=distribution_seeds, "
                    "min_coord=min_coord, max_coord=max_coord)")
