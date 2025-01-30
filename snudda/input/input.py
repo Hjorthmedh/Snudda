@@ -808,7 +808,7 @@ class SnuddaInput(object):
                     csv_spikes = self.import_csv_spikes(csv_file=csv_file)
                     
                     if "num_inputs" in input_inf:
-                        csv_spikes = csv_spikes[:input_inf["num_inputs"]]
+                        csv_spikes = csv_spikes[:int(input_inf["num_inputs"])]
                         rng_num_inputs = np.random.default_rng()
 
                     num_spike_trains = len(csv_spikes)
