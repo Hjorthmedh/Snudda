@@ -5,6 +5,8 @@ from snudda.utils.benchmark_logging import BenchmarkLogging
 import os
 import sys
 
+###command line
+
 
 def snudda_cli():
     """
