@@ -1898,6 +1898,7 @@ class SnuddaInput(object):
         #                                                                  morphology_key=morphology_key)
         # print(neuron_id)
         # print(num_spike_trains)
+        cluster_size = min(cluster_size, num_spike_trains)
         rng = np.random.default_rng()   ### No longer deterministic
         return morphology.dendrite_input_locations(synapse_density_str=synapse_density,
                                                    num_locations=num_spike_trains,
