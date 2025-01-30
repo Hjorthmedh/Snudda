@@ -343,7 +343,6 @@ class SnuddaDetect(object):
 
             else:
                 # We are running it in serial
-
                 (all_hyper_id, n_completed, remaining, self.voxel_overflow_counter) = \
                     self.setup_process_hyper_voxel_state_history()
 
@@ -726,8 +725,12 @@ class SnuddaDetect(object):
             
         elif neuron.axon_density_type == "sparse":
             
+            if not self.occupied:
+                print('finding occupied')
+                self.occupied = self.find_occupied()
+                
             n_hv = int(neuron.axon_density_hv)
-
+            print(n_hv)
             rng = np.random.default_rng(seed)
             
             # hyper_voxel_id = list(set(list(np.unique(self.get_hypervoxel_coords_and_section_id(neuron = neuron)['neuron'][:,0]))[1:2] + list(np.unique(rng.integers(low = 0, high = self.hyper_voxel_id_lookup.size,size = (n_hv,1))))))
@@ -1837,7 +1840,7 @@ class SnuddaDetect(object):
         Placing fake axon segments based on sparse distribution
 
         """
-        npoints = 20000
+        npoints = 1000
         
         # print('Sparse axon points')
         (xyz_inside, voxIdx) = self.get_hyper_voxel_axon_points_sparse(npoints)
@@ -2533,7 +2536,7 @@ class SnuddaDetect(object):
 
         if d_view is None:
             self.write_log("No d_view specified, running distribute neurons in serial", force_print=True)
-            
+
             (min_coord, max_coord) = self.distribute_neurons(distribution_seeds=distribution_seeds)
 
             self.count_and_sort_neurons_in_hypervoxels()
