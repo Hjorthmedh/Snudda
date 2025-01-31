@@ -1893,9 +1893,9 @@ class SnuddaInput(object):
         #                                                                  morphology_id=morphology_id,
         #                                                                  parameter_key=parameter_key,
         #                                                                  morphology_key=morphology_key)
-        # print(neuron_id)
-        # print(num_spike_trains)
-        cluster_size = min(cluster_size, num_spike_trains)
+
+        if cluster_size is not None:
+            cluster_size = min(cluster_size, num_spike_trains)
         rng = np.random.default_rng()   ### No longer deterministic
         
         self.num_spike_trains = num_spike_trains
