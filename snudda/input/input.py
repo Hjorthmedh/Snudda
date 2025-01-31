@@ -806,7 +806,8 @@ class SnuddaInput(object):
                     self.neuron_input[neuron_id][input_type]["generator"] = "csv"
                     
                     csv_spikes = self.import_csv_spikes(csv_file=csv_file)
-                    
+                    self.write_log(f" # CSV Spikes: {str(len(csv_spikes))}")
+
                     if "num_inputs" in input_inf:
                         if isinstance(input_inf["num_inputs"], list):
                             rng_num_inputs = np.random.default_rng()
@@ -818,13 +819,7 @@ class SnuddaInput(object):
                     num_spike_trains = len(csv_spikes)
                     
                     rng_master = np.random.default_rng(self.random_seed + neuron_id + 10072)
-                    
-                    # if "num_inputs" in input_inf:
-                    #     rng_num_inputs = np.random.default_rng()
-                    #     num_inputs_varied = int(rng_num_inputs.normal(input_inf["num_inputs"]))
-                    #     csv_spikes = csv_spikes[:num_inputs_varied]
-                        
-                    num_spike_trains = len(csv_spikes)
+
 
                     self.neuron_input[neuron_id][input_type]["spikes"] = csv_spikes
                     self.neuron_input[neuron_id][input_type]["num_spikes"] = np.array([len(x) for x in csv_spikes])
@@ -889,7 +884,8 @@ class SnuddaInput(object):
 
                         if n_soma_synapses > num_spike_trains:
                             n_soma_synapses = num_spike_trains
-                            # raise ValueError(f"num_soma_synapses can not be greater than the number of input trains read from CSV file")
+                    
+                        self.write_log(f" Number of spike trains: {num_spike_trains}")
 
                         # We need a random seed generator for the dendrite_input_location on the master TODO: Cleanup
                         input_loc = self.dendrite_input_locations(neuron_id=neuron_id,
