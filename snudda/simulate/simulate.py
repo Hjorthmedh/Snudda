@@ -667,7 +667,10 @@ class SnuddaSimulate(object):
 
     def setup_extracellular_region(self):
 
-        if not self.sim_info["rxd_enable_extracellular"]:
+        # What to do if self.sim_info is None?
+
+        if self.sim_info is None or "rxd_enable_extracellular" not in self.sim_info \
+                or not self.sim_info["rxd_enable_extracellular"]:
             # RxD extracellular not enabled
             return
 
