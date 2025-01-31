@@ -1835,7 +1835,7 @@ class SnuddaInput(object):
             cluster_size (int): Size of each synaptic cluster (None = No clustering)
             cluster_spread (float): Spread of cluster along dendrite (in meters)
         """
-        if num_spikes_trains = 0:
+        if num_spikes_trains == 0:
             return [], [], [], []
         if synapse_density is None:
             synapse_density = "1"
