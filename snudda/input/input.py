@@ -1836,7 +1836,7 @@ class SnuddaInput(object):
             cluster_spread (float): Spread of cluster along dendrite (in meters)
         """
         if num_spikes_trains = 0:
-            return []
+            return [], [], [], []
         if synapse_density is None:
             synapse_density = "1"
 
