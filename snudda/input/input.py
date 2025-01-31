@@ -886,11 +886,12 @@ class SnuddaInput(object):
                             n_soma_synapses = num_spike_trains
                     
                         self.write_log(f" Number of spike trains: {num_spike_trains}")
-
+                        self.write_log(f" Number of soma synapses: {n_soma_synapses}")
+                        num_spike_trains -= n_soma_synapses
                         # We need a random seed generator for the dendrite_input_location on the master TODO: Cleanup
                         input_loc = self.dendrite_input_locations(neuron_id=neuron_id,
                                                                   synapse_density=synapse_density,
-                                                                  num_spike_trains=num_spike_trains - n_soma_synapses,
+                                                                  num_spike_trains=num_spike_trains,
                                                                   rng=rng_master,
                                                                   cluster_size=cluster_size,
                                                                   cluster_spread=cluster_spread)
@@ -1819,7 +1820,7 @@ class SnuddaInput(object):
                                  neuron_id,
                                  rng,
                                  synapse_density=None,
-                                 num_spike_trains=None,
+                                 num_spike_trains=0,
                                  cluster_size=None,
                                  cluster_spread=30e-6):
 
@@ -1834,7 +1835,8 @@ class SnuddaInput(object):
             cluster_size (int): Size of each synaptic cluster (None = No clustering)
             cluster_spread (float): Spread of cluster along dendrite (in meters)
         """
-
+        if num_spikes_trains = 0:
+            return []
         if synapse_density is None:
             synapse_density = "1"
 
