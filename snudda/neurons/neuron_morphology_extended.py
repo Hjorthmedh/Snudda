@@ -419,7 +419,10 @@ class NeuronMorphologyExtended:
         if expected_sum <= 0:
             raise ValueError(f"All compartments have zero synapse density: {synapse_density_str}")
 
-        if num_locations is not None:
+        if num_locations == 0:
+            return np.empty((0, 3)), np.empty((0,)),np.empty((0,)),np.empty((0,))
+
+        elif num_locations is not None:
             try:
                 if cluster_size is not None:
                     unique_locations = int(np.ceil(num_locations / cluster_size))
@@ -490,6 +493,13 @@ class NeuronMorphologyExtended:
             sec_id = section_data[cluster_syn_idx, 0]
             sec_x = comp_x * section_data[cluster_syn_idx, 1] + (1 - comp_x) * section_data[parent_idx[cluster_syn_idx], 1]
             dist_to_soma = comp_x * geometry[cluster_syn_idx, 4] + (1 - comp_x) * geometry[parent_idx[cluster_syn_idx], 4]
+
+            # print(xyz.shape)
+            # print(sec_id.shape)
+            # print(sec_x.shape)
+            # print(dist_to_soma.shape)
+            # print()
+
 
         return xyz, sec_id, sec_x / 1e3, dist_to_soma
 

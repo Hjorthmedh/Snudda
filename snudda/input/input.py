@@ -1820,7 +1820,7 @@ class SnuddaInput(object):
                                  neuron_id,
                                  rng,
                                  synapse_density=None,
-                                 num_spike_trains=0,
+                                 num_spike_trains=None,
                                  cluster_size=None,
                                  cluster_spread=30e-6):
 
@@ -1835,8 +1835,7 @@ class SnuddaInput(object):
             cluster_size (int): Size of each synaptic cluster (None = No clustering)
             cluster_spread (float): Spread of cluster along dendrite (in meters)
         """
-        if num_spike_trains == 0:
-            return [], [], [], []
+
         if synapse_density is None:
             synapse_density = "1"
 
@@ -1898,6 +1897,8 @@ class SnuddaInput(object):
         # print(num_spike_trains)
         cluster_size = min(cluster_size, num_spike_trains)
         rng = np.random.default_rng()   ### No longer deterministic
+        
+        self.num_spike_trains = num_spike_trains
         return morphology.dendrite_input_locations(synapse_density_str=synapse_density,
                                                    num_locations=num_spike_trains,
                                                    rng=rng,
