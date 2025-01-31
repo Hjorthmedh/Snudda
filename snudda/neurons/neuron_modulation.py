@@ -25,6 +25,8 @@ class NeuronModulation:
         self.config_data = {}
         self.config_file = config_file
 
+        self.extracellular_region = None  # Extracellular comparment
+
         self.node_cache = None
 
         self.build = {"soma_internal": lambda neuron_dummy: self.set_default_compartments("soma", nrn_region="i"),
@@ -85,11 +87,23 @@ class NeuronModulation:
                                                                charge=charge,
                                                                name=species_name)
 
-    def get_species(self, *species, region_name):
+    def get_species_OLD(self, *species, region_name):
         """ Example usage:
          a, b, c = self.neurons[123].modulation.get_species('A', 'B', 'C')
          """
         return [self.species[x][region_name] for x in species]
+
+    def get_species(self, *species, region_name):
+        species_list = []
+
+        for s in species:
+            if "__" in s:
+                species_name, species_region = s.split("__")
+                if species_region != "ecs":
+                    raise NotImplementedError("Only 'ecs' region can currently be coupled to")
+                species_list.append(self.extracellular_region.species[species_name][species_region])
+            else:
+                species_list.append(self.species[s][region_name])
 
     def add_decay(self, species_name, decay_rate):
 
@@ -232,9 +246,12 @@ class NeuronModulation:
 
         # self.species[species_name][region].nodes(synapse.get_segment())[0].include_flux(synapse, flux_variable)
 
-    def load_json(self, config_path=None):
+    def load_json(self, config_path=None, sim=None, neuron_region=None):
 
         # print(f"Parsing neuromodulation json: {config_path}")
+
+        if sim is not None and neuron_region in sim.extracellular_region:
+            self.extracellular_region = sim.extracellular_region[neuron_region]
 
         if config_path is None:
             config_path = self.config_file
@@ -259,7 +276,7 @@ class NeuronModulation:
                              compartment=regions, charge=charge,
                              boundary_condition=boundary_condition)
 
-        # Black magic, setup the species variables
+        # Black magic, set up the species variables
         species_name_vars = ",".join(self.species.keys()) + ","
         species_name_str = "','".join(self.species.keys())
 
@@ -318,6 +335,7 @@ class NeuronModulation:
                 right_side = eval(reaction_data["products"])
 
                 try:
+                    # Ta inte bort ettan (Do not remove the 1) -- or else...
                     n_left = sum((left_side*1)._items.values())
                     n_right = sum((right_side*1)._items.values())
                 except:

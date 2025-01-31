@@ -42,7 +42,8 @@ class NeuronModel(ephys.models.CellModel):
                  replace_axon_myelin_length=None,
                  replace_axon_myelin_diameter=None,
                  position=None,
-                 rotation=None):
+                 rotation=None,
+                 volume_id=None):
 
         """
         Constructor
@@ -60,6 +61,7 @@ class NeuronModel(ephys.models.CellModel):
             parameter_key (str): parameter key for lookup in parameter.json
             morphology_key (str): morphology key, together with parameter_key lookup in meta.json
             modulation_key (str): modulation key, lookup in modulation.json
+            volume_id (str): name of volume (region) that neuron is located in
 
         """
 
@@ -78,6 +80,7 @@ class NeuronModel(ephys.models.CellModel):
 
         self.position = position
         self.rotation = rotation
+        self.volume_id = volume_id
 
         if os.path.isfile(morph_path):
             # If morph_path is a swc file, use it directly
@@ -499,7 +502,7 @@ class NeuronModel(ephys.models.CellModel):
             param.instantiate(sim=sim, icell=self.icell)
 
         if self.modulation:
-            self.modulation.load_json()
+            self.modulation.load_json(sim=sim, neuron_region=self.volume_id)
 
     ############################################################################
 

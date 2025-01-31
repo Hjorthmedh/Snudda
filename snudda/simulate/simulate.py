@@ -136,6 +136,7 @@ class SnuddaSimulate(object):
         self.synapse_parameters = None
         self.use_rxd_neuromodulation = use_rxd_neuromodulation
         self.bath_application = dict()
+        self.extracellular_region = dict()  # TODO: This needs to be set when extracellular space is defined!
 
         self.sim_start_time = 0
         self.fih_time = None
@@ -345,6 +346,9 @@ class SnuddaSimulate(object):
         self.check_memory_status()
         self.distribute_neurons()
         self.pc.barrier()
+
+        # TODO: Setup extracellular space
+        self.setup_extracellular_region()
 
         self.setup_neurons()
         self.check_memory_status()
@@ -661,6 +665,25 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
+    def setup_extracellular_region(self):
+
+        if not self.sim_info["rxd_enable_extracellular"]:
+            # RxD extracellular not enabled
+            return
+
+        # TODO:
+        # 1. Iterate through network_config file, to find out which regions have
+        #    extracellular space defined. (maybe allow it to be other types of regions also)
+        # 2. Setup each region, need to check how much padding is needed
+        #    self.extracellular_region[region_name] = XXXXX
+        # 3. Instantiate regions
+        # 4. Check that neurons are able to couple to the regions
+
+        pass
+
+    ############################################################################
+
+
     def setup_neurons(self):
 
         """
@@ -797,6 +820,7 @@ class SnuddaSimulate(object):
 
                 # TODO: Modulation key currently has no USE -- deprecated? Remove?
                 modulation_key = self.network_info["neurons"][ID]["modulation_key"]
+                volume_id = self.network_info["neurons"][ID]["volume_id"]
 
                 self.neurons[ID] = NeuronModel(param_file=param,
                                                morph_path=morph,
@@ -814,7 +838,8 @@ class SnuddaSimulate(object):
                                                replace_axon_myelin_length=replace_axon_myelin_length,
                                                replace_axon_myelin_diameter=replace_axon_myelin_diameter,
                                                position=position,
-                                               rotation=rotation)
+                                               rotation=rotation,
+                                               volume_id=volume_id)
 
                 # Register ID as belonging to this worker node
                 try:
