@@ -1702,22 +1702,18 @@ class SnuddaDetect(object):
 
         vox_idx = self.hyper_voxel_rng.integers(low = 0, high = 100,size = (num_points,3))
         
-        d = cdist(vox_idx, vox_idx)
-        keep_flag = []
-
-        for idx, distance in enumerate(d): 
-            if np.min(distance[np.nonzero(distance)]) < 5:
-                keep_flag.append(idx)
+        tree = cKDTree(vox_idx)
+        
+        # Find nearest neighbor distances (excluding self)
+        distances, _ = tree.query(vox_idx, k=2)  # k=2 because k=1 is self
+        keep_flag = np.where(distances[:, 1] < 10)[0]  # Keep indices where NN distance >= 5
 
         vox_idx = vox_idx[keep_flag]
         xyz = vox_idx*self.voxel_size + self.hyper_voxel_origo
         # vox_idx = np.floor((xyz - self.hyper_voxel_origo)/ self.voxel_size).astype(int)
 
         inside_idx = np.where(np.sum(np.bitwise_and(0 <= vox_idx, vox_idx < self.hyper_voxel_size), axis=1) == 3)[0]
-        # print(len(vox_idx[inside_idx, :]))
-        # print(vox_idx[inside_idx, :])
-        # print('Number of points kept: ')
-        # print(len(xyz[inside_idx, :]))
+
         return xyz[inside_idx, :], vox_idx[inside_idx, :]
     ############################################################################
 
@@ -1840,7 +1836,7 @@ class SnuddaDetect(object):
         Placing fake axon segments based on sparse distribution
 
         """
-        npoints = 1000
+        npoints = 500
         
         # print('Sparse axon points')
         (xyz_inside, voxIdx) = self.get_hyper_voxel_axon_points_sparse(npoints)
