@@ -22,7 +22,8 @@ class ConfigParser:
         self.config_data = {}
         self.rng = None
 
-        self.exclude_parse_keys = ["parameter_file", "projection_file", "rotation_file", "rotation_field_file"]
+        self.exclude_parse_keys = ["parameter_file", "projection_file", "rotation_file", "rotation_field_file",
+                                   "reaction_diffusion", "modulation"]
         self.exclude_parse_values = ["parameters.json", "mechanisms.json", "modulation.json", "meta.json"]
 
         if config_file is not None and parse:

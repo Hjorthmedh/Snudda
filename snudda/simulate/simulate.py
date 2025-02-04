@@ -674,6 +674,10 @@ class SnuddaSimulate(object):
             # RxD extracellular not enabled
             return
 
+        for region_name, region_data in self.config["regions"]:
+            if "extracellular_space" in region_data:
+                extracellular_info = region_data["extraceullular_space"]
+
         # TODO:
         # 1. Iterate through network_config file, to find out which regions have
         #    extracellular space defined. (maybe allow it to be other types of regions also)

@@ -18,8 +18,11 @@
 		}
 	    }
 	},
+	
+	"extracellular_space": "extracellular.json",
+
 	"neurons": ["neurons/dspn.json",
-		    "neurons/ispn.json",
+		    "!neurons/ispn.json",
 		    "!neurons/fs.json",
 		    "!neurons/chin.json",
 		    "!neurons/lts.json"],

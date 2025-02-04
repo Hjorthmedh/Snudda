@@ -1,17 +1,21 @@
 {
     "dSPN": {
 	"neuron_path": {
-	    "dSPN_0": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20211026",
-	    "dSPN_1": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20211026",
-	    "dSPN_2": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20211028",
-	    "dSPN_3": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c9_D1-mWT-1215MSN03-v20211026"
+	    "dSPN_0": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20220620",
+	    "dSPN_1": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20220620",
+	    "dSPN_2": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c6_D1-m21-6-DE-v20220623",
+	    "dSPN_3": "$SNUDDA_DATA/neurons/striatum/dspn/str-dspn-e150917_c9_d1-mWT-1215MSN03-v20220620"
 	},
 	
 	"neuron_type": "neuron",
 	"rotation_mode": "random",
 	"volume_id": "Striatum",
 	"stay_inside_mesh": false,
-	"fraction": 0.475
+	"fraction": 0.475,
+	
+	"reaction_diffusion": "data/JSON/reaction_diffusion_D1_from_SBTab.json",
+	"modulation": "test-modulation.json",
+	"modulation_key": "abc"
     }
 
 }

@@ -126,10 +126,20 @@ class ExtracellularNeuromodulation:
                                                                   backward_rate,
                                                                   regions=self.compartments[region_name])
 
-    def load_json(self, config_path):
+    def load_json(self, config_path=None, config_data=None):
 
-        with open(config_path, "r") as f:
-            self.config_data = json.load(f)
+        if config_path is not None and config_data is None:
+            print(f"Loading extracellular configuration from {config_path =}")
+
+            with open(config_path, "r") as f:
+                self.config_data = json.load(f)
+
+        elif config_data is not None and config_path is None:
+            print(f"Using extracelluar configuration {config_data =}")
+            self.config_data = config_data
+
+        else:
+            raise ValueError(f"Set only one of these variables: {config_path =}, {config_data =}")
 
         for species_name, species_data in self.config_data.get("species", {}).items():
             initial_concentration = species_data.get("initial_concentration", 0) * 1e3  # Convert to millimolar for RxD
