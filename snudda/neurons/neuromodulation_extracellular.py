@@ -1,6 +1,7 @@
 from mpi4py import MPI
 import neuron.rxd as rxd
 import numpy as np
+import json
 
 
 class ExtracellularNeuromodulation:
@@ -11,6 +12,8 @@ class ExtracellularNeuromodulation:
         self.tortuosity = 1.6
         self.dx = np.array([30e-6, 30e-6, 30e-6])
         self.padding = padding
+
+        self.config_data = None
 
         # We set RxD option for extracellular
         rxd.options.enable.extracellular = True
@@ -43,7 +46,7 @@ class ExtracellularNeuromodulation:
         return x_min, y_min, z_min, x_max, y_max, z_max
 
     def add_species(self, species_name, diffusion_constant, initial_conc,
-                    compartment= ("ecs"),
+                    compartment=("ecs", ),
                     charge=0, boundary_condition=False, ecs_boundary_condition=None):
 
         if species_name not in self.species:
@@ -122,6 +125,112 @@ class ExtracellularNeuromodulation:
                                                                   forward_rate,
                                                                   backward_rate,
                                                                   regions=self.compartments[region_name])
+
+    def load_json(self, config_path):
+
+        with open(config_path, "r") as f:
+            self.config_data = json.load(f)
+
+        for species_name, species_data in self.config_data.get("species", {}).items():
+            initial_concentration = species_data.get("initial_concentration", 0) * 1e3  # Convert to millimolar for RxD
+            diffusion_constant = species_data.get("diffusion_constant", 0)
+            charge = species_data.get("charge", 0)
+            regions = species_data.get("regions", ("ecs",))
+            boundary_condition = species_data.get("boundary_condition", False)
+
+            # TODO: Read atol_scale, boundary_boundary_conditions, represents parameters
+
+            self.add_species(species_name=species_name,
+                             diffusion_constant=diffusion_constant,
+                             initial_conc=initial_concentration,
+                             compartment=regions, charge=charge,
+                             boundary_condition=boundary_condition)
+
+        # Black magic, set up the species variables
+        species_name_vars = ",".join(self.species.keys()) + ","
+        species_name_str = "','".join(self.species.keys())
+
+        for rate_name, rate_data in self.config_data.get("rates", {}).items():
+            if rate_name not in self.species:
+                raise ValueError(f"Species {rate_name} is not defined. Available: {self.species.keys()}")
+
+            rates = rate_data["rates"]
+            if isinstance(rates, str) and len(rate_data["regions"]) > 1:
+                rates = [rates for x in rate_data["regions"]]
+
+            for region, rate in zip(rate_data["regions"], rates):
+                exec(f"{species_name_vars} = self.get_species('{species_name_str}', region_name=region)")
+
+                try:
+                    right_side = eval(rate)
+                except:
+                    print(f"Problem evaluating rate {rate}")
+                    import traceback
+                    print(traceback.format_exc())
+                    import pdb
+                    pdb.set_trace()
+
+                self.add_rate(species_name=rate_name,
+                              left_side=self.get_species(rate_name, region_name=region)[0],
+                              right_side=right_side,
+                              region_name=region)
+
+        for reaction_name, reaction_data in self.config_data.get("reactions", {}).items():
+
+            # BE CAREFUL, BECAUSE VALUES ARE UNSCALED AND FED DIRECTLY INTO RxD
+            # which uses mmolar, ms, litres as units. So usually forward rate needs
+            # to account for the concentration if rescaled.
+            # TODO: Add proper unit handling.
+            forward_rates = reaction_data["forward_rate"]
+            backward_rates = reaction_data["backward_rate"]
+
+            if not isinstance(forward_rates, (tuple, list)):
+                forward_rates = [forward_rates] * len(reaction_data["regions"])
+
+            if not isinstance(backward_rates, (tuple, list)):
+                backward_rates = [backward_rates] * len(reaction_data["regions"])
+
+            if not (len(reaction_data["regions"]) == len(forward_rates) == len(backward_rates)):
+                raise ValueError(f"{reaction_data} incompatible lengths for regions, forward and backward rates")
+
+            for region, forward_rate, backward_rate in zip(reaction_data["regions"], forward_rates, backward_rates):
+                # TODO: Sanitise species_name_str before exec call
+                exec(f"{species_name_vars} = self.get_species('{species_name_str}', region_name=region)")
+
+                left_side = eval(reaction_data["reactants"])
+                right_side = eval(reaction_data["products"])
+
+                try:
+                    # Ta inte bort ettan (Do not remove the 1) -- or else...
+                    n_left = sum((left_side*1)._items.values())
+                    n_right = sum((right_side*1)._items.values())
+                except:
+                    import traceback
+                    print(traceback.format_exc())
+                    import pdb
+                    pdb.set_trace()
+
+                assert n_left >= 1 and n_right >= 1
+
+                # First 1e3 is for 1/second to 1/ms, second term is to correct for concentration
+                left_scale_from_SI = 1e-3 * 1e-3 ** (n_left - 1)
+                right_scale_from_SI = 1e-3 * 1e-3 ** (n_right - 1)
+
+                scaled_forward_rate = forward_rate * left_scale_from_SI if forward_rate is not None else forward_rate
+                scaled_backward_rate = backward_rate * right_scale_from_SI if backward_rate is not None else backward_rate
+
+                print(f"Reaction name: {reaction_name}, left: {left_side}, right: {right_side}")
+                print(f"k_forward: {forward_rate} (scaled: {scaled_forward_rate})")
+                print(f"k_backward: {backward_rate} (scaled: {scaled_backward_rate})")
+
+                self.add_reaction(reaction_name=reaction_name,
+                                  left_side=left_side,
+                                  right_side=right_side,
+                                  forward_rate=scaled_forward_rate,
+                                  backward_rate=scaled_backward_rate,
+                                  region_name=region)
+
+
 
 
     # TODO: Add functionality to extracellular compartment, similar to what is in neuro_modulation.py
