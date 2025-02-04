@@ -502,6 +502,7 @@ class NeuronModel(ephys.models.CellModel):
             param.instantiate(sim=sim, icell=self.icell)
 
         if self.modulation:
+            # TODO: THIS IS NOT THE Simulation object but the NEURON sim object... cant use it!!
             self.modulation.load_json(sim=sim, neuron_region=self.volume_id)
 
     ############################################################################
