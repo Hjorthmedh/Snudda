@@ -478,7 +478,7 @@ class NeuronModel(ephys.models.CellModel):
 
     # OVERRIDE the create_empty_template from CellModel
 
-    def instantiate(self, sim=None):
+    def instantiate(self, sim=None, extracellular_regions=None):
         """Instantiate model in simulator"""
 
         # TODO replace this with the real template name
@@ -503,7 +503,7 @@ class NeuronModel(ephys.models.CellModel):
 
         if self.modulation:
             # TODO: THIS IS NOT THE Simulation object but the NEURON sim object... cant use it!!
-            self.modulation.load_json(sim=sim, neuron_region=self.volume_id)
+            self.modulation.load_json(extracellular_regions=extracellular_regions, neuron_region=self.volume_id)
 
     ############################################################################
 

@@ -136,7 +136,7 @@ class SnuddaSimulate(object):
         self.synapse_parameters = None
         self.use_rxd_neuromodulation = use_rxd_neuromodulation
         self.bath_application = dict()
-        self.extracellular_region = dict()  # TODO: This needs to be set when extracellular space is defined!
+        self.extracellular_regions = dict()  # TODO: This needs to be set when extracellular space is defined!
 
         self.sim_start_time = 0
         self.fih_time = None
@@ -858,7 +858,7 @@ class SnuddaSimulate(object):
                 self.write_log(f"Node {int(self.pc.id())} - cell {ID} {name}")
 
                 # We need to instantiate the cell
-                self.neurons[ID].instantiate(sim=self.sim)
+                self.neurons[ID].instantiate(sim=self.sim, extracellular_regions=self.extracellular_regions)
                 self.set_resting_voltage(ID)
 
                 # !!! DIRTY FIX for

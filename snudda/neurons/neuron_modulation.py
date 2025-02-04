@@ -105,6 +105,8 @@ class NeuronModulation:
             else:
                 species_list.append(self.species[s][region_name])
 
+        return species_list
+
     def add_decay(self, species_name, decay_rate):
 
         species = self.species[species_name]
@@ -246,12 +248,14 @@ class NeuronModulation:
 
         # self.species[species_name][region].nodes(synapse.get_segment())[0].include_flux(synapse, flux_variable)
 
-    def load_json(self, config_path=None, sim=None, neuron_region=None):
+    def load_json(self, config_path=None, extracellular_regions=None, neuron_region=None):
 
         # print(f"Parsing neuromodulation json: {config_path}")
 
-        if sim is not None and neuron_region in sim.extracellular_region:
-            self.extracellular_region = sim.extracellular_region[neuron_region]
+        if extracellular_regions is not None and neuron_region in extracellular_regions:
+            self.extracellular_region = extracellular_regions[neuron_region]
+        else:
+            self.extracellular_region = None
 
         if config_path is None:
             config_path = self.config_file
