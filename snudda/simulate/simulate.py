@@ -83,6 +83,7 @@ class SnuddaSimulate(object):
 
         self.verbose = verbose
         self.log_file = log_file
+        self.sim_info = dict()
 
         if network_path:
             self.network_path = network_path
@@ -253,9 +254,6 @@ class SnuddaSimulate(object):
 
             if "post_init_modifications" in self.sim_info:
                 self.post_init_mods = self.sim_info["post_init_modifications"]
-
-        else:
-            self.sim_info = None
 
         if self.log_file is None:
             self.log_file = os.path.join(self.network_path, "log", "simulation-log.txt")
