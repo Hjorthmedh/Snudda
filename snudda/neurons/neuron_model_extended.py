@@ -660,6 +660,8 @@ class NeuronModel(ephys.models.CellModel):
 
         for sec in self.icell.soma[0].wholetree():
             n_points = int(sec.n3d())
+            sim.neuron.h.pt3dstyle(0, sec=sec)  # We don't want the points to translate when parent point is moved
+
             for i in range(n_points):
                 center_pos = np.array([sec.x3d(i) - x_center, sec.y3d(i) - y_center, sec.z3d(i) - z_center])
                 rot_pos = np.matmul(self.rotation, center_pos)   # Ska det vara T på pos eller resultatet=

@@ -13,7 +13,9 @@
 	"stay_inside_mesh": false,
 	"fraction": 0.475,
 	
-	"reaction_diffusion": "data/JSON/reaction_diffusion_D1_from_SBTab.json",
+	"!reaction_diffusion": "data/JSON/reaction_diffusion_D1_from_SBTab.json",
+	"reaction_diffusion": "data/JSON/small_test_reaction.json",
+	
 	"modulation": "test-modulation.json",
 	"modulation_key": "abc"
     }
