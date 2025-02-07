@@ -19,7 +19,11 @@
 	    }
 	},
 	
-	"extracellular_space": "extracellular.json",
+	"extracellular_space": {
+	    "extracellular_config": "data/JSON/extracellular_reaction_diffusion.json",
+	    "padding": "100e-6",
+	    "dx": 30e-6
+	},
 
 	"neurons": ["neurons/dspn.json",
 		    "!neurons/ispn.json",

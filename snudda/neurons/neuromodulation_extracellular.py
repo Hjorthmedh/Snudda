@@ -6,11 +6,17 @@ import json
 
 class ExtracellularNeuromodulation:
 
-    def __init__(self, sim, padding=None):
+    def __init__(self, sim, volume_id=None, padding=None, dx=None):
         self.sim = sim
+        self.volume_id = volume_id
         self.volume_fraction = 0.2
         self.tortuosity = 1.6
-        self.dx = np.array([30e-6, 30e-6, 30e-6])
+
+        if dx is None:
+            self.dx = np.array([30e-6, 30e-6, 30e-6])
+        else:
+            self.dx = np.array(dx)
+
         self.padding = padding
 
         self.config_data = None
@@ -22,9 +28,12 @@ class ExtracellularNeuromodulation:
 
         self.species = dict()
 
-    def get_min_max_coords(self, padding=None):
+    def get_min_max_coords(self, padding=None, volume_id=None):
 
         """ Returns x_min, y_min, z_min, x_max, y_max, z_max """
+
+        # TODO: Only neurons belonging to the Volume should be included in the min, max calculation
+        #       use volume_id info
 
         x_min, y_min, z_min = self.sim.network_info["simulation_origo"]
         n_x, n_y, n_z = self.sim.network_info["hyper_voxel_size"]
@@ -139,7 +148,7 @@ class ExtracellularNeuromodulation:
             self.config_data = config_data
 
         else:
-            raise ValueError(f"Set only one of these variables: {config_path =}, {config_data =}")
+            raise ValueError(f"Set exactly one of these variables: {config_path =}, {config_data =}")
 
         for species_name, species_data in self.config_data.get("species", {}).items():
             initial_concentration = species_data.get("initial_concentration", 0) * 1e3  # Convert to millimolar for RxD

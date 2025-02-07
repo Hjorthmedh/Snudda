@@ -33,6 +33,7 @@ from mpi4py import MPI  # This must be imported before neuron, to run parallel
 from neuron import h  # , gui
 
 import snudda.utils.memory
+from snudda.neurons.neuromodulation_extracellular import ExtracellularNeuromodulation
 from snudda.neurons.neuron_model_extended import NeuronModel
 from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
 from snudda.simulate.save_network_recording import SnuddaSaveNetworkRecordings
@@ -347,6 +348,9 @@ class SnuddaSimulate(object):
         self.distribute_neurons()
         self.pc.barrier()
 
+        # This activates RxD functionality, if needed
+        self.pre_setup_parse_sim_info()
+
         # TODO: Setup extracellular space
         self.setup_extracellular_region()
 
@@ -359,6 +363,22 @@ class SnuddaSimulate(object):
         self.pc.barrier()
 
         self.setup_parse_sim_info()
+
+    def pre_setup_parse_sim_info(self):
+
+        if self.use_rxd_neuromodulation is None:
+            if "use_rxd_neuromodulation" in self.sim_info:
+                self.use_rxd_neuromodulation = self.sim_info["use_rxd_neuromodulation"]
+            else:
+                # Setting default to False
+                self.use_rxd_neuromodulation = False
+
+        if self.use_rxd_neuromodulation:
+            print(f"RxD for neuromodulation: {'ENABLED' if self.use_rxd_neuromodulation else 'DiSABLED'}.")
+
+        if "rxd_enable_extracellular" in self.sim_info:
+            import neuron.rxd as rxd
+            rxd.options.enable.extracellular = self.sim_info["rxd_enable_extracellular"]
 
     def setup_parse_sim_info(self):
 
@@ -388,20 +408,6 @@ class SnuddaSimulate(object):
             if "record_current_all_synapses" in self.sim_info:
                 record_syn_cell_id = np.array(self.sim_info["record_current_all_synapses"], dtype=int)
                 self.add_synapse_current_recording_all(record_syn_cell_id)
-
-            if self.use_rxd_neuromodulation is None:
-                if "use_rxd_neuromodulation" in self.sim_info:
-                    self.use_rxd_neuromodulation = self.sim_info["use_rxd_neuromodulation"]
-                else:
-                    # Setting default to False
-                    self.use_rxd_neuromodulation = False
-
-            if self.use_rxd_neuromodulation:
-                print(f"RxD for neuromodulation: {'ENABLED' if self.use_rxd_neuromodulation else 'DiSABLED'}.")
-
-            if "rxd_enable_extracellular" in self.sim_info:
-                import neuron.rxd as rxd
-                rxd.options.enable.extracellular = self.sim_info["rxd_enable_extracellular"]
 
             if "record_rxd_species_concentration_all_compartments" in self.sim_info and self.use_rxd_neuromodulation:
 
@@ -672,11 +678,30 @@ class SnuddaSimulate(object):
         if self.sim_info is None or "rxd_enable_extracellular" not in self.sim_info \
                 or not self.sim_info["rxd_enable_extracellular"]:
             # RxD extracellular not enabled
+
+            print(f"RxD extracellular not enabled.")
+
             return
 
-        for region_name, region_data in self.config["regions"]:
+        for region_name, region_data in self.config["regions"].items():
             if "extracellular_space" in region_data:
-                extracellular_info = region_data["extraceullular_space"]
+                extracellular_info = region_data["extracellular_space"]
+
+                extracellular_dx = extracellular_info.get("dx", None)
+                if not isinstance(extracellular_dx, (list, tuple, np.ndarray)):
+                    extracellular_dx = np.full(shape=(3, ), fill_value=extracellular_dx)
+
+                extracellular_padding = extracellular_info.get("padding", None)
+                extracellular_config = extracellular_info.get("extracellular_config", None)
+                region_mesh = region_data.get("volume", {}).get("mesh_file", None)
+
+                print(f"Setting up extracellular space for region {region_name}")
+
+                self.extracellular_regions[region_name] = \
+                    ExtracellularNeuromodulation(sim=self, volume_id=region_name,
+                                                 padding=extracellular_padding, dx=extracellular_dx)
+
+                self.extracellular_regions[region_name].load_json(config_path=extracellular_config)
 
         # TODO:
         # 1. Iterate through network_config file, to find out which regions have
@@ -686,10 +711,7 @@ class SnuddaSimulate(object):
         # 3. Instantiate regions
         # 4. Check that neurons are able to couple to the regions
 
-        pass
-
     ############################################################################
-
 
     def setup_neurons(self):
 
