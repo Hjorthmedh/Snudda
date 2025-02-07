@@ -151,8 +151,7 @@ def snudda_cli():
     simulate_parser.add_argument("--exportCoreNeuron", action="store_true")
     simulate_parser.add_argument("--recordALL", dest="record_all", type=str, default=None)
     simulate_parser.add_argument("--enable_rxd_neuromodulation", dest="enable_rxd_neuromodulation", action="store_true", default=None)
-    simulate_parser.add_argument("--disabled_rxd_neuromodulation", dest="disable_rxd_neuromodulation", action="store_true", default=None)
-
+    simulate_parser.add_argument("--disable_rxd_neuromodulation", dest="disable_rxd_neuromodulation", action="store_true", default=None)
 
     export_parser = sub_parsers.add_parser("export")
     export_parser.add_argument("path", help="Location of network")

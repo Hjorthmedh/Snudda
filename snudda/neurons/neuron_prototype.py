@@ -83,8 +83,12 @@ class NeuronPrototype:
         else:
             self.modulation_path = None
 
-        if reaction_diffusion_path:
+        if isinstance(reaction_diffusion_path, dict):
+            self.reaction_diffusion_path = reaction_diffusion_path
+
+        elif reaction_diffusion_path:
             self.reaction_diffusion_path = snudda_parse_path(reaction_diffusion_path, self.snudda_data)
+
         elif self.neuron_path:
             self.reaction_diffusion_path = snudda_parse_path(os.path.join(self.neuron_path, "reaction_diffusion.json"),
                                                              self.snudda_data)

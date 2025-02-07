@@ -1,10 +1,10 @@
 {
     "Striatum": {
-	"num_neurons": 10,
+	"num_neurons": 1000,
 	"volume": {
-	    "mesh_file": "config/mesh/cube-mesh-5e-05.obj",
+	    "mesh_file": "$SNUDDA_DATA/meshes/Striatum-dorsal-left-hemisphere.obj",
 	    "d_min": 1.5e-5,
-	    "num_putative_points": 1000,
+	    "num_putative_points": 100000,
 	    "random_seed": 123456,
 	    "!density": {
 		"my_neuron": {
@@ -18,19 +18,12 @@
 		}
 	    }
 	},
-	
-	"extracellular_space": {
-	    "extracellular_config": "data/JSON/extracellular_reaction_diffusion.json",
-	    "padding": "100e-6",
-	    "dx": 30e-6
-	},
-
 	"neurons": ["neurons/dspn.json",
-		    "!neurons/ispn.json",
-		    "!neurons/fs.json",
-		    "!neurons/chin.json",
-		    "!neurons/lts.json"],
+		    "neurons/ispn.json",
+		    "neurons/fs.json",
+		    "neurons/chin.json",
+		    "neurons/lts.json"],
 	"connectivity": ["$SNUDDA_DATA/connectivity/striatum/striatum-connectivity.json"],
-	"!populations": "pop1.json"
+	"populations": "pop1.json"
     }
 }

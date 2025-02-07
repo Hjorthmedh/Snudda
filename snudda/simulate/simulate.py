@@ -33,6 +33,7 @@ from mpi4py import MPI  # This must be imported before neuron, to run parallel
 from neuron import h  # , gui
 
 import snudda.utils.memory
+from snudda.neurons.neuromodulation_extracellular import ExtracellularNeuromodulation
 from snudda.neurons.neuron_model_extended import NeuronModel
 from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
 from snudda.simulate.save_network_recording import SnuddaSaveNetworkRecordings
@@ -82,6 +83,7 @@ class SnuddaSimulate(object):
 
         self.verbose = verbose
         self.log_file = log_file
+        self.sim_info = dict()
 
         if network_path:
             self.network_path = network_path
@@ -136,6 +138,7 @@ class SnuddaSimulate(object):
         self.synapse_parameters = None
         self.use_rxd_neuromodulation = use_rxd_neuromodulation
         self.bath_application = dict()
+        self.extracellular_regions = dict()  # TODO: This needs to be set when extracellular space is defined!
 
         self.sim_start_time = 0
         self.fih_time = None
@@ -252,9 +255,6 @@ class SnuddaSimulate(object):
             if "post_init_modifications" in self.sim_info:
                 self.post_init_mods = self.sim_info["post_init_modifications"]
 
-        else:
-            self.sim_info = None
-
         if self.log_file is None:
             self.log_file = os.path.join(self.network_path, "log", "simulation-log.txt")
 
@@ -346,6 +346,12 @@ class SnuddaSimulate(object):
         self.distribute_neurons()
         self.pc.barrier()
 
+        # This activates RxD functionality, if needed
+        self.pre_setup_parse_sim_info()
+
+        # TODO: Setup extracellular space
+        self.setup_extracellular_region()
+
         self.setup_neurons()
         self.check_memory_status()
         self.pc.barrier()
@@ -355,6 +361,22 @@ class SnuddaSimulate(object):
         self.pc.barrier()
 
         self.setup_parse_sim_info()
+
+    def pre_setup_parse_sim_info(self):
+
+        if self.use_rxd_neuromodulation is None:
+            if "use_rxd_neuromodulation" in self.sim_info:
+                self.use_rxd_neuromodulation = self.sim_info["use_rxd_neuromodulation"]
+            else:
+                # Setting default to False
+                self.use_rxd_neuromodulation = False
+
+        if self.use_rxd_neuromodulation:
+            print(f"RxD for neuromodulation: {'ENABLED' if self.use_rxd_neuromodulation else 'DiSABLED'}.")
+
+        if "rxd_enable_extracellular" in self.sim_info:
+            import neuron.rxd as rxd
+            rxd.options.enable.extracellular = self.sim_info["rxd_enable_extracellular"]
 
     def setup_parse_sim_info(self):
 
@@ -384,20 +406,6 @@ class SnuddaSimulate(object):
             if "record_current_all_synapses" in self.sim_info:
                 record_syn_cell_id = np.array(self.sim_info["record_current_all_synapses"], dtype=int)
                 self.add_synapse_current_recording_all(record_syn_cell_id)
-
-            if self.use_rxd_neuromodulation is None:
-                if "use_rxd_neuromodulation" in self.sim_info:
-                    self.use_rxd_neuromodulation = self.sim_info["use_rxd_neuromodulation"]
-                else:
-                    # Setting default to False
-                    self.use_rxd_neuromodulation = False
-
-            if self.use_rxd_neuromodulation:
-                print(f"RxD for neuromodulation: {'ENABLED' if self.use_rxd_neuromodulation else 'DiSABLED'}.")
-
-            if "rxd_enable_extracellular" in self.sim_info:
-                import neuron.rxd as rxd
-                rxd.options.enable.extracellular = self.sim_info["rxd_enable_extracellular"]
 
             if "record_rxd_species_concentration_all_compartments" in self.sim_info and self.use_rxd_neuromodulation:
 
@@ -661,6 +669,48 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
+    def setup_extracellular_region(self):
+
+        # What to do if self.sim_info is None?
+
+        if self.sim_info is None or "rxd_enable_extracellular" not in self.sim_info \
+                or not self.sim_info["rxd_enable_extracellular"]:
+            # RxD extracellular not enabled
+
+            print(f"RxD extracellular not enabled.")
+
+            return
+
+        for region_name, region_data in self.config["regions"].items():
+            if "extracellular_space" in region_data:
+                extracellular_info = region_data["extracellular_space"]
+
+                extracellular_dx = extracellular_info.get("dx", None)
+                if not isinstance(extracellular_dx, (list, tuple, np.ndarray)):
+                    extracellular_dx = np.full(shape=(3, ), fill_value=extracellular_dx)
+
+                extracellular_padding = extracellular_info.get("padding", None)
+                extracellular_config = extracellular_info.get("extracellular_config", None)
+                region_mesh = region_data.get("volume", {}).get("mesh_file", None)
+
+                print(f"Setting up extracellular space for region {region_name}")
+
+                self.extracellular_regions[region_name] = \
+                    ExtracellularNeuromodulation(sim=self, volume_id=region_name,
+                                                 padding=extracellular_padding, dx=extracellular_dx)
+
+                self.extracellular_regions[region_name].load_json(config_path=extracellular_config)
+
+        # TODO:
+        # 1. Iterate through network_config file, to find out which regions have
+        #    extracellular space defined. (maybe allow it to be other types of regions also)
+        # 2. Setup each region, need to check how much padding is needed
+        #    self.extracellular_region[region_name] = XXXXX
+        # 3. Instantiate regions
+        # 4. Check that neurons are able to couple to the regions
+
+    ############################################################################
+
     def setup_neurons(self):
 
         """
@@ -681,6 +731,8 @@ class SnuddaSimulate(object):
             neuron_type = self.network_info["neurons"][ID]["type"]
 
             region = self.network_info["neurons"][ID]["volume_id"]
+            position = self.network_info["neurons"][ID]["position"]
+            rotation = self.network_info["neurons"][ID]["rotation"]
 
             # We need to get morphology from network_info, since it can now be redefined for bent morphologies
             morph = snudda_parse_path(self.network_info["neurons"][ID]["morphology"], self.snudda_data)
@@ -795,6 +847,7 @@ class SnuddaSimulate(object):
 
                 # TODO: Modulation key currently has no USE -- deprecated? Remove?
                 modulation_key = self.network_info["neurons"][ID]["modulation_key"]
+                volume_id = self.network_info["neurons"][ID]["volume_id"]
 
                 self.neurons[ID] = NeuronModel(param_file=param,
                                                morph_path=morph,
@@ -810,7 +863,10 @@ class SnuddaSimulate(object):
                                                replace_axon_nseg_frequency=axon_nseg_frequency,
                                                replace_axon_diameter=replace_axon_diameter,
                                                replace_axon_myelin_length=replace_axon_myelin_length,
-                                               replace_axon_myelin_diameter=replace_axon_myelin_diameter)
+                                               replace_axon_myelin_diameter=replace_axon_myelin_diameter,
+                                               position=position,
+                                               rotation=rotation,
+                                               volume_id=volume_id)
 
                 # Register ID as belonging to this worker node
                 try:
@@ -826,7 +882,7 @@ class SnuddaSimulate(object):
                 self.write_log(f"Node {int(self.pc.id())} - cell {ID} {name}")
 
                 # We need to instantiate the cell
-                self.neurons[ID].instantiate(sim=self.sim)
+                self.neurons[ID].instantiate(sim=self.sim, extracellular_regions=self.extracellular_regions)
                 self.set_resting_voltage(ID)
 
                 # !!! DIRTY FIX for
@@ -2302,7 +2358,10 @@ class SnuddaSimulate(object):
         neuron_rotation = self.network_info["neurons"][dest_id]["rotation"]
 
         # Transform voxel coordinates to local neuron coordinates to match neuron
-        synapse_pos = (voxel_size * voxel_coords + simulation_origo - neuron_position) * 1e6
+        # synapse_pos = (voxel_size * voxel_coords + simulation_origo - neuron_position) * 1e6
+
+        # UPDATE 2025-01-24: Now the neuron NEURON coordinates should use the simulation coordinate system
+        synapse_pos = (voxel_size * voxel_coords + simulation_origo) * 1e6
 
         syn_pos_nrn = np.zeros((len(sec_list), 3))
         old_sec = None
@@ -2310,7 +2369,7 @@ class SnuddaSimulate(object):
 
         for i, (sec, sec_x) in enumerate(zip(sec_list, sec_x_list)):
 
-            # If statement is just so we dont recalculate the norm_arc_dist every time
+            # If statement is just so we don't recalculate the norm_arc_dist every time
             if old_sec is None or not sec.same(old_sec):
                 num_points = int(h.n3d(sec=sec))
                 arc_dist = np.array([sec.arc3d(x) for x in range(0, num_points)])
@@ -2326,8 +2385,11 @@ class SnuddaSimulate(object):
 
         # We need to rotate the neuron to match the big simulation
         # !!! OBS, this assumes that soma is in 0,0,0 local coordinates
-        syn_pos_nrn_rot = np.transpose(np.matmul(neuron_rotation,
-                                                 np.transpose(syn_pos_nrn)))
+        # syn_pos_nrn_rot = np.transpose(np.matmul(neuron_rotation,
+        #                                        np.transpose(syn_pos_nrn)))
+
+        # UPDATED 2025-01-24: NEURON neuron coordinates are now updated to use the simulation coordinate frame
+        syn_pos_nrn_rot = syn_pos_nrn
 
         syn_mismatch = np.sqrt(np.sum((syn_pos_nrn_rot - synapse_pos) ** 2, axis=1))
 
@@ -2342,7 +2404,7 @@ class SnuddaSimulate(object):
             # due to having only one point
             self.write_log(f"!!! Found {num_bad} synapses on "
                            f"{self.network_info['neurons'][dest_id]['name']} ({dest_id}) "
-                           f" that are further than {bad_threshold} mum away "
+                           f" that are farther than {bad_threshold} mum away "
                            f" (out of {len(syn_mismatch)} synapses)"
                            f" Max found was {np.max(syn_mismatch):.0f} mum from expected location."
                            f" morphology: {self.network_info['neurons'][dest_id]['morphology']}\n"

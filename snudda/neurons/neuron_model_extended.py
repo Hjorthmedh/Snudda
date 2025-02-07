@@ -40,7 +40,10 @@ class NeuronModel(ephys.models.CellModel):
                  replace_axon_nseg_frequency=40e-6,
                  replace_axon_diameter=None,  # If this is not None, it uses special code to get diameter also
                  replace_axon_myelin_length=None,
-                 replace_axon_myelin_diameter=None):
+                 replace_axon_myelin_diameter=None,
+                 position=None,
+                 rotation=None,
+                 volume_id=None):
 
         """
         Constructor
@@ -58,6 +61,7 @@ class NeuronModel(ephys.models.CellModel):
             parameter_key (str): parameter key for lookup in parameter.json
             morphology_key (str): morphology key, together with parameter_key lookup in meta.json
             modulation_key (str): modulation key, lookup in modulation.json
+            volume_id (str): name of volume (region) that neuron is located in
 
         """
 
@@ -71,6 +75,12 @@ class NeuronModel(ephys.models.CellModel):
         self.script_dir = os.path.dirname(__file__)
         self.config_dir = os.path.join(self.script_dir, 'config')
         self.use_rxd_neuromodulation = use_rxd_neuromodulation
+
+        self.is_relocated = False  # NEURON coordinates match Snudda simulation coordinates
+
+        self.position = position
+        self.rotation = rotation
+        self.volume_id = volume_id
 
         if os.path.isfile(morph_path):
             # If morph_path is a swc file, use it directly
@@ -468,7 +478,7 @@ class NeuronModel(ephys.models.CellModel):
 
     # OVERRIDE the create_empty_template from CellModel
 
-    def instantiate(self, sim=None):
+    def instantiate(self, sim=None, extracellular_regions=None):
         """Instantiate model in simulator"""
 
         # TODO replace this with the real template name
@@ -484,6 +494,7 @@ class NeuronModel(ephys.models.CellModel):
         self.icell.gid = self.gid
 
         self.morphology.instantiate(sim=sim, icell=self.icell)
+        self.relocate_NEURON(sim=sim)
 
         for mechanism in self.mechanisms:
             mechanism.instantiate(sim=sim, icell=self.icell)
@@ -491,7 +502,8 @@ class NeuronModel(ephys.models.CellModel):
             param.instantiate(sim=sim, icell=self.icell)
 
         if self.modulation:
-            self.modulation.load_json()
+            # TODO: THIS IS NOT THE Simulation object but the NEURON sim object... cant use it!!
+            self.modulation.load_json(extracellular_regions=extracellular_regions, neuron_region=self.volume_id)
 
     ############################################################################
 
@@ -621,3 +633,39 @@ class NeuronModel(ephys.models.CellModel):
 
         return user_defined_axon_hoc
 
+    def relocate_NEURON(self, sim):
+
+        # TODO: Work in progress
+
+        """ This function can only be called once per neuron, it updates the NEURON coordinates
+            to match the Snudda coordinates. """
+
+        if self.rotation is None:
+            self.rotation = np.eye(3)
+
+        if self.position is None:
+            # Only relocate if a position is given
+            return
+
+        assert not self.is_relocated, f"You can only relocate a neuron once"
+        self.is_relocated = True
+
+        # Save the old NEURON soma center, subtract it from all coordinates
+        # then apply the rotation matrix, and save the NEURON compartment coordinates
+
+        num_points = int(self.icell.soma[0].n3d())
+        x_center = sum(self.icell.soma[0].x3d(i) for i in range(num_points)) / num_points
+        y_center = sum(self.icell.soma[0].y3d(i) for i in range(num_points)) / num_points
+        z_center = sum(self.icell.soma[0].z3d(i) for i in range(num_points)) / num_points
+
+        for sec in self.icell.soma[0].wholetree():
+            n_points = int(sec.n3d())
+            sim.neuron.h.pt3dstyle(0, sec=sec)  # We don't want the points to translate when parent point is moved
+
+            for i in range(n_points):
+                center_pos = np.array([sec.x3d(i) - x_center, sec.y3d(i) - y_center, sec.z3d(i) - z_center])
+                rot_pos = np.matmul(self.rotation, center_pos)   # Ska det vara T på pos eller resultatet=
+                new_pos = rot_pos + self.position*1e6  # Translated
+                sim.neuron.h.pt3dchange(i, new_pos[0], new_pos[1], new_pos[2], sec.diam3d(i), sec=sec)
+
+        print(f"Relocated neuron to {self.position}, with rotation {self.rotation}")
