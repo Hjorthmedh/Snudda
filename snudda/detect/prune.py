@@ -1621,7 +1621,7 @@ class SnuddaPrune(object):
                     continue
 
                 if n_syn > 0:
-                    print(h_id)
+
                     h_filename = h_file_name_mask % str(h_id)
                     self.write_log(f"Opening voxel file: {h_filename}")
 

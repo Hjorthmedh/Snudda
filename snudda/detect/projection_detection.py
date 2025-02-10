@@ -29,7 +29,6 @@ class ProjectionDetection:
         self.hyper_voxel_projections = dict()
         self.projections = dict()
 
-        print('Projecting!')
         if not role:
             self.role = "master"
         else:
@@ -427,7 +426,7 @@ class ProjectionDetection:
 
         """ Add the projection of each neuron in pre_neuron_list to the axon space in currently active hyper voxel
          """
-        print('VOXELIZING')
+
         if self.snudda_detect.hyper_voxel_id not in self.hyper_voxel_projections:
             # No projections in this hyper voxel, skip it
             return

@@ -469,7 +469,7 @@ class NeuronMorphologyExtended:
             kd_tree = self.morphology_data["neuron"].get_kd_tree(compartment_type=3)
 
             list_of_closest_point_idx = kd_tree.query_ball_point(x=geometry[syn_idx, :3], r=cluster_spread)
-            # print(kd_tree.query(geometry[syn_idx, :3], k =3))
+
 
             list_cluster_syn_idx = []
             
@@ -610,11 +610,20 @@ class NeuronMorphologyExtended:
             density: Axon density f(x,y,z), x,y,z = SWC coordinates in relative to soma
         """
 
-        self.write_log("Only saving equation now")
-
         self.axon_density_type = "sparse"
         self.axon_density_hv = n_hv
 
+
+    def set_axon_voxel_new_sparse_density(self,
+                                   targets):
+
+        """
+        Sets axon density
+        
+        """
+
+        self.axon_density_type = "new_sparse"
+        self.axon_targets = targets
 
 if __name__ == "__main__":
 

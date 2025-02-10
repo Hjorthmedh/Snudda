@@ -2292,6 +2292,40 @@ class SnuddaInput(object):
         return spikes
 
 
+    def import_csv_spikes_optimized(self, csv_file):
+        """
+        Load and sort spike times from CSV file using optimized methods.
+        Each row contains comma-separated spike times that need to be sorted.
+        
+        Parameters:
+        -----------
+        csv_file : str
+            Path to CSV file containing spike times
+            
+        Returns:
+        --------
+        list
+            List of sorted numpy arrays containing spike times
+        """
+        # Method 1: Using np.loadtxt (good for uniform data)
+        try:
+            data = np.loadtxt(csv_file, delimiter=',')
+            if len(data.shape) == 1:  # Only one row
+                return [np.sort(data)]
+            return [np.sort(row[~np.isnan(row)]) for row in data]
+        except:
+            # Method 2: Using np.genfromtxt (better for ragged/variable-length data)
+            try:
+                data = np.genfromtxt(csv_file, delimiter=',', dtype=np.float64)
+                if len(data.shape) == 1:  # Only one row
+                    return [np.sort(data[~np.isnan(data)])]
+                return [np.sort(row[~np.isnan(row)]) for row in data]
+            except:
+                # Method 3: Fallback to pandas for complex cases
+                import pandas as pd
+                df = pd.read_csv(csv_file, header=None)
+                return [np.sort(row.dropna().values) for _, row in df.iterrows()]
+
 if __name__ == "__main__":
     print("Please do not call this file directly, use snudda command line")
     sys.exit(-1)
