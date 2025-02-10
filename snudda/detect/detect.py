@@ -755,9 +755,8 @@ class SnuddaDetect(object):
 
             # self.write_log(f"number of hyper_voxels {len(hyper_voxel_id)}")
 
-            hyper_voxel_id = np.concatenate([rng.choice(hyper_voxel_id, size = min(round(np.random.normal(3, 0.5)), len(hyper_voxel_id)), replace = False), list(self.get_hypervoxel_coords_and_section_id(neuron = neuron)['neuron'][:,0][0:2])])
+            hyper_voxel_id = np.unique(np.concatenate([rng.choice(hyper_voxel_id, size = min(round(np.random.normal(3, 0.5)), len(hyper_voxel_id)), replace = False), rng.choice(self.get_hypervoxel_coords_and_section_id(neuron = neuron)['neuron'][:,0], size =2, replace = False)]))
             
-
             return hyper_voxel_id
 
         if axon_loc is not None:
@@ -2915,6 +2914,7 @@ class SnuddaDetect(object):
                 # self.write_log(f"neuron_id: {neuron_id}")
                         
                 density_hyper_voxel_id = self.get_density_location(neuron=neuron, seed=d_seed)
+                print(density_hyper_voxel_id)
 
 
                 for h_id in density_hyper_voxel_id:
