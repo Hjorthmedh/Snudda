@@ -2245,6 +2245,8 @@ class SnuddaDetect(object):
             meta_data.create_dataset("slurm_id", data=self.slurm_id)
             meta_data.create_dataset("voxel_size", data=self.voxel_size)
             meta_data.create_dataset("hyper_voxel_size", data=self.hyper_voxel_size)
+            meta_data.create_dataset("num_hyper_voxels", data=self.num_hyper_voxels)
+
             meta_data.create_dataset("num_bins", data=self.num_bins)
             meta_data.create_dataset("voxel_overflow_counter", data=self.voxel_overflow_counter)
 

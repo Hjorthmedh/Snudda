@@ -2102,6 +2102,30 @@ class SnuddaSimulate(object):
 
         return syn_ctr
 
+    def add_rxd_extracellular_concentration_recording(self, species: str, volume_id, xyz):
+
+        x,y,z = xyz
+        spec = self.extracellular_regions[volume_id].species[species]
+        conc_ref = spec.node_by_location(x, y, z)._ref_value
+        vector = self.sim.neuron.h.Vector()
+        vector.record(conc_ref)
+
+        # Convert back from RxD millimolar -> molar
+        self.record.add_unit(data_type=species, target_unit="molar", conversion_factor=1e-3)
+
+        self.record.register_compartment_data(neuron_id=neuron_id,
+                                              data_type=species,
+                                              data=vector,
+                                              sec_id=sec_id, sec_x=sec_x)
+
+        if self.record.time is None:
+            t_save = self.sim.neuron.h.Vector()
+            t_save.record(self.sim.neuron.h._ref_t)
+            self.record.register_time(time=t_save)
+
+        pass
+
+
     def add_rxd_concentration_recording(self, species: str, neuron_id: int, region, sec_id, sec_x):
 
         if not self.use_rxd_neuromodulation:

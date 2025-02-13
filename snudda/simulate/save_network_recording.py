@@ -177,6 +177,30 @@ class SpikeData(CompartmentData):
         super().__init__(neuron_id, data_type="spikes")
 
 
+class ExtracellularRecordings:
+
+    def __init__(self, region_name, location):
+
+        self.index = (0, 0, 0)  # FIXME!
+        self.center_coordinate = (0, 0, 0)
+        self.data = dict()
+        self.region_name = region_name
+        self.ecs_node = None
+
+        pass
+
+    def register_concentration_data(self, species_name):
+
+        pass
+
+        # TODO: This object tracks the data in one "node",
+        # The node knows its i,j,
+        # It will have a dictionary, and there we need to know the species type, and the location
+        # we will use i, j, k for index (but also store the centre of the node)
+        # This node needs to know its own region, species, and location (x,y,z)
+        #  We need to save the extracellular data, based on region, species, loc
+
+
 class SnuddaSaveNetworkRecordings:
 
     # TODO: Add saving of simulation_config file (and experiment_config_file for pair recording)

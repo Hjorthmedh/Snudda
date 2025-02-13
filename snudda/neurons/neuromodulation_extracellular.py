@@ -27,6 +27,7 @@ class ExtracellularNeuromodulation:
         self.compartments = dict()
 
         self.species = dict()
+        self.reactions = dict()
 
     def get_min_max_coords(self, padding=None, volume_id=None):
 
@@ -36,7 +37,8 @@ class ExtracellularNeuromodulation:
         #       use volume_id info
 
         x_min, y_min, z_min = self.sim.network_info["simulation_origo"]
-        n_x, n_y, n_z = self.sim.network_info["hyper_voxel_size"]
+
+        n_x, n_y, n_z = self.sim.network_info["num_hyper_voxels"]
         hv_width = self.sim.network_info["hyper_voxel_width"]
 
         x_max = x_min + n_x * hv_width
@@ -132,8 +134,8 @@ class ExtracellularNeuromodulation:
         self.reactions[reaction_name][region_name] = rxd.Reaction(left_side,
                                                                   right_side,
                                                                   forward_rate,
-                                                                  backward_rate,
-                                                                  regions=self.compartments[region_name])
+                                                                  backward_rate) #,
+                                                                  #regions=self.compartments[region_name])
 
     def load_json(self, config_path=None, config_data=None):
 
@@ -250,6 +252,8 @@ class ExtracellularNeuromodulation:
                                   region_name=region)
 
 
+        import pdb
+        pdb.set_trace()
 
 
     # TODO: Add functionality to extracellular compartment, similar to what is in neuro_modulation.py
