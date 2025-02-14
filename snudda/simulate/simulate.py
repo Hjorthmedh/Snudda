@@ -431,6 +431,15 @@ class SnuddaSimulate(object):
                 self.add_rxd_internal_concentration_recording_all_species(neuron_id=rxd_record_neuron_id,
                                                                           include_dendrites=False)
 
+            if "record_rxd_extracellular" in self.sim_info and self.use_rxd_neuromodulation:
+                for region_name, ecs_data_parent in self.sim_info["record_rxd_extracellular"].items():
+                    for ecs_data in ecs_data_parent:
+                        for species in ecs_data["species"]:
+                            for xyz in ecs_data["location"]:
+                                self.add_rxd_extracellular_concentration_recording(species=species,
+                                                                                   volume_id=region_name,
+                                                                                   xyz=xyz)
+
             if "record_density_mechanism" in self.sim_info:
                 record_info = self.sim_info["record_density_mechanism"]
 
@@ -2104,19 +2113,36 @@ class SnuddaSimulate(object):
 
     def add_rxd_extracellular_concentration_recording(self, species: str, volume_id, xyz):
 
-        x,y,z = xyz
-        spec = self.extracellular_regions[volume_id].species[species]
-        conc_ref = spec.node_by_location(x, y, z)._ref_value
+        if volume_id not in self.extracellular_regions:
+            raise KeyError(f"{volume_id =} missing, available keys {list(self.extracellular_regions.keys())}")
+
+        x, y, z = 1e6 * np.array(xyz)  # unit conversion
+
+        if species not in self.extracellular_regions[volume_id].species:
+            raise KeyError(f"{species =} not available in {volume_id}. Available spcies are: "
+                           f"{list(self.extracellular_regions[volume_id].species.keys())}")
+
+        spec = self.extracellular_regions[volume_id].species[species]["ecs"]
+        ecs = self.extracellular_regions[volume_id].compartments["ecs"]
+        conc_ref = spec[ecs].node_by_location(x, y, z)._ref_value
         vector = self.sim.neuron.h.Vector()
         vector.record(conc_ref)
+
+        # Get the ijk index:
+        e = self.extracellular_regions[volume_id].compartments["ecs"]
+
+        if e._xlo <= x <= e._xhi and e._ylo <= y <= e._yhi and e._zlo <= z <= e._zhi:
+            i = int((x - e._xlo) / e._dx[0])
+            j = int((y - e._ylo) / e._dx[1])
+            k = int((z - e._zlo) / e._dx[2])
+
+        index_ijk = (i, j, k)
 
         # Convert back from RxD millimolar -> molar
         self.record.add_unit(data_type=species, target_unit="molar", conversion_factor=1e-3)
 
-        self.record.register_compartment_data(neuron_id=neuron_id,
-                                              data_type=species,
-                                              data=vector,
-                                              sec_id=sec_id, sec_x=sec_x)
+        self.record.register_extracellular_data(data=vector, data_type=species, index_ijk=index_ijk,
+                                                ecs=self.extracellular_regions, region_name=volume_id)
 
         if self.record.time is None:
             t_save = self.sim.neuron.h.Vector()

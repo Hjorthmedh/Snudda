@@ -24,7 +24,7 @@ class ExtracellularNeuromodulation:
         # We set RxD option for extracellular
         rxd.options.enable.extracellular = True
 
-        self.compartments = dict()
+        self.compartments = dict()   # "ecs" --> RxD Extracellular object
 
         self.species = dict()
         self.reactions = dict()
@@ -250,10 +250,6 @@ class ExtracellularNeuromodulation:
                                   forward_rate=scaled_forward_rate,
                                   backward_rate=scaled_backward_rate,
                                   region_name=region)
-
-
-        import pdb
-        pdb.set_trace()
 
 
     # TODO: Add functionality to extracellular compartment, similar to what is in neuro_modulation.py

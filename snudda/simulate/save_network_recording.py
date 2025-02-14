@@ -179,19 +179,23 @@ class SpikeData(CompartmentData):
 
 class ExtracellularRecordings:
 
-    def __init__(self, region_name, location):
+    def __init__(self, region_name, ecs):
 
-        self.index = (0, 0, 0)  # FIXME!
-        self.center_coordinate = (0, 0, 0)
-        self.data = dict()
+        # Needs to identify with its index, and then we also track coordinates
+        # we want to avoid duplicate data -- since a node has many coordinates inside it
+        # EXAMPLE: https://neuron.yale.edu/neuron/docs/extracellular-diffusion
+
+        self.ecs = ecs   # remove?
         self.region_name = region_name
-        self.ecs_node = None
+        self.data = dict()
 
-        pass
+    def register_extracellular_data(self, data, data_type, index_ijk):
 
-    def register_concentration_data(self, species_name):
+        if data_type not in self.data:
+            self.data[data_type] = ExtracellularNodeData(data_type=data_type)
 
-        pass
+        self.data[data_type].append(data=data, index_ijk=index_ijk)
+
 
         # TODO: This object tracks the data in one "node",
         # The node knows its i,j,
@@ -199,6 +203,34 @@ class ExtracellularRecordings:
         # we will use i, j, k for index (but also store the centre of the node)
         # This node needs to know its own region, species, and location (x,y,z)
         #  We need to save the extracellular data, based on region, species, loc
+
+
+class ExtracellularNodeData:
+
+    def __init__(self, data_type):
+        self.data_type = data_type
+        self.data = dict()
+
+    def append(self, data, index_ijk, unsafe=False):
+        if not unsafe and index_ijk in self.data:
+            raise ValueError(f"Index {index_ijk} already exists in the data structure.")
+
+        self.data[index_ijk] = data
+
+    def sort(self):
+        sorted_items = sorted(self.data.items(), key=lambda x: x[0])
+        self.data = dict(sorted_items)
+
+    def to_numpy(self):
+        return np.vstack([np.array(d) for d in self.data.values()])
+
+    def get_data(self):
+        self.sort()
+
+        data = self.to_numpy()
+        index = np.array(list(self.data.keys()))
+
+        return index, data
 
 
 class SnuddaSaveNetworkRecordings:
@@ -215,6 +247,7 @@ class SnuddaSaveNetworkRecordings:
         self.network_data = network_data
         self.header_exists = False
         self.neuron_activities = dict()
+        self.extracellular_data = dict()
         self.time = None
         self.sample_dt = sample_dt
 
@@ -257,6 +290,14 @@ class SnuddaSaveNetworkRecordings:
             self.neuron_activities[neuron_id] = NeuronRecordings(neuron_id)
 
         self.neuron_activities[neuron_id].register_spike_data(data=data, sec_id=sec_id, sec_x=sec_x)
+
+    def register_extracellular_data(self, region_name, data_type, data, ecs, index_ijk):
+
+        if region_name not in self.extracellular_data:
+            self.extracellular_data[region_name] = ExtracellularRecordings(region_name=region_name, ecs=ecs)
+
+        self.extracellular_data[region_name].register_extracellular_data(data=data, data_type=data_type,
+                                                                         index_ijk=index_ijk)
 
     def register_time(self, time):
         self.time = time
@@ -434,6 +475,22 @@ class SnuddaSaveNetworkRecordings:
                             data_set.attrs["synapse_type"] = np.array(m.synapse_type)
                             data_set.attrs["presynaptic_id"] = np.array(m.presynaptic_id)
                             data_set.attrs["cond"] = np.array(m.cond)
+
+                if int(self.pc.id()) == 0:
+                    # RxD computes extracellular diffusion INDEPENDENTLY on ALL nodes (sigh!)
+                    # thus we need to save only data from node 0
+
+                    ecs_group = out_file.create_group("ecs")
+
+                    for region_name, region_data in self.extracellular_data.items():
+                        region_group = ecs_group.create_group(region_name)
+
+                        for data_type, extracellular_data in region_data.data.items():
+                            ecs_data_group = region_group.create_group(data_type)
+
+                            index, data = extracellular_data.get_data()
+                            ecs_data_group.create_dataset("index", data=index)
+                            ecs_data_group.create_dataset("data", data=data)
 
                 out_file.close()
 
