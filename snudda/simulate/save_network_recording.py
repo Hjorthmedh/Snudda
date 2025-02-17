@@ -188,14 +188,33 @@ class ExtracellularRecordings:
         self.ecs = ecs   # remove?
         self.region_name = region_name
         self.data = dict()
+        self.coords = dict()
+
+        self.xyz_min = np.array((self.ecs[self.region_name].compartments["ecs"]._xlo,
+                                 self.ecs[self.region_name].compartments["ecs"]._ylo,
+                                 self.ecs[self.region_name].compartments["ecs"]._zlo))
+
+        self.xyz_max = np.array((self.ecs[self.region_name].compartments["ecs"]._xhi,
+                                 self.ecs[self.region_name].compartments["ecs"]._yhi,
+                                 self.ecs[self.region_name].compartments["ecs"]._zhi))
+
+        self.n_voxels = np.array((self.ecs[self.region_name].compartments["ecs"]._nx,
+                                  self.ecs[self.region_name].compartments["ecs"]._ny,
+                                  self.ecs[self.region_name].compartments["ecs"]._nz))
+
+    def get_coords(self, index_ijk):
+        return np.vstack([self.coords[tuple(ijk)] for ijk in index_ijk])
 
     def register_extracellular_data(self, data, data_type, index_ijk):
 
         if data_type not in self.data:
             self.data[data_type] = ExtracellularNodeData(data_type=data_type)
 
-        self.data[data_type].append(data=data, index_ijk=index_ijk)
+        if index_ijk not in self.coords:
+            delta_xyz = (self.xyz_max - self.xyz_min) / self.n_voxels
+            self.coords[index_ijk] = self.xyz_min + delta_xyz * index_ijk
 
+        self.data[data_type].append(data=data, index_ijk=index_ijk)
 
         # TODO: This object tracks the data in one "node",
         # The node knows its i,j,
@@ -203,6 +222,8 @@ class ExtracellularRecordings:
         # we will use i, j, k for index (but also store the centre of the node)
         # This node needs to know its own region, species, and location (x,y,z)
         #  We need to save the extracellular data, based on region, species, loc
+
+# TODO: Check if RxD uses JIT, as they claim in Omar Awile et al, 2022.
 
 
 class ExtracellularNodeData:
@@ -489,7 +510,10 @@ class SnuddaSaveNetworkRecordings:
                             ecs_data_group = region_group.create_group(data_type)
 
                             index, data = extracellular_data.get_data()
+                            coords = region_data.get_coords(index)
+
                             ecs_data_group.create_dataset("index", data=index)
+                            ecs_data_group.create_dataset("xyz", data=coords)
                             ecs_data_group.create_dataset("data", data=data)
 
                 out_file.close()
