@@ -11,7 +11,7 @@
     "record_rxd_extracellular": {
 	"Striatum": [
 	    {
-		"species": ["REACTANT1", "PRODUCT1"],
+		"species": ["A", "B", "C", "D", "E"],
 		"location": [[0.00475, 0.004, 0.00775]]
 	    }
 	    

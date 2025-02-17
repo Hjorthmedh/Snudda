@@ -256,3 +256,11 @@ class ExtracellularNeuromodulation:
     #       1. Reactions within ECS
     #       2. Reactions between ECS and ICS
     #       How to adapt configuration file, JSON (separate from intracellular, how to deal with ECS <-> ICS"
+
+
+    # TODO: 2025-02-17
+    # Check scaling of ECS, based on how many voxel we have. The way to do that is to use the same number of neurons
+    # but just increase the volume they are placed inside. That way only the ECS computation should increase.
+    # Alternativly we just reduce the dx, thus increasing the number of voxels.
+    #
+    # Find out if RxD uses any JIT, are we missing some way to speed up our code?!
