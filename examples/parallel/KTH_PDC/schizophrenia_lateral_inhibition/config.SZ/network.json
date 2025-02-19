@@ -14,14 +14,14 @@
 		"mesh_file": "mesh/cube_mesh.obj",
 		"!mesh_file": "$SNUDDA_DATA/meshes/Striatum-dorsal-left-hemisphere.obj",
 		"d_min": 1.5e-5,
-		"num_putative_points": 500000,
+		"num_putative_points": 100000,
 		"random_seed": 123456
 	    },
 	    "neurons": ["neurons/dspn.json",
 			"neurons/ispn.json",
 			"neurons/fs.json",
-			"neurons/chin.json",
-			"neurons/lts.json"],
+			"!neurons/chin.json",
+			"!neurons/lts.json"],
 	    "connectivity": ["$SNUDDA_DATA/connectivity/striatum/striatum-connectivity.json"],
 	    "!populations": "pop1.json"
 	}

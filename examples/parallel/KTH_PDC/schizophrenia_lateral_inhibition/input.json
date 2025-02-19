@@ -1,0 +1,47 @@
+{
+    "dSPN": {
+	"cortical": {
+	    "generator": "poisson",
+	    "start": [0],
+	    "end": [10],
+	    "frequency": [3]
+	},
+	"thalamic": {
+	    "generator": "poisson",
+	    "start": [0],
+	    "end": [10],
+	    "frequency": [3]
+	}
+    },
+
+     "iSPN": {
+	"cortical": {
+	    "generator": "poisson",
+	    "start": [0],
+	    "end": [10],
+	    "frequency": [3]
+	},
+	"thalamic": {
+	    "generator": "poisson",
+	    "start": [0],
+	    "end": [10],
+	    "frequency": [3]
+	}
+    },   
+    
+    "FS": {
+	"cortical": {
+	    "generator": "poisson",
+	    "start": [0],
+	    "end": [10],
+	    "frequency": [3]
+	},
+	
+	"thalamic": {
+	    "generator": "poisson",
+	    "start": [0],
+	    "end": [10],
+	    "frequency": [3]
+	}
+    }
+}

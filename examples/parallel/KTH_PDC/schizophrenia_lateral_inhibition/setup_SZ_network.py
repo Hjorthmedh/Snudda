@@ -18,9 +18,11 @@ create_cube_mesh(file_name=mesh_file,
                  side_len=(10000.0/80500)**(1/3)*0.001)
 
 from snudda import Snudda
-snd = Snudda(network_path=network_path)
+snd = Snudda(network_path=network_path, parallel=True, ipython_profile="default")
 snd.import_config(network_config_file=network_config_file, snudda_data=snudda_data, overwrite=True)
 snd.create_network()
+
+snd.setup_input()
 
 
 
