@@ -2151,7 +2151,6 @@ class SnuddaSimulate(object):
 
         pass
 
-
     def add_rxd_concentration_recording(self, species: str, neuron_id: int, region, sec_id, sec_x):
 
         if not self.use_rxd_neuromodulation:
@@ -2349,9 +2348,6 @@ class SnuddaSimulate(object):
         self.pc.barrier()
 
         self.write_log(f"Running simulation for {t / 1000} s", force_print=True)
-
-        # import pdb
-        # pdb.set_trace()
 
         self.sim.run(t, dt=self.sim_dt)
         self.pc.barrier()

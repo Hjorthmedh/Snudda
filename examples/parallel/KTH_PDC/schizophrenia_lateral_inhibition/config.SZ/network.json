@@ -9,7 +9,7 @@
     
     "regions": {
 	"Striatum" : {
-	    "num_neurons": 10000,
+	    "num_neurons": 1000,
 	    "volume": {
 		"mesh_file": "mesh/cube_mesh.obj",
 		"!mesh_file": "$SNUDDA_DATA/meshes/Striatum-dorsal-left-hemisphere.obj",

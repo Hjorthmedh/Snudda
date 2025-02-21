@@ -80,8 +80,8 @@ class NeuronModulation:
 
             else:
 
-                #import pdb
-                #pdb.set_trace()
+                import pdb
+                pdb.set_trace()
 
                 # TODO: Add atol_scale etc...
                 self.species[species_name][comp] = rxd.Species(self.compartments[comp],
@@ -105,6 +105,7 @@ class NeuronModulation:
                 if species_region != "ecs":
                     raise NotImplementedError("Only 'ecs' region can currently be coupled to")
                 species_list.append(self.extracellular_region.species[species_name][species_region])
+
             else:
                 species_list.append(self.species[s][region_name])
 
@@ -154,6 +155,22 @@ class NeuronModulation:
                                                                   forward_rate,
                                                                   backward_rate,
                                                                   regions=self.compartments[region_name])
+
+    def add_multi_compartment_reaction(self, reaction_name,
+                                       left_side, right_side,
+                                       forward_rate, backward_rate,
+
+                                       ):
+
+        # TODO: rxd.MultiCompartmentReaction, 2025-02-21 -- UNDERSTAND THIS!!
+        # We are trying to use "neuron_modulation_of_channels.ipynb", to make reactions
+        # between intracellular space, and extracellular space... we then need to use this instead
+        # of the normal rxd.Reaction:
+
+        # leak = rxd.MultiCompartmentReaction(ca[er]<>ca[cyt], gleak, gleak, membrane=cyt_er_membrane)
+        # cyt_er_membrane = rxd.Region(h.allsec(), geometry = rxd.ScalableBorder(1, on_cell_surface=False))
+
+        pass
 
     def _get_nodes(self, species, force_update=None):
         if force_update is None:
@@ -283,9 +300,18 @@ class NeuronModulation:
                              compartment=regions, charge=charge,
                              boundary_condition=boundary_condition)
 
-        # Black magic, set up the species variables
+        # Black magic, set up the species variables, don't remove trailing ","
         species_name_vars = ",".join(self.species.keys()) + ","
         species_name_str = "','".join(self.species.keys())
+
+        if self.extracellular_region is not None:
+            ecs_species_name_vars = "__ecs,".join(self.extracellular_region.species.keys()) + "__ecs"
+            ecs_species_name_str = "__ecs','".join(self.extracellular_region.species.keys()) + "__ecs"
+
+            species_name_vars = ecs_species_name_vars + "," + species_name_vars
+            species_name_str = ecs_species_name_str + "','" + species_name_str
+
+        # Also add extracellular species, if they do exist
 
         # print(f"Parsing rates.")
 
