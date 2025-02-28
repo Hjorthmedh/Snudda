@@ -80,9 +80,6 @@ class NeuronModulation:
 
             else:
 
-                import pdb
-                pdb.set_trace()
-
                 # TODO: Add atol_scale etc...
                 self.species[species_name][comp] = rxd.Species(self.compartments[comp],
                                                                d=diffusion_constant,
