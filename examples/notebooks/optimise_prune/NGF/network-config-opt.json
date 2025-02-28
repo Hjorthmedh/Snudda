@@ -26,6 +26,24 @@
                     "a3": 0.9995
                 }
             }
+        },
+        "NGF,NGF": {
+            "gap_junction": {
+                "pruning": {
+                    "f1": 0.1637,
+                    "mu2": 0.2571,
+                    "a3": 1.0
+                }
+            }
+        },
+        "NGF,TH": {
+            "gap_junction": {
+                "pruning": {
+                    "softMax": 3.508,
+                    "mu2": 1.4195,
+                    "a3": 0.0003
+                }
+            }
         }
     }
 }
