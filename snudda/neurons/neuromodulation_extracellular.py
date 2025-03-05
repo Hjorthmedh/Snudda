@@ -69,10 +69,10 @@ class ExtracellularNeuromodulation:
                 x_min, y_min, z_min, x_max, y_max, z_max = self.get_min_max_coords(padding=self.padding)
 
                 self.compartments[comp] = rxd.Extracellular(xlo=x_min * 1e6, ylo=y_min * 1e6, zlo=z_min * 1e6,
-                                                           xhi=x_max * 1e6, yhi=y_max * 1e6, zhi=z_max * 1e6,
-                                                           dx=self.dx*1e6,
-                                                           volume_fraction=self.volume_fraction,
-                                                           tortuosity=self.tortuosity)
+                                                            xhi=x_max * 1e6, yhi=y_max * 1e6, zhi=z_max * 1e6,
+                                                            dx=self.dx*1e6,
+                                                            volume_fraction=self.volume_fraction,
+                                                            tortuosity=self.tortuosity)
 
             if comp in self.species[species_name]:
                 raise ValueError(f"{species_name = } already defined for {comp = }")
@@ -87,7 +87,7 @@ class ExtracellularNeuromodulation:
                                                                  charge=charge)
             else:
                 # TODO: Add atol_scale etc...
-                self.species[species_name][comp] = rxd.Species(self.compartments[comp],
+                self.species[species_name][comp] = rxd.Species([self.compartments[comp]],
                                                                d=diffusion_constant,
                                                                initial=initial_conc,
                                                                charge=charge,

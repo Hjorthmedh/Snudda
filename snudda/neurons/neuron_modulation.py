@@ -108,6 +108,38 @@ class NeuronModulation:
 
         return species_list
 
+    def get_species_with_regions(self, *species, region_name):
+        species_list = []
+
+        for s in species:
+            _species = None
+            _region = None
+
+            if "__" in s:
+                species_name, species_region = s.split("__")
+                if species_region != "ecs":
+                    raise NotImplementedError("Only 'ecs' region can currently be coupled to")
+
+                _species = self.extracellular_region.species[species_name][species_region]
+                species_region = self.extracellular_region.compartments[species_region]
+
+            else:
+                _species = self.species[s][region_name]
+                species_region = self.compartments[region_name]
+                # species_region = region_name
+
+            try:
+                species_list.append(_species[species_region])
+            except:
+                import traceback
+                print(traceback.format_exc())
+                import pdb
+                pdb.set_trace()
+
+
+        return species_list
+
+
     def add_decay(self, species_name, decay_rate):
 
         species = self.species[species_name]
@@ -154,10 +186,23 @@ class NeuronModulation:
                                                                   regions=self.compartments[region_name])
 
     def add_multi_compartment_reaction(self, reaction_name,
-                                       left_side, right_side,
+                                       left_side: rxd.rxdmath._Arithmeticed,
+                                       right_side: rxd.rxdmath._Arithmeticed,
                                        forward_rate, backward_rate,
+                                       region_name,
+                                       overwrite=False):
 
-                                       ):
+        if reaction_name not in self.reactions:
+            self.reactions[reaction_name] = dict()
+
+        if not overwrite and region_name in self.reactions[reaction_name]:
+            raise KeyError(f"Reaction {reaction_name} is already defined in neuron {self.neuron.name}")
+
+        if backward_rate is None:
+            backward_rate = 0
+
+        # TODO: 2025-03-04: Replace with include flux instead
+        # https://www.neuron.yale.edu/phpBB/viewtopic.php?t=4631
 
         # TODO: rxd.MultiCompartmentReaction, 2025-02-21 -- UNDERSTAND THIS!!
         # We are trying to use "neuron_modulation_of_channels.ipynb", to make reactions
@@ -167,7 +212,18 @@ class NeuronModulation:
         # leak = rxd.MultiCompartmentReaction(ca[er]<>ca[cyt], gleak, gleak, membrane=cyt_er_membrane)
         # cyt_er_membrane = rxd.Region(h.allsec(), geometry = rxd.ScalableBorder(1, on_cell_surface=False))
 
-        pass
+        membrane = rxd.Region([x for x in self.neuron.icell.all], name='membrane', geometry=rxd.membrane)
+        try:
+            # import pdb
+            # pdb.set_trace()
+            self.reactions[reaction_name][region_name] = rxd.MultiCompartmentReaction(left_side != right_side,
+                                                                                      forward_rate, backward_rate,
+                                                                                      membrane=membrane)
+        except:
+            import traceback
+            print(traceback.format_exc())
+            import pdb
+            pdb.set_trace()
 
     def _get_nodes(self, species, force_update=None):
         if force_update is None:
@@ -321,7 +377,8 @@ class NeuronModulation:
                 rates = [rates for x in rate_data["regions"]]
 
             for region, rate in zip(rate_data["regions"], rates):
-                exec(f"{species_name_vars} = self.get_species('{species_name_str}', region_name=region)")
+                # exec(f"{species_name_vars} = self.get_species('{species_name_str}', region_name=region)")
+                exec(f"{species_name_vars} = self.get_species_with_regions('{species_name_str}', region_name=region)")
 
                 try:
                     right_side = eval(rate)
@@ -359,7 +416,14 @@ class NeuronModulation:
 
             for region, forward_rate, backward_rate in zip(reaction_data["regions"], forward_rates, backward_rates):
                 # TODO: Sanitise species_name_str before exec call
-                exec(f"{species_name_vars} = self.get_species('{species_name_str}', region_name=region)")
+                # exec(f"{species_name_vars} = self.get_species('{species_name_str}', region_name=region)")
+                try:
+                    exec(f"{species_name_vars} = self.get_species_with_regions('{species_name_str}', region_name=region)")
+                except:
+                    import traceback
+                    print(traceback.format_exc())
+                    import pdb
+                    pdb.set_trace()
 
                 left_side = eval(reaction_data["reactants"])
                 right_side = eval(reaction_data["products"])
@@ -387,7 +451,17 @@ class NeuronModulation:
                 print(f"k_forward: {forward_rate} (scaled: {scaled_forward_rate})")
                 print(f"k_backward: {backward_rate} (scaled: {scaled_backward_rate})")
 
+                """
+
                 self.add_reaction(reaction_name=reaction_name,
+                                  left_side=left_side,
+                                  right_side=right_side,
+                                  forward_rate=scaled_forward_rate,
+                                  backward_rate=scaled_backward_rate,
+                                  region_name=region)
+                """
+
+                self.add_multi_compartment_reaction(reaction_name=reaction_name,
                                   left_side=left_side,
                                   right_side=right_side,
                                   forward_rate=scaled_forward_rate,
