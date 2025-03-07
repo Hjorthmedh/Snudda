@@ -1384,6 +1384,8 @@ class SnuddaAnalyse:
 
         # Make this loop use threads, to speed it up
 
+        idx_outside = 0
+
         for xi, x in enumerate(pre_id):
             t_a = timeit.default_timer()
 
@@ -1424,12 +1426,14 @@ class SnuddaAnalyse:
                         continue
 
                 idx = int(np.floor(d / delta_dist))
-                assert (idx < num_bins), "Idx too large " + str(idx)
 
-                if con_mat[x, y] > 0:
-                    count_con[idx] += 1
+                if idx < num_bins:
+                    if con_mat[x, y] > 0:
+                        count_con[idx] += 1
 
-                count_all[idx] += 1
+                    count_all[idx] += 1
+                else:
+                    idx_outside += 1
 
             t_b = timeit.default_timer()
 
@@ -1439,6 +1443,7 @@ class SnuddaAnalyse:
         p_con = np.divide(count_con, count_all)
 
         print(f"Requested: {num_points} calculated {sum(count_all)}")
+        print(f"Num pairs outside plot range {idx_outside}")
 
         if not dist_3d:
             print(f"Rejected (too large z-depth): {count_rejected}")
