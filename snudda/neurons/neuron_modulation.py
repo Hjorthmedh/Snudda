@@ -203,6 +203,30 @@ class NeuronModulation:
 
         # TODO: 2025-03-04: Replace with include flux instead
         # https://www.neuron.yale.edu/phpBB/viewtopic.php?t=4631
+        # https://colab.research.google.com/drive/1d-4bi427QZksinLq46LaYMFpx7Fb1t-N?usp=sharing <--
+        #
+        # - Identifiera vilken ECS voxel som ett compartment ligger i
+        #   Vi har koordinater för NEURON compartment, och vi kan beräkna coordinater för ECS voxlarna
+        #
+        # - Hur hanterar vi om en section är i två ECS voxlar, tar vi den ena bara?
+        #
+        # - Vi behöver kolla att MOD filerna inte skriver över eller skrivs över
+        #   Dvs att de kan ändra koncentrationerna genom att addera eller ta bort, inte att
+        #   de helt ersätter koncentrationen som kan vara modifierad med ett eget värde.
+        #
+        # Exempel:
+        #
+        # def flux(a,b, A=surface_area, D=diffusion_coeff,  dist=dist):
+        #     return A * D * (a.value - b.value)*1e-18/dist # in mol/ms
+        #
+        #
+        # for prend, postnd in zip(NT.nodes(cytpre), NT.nodes(cytpost)):
+        #     postnd.include_flux(lambda:flux(prend,postnd), units='mol/ms')
+        #     prend.include_flux(lambda:flux(postnd,prend), units='mol/ms')
+        #
+        # ... we have problem med rxd.MultiCompartmentReaction:
+        # Running Neuron simulator 1000 ms, with dt=5.0
+        # Illegal instruction
 
         # TODO: rxd.MultiCompartmentReaction, 2025-02-21 -- UNDERSTAND THIS!!
         # We are trying to use "neuron_modulation_of_channels.ipynb", to make reactions
