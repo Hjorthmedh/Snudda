@@ -8,5 +8,14 @@
     "use_rxd_neuromodulation": true,
     "rxd_enable_extracellular": true,
     "record_rxd_species_soma": [0, 1],
+    "record_rxd_extracellular": {
+	"Striatum": [
+	    {
+		"species": ["A", "B", "C", "D", "E"],
+		"location": [[0.00475, 0.004, 0.00775]]
+	    }
+	    
+	]
+    },
     "current_injection_file": "bath_current_injection.json"
 }

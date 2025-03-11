@@ -1,0 +1,88 @@
+{
+    "species": {
+        "A": {
+            "initial_concentration": 7.000000000000002e-07,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": ["ecs"],
+            "concentration": 7.000000000000002e-07,
+            "boundary_condition": false,
+            "unit": "M"
+        },
+        "B": {
+            "initial_concentration": 0.0,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": ["ecs"],
+            "concentration": 0.0,
+            "boundary_condition": false,
+            "unit": "M"
+        },
+        "C": {
+            "initial_concentration": 0.0,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": ["ecs"],
+            "concentration": 0.0,
+            "boundary_condition": false,
+            "unit": "M"
+        },
+        "D": {
+            "initial_concentration": 0.0,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": ["ecs"],
+            "concentration": 0.0,
+            "boundary_condition": false,
+            "unit": "M"
+        },
+        "E": {
+            "initial_concentration": 0.0,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": ["ecs"],
+            "concentration": 0.0,
+            "boundary_condition": false,
+            "unit": "M"
+        }
+    },
+    "rates": {},
+    "reactions": {
+        "AB": {
+            "reactants": "A",
+            "products": "B",
+            "forward_rate": 30.0,
+            "backward_rate": null,
+            "forward_rate_unit": "1/second",
+            "backward_rate_unit": null,
+            "regions": ["ecs"]
+        },
+        "BC": {
+            "reactants": "B",
+            "products": "C",
+            "forward_rate": 30.0,
+            "backward_rate": null,
+            "forward_rate_unit": "1/second",
+            "backward_rate_unit": null,
+            "regions": ["ecs"]
+        },
+        "CD": {
+            "reactants": "C",
+            "products": "D",
+            "forward_rate": 30.0,
+            "backward_rate": null,
+            "forward_rate_unit": "1/second",
+            "backward_rate_unit": null,
+            "regions": ["ecs"]
+        },
+        "DE": {
+            "reactants": "D",
+            "products": "E",
+            "forward_rate": 30.0,
+            "backward_rate": null,
+            "forward_rate_unit": "1/second",
+            "backward_rate_unit": null,
+            "regions": ["ecs"]
+        }
+    }
+}
