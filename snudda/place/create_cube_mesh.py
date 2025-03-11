@@ -85,8 +85,30 @@ def create_cube_mesh(file_name, centre_point, side_len, description=None, verbos
         f.write(f"\n{face_str}")
 
 
+def cube_cli():
+    import argparse
+
+    parser = argparse.ArgumentParser("Create cube mesh for Snudda")
+    parser.add_argument("filename", help="Filename of obj file")
+    parser.add_argument("side_len", help="Length of the side (units micrometers)", type=float)
+    parser.add_argument("--center", "-center", help="Center of cube", default="0,0,0")
+    parser.add_argument("--description", help="Description of cube", default=None)
+
+    args = parser.parse_args()
+
+    center = [float(x)*1e-6 for x in args.center.split(",")]
+
+    desc = args.description
+
+    if desc is None:
+        desc = f"Cube with side length {args.side_len} micrometers, centered at {args.center}"
+
+    print(f"Creating {args.filename} with side length {args.side_len} micrometers, centered at {args.center}")
+
+    create_cube_mesh(file_name=args.filename,
+                     centre_point=center,
+                     side_len=args.side_len*1e-6,
+                     description=desc)
+
 if __name__ == "__main__":
-    create_cube_mesh(file_name="test-cube.obj",
-                     centre_point=[1, 2, 3],
-                     side_len=2,
-                     description="This is a test cube")
+    cube_cli()
