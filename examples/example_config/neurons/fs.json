@@ -1,10 +1,11 @@
 {
     "FS": {
 	"neuron_path": {
-	    "FS_0": "$SNUDDA_DATA/neurons/striatum/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20210210",
-	    "FS_1": "$SNUDDA_DATA/neurons/striatum/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20210210",
-	    "FS_2": "$SNUDDA_DATA/neurons/striatum/fs/str-fs-e161205_FS1-mBE104E-v20210209",
-	    "FS_3": "$SNUDDA_DATA/neurons/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20210210"
+	    "FS_0": "$SNUDDA_DATA/neurons/striatum/fs/str-fs-e160628_FS2-mMTC180800A-IDB-v20220614",
+	    "FS_1": "$SNUDDA_DATA/neurons/striatum/fs/str-fs-e161024_FS16-mDR-rat-Mar-13-08-1-536-R-v20220614",
+	    "FS_2": "$SNUDDA_DATA/neurons/striatum/fs/str-fs-e161205_FS1-mBE104E-v20220614",
+	    "FS_2": "$SNUDDA_DATA/neurons/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20220614",
+	    "FS_3": "$SNUDDA_DATA/neurons/striatum/fs/str-fs-e180418_FS5-mMTC251001A-IDB-v20220614"
 	},
 	
         "neuron_type": "neuron",

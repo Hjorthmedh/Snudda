@@ -355,7 +355,7 @@ class NeuronModel(ephys.models.CellModel):
     #
     # Soma is -1
     # axons are negative values (-2, -3, ..) in Neuron_morphology
-    # dendrites are 1,2,3,4,5... ie one higher than what Neuron internally
+    # dendrites are 0,1,2,3,4,5... ie one higher than what Neuron internally
     # uses to index the dendrites (due to us wanting to include soma)
 
     def build_section_lookup(self):

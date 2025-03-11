@@ -1812,7 +1812,7 @@ class SnuddaDetect(object):
 
         # self.write_log("Create lookup table")
         # nRows = data.shape[0] -- zero padded, cant use shape
-        lookup_table = np.zeros((data.shape[0], 3), dtype=int)
+        lookup_table = np.zeros((data.shape[0], 3), dtype=np.int64)  # Linux is 64-bit int, Windows was 32-bit... :-/
 
         next_idx = 0
         start_idx = 0
@@ -1828,6 +1828,7 @@ class SnuddaDetect(object):
             assert False, f"Unknown data_type {data_type}, should be 'synapses' or ' gap_junctions'"
 
         # max_synapse_type = self.next_channel_model_id   # This needs to be saved in HDF5 file
+        max_synapse_type = np.int64(max_synapse_type)
 
         while next_idx < n_rows:
             src_id = data[next_idx, 0]
@@ -2245,6 +2246,8 @@ class SnuddaDetect(object):
             meta_data.create_dataset("slurm_id", data=self.slurm_id)
             meta_data.create_dataset("voxel_size", data=self.voxel_size)
             meta_data.create_dataset("hyper_voxel_size", data=self.hyper_voxel_size)
+            meta_data.create_dataset("num_hyper_voxels", data=self.num_hyper_voxels)
+
             meta_data.create_dataset("num_bins", data=self.num_bins)
             meta_data.create_dataset("voxel_overflow_counter", data=self.voxel_overflow_counter)
 
@@ -2277,11 +2280,11 @@ class SnuddaDetect(object):
 
             network_group.create_dataset("synapse_lookup",
                                          data=self.hyper_voxel_synapse_lookup,
-                                         dtype=int)
+                                         dtype=np.int64)   # Need to force 64-bit int for Windows
 
             network_group.create_dataset("gap_junction_lookup",
                                          data=self.hyper_voxel_gap_junction_lookup,
-                                         dtype=int)
+                                         dtype=np.int64)  # Need to force 64-bit int for Windows
 
             network_group.create_dataset("max_channel_type_id", data=self.next_channel_model_id, dtype=int)
 

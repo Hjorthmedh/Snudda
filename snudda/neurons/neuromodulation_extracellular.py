@@ -24,9 +24,10 @@ class ExtracellularNeuromodulation:
         # We set RxD option for extracellular
         rxd.options.enable.extracellular = True
 
-        self.compartments = dict()
+        self.compartments = dict()   # "ecs" --> RxD Extracellular object
 
         self.species = dict()
+        self.reactions = dict()
 
     def get_min_max_coords(self, padding=None, volume_id=None):
 
@@ -36,7 +37,8 @@ class ExtracellularNeuromodulation:
         #       use volume_id info
 
         x_min, y_min, z_min = self.sim.network_info["simulation_origo"]
-        n_x, n_y, n_z = self.sim.network_info["hyper_voxel_size"]
+
+        n_x, n_y, n_z = self.sim.network_info["num_hyper_voxels"]
         hv_width = self.sim.network_info["hyper_voxel_width"]
 
         x_max = x_min + n_x * hv_width
@@ -67,10 +69,10 @@ class ExtracellularNeuromodulation:
                 x_min, y_min, z_min, x_max, y_max, z_max = self.get_min_max_coords(padding=self.padding)
 
                 self.compartments[comp] = rxd.Extracellular(xlo=x_min * 1e6, ylo=y_min * 1e6, zlo=z_min * 1e6,
-                                                           xhi=x_max * 1e6, yhi=y_max * 1e6, zhi=z_max * 1e6,
-                                                           dx=self.dx*1e6,
-                                                           volume_fraction=self.volume_fraction,
-                                                           tortuosity=self.tortuosity)
+                                                            xhi=x_max * 1e6, yhi=y_max * 1e6, zhi=z_max * 1e6,
+                                                            dx=self.dx*1e6,
+                                                            volume_fraction=self.volume_fraction,
+                                                            tortuosity=self.tortuosity)
 
             if comp in self.species[species_name]:
                 raise ValueError(f"{species_name = } already defined for {comp = }")
@@ -85,7 +87,7 @@ class ExtracellularNeuromodulation:
                                                                  charge=charge)
             else:
                 # TODO: Add atol_scale etc...
-                self.species[species_name][comp] = rxd.Species(self.compartments[comp],
+                self.species[species_name][comp] = rxd.Species([self.compartments[comp]],
                                                                d=diffusion_constant,
                                                                initial=initial_conc,
                                                                charge=charge,
@@ -132,8 +134,8 @@ class ExtracellularNeuromodulation:
         self.reactions[reaction_name][region_name] = rxd.Reaction(left_side,
                                                                   right_side,
                                                                   forward_rate,
-                                                                  backward_rate,
-                                                                  regions=self.compartments[region_name])
+                                                                  backward_rate) #,
+                                                                  #regions=self.compartments[region_name])
 
     def load_json(self, config_path=None, config_data=None):
 
@@ -250,9 +252,15 @@ class ExtracellularNeuromodulation:
                                   region_name=region)
 
 
-
-
     # TODO: Add functionality to extracellular compartment, similar to what is in neuro_modulation.py
     #       1. Reactions within ECS
     #       2. Reactions between ECS and ICS
     #       How to adapt configuration file, JSON (separate from intracellular, how to deal with ECS <-> ICS"
+
+
+    # TODO: 2025-02-17
+    # Check scaling of ECS, based on how many voxel we have. The way to do that is to use the same number of neurons
+    # but just increase the volume they are placed inside. That way only the ECS computation should increase.
+    # Alternativly we just reduce the dx, thus increasing the number of voxels.
+    #
+    # Find out if RxD uses any JIT, are we missing some way to speed up our code?!

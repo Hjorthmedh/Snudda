@@ -1,6 +1,6 @@
 {
     "Striatum": {
-	"num_neurons": 1000,
+	"num_neurons": 2000,
 	"volume": {
 	    "mesh_file": "$SNUDDA_DATA/meshes/Striatum-dorsal-left-hemisphere.obj",
 	    "d_min": 1.5e-5,

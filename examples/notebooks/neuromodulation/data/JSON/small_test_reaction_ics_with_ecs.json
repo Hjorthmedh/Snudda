@@ -1,0 +1,67 @@
+{
+    "species": {
+        "REACTANT1": {
+            "initial_concentration": 7.000000000000002e-07,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 7.000000000000002e-07,
+            "boundary_condition": false,
+            "unit": "M"
+        },
+        "PRODUCT1": {
+            "initial_concentration": 0.0,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 0.0,
+            "boundary_condition": false,
+            "unit": "M"
+        },
+        "AA": {
+            "initial_concentration": 0.0,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 0.0,
+            "boundary_condition": false,
+            "unit": "M"
+        }
+    },
+    "rates": {},
+    "reactions": {
+        "ReactionFlux0": {
+            "reactants": "REACTANT1",
+            "products": "PRODUCT1",
+            "forward_rate": 30.0,
+            "backward_rate": null,
+            "forward_rate_unit": "1/second",
+            "backward_rate_unit": null,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ]
+        },
+        "ReactionFlux1ecs": {
+            "reactants": "A__ecs",
+            "products": "AA",
+            "forward_rate": 30.0,
+            "backward_rate": null,
+            "forward_rate_unit": "1/second",
+            "backward_rate_unit": null,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ]
+        }
+    }
+}

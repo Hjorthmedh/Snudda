@@ -1,0 +1,425 @@
+{
+    "species": {
+        "A": {
+            "initial_concentration": 7.000000000000002e-07,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "ecs"
+            ],
+            "concentration": 7.000000000000002e-07,
+            "boundary_condition": false,
+            "unit": "M"
+        },
+        "B": {
+            "initial_concentration": 0.0,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "ecs"
+            ],
+            "concentration": 0.0,
+            "boundary_condition": false,
+            "unit": "M"
+        },
+        "C": {
+            "initial_concentration": 0.0,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "ecs"
+            ],
+            "concentration": 0.0,
+            "boundary_condition": false,
+            "unit": "M"
+        },
+        "D": {
+            "initial_concentration": 0.0,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "ecs"
+            ],
+            "concentration": 0.0,
+            "boundary_condition": false,
+            "unit": "M"
+        },
+        "E": {
+            "initial_concentration": 0.0,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "ecs"
+            ],
+            "concentration": 0.0,
+            "boundary_condition": false,
+            "unit": "M"
+        },
+        "F": {
+            "initial_concentration": 0.0,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "ecs"
+            ],
+            "concentration": 0.0,
+            "boundary_condition": false,
+            "unit": "M"
+        },
+        "G": {
+            "initial_concentration": 0.0,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "ecs"
+            ],
+            "concentration": 0.0,
+            "boundary_condition": false,
+            "unit": "M"
+        },
+        "H": {
+            "initial_concentration": 0.0,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "ecs"
+            ],
+            "concentration": 0.0,
+            "boundary_condition": false,
+            "unit": "M"
+        },
+        "I": {
+            "initial_concentration": 0.0,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "ecs"
+            ],
+            "concentration": 0.0,
+            "boundary_condition": false,
+            "unit": "M"
+        },
+        "J": {
+            "initial_concentration": 0.0,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "ecs"
+            ],
+            "concentration": 0.0,
+            "boundary_condition": false,
+            "unit": "M"
+        },
+        "A_0": {
+            "initial_concentration": 7.000000000000002e-07,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "ecs"
+            ],
+            "concentration": 7.000000000000002e-07,
+            "boundary_condition": false,
+            "unit": "M"
+        },
+        "B_0": {
+            "initial_concentration": 0.0,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "ecs"
+            ],
+            "concentration": 0.0,
+            "boundary_condition": false,
+            "unit": "M"
+        },
+        "C_0": {
+            "initial_concentration": 0.0,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "ecs"
+            ],
+            "concentration": 0.0,
+            "boundary_condition": false,
+            "unit": "M"
+        },
+        "D_0": {
+            "initial_concentration": 0.0,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "ecs"
+            ],
+            "concentration": 0.0,
+            "boundary_condition": false,
+            "unit": "M"
+        },
+        "E_0": {
+            "initial_concentration": 0.0,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "ecs"
+            ],
+            "concentration": 0.0,
+            "boundary_condition": false,
+            "unit": "M"
+        },
+        "F_0": {
+            "initial_concentration": 0.0,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "ecs"
+            ],
+            "concentration": 0.0,
+            "boundary_condition": false,
+            "unit": "M"
+        },
+        "G_0": {
+            "initial_concentration": 0.0,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "ecs"
+            ],
+            "concentration": 0.0,
+            "boundary_condition": false,
+            "unit": "M"
+        },
+        "H_0": {
+            "initial_concentration": 0.0,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "ecs"
+            ],
+            "concentration": 0.0,
+            "boundary_condition": false,
+            "unit": "M"
+        },
+        "I_0": {
+            "initial_concentration": 0.0,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "ecs"
+            ],
+            "concentration": 0.0,
+            "boundary_condition": false,
+            "unit": "M"
+        },
+        "J_0": {
+            "initial_concentration": 0.0,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "ecs"
+            ],
+            "concentration": 0.0,
+            "boundary_condition": false,
+            "unit": "M"
+        }
+    },
+    "rates": {},
+    "reactions": {
+        "AB": {
+            "reactants": "A",
+            "products": "B",
+            "forward_rate": 30.0,
+            "backward_rate": null,
+            "forward_rate_unit": "1/second",
+            "backward_rate_unit": null,
+            "regions": [
+                "ecs"
+            ]
+        },
+        "BC": {
+            "reactants": "B",
+            "products": "C",
+            "forward_rate": 30.0,
+            "backward_rate": null,
+            "forward_rate_unit": "1/second",
+            "backward_rate_unit": null,
+            "regions": [
+                "ecs"
+            ]
+        },
+        "CD": {
+            "reactants": "C",
+            "products": "D",
+            "forward_rate": 30.0,
+            "backward_rate": null,
+            "forward_rate_unit": "1/second",
+            "backward_rate_unit": null,
+            "regions": [
+                "ecs"
+            ]
+        },
+        "DE": {
+            "reactants": "D",
+            "products": "E",
+            "forward_rate": 30.0,
+            "backward_rate": null,
+            "forward_rate_unit": "1/second",
+            "backward_rate_unit": null,
+            "regions": [
+                "ecs"
+            ]
+        },
+        "EF": {
+            "reactants": "E",
+            "products": "F",
+            "forward_rate": 30.0,
+            "backward_rate": null,
+            "forward_rate_unit": "1/second",
+            "backward_rate_unit": null,
+            "regions": [
+                "ecs"
+            ]
+        },
+        "FG": {
+            "reactants": "F",
+            "products": "G",
+            "forward_rate": 30.0,
+            "backward_rate": null,
+            "forward_rate_unit": "1/second",
+            "backward_rate_unit": null,
+            "regions": [
+                "ecs"
+            ]
+        },
+        "GH": {
+            "reactants": "G",
+            "products": "H",
+            "forward_rate": 30.0,
+            "backward_rate": null,
+            "forward_rate_unit": "1/second",
+            "backward_rate_unit": null,
+            "regions": [
+                "ecs"
+            ]
+        },
+        "HI": {
+            "reactants": "H",
+            "products": "I",
+            "forward_rate": 30.0,
+            "backward_rate": null,
+            "forward_rate_unit": "1/second",
+            "backward_rate_unit": null,
+            "regions": [
+                "ecs"
+            ]
+        },
+        "IJ": {
+            "reactants": "I",
+            "products": "J",
+            "forward_rate": 30.0,
+            "backward_rate": null,
+            "forward_rate_unit": "1/second",
+            "backward_rate_unit": null,
+            "regions": [
+                "ecs"
+            ]
+        },
+        "AB_0": {
+            "reactants": "A_0",
+            "products": "B_0",
+            "forward_rate": 30.0,
+            "backward_rate": null,
+            "forward_rate_unit": "1/second",
+            "backward_rate_unit": null,
+            "regions": [
+                "ecs"
+            ]
+        },
+        "BC_0": {
+            "reactants": "B_0",
+            "products": "C_0",
+            "forward_rate": 30.0,
+            "backward_rate": null,
+            "forward_rate_unit": "1/second",
+            "backward_rate_unit": null,
+            "regions": [
+                "ecs"
+            ]
+        },
+        "CD_0": {
+            "reactants": "C_0",
+            "products": "D_0",
+            "forward_rate": 30.0,
+            "backward_rate": null,
+            "forward_rate_unit": "1/second",
+            "backward_rate_unit": null,
+            "regions": [
+                "ecs"
+            ]
+        },
+        "DE_0": {
+            "reactants": "D_0",
+            "products": "E_0",
+            "forward_rate": 30.0,
+            "backward_rate": null,
+            "forward_rate_unit": "1/second",
+            "backward_rate_unit": null,
+            "regions": [
+                "ecs"
+            ]
+        },
+        "EF_0": {
+            "reactants": "E_0",
+            "products": "F_0",
+            "forward_rate": 30.0,
+            "backward_rate": null,
+            "forward_rate_unit": "1/second",
+            "backward_rate_unit": null,
+            "regions": [
+                "ecs"
+            ]
+        },
+        "FG_0": {
+            "reactants": "F_0",
+            "products": "G_0",
+            "forward_rate": 30.0,
+            "backward_rate": null,
+            "forward_rate_unit": "1/second",
+            "backward_rate_unit": null,
+            "regions": [
+                "ecs"
+            ]
+        },
+        "GH_0": {
+            "reactants": "G_0",
+            "products": "H_0",
+            "forward_rate": 30.0,
+            "backward_rate": null,
+            "forward_rate_unit": "1/second",
+            "backward_rate_unit": null,
+            "regions": [
+                "ecs"
+            ]
+        },
+        "HI_0": {
+            "reactants": "H_0",
+            "products": "I_0",
+            "forward_rate": 30.0,
+            "backward_rate": null,
+            "forward_rate_unit": "1/second",
+            "backward_rate_unit": null,
+            "regions": [
+                "ecs"
+            ]
+        },
+        "IJ_0": {
+            "reactants": "I_0",
+            "products": "J_0",
+            "forward_rate": 30.0,
+            "backward_rate": null,
+            "forward_rate_unit": "1/second",
+            "backward_rate_unit": null,
+            "regions": [
+                "ecs"
+            ]
+        }
+    }
+}

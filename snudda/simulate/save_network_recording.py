@@ -177,6 +177,83 @@ class SpikeData(CompartmentData):
         super().__init__(neuron_id, data_type="spikes")
 
 
+class ExtracellularRecordings:
+
+    def __init__(self, region_name, ecs):
+
+        # Needs to identify with its index, and then we also track coordinates
+        # we want to avoid duplicate data -- since a node has many coordinates inside it
+        # EXAMPLE: https://neuron.yale.edu/neuron/docs/extracellular-diffusion
+
+        self.ecs = ecs   # remove?
+        self.region_name = region_name
+        self.data = dict()
+        self.coords = dict()
+
+        self.xyz_min = np.array((self.ecs[self.region_name].compartments["ecs"]._xlo,
+                                 self.ecs[self.region_name].compartments["ecs"]._ylo,
+                                 self.ecs[self.region_name].compartments["ecs"]._zlo))
+
+        self.xyz_max = np.array((self.ecs[self.region_name].compartments["ecs"]._xhi,
+                                 self.ecs[self.region_name].compartments["ecs"]._yhi,
+                                 self.ecs[self.region_name].compartments["ecs"]._zhi))
+
+        self.n_voxels = np.array((self.ecs[self.region_name].compartments["ecs"]._nx,
+                                  self.ecs[self.region_name].compartments["ecs"]._ny,
+                                  self.ecs[self.region_name].compartments["ecs"]._nz))
+
+    def get_coords(self, index_ijk):
+        return np.vstack([self.coords[tuple(ijk)] for ijk in index_ijk])
+
+    def register_extracellular_data(self, data, data_type, index_ijk):
+
+        if data_type not in self.data:
+            self.data[data_type] = ExtracellularNodeData(data_type=data_type)
+
+        if index_ijk not in self.coords:
+            delta_xyz = (self.xyz_max - self.xyz_min) / self.n_voxels
+            self.coords[index_ijk] = self.xyz_min + delta_xyz * index_ijk
+
+        self.data[data_type].append(data=data, index_ijk=index_ijk)
+
+        # TODO: This object tracks the data in one "node",
+        # The node knows its i,j,
+        # It will have a dictionary, and there we need to know the species type, and the location
+        # we will use i, j, k for index (but also store the centre of the node)
+        # This node needs to know its own region, species, and location (x,y,z)
+        #  We need to save the extracellular data, based on region, species, loc
+
+# TODO: Check if RxD uses JIT, as they claim in Omar Awile et al, 2022.
+
+
+class ExtracellularNodeData:
+
+    def __init__(self, data_type):
+        self.data_type = data_type
+        self.data = dict()
+
+    def append(self, data, index_ijk, unsafe=False):
+        if not unsafe and index_ijk in self.data:
+            raise ValueError(f"Index {index_ijk} already exists in the data structure.")
+
+        self.data[index_ijk] = data
+
+    def sort(self):
+        sorted_items = sorted(self.data.items(), key=lambda x: x[0])
+        self.data = dict(sorted_items)
+
+    def to_numpy(self):
+        return np.vstack([np.array(d) for d in self.data.values()])
+
+    def get_data(self):
+        self.sort()
+
+        data = self.to_numpy()
+        index = np.array(list(self.data.keys()))
+
+        return index, data
+
+
 class SnuddaSaveNetworkRecordings:
 
     # TODO: Add saving of simulation_config file (and experiment_config_file for pair recording)
@@ -191,6 +268,7 @@ class SnuddaSaveNetworkRecordings:
         self.network_data = network_data
         self.header_exists = False
         self.neuron_activities = dict()
+        self.extracellular_data = dict()
         self.time = None
         self.sample_dt = sample_dt
 
@@ -233,6 +311,14 @@ class SnuddaSaveNetworkRecordings:
             self.neuron_activities[neuron_id] = NeuronRecordings(neuron_id)
 
         self.neuron_activities[neuron_id].register_spike_data(data=data, sec_id=sec_id, sec_x=sec_x)
+
+    def register_extracellular_data(self, region_name, data_type, data, ecs, index_ijk):
+
+        if region_name not in self.extracellular_data:
+            self.extracellular_data[region_name] = ExtracellularRecordings(region_name=region_name, ecs=ecs)
+
+        self.extracellular_data[region_name].register_extracellular_data(data=data, data_type=data_type,
+                                                                         index_ijk=index_ijk)
 
     def register_time(self, time):
         self.time = time
@@ -410,6 +496,25 @@ class SnuddaSaveNetworkRecordings:
                             data_set.attrs["synapse_type"] = np.array(m.synapse_type)
                             data_set.attrs["presynaptic_id"] = np.array(m.presynaptic_id)
                             data_set.attrs["cond"] = np.array(m.cond)
+
+                if int(self.pc.id()) == 0:
+                    # RxD computes extracellular diffusion INDEPENDENTLY on ALL nodes (sigh!)
+                    # thus we need to save only data from node 0
+
+                    ecs_group = out_file.create_group("ecs")
+
+                    for region_name, region_data in self.extracellular_data.items():
+                        region_group = ecs_group.create_group(region_name)
+
+                        for data_type, extracellular_data in region_data.data.items():
+                            ecs_data_group = region_group.create_group(data_type)
+
+                            index, data = extracellular_data.get_data()
+                            coords = region_data.get_coords(index)
+
+                            ecs_data_group.create_dataset("index", data=index)
+                            ecs_data_group.create_dataset("xyz", data=coords)
+                            ecs_data_group.create_dataset("data", data=data)
 
                 out_file.close()
 

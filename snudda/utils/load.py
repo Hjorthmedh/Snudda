@@ -241,6 +241,15 @@ class SnuddaLoad(object):
             if "network/hyper_voxel_ids" in f:
                 data["hyper_voxel_ids"] = f["network/hyper_voxel_ids"][()]
 
+            if "meta/hyper_voxel_size" in f:
+                data["hyper_voxel_size"] = f["meta/hyper_voxel_size"][()]
+
+            if "meta/hyper_voxel_width" in f:
+                data["hyper_voxel_width"] = f["meta/hyper_voxel_width"][()]
+
+            if "meta/num_hyper_voxels" in f:
+                data["num_hyper_voxels"] = f["meta/num_hyper_voxels"][()]
+
             if load_synapses:
                 # 0: source_cell_id, 1: dest_cell_id, 2: voxel_x, 3: voxel_y, 4: voxel_z,
                 # 5: hyper_voxel_id, 6: channel_model_id,
