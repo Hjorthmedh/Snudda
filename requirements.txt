@@ -6,7 +6,7 @@ mpi4py>=4.0.3
 numba>=0.60.0  # Optimisation, 0.60 requires numpy 2.0 and neuron is not yet compatible 0.59.1 worked
 numpy>=1.26.4   # -- numpy requirement satisfied through numba's numpy dependence
 scipy>=1.13.1
-# sonata>=0.0.1
+sonata>=0.0.1
 # pyzmq>=22.0.3
 numexpr>=2.10.2
 # allensdk  # Optional, only needed for downloading meshes from Allen Institute

@@ -72,7 +72,7 @@ sa.write_network(network_file_wt_virtual)
 #       frequency 0-10Hz.
 
 snd.setup_input(input_config="input.json",
-                network_file=modified_network_file_wt)
+                network_file=network_file_wt_virtual)
 
 
 # Create the D2OE networks
