@@ -50,9 +50,6 @@ snd_init = snd.init_tiny(neuron_paths=neuron_paths,
                          density=80500, d_min=15e-6,
                          snudda_data=snudda_data_wt, random_seed=123)
 
-import pdb
-pdb.set_trace()
-
 snd.create_network()
 
 ###### Set neurons to virtual
@@ -60,14 +57,14 @@ snd.create_network()
 from snudda.utils.ablate_network import SnuddaAblateNetwork
 from snudda.utils import SnuddaLoad
 
-modified_network_file_wt = os.path.join(network_path_wt, "wt-virtual-network.hdf5")
+network_file_wt_virtual = os.path.join(network_path_wt, "wt-virtual-network.hdf5")
 
 sa = SnuddaAblateNetwork(network_file=network_path_wt)
 sl = sa.snudda_load
 virtual_idx = sorted(list(set(sl.iter_neuron_id()) - set([x for x, _ in sl.get_centre_neurons_iterator(n_neurons=n_non_virtual)])))
 
 sa.make_virtual(virtual_idx)
-sa.write_network(modified_network_file_wt)
+sa.write_network(network_file_wt_virtual)
 
 ######
 
@@ -79,4 +76,25 @@ snd.setup_input(input_config="input.json",
 
 
 # Create the D2OE networks
+
+from snudda.utils.swap_to_degenerated_morphologies import SwapToDegeneratedMorphologies
+
+for d2oe_name in snudda_data_d2oe:
+    network_path_d2oe = os.path.join(network_base_path, d2oe_name)
+    network_file_d2oe = os.path.join(network_path_d2oe, f"{d2oe_name}-network-synapses.hdf5")
+    snudda_data_d2oe_path = os.path.join(data_base_path, d2oe_name)
+
+    original_input_file = os.pat.join(network_path_wt, "input-spikes.hdf5")
+    d2oe_input_file = os.path.join(network_path_d2oe, f"{d2oe_name}-input-spikes.hdf5")
+
+    swap = SwapToDegeneratedMorphologies(original_network_file=network_file_wt_virtual,
+                                         new_network_file=network_file_d2oe,
+                                         original_snudda_data_dir=snudda_data_wt,
+                                         new_snudda_data_dir=snudda_data_d2oe_path,
+                                         original_input_file=original_input_file,
+                                         new_input_file=d2oe_input_file)
+    swap.write_new_network_file()
+    swap.write_new_input_file(remap_removed_input=False)
+    swap.close()
+
 
