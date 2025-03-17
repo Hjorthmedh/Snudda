@@ -179,11 +179,17 @@ class NeuronModulation:
         if backward_rate is None:
             backward_rate = 0
 
-        self.reactions[reaction_name][region_name] = rxd.Reaction(left_side,
-                                                                  right_side,
-                                                                  forward_rate,
-                                                                  backward_rate,
-                                                                  regions=self.compartments[region_name])
+        try:
+            self.reactions[reaction_name][region_name] = rxd.Reaction(left_side,
+                                                                      right_side,
+                                                                      forward_rate,
+                                                                      backward_rate,
+                                                                      regions=self.compartments[region_name])
+        except:
+            import traceback
+            print(traceback.format_exc())
+            import pdb
+            pdb.set_trace()
 
     def add_multi_compartment_reaction(self, reaction_name,
                                        left_side: rxd.rxdmath._Arithmeticed,
@@ -475,8 +481,6 @@ class NeuronModulation:
                 print(f"k_forward: {forward_rate} (scaled: {scaled_forward_rate})")
                 print(f"k_backward: {backward_rate} (scaled: {scaled_backward_rate})")
 
-                """
-
                 self.add_reaction(reaction_name=reaction_name,
                                   left_side=left_side,
                                   right_side=right_side,
@@ -491,6 +495,7 @@ class NeuronModulation:
                                   forward_rate=scaled_forward_rate,
                                   backward_rate=scaled_backward_rate,
                                   region_name=region)
+                """
 
     def concentration_from_vector(self, species_name, concentration_vector, time_vector, interpolate=True):
 
