@@ -1,6 +1,6 @@
 from .core import Snudda
 
-__version__ = "2.1.10"
+__version__ = "2.1.11"
 
 from .init import SnuddaInit
 from .place import SnuddaPlace
