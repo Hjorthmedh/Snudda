@@ -1847,8 +1847,9 @@ class SnuddaInput(object):
         morphology_key = self.neuron_info[neuron_id]["morphology_key"]
         modulation_key = self.neuron_info[neuron_id]["modulation_key"]
 
-        # TODO: If the morphology is a bend morphology, we need to special treat it!
-        if neuron_path not in morphology_path:
+        # If the morphology is a bend morphology, we need to special treat it!
+        if snudda_parse_path(neuron_path, snudda_data=self.snudda_data) \
+                not in snudda_parse_path(morphology_path, snudda_data=self.snudda_data):
 
             assert "modified_morphologies" in morphology_path, \
                 f"input: neuron_path not in morphology_path, expected 'modified_morphologies' " \
