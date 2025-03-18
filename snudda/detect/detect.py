@@ -1812,7 +1812,7 @@ class SnuddaDetect(object):
 
         # self.write_log("Create lookup table")
         # nRows = data.shape[0] -- zero padded, cant use shape
-        lookup_table = np.zeros((data.shape[0], 3), dtype=np.int64)  # Linux is 64-bit int, Windows was 32-bit... :-/
+        lookup_table = np.zeros((data.shape[0], 3), dtype=np.uint64)  # Linux is 64-bit int, Windows was 32-bit... :-/
 
         next_idx = 0
         start_idx = 0
@@ -1828,7 +1828,7 @@ class SnuddaDetect(object):
             assert False, f"Unknown data_type {data_type}, should be 'synapses' or ' gap_junctions'"
 
         # max_synapse_type = self.next_channel_model_id   # This needs to be saved in HDF5 file
-        max_synapse_type = np.int64(max_synapse_type)
+        max_synapse_type = np.uint64(max_synapse_type)
 
         while next_idx < n_rows:
             src_id = data[next_idx, 0]
@@ -2280,11 +2280,11 @@ class SnuddaDetect(object):
 
             network_group.create_dataset("synapse_lookup",
                                          data=self.hyper_voxel_synapse_lookup,
-                                         dtype=np.int64)   # Need to force 64-bit int for Windows
+                                         dtype=np.uint64)   # Need to force 64-bit int for Windows
 
             network_group.create_dataset("gap_junction_lookup",
                                          data=self.hyper_voxel_gap_junction_lookup,
-                                         dtype=np.int64)  # Need to force 64-bit int for Windows
+                                         dtype=np.uint64)  # Need to force 64-bit int for Windows
 
             network_group.create_dataset("max_channel_type_id", data=self.next_channel_model_id, dtype=int)
 

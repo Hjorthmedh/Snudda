@@ -1636,7 +1636,7 @@ class SnuddaPrune(object):
                             (f"max_channel_type = {self.max_channel_type} "
                              f"(differ with what is in file {file_list[h_id]['network/max_channel_type_id'][()]})")
                     else:
-                        self.max_channel_type = np.int64(file_list[h_id]["network/max_channel_type_id"][()])
+                        self.max_channel_type = np.uint64(file_list[h_id]["network/max_channel_type_id"][()])
                         self.write_log(f"Setting max_channel_type to {self.max_channel_type} from h_id={h_id}")
 
                     lookup_iterator = \
@@ -1689,7 +1689,7 @@ class SnuddaPrune(object):
                     assert self.max_channel_type == file_list[proj_connection]["network/max_channel_type_id"][()], \
                         "max_channel_type does not match for projection file"
                 else:
-                    self.max_channel_type = np.int64(file_list[proj_connection]["network/max_channel_type_id"][()])
+                    self.max_channel_type = np.uint64(file_list[proj_connection]["network/max_channel_type_id"][()])
 
                 assert file_list[proj_connection]["network/num_synapses"][()] == self.num_projection_synapses, \
                     (f"Mismatch between work history file and data file. "
