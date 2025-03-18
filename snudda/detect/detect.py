@@ -1846,7 +1846,7 @@ class SnuddaDetect(object):
                    and data[next_idx, 1] == dest_id):
                 next_idx += 1
 
-            lookup_table[lookup_idx, :] = [(dest_id * num_neurons + src_id) * max_synapse_type + synapse_type,
+            lookup_table[lookup_idx, :] = [np.uint64(dest_id * num_neurons + src_id) * max_synapse_type + np.uint64(synapse_type),
                                            start_idx, next_idx]
 
             start_idx = next_idx
