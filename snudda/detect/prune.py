@@ -1643,7 +1643,8 @@ class SnuddaPrune(object):
                         self.file_row_lookup_iterator_subset(h5mat_lookup=file_list[h_id][h5_syn_lookup],
                                                              min_dest_id=neuron_range[0],
                                                              max_dest_id=neuron_range[1],
-                                                             chunk_size=chunk_size)
+                                                             chunk_size=chunk_size,
+                                                             dtype=SnuddaPrune.to_signed(file_list[h_id][h5_syn_lookup].dtype))
 
                     file_mat_iterator[h_id] \
                         = self.synapse_set_iterator(h5mat_lookup=file_list[h_id][h5_syn_lookup],
@@ -1702,7 +1703,8 @@ class SnuddaPrune(object):
                         self.file_row_lookup_iterator_subset(h5mat_lookup=file_list[proj_connection][h5_syn_lookup],
                                                              min_dest_id=neuron_range[0],
                                                              max_dest_id=neuron_range[1],
-                                                             chunk_size=chunk_size)
+                                                             chunk_size=chunk_size,
+                                                             dtype=SnuddaPrune.to_signed(file_list[proj_connection][h5_syn_lookup].dtype))
 
                     file_mat_iterator[proj_connection] \
                         = self.synapse_set_iterator(h5mat_lookup=file_list[proj_connection][h5_syn_lookup],
@@ -2155,16 +2157,24 @@ class SnuddaPrune(object):
     ############################################################################
 
     @staticmethod
-    @jit(nopython=True)
     def to_signed(dtype):
+
         """Convert an unsigned NumPy integer dtype to its corresponding signed dtype."""
-        if np.issubdtype(dtype, np.unsignedinteger):
-            return np.dtype(f"int{dtype().itemsize * 8}")  # Convert based on size
-        return dtype  # Return as is if it's already signed or not an integer
+
+        unsigned_to_signed = {
+            np.uint8: np.int8,
+            np.uint16: np.int16,
+            np.uint32: np.int32,
+            np.uint64: np.int64
+        }
+
+        dtype = np.dtype(dtype).type
+
+        return unsigned_to_signed.get(dtype, dtype)
 
     @staticmethod
     @jit(nopython=True)
-    def file_row_lookup_iterator(h5mat, chunk_size=10000):
+    def file_row_lookup_iterator(h5mat, chunk_size=10000, dtype=None):
 
         """
         File row lookup, to quickly find range of synapses onto a neuron.
@@ -2172,6 +2182,7 @@ class SnuddaPrune(object):
         Args:
             h5mat : Synapse matrix
             chunk_size : Chunk size to process each time
+            dtype : dtype override
         """
 
         mat_size = h5mat.shape[0]
@@ -2180,8 +2191,11 @@ class SnuddaPrune(object):
         if mat_size < chunk_size:
             chunk_size = h5mat.shape[0]
 
+        if dtype is None:
+            dtype = h5mat.dtype
+
         mat_buf = np.zeros((chunk_size, h5mat.shape[1]),
-                           dtype=SnuddaPrune.to_signed(h5mat.dtype))
+                           dtype=dtype)
         end_idx = 0
 
         while end_idx < mat_size:
@@ -2202,7 +2216,8 @@ class SnuddaPrune(object):
 
     # min_dest_id and max_dest_id are inclusive, only synapses with dest_id in that range are iterated over
 
-    def file_row_lookup_iterator_subset(self, h5mat_lookup, min_dest_id, max_dest_id, chunk_size=10000):
+    def file_row_lookup_iterator_subset(self, h5mat_lookup, min_dest_id, max_dest_id, chunk_size=10000,
+                                        dtype=None):
 
         """
         File row lookup iterator, working on a subset of the synapse matrix.
@@ -2213,6 +2228,7 @@ class SnuddaPrune(object):
             min_dest_id : Minimum neuron destination ID for synapses  (inclusive)
             max_dest_id : Maximum neuron destination ID for synapses (inclusive)
             chunk_size : Chunk size for processing
+            dtype : dtype override
         """
 
         num_neurons = self.hist_file["network/neurons/neuron_id"].shape[0]
@@ -2229,8 +2245,10 @@ class SnuddaPrune(object):
         if mat_size < chunk_size:
             chunk_size = mat_size
 
-        mat_buf = np.zeros((chunk_size, h5mat_lookup.shape[1]),
-                           dtype=SnuddaPrune.to_signed(h5mat_lookup.dtype))
+        if dtype is None:
+            dtype = h5mat_lookup.dtype
+
+        mat_buf = np.zeros((chunk_size, h5mat_lookup.shape[1]), dtype=dtype)
         end_idx = 0
 
         while end_idx < mat_size:
@@ -2271,7 +2289,8 @@ class SnuddaPrune(object):
         # Allow the user to set an alternative lookupIterator if we only
         # want to iterate over a subset of the synapses
         if not lookup_iterator:
-            lookup_iterator = SnuddaPrune.file_row_lookup_iterator(h5mat_lookup, chunk_size=chunk_size)
+            lookup_iterator = SnuddaPrune.file_row_lookup_iterator(h5mat_lookup, chunk_size=chunk_size,
+                                                                   dtype=SnuddaPrune.to_signed(h5mat_lookup.dtype))
 
         mat_size = h5mat.shape[0]
         if mat_size < chunk_size:
