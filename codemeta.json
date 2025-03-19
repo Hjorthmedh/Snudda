@@ -4,8 +4,8 @@
     "applicationCategory": "Neuroscience",
     "author": [
         {
-            "id": "https://orcid.org/0000-0002-9302-0750",
-            "type": "Person",
+            "@id": "https://orcid.org/0000-0002-9302-0750",
+            "@type": "Person",
             "affiliation": {
                 "type": "Organization",
                 "name": "Royal Institute of Technology (KTH)"
@@ -15,8 +15,8 @@
             "givenName": "Johannes"
         },
         {
-            "id": "_:author_2",
-            "type": "Person",
+            "@id": "_:author_2",
+            "@type": "Person",
             "email": "wilhelm.thunberg@ki.se",
             "familyName": "Thunberg",
             "givenName": "Wilhelm"
@@ -24,17 +24,18 @@
     ],
     "codeRepository": "https://github.com/hjorthmedh/Snudda",
     "dateCreated": "2024-12-06",
-    "dateModified": "2024-09-30",
+    "dateModified": "2025-03-17",
     "datePublished": "2021-07-01",
     "description": "Snudda creates the connectivity for realistic networks of simulated neurons in silico in a bottom up fashion that can then be simulated using the NEURON software. Neurons are placed within 3D meshes representing the structures of interest, with neural densities as seen in experiments. Based on reconstructed morphologies and neuron placement we can infer locations of putative synapses based on proximity between axon and dendrites. Projections between different structures can be added either using axon reconstructions, or by defining a connectivity map between regions. Putative synapses are pruned to match experimental pair-wise data on connectivity. Networks can be simulated either on desktop machines, or on super computers.",
-    "downloadUrl": "https://github.com/Hjorthmedh/Snudda.git",
+    "downloadUrl": "https://files.pythonhosted.org/packages/e1/92/6369e711d2770f6012b986aca712a7608745eb3c8b6b427ae5f25b45e2f6/snudda-2.1.10.tar.gz",
     "funder": {
         "type": "Organization",
-        "name": "KTH, HBP, EBRAINS 2.0, VBT"
+        "name": ["Royal Institute of Technology (KTH)", "European Commission"]
     },
     "name": "Snudda",
     "programmingLanguage": "Python",
     "softwareRequirements": "Python 3.8+",
-    "version": "2.1.8",
-    "referencePublication": "https://doi.org/10.1007/s12021-021-09531-w"
+    "version": "2.1.10",
+    "referencePublication": "https://doi.org/10.1007/s12021-021-09531-w",
+    "license": "https://github.com/hjorthmedh/Snudda?tab=GPL-3.0-1-ov-file#readme"
 }
