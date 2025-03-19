@@ -2230,7 +2230,7 @@ class SnuddaPrune(object):
             chunk_size = mat_size
 
         mat_buf = np.zeros((chunk_size, h5mat_lookup.shape[1]),
-                           dtype=SnuddaPrune(h5mat_lookup.dtype))
+                           dtype=SnuddaPrune.to_signed(h5mat_lookup.dtype))
         end_idx = 0
 
         while end_idx < mat_size:
