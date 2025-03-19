@@ -2357,7 +2357,14 @@ class SnuddaPrune(object):
 
                 old_synapses = None
             else:
-                syn_mat = read_buffer[(start_idx - buffer_start):(end_idx - buffer_start), :]
+                try:
+                    syn_mat = read_buffer[(start_idx - buffer_start):(end_idx - buffer_start), :]
+                except Exception as e:
+                    import traceback
+                    print(traceback.format_exc())
+                    print(f"{ start_idx = } ({type(start_idx)}), {buffer_start =} ({type(buffer_start)}), "
+                          f"{ end_idx = } ({type(end_idx)}), ")
+                    raise e
 
                 assert end_idx == buffer_end \
                        or (read_buffer[start_idx - buffer_start, :2]
