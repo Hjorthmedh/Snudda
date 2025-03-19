@@ -2156,6 +2156,14 @@ class SnuddaPrune(object):
 
     @staticmethod
     @jit(nopython=True)
+    def to_signed(dtype):
+        """Convert an unsigned NumPy integer dtype to its corresponding signed dtype."""
+        if np.issubdtype(dtype, np.unsignedinteger):
+            return np.dtype(f"int{dtype().itemsize * 8}")  # Convert based on size
+        return dtype  # Return as is if it's already signed or not an integer
+
+    @staticmethod
+    @jit(nopython=True)
     def file_row_lookup_iterator(h5mat, chunk_size=10000):
 
         """
@@ -2172,7 +2180,8 @@ class SnuddaPrune(object):
         if mat_size < chunk_size:
             chunk_size = h5mat.shape[0]
 
-        mat_buf = np.zeros((chunk_size, h5mat.shape[1]), dtype=h5mat.dtype)
+        mat_buf = np.zeros((chunk_size, h5mat.shape[1]),
+                           dtype=SnuddaPrune.to_signed(h5mat.dtype))
         end_idx = 0
 
         while end_idx < mat_size:
@@ -2220,7 +2229,8 @@ class SnuddaPrune(object):
         if mat_size < chunk_size:
             chunk_size = mat_size
 
-        mat_buf = np.zeros((chunk_size, h5mat_lookup.shape[1]), dtype=h5mat_lookup.dtype)
+        mat_buf = np.zeros((chunk_size, h5mat_lookup.shape[1]),
+                           dtype=SnuddaPrune(h5mat_lookup.dtype))
         end_idx = 0
 
         while end_idx < mat_size:
