@@ -191,6 +191,8 @@ class SnuddaSimulate(object):
 
                 self.log_file = open(log_file_name, "w")
                 self.write_log(f"Using log file {self.log_file}")
+            elif isinstance(self.log_file, str):
+                self.log_file = open(log_file, "w")
 
             if "network_path" in self.sim_info:
                 self.network_path = self.sim_info["network_path"]
@@ -258,7 +260,7 @@ class SnuddaSimulate(object):
         if self.log_file is None:
             self.log_file = os.path.join(self.network_path, "log", "simulation-log.txt")
 
-        if type(self.log_file) == str:
+        if isinstance(self.log_file, str):
             log_dir_name = os.path.dirname(self.log_file)
             self.create_dir(log_dir_name)
 
@@ -2466,9 +2468,6 @@ class SnuddaSimulate(object):
 
                 print(f"Neuron id: {dest_id} Bad synapse {bi} on {sec_list[bi]} {sec_x_list[bi]}, "
                       f"closer match at {closest_sec} {closest_sec_x}, dist: {min_dist} (source: {source_id_list[bi]})")
-
-            import pdb
-            pdb.set_trace()
 
             ### DEBUG PLOT!!!
 
