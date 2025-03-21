@@ -191,6 +191,7 @@ class SnuddaSimulate(object):
 
                 self.log_file = open(log_file_name, "w")
                 self.write_log(f"Using log file {self.log_file}")
+
             elif isinstance(self.log_file, str):
                 self.log_file = open(log_file, "w")
 
@@ -957,7 +958,7 @@ class SnuddaSimulate(object):
 
             if total_gap_junction_count != self.gap_junctions.shape[0]:
                 self.write_log(f"ERROR: Added only {total_gap_junction_count} out of {self.gap_junctions.shape[0]} gap junctions"
-                               f"({np,sum(self.is_virtual_neuron)} virtual neurons)",
+                               f"({np.sum(self.is_virtual_neuron)} virtual neurons)",
                                is_error=True)
             elif self.pc.id() == 0:
                 self.write_log(f"Added {total_gap_junction_count} gap junctions to simulation ({self.gap_junctions.shape[0]} total)",

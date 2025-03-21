@@ -355,6 +355,12 @@ class SnuddaInput(object):
                         if "spike_file" in self.neuron_input[neuron_id][input_type]:
                             spike_file = self.neuron_input[neuron_id][input_type]["spike_file"]
 
+                            if not os.path.isfile(spike_file):
+                                # Also check if file exists in network_path, if so use it
+                                alt_file = os.path.join(self.network_path, spike_file)
+                                if os.path.isfile(alt_file):
+                                    spike_file = alt_file
+
                             if spike_file in self.virtual_spike_file_cache:
                                 spike_file_data = self.virtual_spike_file_cache[spike_file]
                             else:
@@ -389,6 +395,11 @@ class SnuddaInput(object):
 
                         if "row_mapping_file" in self.neuron_input[neuron_id][input_type]:
                             row_mapping_file = self.neuron_input[neuron_id][input_type]["row_mapping_file"]
+
+                            if not os.path.isfile(row_mapping_file):
+                                alt_file = os.path.join(self.network_path, row_mapping_file)
+                                if os.path.isfile(alt_file):
+                                    row_mapping_file = alt_file
 
                             if row_mapping_file in self.virtual_row_mapping_cache:
                                 row_mapping = self.virtual_row_mapping_cache[row_mapping_file]

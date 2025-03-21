@@ -39,3 +39,18 @@ class VirtualInput:
         spike_times = TimeVaryingInput._poisson_helper(end_time=max_time*frequency, rng=rng) / frequency
 
         return spike_times
+
+    def poisson_steps(self, start_time, end_time, frequency, rng=None):
+
+        # TODO: Need to verify this code
+
+        if rng is None:
+            rng = np.random.default_rng()
+
+        spike_list = []
+        for st, et, f in zip(start_time, end_time, frequency):
+            spike_list.append(self.poisson_spikes(frequency=f, max_time=et-st, rng=rng) + st)
+
+        spike_times = np.concatenate(spike_list)
+
+        return spike_times
