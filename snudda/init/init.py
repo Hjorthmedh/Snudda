@@ -521,7 +521,6 @@ class SnuddaInit(object):
         # TODO: We should force users to use same name as the directory name
         # ie, fs/FS_0 directory should be named FS_0
 
-
         full_neuron_path = snudda_parse_path(neuron_dir, self.snudda_data)
         has_morphology_dir = os.path.isdir(os.path.join(full_neuron_path, "morphology"))
 
@@ -548,9 +547,10 @@ class SnuddaInit(object):
                 if snudda_isdir(d, self.snudda_data):
                     # We want to maintain the $SNUDDA_DATA keyword in the path so that the user can move
                     # the config file between systems and still run it.
-                    sd = snudda_parse_path(d, self.snudda_data)
 
-                    neuron_file_list.append((f"{name}_{ctr}", sd))
+                    # sd = snudda_parse_path(d, self.snudda_data)
+
+                    neuron_file_list.append((f"{name}_{ctr}", d))
                     ctr += 1
 
         # First check how many unique cells we hava available, then we
