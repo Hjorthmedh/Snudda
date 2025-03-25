@@ -788,18 +788,15 @@ class SnuddaInput(object):
                                     if key == "parameter_list" and data is None:
                                         continue
 
-                                    extra_copy_inp_data[key] = data
+                                    if key == "num_inputs" and isinstance(data, str):
 
-                                if "num_inputs" in input_info[existing_inp_name] \
-                                        and isinstance(input_info[existing_inp_name]["num_inputs"], str):
-                                    if input_info[existing_inp_name]["num_inputs"] == "*":
-                                        # Special case, let the user modify
-                                        input_factor = float(input_info[existing_inp_name]["num_inputs"][1:])
-                                        new_num_inputs = int(extra_copy_inp_data["num_inputs"]*input_factor)
-                                        print(f"{neuron_name} ({neuron_id}) Changing {existing_inp_name} "
-                                              f"number of inputs from {extra_copy_inp_data['num_inputs']} "
-                                              f"to {new_num_inputs}")
-                                        extra_copy_inp_data["num_inputs"] = new_num_inputs
+                                        if data[0] == "*":
+                                            new_num_inputs = int(float(data[1:]) * extra_copy_inp_data[key])
+                                            extra_copy_inp_data[key] = new_num_inputs
+
+                                            continue
+
+                                    extra_copy_inp_data[key] = data
 
                                 input_info[existing_inp_name] = extra_copy_inp_data
                                 data_updated = True
