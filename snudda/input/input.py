@@ -777,7 +777,7 @@ class SnuddaInput(object):
                                     continue
 
                                 self.write_log(f"!!! Warning, combining definition of {meta_inp_name} with {existing_inp_name} input for neuron "
-                                               f"{self.network_data['neurons'][neuron_id]['name']} {neuron_id} "
+                                               f"{neuron_name} ({neuron_id}) "
                                                f"(meta modified by input_config)",
                                                force_print=True)
 
@@ -789,6 +789,17 @@ class SnuddaInput(object):
                                         continue
 
                                     extra_copy_inp_data[key] = data
+
+                                if "num_inputs" in input_info[existing_inp_name] \
+                                        and isinstance(input_info[existing_inp_name]["num_inputs"], str):
+                                    if input_info[existing_inp_name]["num_inputs"] == "*":
+                                        # Special case, let the user modify
+                                        input_factor = float(input_info[existing_inp_name]["num_inputs"][1:])
+                                        new_num_inputs = int(extra_copy_inp_data["num_inputs"]*input_factor)
+                                        print(f"{neuron_name} ({neuron_id}) Changing {existing_inp_name} "
+                                              f"number of inputs from {extra_copy_inp_data['num_inputs']} "
+                                              f"to {new_num_inputs}")
+                                        extra_copy_inp_data["num_inputs"] = new_num_inputs
 
                                 input_info[existing_inp_name] = extra_copy_inp_data
                                 data_updated = True

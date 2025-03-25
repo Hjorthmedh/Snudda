@@ -65,7 +65,7 @@ class PlotInput(object):
             
         return neuron_name
 
-    def plot_input(self, neuron_type, num_neurons, fig_size=None):
+    def plot_input(self, neuron_type, num_neurons, fig_size=None, fig_name=None, dpi=300):
 
         neuron_id = self.network_info.get_neuron_id_of_type(neuron_type=neuron_type,
                                                             num_neurons=num_neurons,
@@ -77,7 +77,18 @@ class PlotInput(object):
             print(f"No neurons of type {neuron_type}")
             return
 
-        self.plot_input_to_target(target_id, fig_size=fig_size)
+        fig = self.plot_input_to_target(target_id, fig_size=fig_size)
+
+        if fig_name is not None:
+            if not os.path.dirname(fig_name):
+                fig_path = os.path.join(self.network_path, "figures", fig_name)
+            else:
+                fig_path = fig_name
+
+            if not os.path.exists(os.path.dirname(fig_path)):
+                os.mkdir(os.path.dirname(fig_path))
+            fig.savefig(fig_path, dpi=dpi, bbox_inches="tight")
+            print(f"Writing figure: {fig_path}")
 
     def plot_input_population_unit(self, population_unit_id, num_neurons, neuron_type=None, fig_size=None):
 
@@ -123,7 +134,7 @@ class PlotInput(object):
 
         y_pos = 0
         input_ctr = 0
-        plt.figure(figsize=fig_size)
+        fig = plt.figure(figsize=fig_size)
 
         ytick_pos = []
         ytick_label = []
@@ -168,3 +179,4 @@ class PlotInput(object):
         plt.ion()
         plt.show()
 
+        return fig
