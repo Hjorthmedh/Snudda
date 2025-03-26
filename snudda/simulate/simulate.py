@@ -928,7 +928,7 @@ class SnuddaSimulate(object):
 
         # RxD is slow when doing species.nodes call, so we cache it...
         for neuron_id in self.neuron_id:
-            if not self.network_info["neurons"][ID]["virtual_neuron"] \
+            if not self.network_info["neurons"][neuron_id]["virtual_neuron"] \
                     and self.neurons[neuron_id].modulation is not None:
                 self.neurons[neuron_id].modulation.build_node_cache()
 

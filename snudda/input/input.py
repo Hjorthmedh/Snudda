@@ -901,6 +901,7 @@ class SnuddaInput(object):
                             raise ValueError(f"num_soma_synapses can not be greater than the number of input trains read from CSV file")
 
                         # We need a random seed generator for the dendrite_input_location on the master TODO: Cleanup
+                        # TODO: 2025-03-26, this should be run in parallel -- not in serial!
                         input_loc = self.dendrite_input_locations(neuron_id=neuron_id,
                                                                   synapse_density=synapse_density,
                                                                   num_spike_trains=num_spike_trains - n_soma_synapses,
