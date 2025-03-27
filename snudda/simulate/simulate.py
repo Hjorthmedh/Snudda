@@ -2966,10 +2966,10 @@ if __name__ == "__main__":
     sim.check_memory_status()
 
     if args.record_volt:
-        print(f"Adding soma voltage recording to neurons.")
+        sim.write_log(f"Adding soma voltage recording to neurons.")
         sim.add_volt_recording_soma()
     else:
-        print(f"Somatic voltage not recorded.")
+        sim.write_log(f"Somatic voltage not recorded.")
 
     if args.record_all_compartments:
         record_cell_id = np.array([int(x) for x in args.record_all_compartments.split(",")])
@@ -2988,12 +2988,12 @@ if __name__ == "__main__":
     # print(f"Running simulation for {t_sim} ms.")
     sim.run(t_sim)  # In milliseconds
 
-    print("Simulation done, saving output")
+    sim.write_log("Simulation done, saving output")
     sim.write_output()
 
     stop = timeit.default_timer()
     if sim.pc.id() == 0:
-        print(f"Program run time: {(stop - start):.0f}")
+        sim.write_log(f"Program run time: {(stop - start):.0f}")
 
     # sim.plot()
     sys.exit(0)
