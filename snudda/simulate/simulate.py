@@ -1874,11 +1874,6 @@ class SnuddaSimulate(object):
             if cid in self.neurons.keys() and not self.is_virtual_neuron[cid]:
                 self.add_volt_recording(cid, [-1], [0.5])  # Soma is sec_id = -1
 
-        if self.record.time is None:
-            t_save = self.sim.neuron.h.Vector()
-            t_save.record(self.sim.neuron.h._ref_t)
-            self.record.register_time(time=t_save)
-
     def add_volt_recording(self, cell_id: int, sec_id, sec_x):
 
         # cell_id cant be a list, but sec_id and sec_x must be iterable

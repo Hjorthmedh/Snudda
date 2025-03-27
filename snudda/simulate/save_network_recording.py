@@ -449,6 +449,7 @@ class SnuddaSaveNetworkRecordings:
 
             # TODO: We need to save max time even if we do not save the soma voltage(!)
             out_file = h5py.File(self.output_file, "a")
+
             if "time" not in out_file and self.time is not None:
                 print(f"Using sample dt = {self.sample_dt} (sample step size {sample_step})")
                 try:
@@ -469,6 +470,20 @@ class SnuddaSaveNetworkRecordings:
                 print(f"Worker {i+1}/{int(self.pc.nhost())} writing data to {self.output_file}")
 
                 out_file = h5py.File(self.output_file, "a")
+
+                # Make sure time data is written to file, in case node 0 only has virtual neurons
+                if "time" not in out_file and self.time is not None:
+                    print(f"Using sample dt = {self.sample_dt} (sample step size {sample_step})")
+                    try:
+                        out_file.create_dataset("time",
+                                                data=np.array(self.time)[::sample_step] * self.get_conversion("time"))
+                        out_file.close()
+                    except:
+                        import traceback
+                        print(f"self.time={self.time}")
+                        print(f"{traceback.format_exc()}", flush=True)
+                        import pdb
+                        pdb.set_trace()
 
                 for na in self.neuron_activities.values():
                     neuron_id_str = str(na.neuron_id)
