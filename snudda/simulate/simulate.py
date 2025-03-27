@@ -2968,6 +2968,8 @@ if __name__ == "__main__":
     if args.record_volt:
         print(f"Adding soma voltage recording to neurons.")
         sim.add_volt_recording_soma()
+    else:
+        print(f"Somatic voltage not recorded.")
 
     if args.record_all_compartments:
         record_cell_id = np.array([int(x) for x in args.record_all_compartments.split(",")])
