@@ -2966,6 +2966,7 @@ if __name__ == "__main__":
     sim.check_memory_status()
 
     if args.record_volt:
+        print(f"Adding soma voltage recording to neurons.")
         sim.add_volt_recording_soma()
 
     if args.record_all_compartments:
