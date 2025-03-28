@@ -1459,9 +1459,9 @@ class SnuddaPrune(object):
         if not self.d_view:
 
             # Run in serial, save as a list to make result compatible with parallel version of code
-            merge_results_syn = [self.big_merge_helper(neuron_range=np.array([0, num_neurons]),
+            merge_results_syn = [self.big_merge_helper(neuron_range=np.array([0, num_neurons], dtype=np.int64),
                                                        merge_data_type='synapses')]
-            merge_results_gj = [self.big_merge_helper(neuron_range=np.array([0, num_neurons]),
+            merge_results_gj = [self.big_merge_helper(neuron_range=np.array([0, num_neurons], dtype=np.int64),
                                                       merge_data_type='gap_junctions')]
 
         else:

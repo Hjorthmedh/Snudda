@@ -33,7 +33,7 @@ def snudda_parse_path(path, snudda_data):
 
         # Updated so both $DATA and $SNUDDA_DATA is possible to use for SNUDDA_DATA path
         p = path.replace("$DATA", data_path_str).replace("$SNUDDA_DATA", data_path_str)
-        path = os.path.realpath(p)
+        path = os.path.abspath(p)
 
     return path
 
@@ -129,13 +129,13 @@ def snudda_simplify_path(path, snudda_data):
     """
 
     if snudda_data:
-        data_path = os.path.realpath(snudda_data)
+        data_path = os.path.abspath(snudda_data)
     else:
         data_path = snudda_parse_path("$SNUDDA_DATA", snudda_data=None)
 
-    real_path = os.path.realpath(path)
+    abs_path = os.path.abspath(path)
 
-    if path and data_path in real_path:
-        path = real_path.replace(data_path, "$SNUDDA_DATA")
+    if path and data_path in abs_path:
+        path = abs_path.replace(data_path, "$SNUDDA_DATA")
 
     return path

@@ -355,6 +355,12 @@ class SnuddaInput(object):
                         if "spike_file" in self.neuron_input[neuron_id][input_type]:
                             spike_file = self.neuron_input[neuron_id][input_type]["spike_file"]
 
+                            if not os.path.isfile(spike_file):
+                                # Also check if file exists in network_path, if so use it
+                                alt_file = os.path.join(self.network_path, spike_file)
+                                if os.path.isfile(alt_file):
+                                    spike_file = alt_file
+
                             if spike_file in self.virtual_spike_file_cache:
                                 spike_file_data = self.virtual_spike_file_cache[spike_file]
                             else:
@@ -389,6 +395,11 @@ class SnuddaInput(object):
 
                         if "row_mapping_file" in self.neuron_input[neuron_id][input_type]:
                             row_mapping_file = self.neuron_input[neuron_id][input_type]["row_mapping_file"]
+
+                            if not os.path.isfile(row_mapping_file):
+                                alt_file = os.path.join(self.network_path, row_mapping_file)
+                                if os.path.isfile(alt_file):
+                                    row_mapping_file = alt_file
 
                             if row_mapping_file in self.virtual_row_mapping_cache:
                                 row_mapping = self.virtual_row_mapping_cache[row_mapping_file]
@@ -766,7 +777,7 @@ class SnuddaInput(object):
                                     continue
 
                                 self.write_log(f"!!! Warning, combining definition of {meta_inp_name} with {existing_inp_name} input for neuron "
-                                               f"{self.network_data['neurons'][neuron_id]['name']} {neuron_id} "
+                                               f"{neuron_name} ({neuron_id}) "
                                                f"(meta modified by input_config)",
                                                force_print=True)
 
@@ -776,6 +787,14 @@ class SnuddaInput(object):
                                 for key, data in old_info.items():
                                     if key == "parameter_list" and data is None:
                                         continue
+
+                                    if key == "num_inputs" and isinstance(data, str):
+
+                                        if data[0] == "*":
+                                            new_num_inputs = int(float(data[1:]) * extra_copy_inp_data[key])
+                                            extra_copy_inp_data[key] = new_num_inputs
+
+                                            continue
 
                                     extra_copy_inp_data[key] = data
 
@@ -882,6 +901,7 @@ class SnuddaInput(object):
                             raise ValueError(f"num_soma_synapses can not be greater than the number of input trains read from CSV file")
 
                         # We need a random seed generator for the dendrite_input_location on the master TODO: Cleanup
+                        # TODO: 2025-03-26, this should be run in parallel -- not in serial!
                         input_loc = self.dendrite_input_locations(neuron_id=neuron_id,
                                                                   synapse_density=synapse_density,
                                                                   num_spike_trains=num_spike_trains - n_soma_synapses,

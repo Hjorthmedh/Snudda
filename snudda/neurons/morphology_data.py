@@ -516,9 +516,10 @@ class MorphologyData:
                 cache_loaded = True
 
             except:
-                import traceback
-                print(traceback.format_exc())
-                print(f"Failed to load cache from {cache_file}")
+                if self.verbose:
+                    import traceback
+                    print(traceback.format_exc())
+                    print(f"Failed to load cache from {cache_file}")
 
         return cache_loaded
 
