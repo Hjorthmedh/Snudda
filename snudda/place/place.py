@@ -1401,7 +1401,7 @@ class SnuddaPlace(object):
         ax.scatter(xyz[:, 0], xyz[:, 1], xyz[:, 2], c=colours, alpha=0.5)
         plt.show()
 
-    def cluster_neurons(self, n_trials=5, rng=None):
+    def cluster_neurons(self, n_trials=10, rng=None):
 
         """
         Cluster neurons, so that nearby neurons are grouped on same worker, to speed up simulations.
