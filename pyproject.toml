@@ -30,3 +30,5 @@ dynamic = ["license", "classifiers", "scripts", "optional-dependencies"]
 
 
 [tool.setuptools]
+packages = ["snudda"]  # Define your package
+include-package-data = true  # Include data files specified in MANIFEST.in
