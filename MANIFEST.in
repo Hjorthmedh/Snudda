@@ -7,19 +7,19 @@ recursive-include snudda/data *.obj
 recursive-include snudda/data *.csv
 recursive-include snudda/data *.txt
 
-recursive-include test/data *.json
-recursive-include test/data *.swc
-recursive-include test/data *.mod
-recursive-include test/data *.obj
-recursive-include test/data *.csv
-recursive-include test/data *.txt
+recursive-include tests/data *.json
+recursive-include tests/data *.swc
+recursive-include tests/data *.mod
+recursive-include tests/data *.obj
+recursive-include tests/data *.csv
+recursive-include tests/data *.txt
 
-recursive-include test/validation *.json
-recursive-include test/validation *.swc
-recursive-include test/validation *.mod
-recursive-include test/validation *.obj
-recursive-include test/validation *.csv
-recursive-include test/validation *.txt
+recursive-include tests/validation *.json
+recursive-include tests/validation *.swc
+recursive-include tests/validation *.mod
+recursive-include tests/validation *.obj
+recursive-include tests/validation *.csv
+recursive-include tests/validation *.txt
 
 
 
