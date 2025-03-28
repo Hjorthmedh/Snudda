@@ -1,0 +1,25 @@
+include README.md
+
+recursive-include snudda/data *.json
+recursive-include snudda/data *.swc
+recursive-include snudda/data *.mod
+recursive-include snudda/data *.obj
+recursive-include snudda/data *.csv
+recursive-include snudda/data *.txt
+
+recursive-include tests/data *.json
+recursive-include tests/data *.swc
+recursive-include tests/data *.mod
+recursive-include tests/data *.obj
+recursive-include tests/data *.csv
+recursive-include tests/data *.txt
+
+recursive-include tests/validation *.json
+recursive-include tests/validation *.swc
+recursive-include tests/validation *.mod
+recursive-include tests/validation *.obj
+recursive-include tests/validation *.csv
+recursive-include tests/validation *.txt
+
+recursive-include tests/networks *json
+recursive-include tests/networks *obj
