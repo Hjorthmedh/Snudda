@@ -1615,7 +1615,7 @@ class SnuddaInit(object):
                                    dist_pruning=None,
                                    f1=0.2308, soft_max=None, mu2=0.5659, a3=1.0,
                                    conductance=0.5e-9,
-                                   mod_file="ngf_tmGabaA")  # This file does not yet exist
+                                   mod_file="tmGabaA")  #"ngf_tmGabaA"  # This file does not yet exist
 
             self.add_neuron_target(neuron_name="NGF",
                                    target_name="iSPN",
@@ -1624,7 +1624,7 @@ class SnuddaInit(object):
                                    dist_pruning=None,
                                    f1=0.3527, soft_max=None, mu2=0.2811, a3=0.9997,
                                    conductance=0.5e-9,
-                                   mod_file="ngf_tmGabaA")  # This file does not yet exist
+                                   mod_file="tmGabaA")  # "ngf_tmGabaA"  # This file does not yet exist
 
             # NGF -> ChIN 3/14 (English et al, 2012)
             self.add_neuron_target(neuron_name="NGF",
@@ -1634,7 +1634,7 @@ class SnuddaInit(object):
                                    dist_pruning=None,
                                    f1=0.088, soft_max=None, mu2=0.17141, a3=1,
                                    conductance=0.5e-9,
-                                   mod_file="ngf_tmGabaA")  # This file does not yet exist
+                                   mod_file="tmGabaA")  # "ngf_tmGabaA"  # This file does not yet exist
 
             # NGF -> FS, Kocaturk et al, 2022 -- 12/20 ???
 
@@ -1668,7 +1668,7 @@ class SnuddaInit(object):
                                    dist_pruning=None,
                                    f1=0.9208, soft_max=10, mu2=0.3393, a3=1.0,
                                    conductance=0.5e-9,
-                                   mod_file=None)  # This file does not yet exist
+                                   mod_file="tmGabaA")  # Not correct MOD file
 
     ############################################################################
 

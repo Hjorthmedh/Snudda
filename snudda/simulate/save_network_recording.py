@@ -487,6 +487,7 @@ class SnuddaSaveNetworkRecordings:
 
                 for na in self.neuron_activities.values():
                     neuron_id_str = str(na.neuron_id)
+
                     if neuron_id_str not in out_file["neurons"]:
                         out_file["neurons"].create_group(neuron_id_str)
 
