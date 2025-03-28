@@ -194,9 +194,7 @@ class SnuddaSimulate(object):
                 self.write_log(f"Using log file {self.log_file}")
 
             elif isinstance(self.log_file, str):
-                self.log_file = open(log_file, "w")
-
-
+                self.log_file = open(self.log_file, "w")
 
             if "network_path" in self.sim_info:
                 self.network_path = self.sim_info["network_path"]
@@ -2595,6 +2593,9 @@ class SnuddaSimulate(object):
         is_error (bool) : Is this an error, always written.
         force_print (bool) : Force printing, even if self.verbose=False.
         """
+
+        if isinstance(self.log_file, str):
+            self.log_file = open(self.log_file, "w")
 
         if self.log_file is not None:
             self.log_file.write(f"{text}\n")
