@@ -122,11 +122,11 @@ def snudda_cli():
 
     simulate_parser = sub_parsers.add_parser("simulate")
     simulate_parser.add_argument("path", help="Location of network")
-    simulate_parser.add_argument("--networkFile", help="Network file, if not network-synapses.hdf5",
+    simulate_parser.add_argument("--networkFile", "--network_file", help="Network file, if not network-synapses.hdf5",
                                  dest="network_file", default=None)
-    simulate_parser.add_argument("--inputFile", help="Input hdf5 file (for simulation)",
+    simulate_parser.add_argument("--inputFile", "--input_file", help="Input hdf5 file (for simulation)",
                                  dest="input_file", default=None)
-    simulate_parser.add_argument("--outputFile", help="Output hdf5 file (from simulation)",
+    simulate_parser.add_argument("--outputFile", "--output_file", help="Output hdf5 file (from simulation)",
                                  dest="output_file", default=None)
     simulate_parser.add_argument("--time", type=float, default=None, help="Duration of simulation in seconds")
 
@@ -144,7 +144,7 @@ def snudda_cli():
     simulate_parser.add_argument("--disableGJ", "--disableGapJunctions", action="store_true", dest="disable_gj", default=None,
                                  help="Disable gap junctions")
 
-    simulate_parser.add_argument("--mechdir", "--mechDir", dest="mech_dir",
+    simulate_parser.add_argument("--mechdir", "--mechDir", "--mech_dir", dest="mech_dir",
                                  help="mechanism directory if not default", default=None)
     simulate_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     simulate_parser.add_argument("--verbose", action="store_true")
@@ -155,9 +155,9 @@ def snudda_cli():
 
     export_parser = sub_parsers.add_parser("export")
     export_parser.add_argument("path", help="Location of network")
-    export_parser.add_argument("--inputFile", help="Input hdf5 file (for simulation)",
+    export_parser.add_argument("--inputFile", "--input_file", help="Input hdf5 file (for simulation)",
                                dest="input_file")
-    export_parser.add_argument("--networkFile", help="Network file, if not network-synapses.hdf5",
+    export_parser.add_argument("--networkFile", "--network_file", help="Network file, if not network-synapses.hdf5",
                                dest="network_file")
     export_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     export_parser.add_argument("--verbose", action="store_true")

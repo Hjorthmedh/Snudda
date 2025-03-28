@@ -114,7 +114,7 @@ class SnuddaSimulate(object):
             if os.path.exists(default_input_file):
                 self.input_file = default_input_file
             else:
-                print("Warning: No external synaptic input file given!")
+                self.write_log("Warning: No external synaptic input file given!")
                 self.input_file = None
         else:
             self.input_file = input_file
@@ -168,6 +168,7 @@ class SnuddaSimulate(object):
         print(f"MPI Rank: {rank}, Size: {size} -- NEURON: This is node {self.node_id} out of {self.total_nodes}")
 
         if simulation_config:
+
             print(f"Reading config: {simulation_config}")
 
             if type(simulation_config) == dict:
@@ -192,6 +193,9 @@ class SnuddaSimulate(object):
                 self.log_file = open(log_file_name, "w")
                 self.write_log(f"Using log file {self.log_file}")
 
+            elif isinstance(self.log_file, str):
+                self.log_file = open(self.log_file, "w")
+
             if "network_path" in self.sim_info:
                 self.network_path = self.sim_info["network_path"]
                 self.write_log(f"Network path: {self.network_file}")
@@ -211,7 +215,7 @@ class SnuddaSimulate(object):
             if "use_cvode" in self.sim_info:
                 self.use_cvode = self.sim_info["use_cvode"]
                 if self.use_cvode:
-                    print(f"Using CVODE for NEURON simulation")
+                    self.write_log(f"Using CVODE for NEURON simulation")
 
             if "sim_dt" in self.sim_info:
                 self.sim_dt = self.sim_info["sim_dt"] * 1e3  # OBS, converted to ms for NEURON
@@ -258,7 +262,7 @@ class SnuddaSimulate(object):
         if self.log_file is None:
             self.log_file = os.path.join(self.network_path, "log", "simulation-log.txt")
 
-        if type(self.log_file) == str:
+        if isinstance(self.log_file, str):
             log_dir_name = os.path.dirname(self.log_file)
             self.create_dir(log_dir_name)
 
@@ -372,7 +376,7 @@ class SnuddaSimulate(object):
                 self.use_rxd_neuromodulation = False
 
         if self.use_rxd_neuromodulation:
-            print(f"RxD for neuromodulation: {'ENABLED' if self.use_rxd_neuromodulation else 'DiSABLED'}.")
+            self.write_log(f"RxD for neuromodulation: {'ENABLED' if self.use_rxd_neuromodulation else 'DiSABLED'}.")
 
         if "rxd_enable_extracellular" in self.sim_info:
             import neuron.rxd as rxd
@@ -562,7 +566,7 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
-    def distribute_neurons(self):
+    def distribute_neurons_OLD(self):
 
         """
         Distribute neurons between workers.
@@ -591,6 +595,28 @@ class SnuddaSimulate(object):
             start_pos = end_pos
 
         self.neuron_nodes = neuron_nodes
+
+    def distribute_neurons(self):
+        # First distribute non-virtual neurons, then distribute the virtual neurons
+        self.write_log("Distributing neurons (#2).")
+
+        real_neuron_id = np.array([x["neuron_id"] for x in self.network_info["neurons"] if not x["virtual_neuron"]])
+        virtual_neuron_id = np.array([x["neuron_id"] for x in self.network_info["neurons"] if x["virtual_neuron"]])
+
+        r_idx = range(int(self.pc.id()), len(real_neuron_id), int(self.pc.nhost()))
+        v_idx = range(int(self.pc.id()), len(virtual_neuron_id), int(self.pc.nhost()))
+
+        neuron_id = list(set(real_neuron_id[r_idx]).union(set(virtual_neuron_id[v_idx])))
+        self.neuron_id = np.array(neuron_id)
+
+        self.neuron_id_on_node = np.zeros((self.num_neurons,), dtype=bool)
+        self.neuron_id_on_node[self.neuron_id] = True
+
+        self.write_log(f"Worker {int(self.pc.id())} has real neurons {real_neuron_id[r_idx] = }\n"
+                       f"{virtual_neuron_id[v_idx] =}")
+
+        assert len(real_neuron_id) >= int(self.pc.nhost()), \
+            f"Do not allocate more workers ({int(self.pc.nhost())}) than there are real neurons ({len(real_neuron_id)})."
 
     ############################################################################
 
@@ -686,7 +712,7 @@ class SnuddaSimulate(object):
                 or not self.sim_info["rxd_enable_extracellular"]:
             # RxD extracellular not enabled
 
-            print(f"RxD extracellular not enabled.")
+            self.write_log(f"RxD extracellular not enabled.")
 
             return
 
@@ -702,7 +728,7 @@ class SnuddaSimulate(object):
                 extracellular_config = extracellular_info.get("extracellular_config", None)
                 region_mesh = region_data.get("volume", {}).get("mesh_file", None)
 
-                print(f"Setting up extracellular space for region {region_name}")
+                self.write_log(f"Setting up extracellular space for region {region_name}")
 
                 self.extracellular_regions[region_name] = \
                     ExtracellularNeuromodulation(sim=self, volume_id=region_name,
@@ -882,9 +908,9 @@ class SnuddaSimulate(object):
                     # print(f"Debug:: Neuron {ID} on node {int(self.pc.id())}")
                     self.pc.set_gid2node(ID, int(self.pc.id()))
                 except:
-                    print(f"pc.set_gid2node failed ID = {ID}, {int(self.pc.id())}")
+                    self.write_log(f"pc.set_gid2node failed ID = {ID}, {int(self.pc.id())}")
                     import traceback
-                    print(traceback.format_exc())
+                    self.write_log(traceback.format_exc())
                     import pdb
                     pdb.set_trace()
 
@@ -925,7 +951,7 @@ class SnuddaSimulate(object):
 
         # RxD is slow when doing species.nodes call, so we cache it...
         for neuron_id in self.neuron_id:
-            if not self.network_info["neurons"][ID]["virtual_neuron"] \
+            if not self.network_info["neurons"][neuron_id]["virtual_neuron"] \
                     and self.neurons[neuron_id].modulation is not None:
                 self.neurons[neuron_id].modulation.build_node_cache()
 
@@ -955,7 +981,7 @@ class SnuddaSimulate(object):
 
             if total_gap_junction_count != self.gap_junctions.shape[0]:
                 self.write_log(f"ERROR: Added only {total_gap_junction_count} out of {self.gap_junctions.shape[0]} gap junctions"
-                               f"({np,sum(self.is_virtual_neuron)} virtual neurons)",
+                               f"({np.sum(self.is_virtual_neuron)} virtual neurons)",
                                is_error=True)
             elif self.pc.id() == 0:
                 self.write_log(f"Added {total_gap_junction_count} gap junctions to simulation ({self.gap_junctions.shape[0]} total)",
@@ -1284,7 +1310,7 @@ class SnuddaSimulate(object):
         seg_x = np.concatenate([seg_xa, seg_xb])
         cond = np.concatenate([cond_a, cond_b])
         
-        print(f"Found {len(neuron_id)} local gap junctions on node.")
+        self.write_log(f"Found {len(neuron_id)} local gap junctions on node.")
 
         return neuron_id, compartment, seg_x, gj_gid_src, gj_gid_dest, cond
 
@@ -1318,7 +1344,7 @@ class SnuddaSimulate(object):
         except:
             import traceback
             tstr = traceback.format_exc()
-            print(tstr)
+            self.write_log(tstr)
             import pdb
             pdb.set_trace()
 
@@ -1418,7 +1444,7 @@ class SnuddaSimulate(object):
                 except:
                     import traceback
                     tstr = traceback.format_exc()
-                    print(tstr)
+                    self.write_log(tstr)
                     import pdb
                     pdb.set_trace()
 
@@ -1529,7 +1555,7 @@ class SnuddaSimulate(object):
 
         if input_file is None:
             if self.input_file is None:
-                print("No input file given, not adding external input!")
+                self.write_log("No input file given, not adding external input!")
                 return
 
             input_file = self.input_file
@@ -1588,7 +1614,7 @@ class SnuddaSimulate(object):
                     except:
                         import traceback
                         tstr = traceback.format_exc()
-                        print(tstr)
+                        self.write_log(tstr)
 
                         assert False, "!!! Make sure that vecevent.mod is included in nrnivmodl compilation"
 
@@ -1748,7 +1774,7 @@ class SnuddaSimulate(object):
                     and abs(pos[2] - centre_pos[2]) <= side_len):
                 c_id.append(nid)
 
-        print(f"Centering: Keeping {len(c_id)}/{len(neuron_id)}")
+        self.write_log(f"Centering: Keeping {len(c_id)}/{len(neuron_id)}")
 
         return c_id
 
@@ -2154,7 +2180,7 @@ class SnuddaSimulate(object):
     def add_rxd_concentration_recording(self, species: str, neuron_id: int, region, sec_id, sec_x):
 
         if not self.use_rxd_neuromodulation:
-            print(f"add_rxd_concentration_recording:  not enabled, ignoring recording of {species} in neuron {neuron_id}")
+            self.write_log(f"add_rxd_concentration_recording:  not enabled, ignoring recording of {species} in neuron {neuron_id}")
             return
 
         if sec_id == -1:
@@ -2166,7 +2192,7 @@ class SnuddaSimulate(object):
         else:
             sec_type = "axon"
             neuron_sec_id = 0
-            print("Axon recordings currently not fully supported (using sec_id=0")
+            self.write_log("Axon recordings currently not fully supported (using sec_id=0")
 
         if self.neurons[neuron_id].modulation is None:
             raise ValueError(f"No modulation specified for neuron {self.neurons[neuron_id].name} ({neuron_id})")
@@ -2175,7 +2201,7 @@ class SnuddaSimulate(object):
             segment = getattr(self.neurons[neuron_id].icell, sec_type)[neuron_sec_id](sec_x)
         except:
             import traceback
-            print(traceback.format_exc())
+            self.write_log(traceback.format_exc())
             import pdb
             pdb.set_trace()
 
@@ -2203,7 +2229,7 @@ class SnuddaSimulate(object):
             return
 
         if not self.use_rxd_neuromodulation:
-            print(f"add_rxd_internal_concentration_recording_all:  not enabled, ignoring recording of {species} in neuron {neuron_id}")
+            self.write_log(f"add_rxd_internal_concentration_recording_all:  not enabled, ignoring recording of {species} in neuron {neuron_id}")
             return
 
         # Add soma
@@ -2228,7 +2254,7 @@ class SnuddaSimulate(object):
             return
 
         if not self.use_rxd_neuromodulation:
-            print(f"add_rxd_internal_concentration_recording_all_species:  not enabled, ignoring recording of neuron {neuron_id}")
+            self.write_log(f"add_rxd_internal_concentration_recording_all_species:  not enabled, ignoring recording of neuron {neuron_id}")
             return
 
         for species in self.neurons[neuron_id].modulation.species.keys():
@@ -2285,7 +2311,7 @@ class SnuddaSimulate(object):
         if len(self.post_init_mods) == 0:
             return
 
-        print(f"Applying post_initialisation_modifications")
+        self.write_log(f"Applying post_initialisation_modifications")
         # This allows us to modify ion channel conductance on the fly before runnigg simulation
         # Can be useful to e.g. increase KIR channel conductance
 
@@ -2311,7 +2337,7 @@ class SnuddaSimulate(object):
         start_time = timeit.default_timer()
 
         if self.is_virtual_neuron.all():
-            print("ALL YOUR NEURONS IN THE SIMULATION ARE VIRTUAL")
+            self.write_log("ALL YOUR NEURONS IN THE SIMULATION ARE VIRTUAL")
 
         if t is None:
             if self.sim_info is not None and "time" in self.sim_info:
@@ -2464,11 +2490,8 @@ class SnuddaSimulate(object):
                 closest_sec, closest_sec_x, min_dist = self.find_closest_point_on_neuron(neuron_id=dest_id,
                                                                                          synapse_xyz=synapse_pos[bi, :])
 
-                print(f"Neuron id: {dest_id} Bad synapse {bi} on {sec_list[bi]} {sec_x_list[bi]}, "
+                self.write_log(f"Neuron id: {dest_id} Bad synapse {bi} on {sec_list[bi]} {sec_x_list[bi]}, "
                       f"closer match at {closest_sec} {closest_sec_x}, dist: {min_dist} (source: {source_id_list[bi]})")
-
-            import pdb
-            pdb.set_trace()
 
             ### DEBUG PLOT!!!
 
@@ -2571,6 +2594,9 @@ class SnuddaSimulate(object):
         force_print (bool) : Force printing, even if self.verbose=False.
         """
 
+        if isinstance(self.log_file, str):
+            self.log_file = open(self.log_file, "w")
+
         if self.log_file is not None:
             self.log_file.write(f"{text}\n")
             if flush:
@@ -2586,11 +2612,11 @@ class SnuddaSimulate(object):
         """ Creates dir_name if needed. """
         if int(self.pc.id()) == 0:
             if not os.path.isdir(dir_name):
-                print(f"Creating {dir_name} (on master node 0)")
+                self.write_log(f"Creating {dir_name} (on master node 0)")
                 os.makedirs(dir_name)
         else:
             while not os.path.isdir(dir_name):
-                print(f"Waiting 1 second for master node to create {dir_name}")
+                self.write_log(f"Waiting 1 second for master node to create {dir_name}")
                 time.sleep(1)
 
     ############################################################################
@@ -2966,7 +2992,10 @@ if __name__ == "__main__":
     sim.check_memory_status()
 
     if args.record_volt:
+        sim.write_log(f"Adding soma voltage recording to neurons.")
         sim.add_volt_recording_soma()
+    else:
+        sim.write_log(f"Somatic voltage not recorded.")
 
     if args.record_all_compartments:
         record_cell_id = np.array([int(x) for x in args.record_all_compartments.split(",")])
@@ -2985,12 +3014,12 @@ if __name__ == "__main__":
     # print(f"Running simulation for {t_sim} ms.")
     sim.run(t_sim)  # In milliseconds
 
-    print("Simulation done, saving output")
+    sim.write_log("Simulation done, saving output")
     sim.write_output()
 
     stop = timeit.default_timer()
     if sim.pc.id() == 0:
-        print(f"Program run time: {(stop - start):.0f}")
+        sim.write_log(f"Program run time: {(stop - start):.0f}")
 
     # sim.plot()
     sys.exit(0)

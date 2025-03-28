@@ -668,4 +668,5 @@ class NeuronModel(ephys.models.CellModel):
                 new_pos = rot_pos + self.position*1e6  # Translated
                 sim.neuron.h.pt3dchange(i, new_pos[0], new_pos[1], new_pos[2], sec.diam3d(i), sec=sec)
 
-        print(f"Relocated neuron to {self.position}, with rotation {self.rotation}")
+        #  print(f"Relocated neuron to {self.position}, with rotation {self.rotation}")
+        

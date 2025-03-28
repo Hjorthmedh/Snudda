@@ -464,7 +464,8 @@ class MorphologyData:
             with open(cache_file, "wb") as f:
                 pickle.dump(data, f)
         except:
-            print(f"Unable to save cache file {cache_file} -- do you have write permission?")
+            if self.verbose:
+                print(f"Unable to save cache file {cache_file} -- do you have write permission?")
 
     def load_cache(self):
 
@@ -515,9 +516,10 @@ class MorphologyData:
                 cache_loaded = True
 
             except:
-                import traceback
-                print(traceback.format_exc())
-                print(f"Failed to load cache from {cache_file}")
+                if self.verbose:
+                    import traceback
+                    print(traceback.format_exc())
+                    print(f"Failed to load cache from {cache_file}")
 
         return cache_loaded
 

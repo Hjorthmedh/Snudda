@@ -88,10 +88,16 @@ class PlotNetwork(object):
             soma_colour = colour_lookup(neuron_info["neuron_id"])
             neuron = self.load_neuron(neuron_info)
 
+            alpha = 0.05 if neuron_info["virtual_neuron"] else 1
+
+            if neuron_info["virtual_neuron"]:
+                soma_colour = "grey"
+
             neuron.plot_neuron(axis=ax,
                                plot_axon=pa,
                                plot_dendrite=pd,
                                soma_colour=soma_colour,
+                               alpha=alpha,
                                axon_colour=None,  #"darksalmon",  #"maroon",
                                dend_colour=None)  #"silver")   # Can also write colours as (0, 0, 0) -- rgb
 
@@ -156,7 +162,11 @@ class PlotNetwork(object):
         self.equal_axis(ax)
 
         if fig_name is not None:
-            fig_path = os.path.join(self.network_path, "figures", fig_name)
+            if not os.path.dirname(fig_name):
+                fig_path = os.path.join(self.network_path, "figures", fig_name)
+            else:
+                fig_path = fig_name
+
             if not os.path.exists(os.path.dirname(fig_path)):
                 os.mkdir(os.path.dirname(fig_path))
             plt.savefig(fig_path, dpi=dpi, bbox_inches="tight")
@@ -182,7 +192,7 @@ class PlotNetwork(object):
                                                                   neuron_path=neuron_info["neuron_path"],
                                                                   snudda_data=self.snudda_data,
                                                                   load_morphology=True,
-                                                                  virtual_neuron=False)
+                                                                  virtual_neuron=neuron_info["virtual_neuron"])
 
         morph_path = snudda_parse_path(neuron_info["morphology"], self.snudda_data)
         if os.path.isfile(morph_path):

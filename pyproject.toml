@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=42", "wheel", "numpy"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "snudda"
+version = "2.1.10"
+description = "Create realistic networks of neurons, synapses placed using touch detection between axons and dendrites."
+authors = [{ name = "Johannes Hjorth", email = "hjorth@kth.se" }]
+dependencies = [
+    "bluepyopt>=1.11.7",
+    "h5py>=3.2.1",
+    "ipyparallel>=6.3.0",
+    "matplotlib>=3.3.4",
+    "mpi4py>=3.0.3",
+    "numpy>=1.26.4", 
+    "scipy>=1.6.3",
+    "psutil",
+    "numexpr>=2.7.3",
+    "numba>=0.56.4",
+    "wheel",
+    "open3d"
+]
+
+readme = { file = "README.md", content-type = "text/markdown" }
+
+
+dynamic = ["license", "classifiers", "scripts", "optional-dependencies"]
+
+
+[tool.setuptools]

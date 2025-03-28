@@ -69,10 +69,8 @@ class SnuddaPlotSpikeRaster2:
 
     def make_figures_directory(self):
 
-        fig_dir = os.path.join(self.network_path, "figures")
-
-        if not os.path.isdir(fig_dir):
-            os.mkdir(fig_dir)
+        if not os.path.isdir(self.figure_path):
+            os.makedirs(self.figure_path)
 
     @staticmethod
     def get_colours(neuron_type):
@@ -255,8 +253,6 @@ class SnuddaPlotSpikeRaster2:
         atop2.set_xlim(x_lim)
         atop.set_xticklabels([])
         atop.set_ylabel('Mean spikes/s')
-        if not os.path.isdir(os.path.basename(self.figure_path)):
-            os.makedirs(os.path.basename(self.figure_path))
 
         if fig_file is None:
             fig_file = os.path.join(self.figure_path, "spike-histogram-raster.pdf")
@@ -625,9 +621,6 @@ class SnuddaPlotSpikeRaster2:
 
         if time_range:
             ax.set_xlim(time_range)
-
-        if not os.path.isdir(os.path.dirname(self.figure_path)):
-            os.makedirs(os.path.dirname(self.figure_path))
 
         if fig_file is None:
             fig_file = "spike_raster.pdf"
