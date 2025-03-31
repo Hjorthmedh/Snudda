@@ -996,6 +996,8 @@ class Snudda(object):
                         print(f"Warning, {engine_log_file} does not have SLURM_NTASKS ({num_workers}) engines (this could be intentional)")
 
                 return num_engines
+        else:
+            print(f"No engine log file {engine_log_file}")
 
         print(f"Expecting {num_workers}, set in SLURM_NTASKS")
 
