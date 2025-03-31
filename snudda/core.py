@@ -917,7 +917,7 @@ class Snudda(object):
 
     ############################################################################
 
-    def setup_parallel(self, ipython_profile=None, timeout=120):
+    def setup_parallel(self, ipython_profile=None, timeout=120, n_workers=None):
         """Setup ipyparallel workers."""
 
         self.slurm_id = os.getenv('SLURM_JOBID')
@@ -949,6 +949,21 @@ class Snudda(object):
         # self.rc = Client(profile=ipython_profile, url_file=u_file, timeout=120, debug=False)
         self.rc = Client(profile=ipython_profile, connection_info=u_file, timeout=timeout, debug=False)
 
+        # Detect expected number of workers
+        if n_workers is None:
+            n_workers = self.get_expected_engines(ipython_profile=ipython_profile)
+        else:
+            print(f"Expecting user defined {n_workers =}")
+
+        # Wait for engines to register
+        try:
+            self.rc.wait_for_engines(n=n_workers, timeout=timeout)
+        except Exception as e:
+            raise RuntimeError(f"Engines did not start within {timeout} seconds: {e}")
+
+        if not self.rc.ids:
+            raise RuntimeError("No engines registered. Ensure engines are started before proceeding.")
+
         self.logfile.write(f'Client IDs: {self.rc.ids}')
 
         # http://davidmasad.com/blog/simulation-with-ipyparallel/
@@ -962,6 +977,33 @@ class Snudda(object):
 
             self.d_view.execute("import os")
             self.d_view.execute(f"os.environ['SNUDDA_DATA'] = '{os.getenv('SNUDDA_DATA')}'", block=True)
+
+    def get_expected_engines(self, ipython_profile="default"):
+
+        """Get the number of expected engines from the ipcontroller configuration."""
+        ipython_dir = os.getenv('IPYTHONDIR', os.path.join(os.path.expanduser("~"), ".ipython"))
+        engine_log_file = os.path.join(ipython_dir, f"profile_{ipython_profile}", "log", "engines.json")
+
+        num_workers = int(os.getenv('SLURM_NTASKS', 1))  # Default to 1 if not in SLURM
+
+        # Sometimes not all SLURM workers are used... check ipyparallel config file
+        if os.path.exists(engine_log_file):
+            with open(engine_log_file, "r") as f:
+                log = json.load(f)
+                num_engines = len(log["engines"])
+                print(f"Detected {num_engines} engines from {engine_log_file}")
+
+                if os.getenv('SLURM_NTASKS') is not None:
+                    if num_workers != num_engines:
+                        print(f"Warning, {engine_log_file} does not have SLURM_NTASKS ({num_workers}) engines (this could be intentional)")
+
+                return num_engines
+        else:
+            print(f"No engine log file {engine_log_file}")
+
+        print(f"Expecting {num_workers}, set in SLURM_NTASKS")
+
+        return num_workers
 
     ############################################################################
 
