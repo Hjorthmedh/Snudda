@@ -639,6 +639,58 @@ class SnuddaInput(object):
 
     ############################################################################
 
+    def make_neuron_input_parallel_NEW(self):
+
+        """ Generate input, able to run in parallel if rc (Remote Client) has been provided at initialisation."""
+
+        # File format:
+        # "config" --> str represenation of JSON config file data
+        # "input"
+        #     --> cell id, e.g. "0", "1", "2"
+        #         --> input_name, e.g. "cortical", "thalamic", ...
+        #                attrs: 'conductance' -- 1 float, synapse conductance in siemens (S)
+        #                       'distance_to_soma' -- n floats, distance to soma in meters (m)
+        #                       'mod_file' -- str, NEURON mod file, e.g. 'tmGlut'
+        #                       'parameter_file' -- str, path to JSON parameter file
+        #                       'parameter_id' -- n integers, parameter id of synapse
+        #                       'parameter_list' -- str representation of list of dictionaries with parameters
+        #                                           parameter_id[x] % len(parameter_list) is used for synapse X
+        #                       'population_unit_id' -- int, population unit id this input belongs to
+        #                       'section_id' -- n int, section id on neuron where synapse is located
+        #                       'section_x' -- n float, section x for synapse
+        #                       'synapse_density' -- str, equation used to place the input on the dendrites
+        #
+        #             --> spikes -- spike matrix, size n x m, float
+        #                           Each row corresponds to one spike train for a synapse
+        #                           the rows are padded with -1 when spikes are missing
+        #                    attrs:
+        #                           'start' -- 1 float, start time of spike trains
+        #                           'end' -- 1 float, end time of spike trains
+        #                           'freq' -- 1 float, frequency of spike trains
+        #                           'correlation' -- 1 float, correlation of spike train
+        #                           'generator' -- str, method used to generate spikes
+        #                           'num_spikes' -- n integers, number of spikes in each spike train
+        #
+
+        self.write_log("Running make_neuron_input_parallel")
+
+        self.neuron_input = dict([])
+
+        # TODO: Plan!
+        # Skip step where self.neuron_input is chopped up into multiple lists
+        # instead just iterate over the dictionary directly in parallel
+        # (all info should already be in the dictionary)
+        # (modify the serial input creation helper, to handle the dictionary as input
+        #  rather than using args)
+        #
+        # -- move dendrite location selection to parallel code (currently running in serial)
+        # -- lägg till lognormal som input generering
+        # -- benchmark input writing to hdf5
+
+
+    ############################################################################
+
+
     def make_neuron_input_parallel(self):
 
         """ Generate input, able to run in parallel if rc (Remote Client) has been provided at initialisation."""
