@@ -949,6 +949,18 @@ class Snudda(object):
         # self.rc = Client(profile=ipython_profile, url_file=u_file, timeout=120, debug=False)
         self.rc = Client(profile=ipython_profile, connection_info=u_file, timeout=timeout, debug=False)
 
+        # Detect expected number of workers
+        num_expected_engines = int(os.getenv('SLURM_NTASKS', 1))  # Default to 1 if not in SLURM
+
+        # Wait for engines to register
+        try:
+            self.rc.wait_for_engines(n=num_expected_engines, timeout=timeout)
+        except Exception as e:
+            raise RuntimeError(f"Engines did not start within {timeout} seconds: {e}")
+
+        if not self.rc.ids:
+            raise RuntimeError("No engines registered. Ensure engines are started before proceeding.")
+
         self.logfile.write(f'Client IDs: {self.rc.ids}')
 
         # http://davidmasad.com/blog/simulation-with-ipyparallel/
