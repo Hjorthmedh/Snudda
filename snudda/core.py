@@ -952,6 +952,8 @@ class Snudda(object):
         # Detect expected number of workers
         if n_workers is None:
             n_workers = self.get_expected_engines(ipython_profile=ipython_profile)
+        else:
+            print(f"Expecting user defined {n_workers =}")
 
         # Wait for engines to register
         try:
