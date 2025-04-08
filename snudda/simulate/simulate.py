@@ -21,6 +21,7 @@ import os
 import re
 import time
 import timeit
+import warnings
 # Plot all sections
 # [neuron.h.psection(x) for x in neuron.h.allsec()]
 from collections import OrderedDict
@@ -464,18 +465,47 @@ class SnuddaSimulate(object):
                                                              density_mechanism=density_mechanism_name,
                                                              variable=variable_name)
             if "bath_application" in self.sim_info:
-                for species_name, bath_info in self.sim_info["bath_application"].items():
 
-                    bath_time = np.array(bath_info["time"])
-                    bath_conc = np.array(bath_info["concentration"])
-                    neuron_id = bath_info.get("neuron_id", None)
-                    interpolate_bath = bath_info.get("interpolate", False)
+                if isinstance(self.sim_info["bath_application"], dict):
 
-                    self.add_bath_application(species_name=species_name,
-                                              concentration=bath_conc,
-                                              time=bath_time,
-                                              neuron_id=neuron_id,
-                                              interpolate=interpolate_bath)
+                    warnings.warn(
+                        "bath_application old format, new format is a list of dictionaries with keys "
+                        "'species_name', 'time', 'concentration', 'neuron_id' (optional), 'interpolate' (optional)",
+                        category=DeprecationWarning,
+                        stacklevel=2
+                    )
+
+                    for species_name, bath_info in self.sim_info["bath_application"].items():
+
+                        bath_time = np.array(bath_info["time"])
+                        bath_conc = np.array(bath_info["concentration"])
+                        neuron_id = bath_info.get("neuron_id", None)
+                        interpolate_bath = bath_info.get("interpolate", False)
+
+                        self.add_bath_application(species_name=species_name,
+                                                  concentration=bath_conc,
+                                                  time=bath_time,
+                                                  neuron_id=neuron_id,
+                                                  interpolate=interpolate_bath)
+                elif isinstance(self.sim_info["bath_application"], dict):
+
+                    for bath_info in self.sim_info["bath_application"]:
+                        species_name = bath_info["species_name"]
+
+                        bath_time = np.array(bath_info["time"])
+                        bath_conc = np.array(bath_info["concentration"])
+                        neuron_id = bath_info.get("neuron_id", None)
+                        interpolate_bath = bath_info.get("interpolate", False)
+
+                        self.add_bath_application(species_name=species_name,
+                                                  concentration=bath_conc,
+                                                  time=bath_time,
+                                                  neuron_id=neuron_id,
+                                                  interpolate=interpolate_bath)
+
+                else:
+                    raise ValueError(f"Unable to parse bath_application: {self.sim_info['bath_application']}")
+
 
             # Add any current injections that are specified
             self.parse_current_injection_info()
