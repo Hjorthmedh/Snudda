@@ -2305,26 +2305,27 @@ class SnuddaSimulate(object):
         if neuron_id is None:
             neuron_id = self.snudda_loader.get_neuron_id(include_virtual=False)
 
-        conc_vect = self.sim.neuron.h.Vector(concentration * 1e3)  # SI to millimolar
-        t_vect = self.sim.neuron.h.Vector(time * 1e3)  # s -> ms
-
         if self.verbose:
             self.write_log(f"Bath application t={time*1e3}ms, conc={concentration*1e3}")
 
         if species_name is self.bath_application:
             raise KeyError(f"Bath application already applied for {species_name}")
 
-        self.bath_application[species_name] = (time, concentration, t_vect, conc_vect)
+        self.bath_application[species_name] = [time, concentration]
 
         for nid in neuron_id:
             if nid in self.neurons:
                 n = self.neurons[nid]
 
                 if n.modulation is not None:
-                    n.modulation.concentration_from_vector(species_name=species_name,
-                                                           concentration_vector=conc_vect,
-                                                           time_vector=t_vect,
-                                                           interpolate=interpolate)
+
+                    save_me = n.modulation.concentration_from_vector(species_name=species_name,
+                                                                     concentration=concentration,
+                                                                     time=time,
+                                                                     interpolate=interpolate,
+                                                                     sim=self.sim)
+
+                    self.bath_application[species_name].append(save_me)
 
     ############################################################################
 
