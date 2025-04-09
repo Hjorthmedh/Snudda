@@ -2311,7 +2311,10 @@ class SnuddaSimulate(object):
         if species_name is self.bath_application:
             raise KeyError(f"Bath application already applied for {species_name}")
 
-        self.bath_application[species_name] = [time, concentration]
+        if species_name not in self.bath_application:
+            self.bath_application[species_name] = []
+            
+        self.bath_application[species_name].append((time, concentration))
 
         for nid in neuron_id:
             if nid in self.neurons:
