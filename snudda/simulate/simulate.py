@@ -487,7 +487,7 @@ class SnuddaSimulate(object):
                                                   time=bath_time,
                                                   neuron_id=neuron_id,
                                                   interpolate=interpolate_bath)
-                elif isinstance(self.sim_info["bath_application"], dict):
+                elif isinstance(self.sim_info["bath_application"], list):
 
                     for bath_info in self.sim_info["bath_application"]:
                         species_name = bath_info["species_name"]
@@ -504,6 +504,8 @@ class SnuddaSimulate(object):
                                                   interpolate=interpolate_bath)
 
                 else:
+                    #import pdb
+                    #pdb.set_trace()
                     raise ValueError(f"Unable to parse bath_application: {self.sim_info['bath_application']}")
 
 
