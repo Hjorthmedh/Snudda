@@ -1291,14 +1291,14 @@ class SnuddaSimulate(object):
 
         # We need to remove gap junctions where one or both of the neurons are virtual
 
-        real_gj_idx = ~np.logical_or(self.is_virtual_neuron[self.gap_junctions[:, 0]],
-                                     self.is_virtual_neuron[self.gap_junctions[:, 1]])
+        real_gj_idx = np.where(~np.logical_or(self.is_virtual_neuron[self.gap_junctions[:, 0]],
+                                              self.is_virtual_neuron[self.gap_junctions[:, 1]]))[0]
 
         if np.sum(real_gj_idx) == 0:
             return np.array([]), np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
 
-        gj_idx_a = np.where([self.neuron_id_on_node[x] for x in self.gap_junctions[real_gj_idx, 0]])[0]
-        gj_idx_b = np.where([self.neuron_id_on_node[x] for x in self.gap_junctions[real_gj_idx, 1]])[0]
+        gj_idx_a = real_gj_idx[np.where([self.neuron_id_on_node[x] for x in self.gap_junctions[real_gj_idx, 0]])[0]]
+        gj_idx_b = real_gj_idx[np.where([self.neuron_id_on_node[x] for x in self.gap_junctions[real_gj_idx, 1]])[0]]
 
         gj_id_offset = 100 * self.num_neurons
         gj_gid_src_a = gj_id_offset + 2 * gj_idx_a
