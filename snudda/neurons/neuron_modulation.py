@@ -497,7 +497,7 @@ class NeuronModulation:
                                   region_name=region)
                 """
 
-    def concentration_from_vector(self, species_name, concentration, time, interpolate=True, sim=None):
+    def concentration_from_vector(self, species_name, concentration_vector, time_vector, interpolate=True):
 
         # Loops over all nodes in node_cache, and sets a vector to play
         print(f"Playing concentration vector for {species_name} in all compartments.")
@@ -508,19 +508,9 @@ class NeuronModulation:
         if species_name not in self.node_cache:
             raise ValueError(f"{species_name} not present in node_cache, does {self.neuron.name} have RxD species?")
 
-        shit_to_save = []
-
         for region_name, node_dictionary in self.node_cache[species_name].items():
 
             for node_name, node_data in node_dictionary.items():
                 for nd in node_data[0]:
+                    concentration_vector.play(nd._ref_concentration, time_vector, interpolate)
 
-                    # We can only play each vector once in NEURON, so have to create duplicate vectors
-                    # for each play
-                    conc_vect = sim.neuron.h.Vector(concentration * 1e3)  # SI to millimolar
-                    t_vect = sim.neuron.h.Vector(time * 1e3)  # s -> ms
-                    conc_vect.play(nd._ref_concentration, t_vect, interpolate)
-
-                    shit_to_save.append((conc_vect, t_vect))
-
-        return shit_to_save
