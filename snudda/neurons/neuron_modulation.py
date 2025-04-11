@@ -369,7 +369,7 @@ class NeuronModulation:
         # print(f"Parsing species")
 
         for species_name, species_data in self.config_data.get("species", {}).items():
-            initial_concentration = species_data.get("initial_concentration", 0) * 1e3  # Convert to millimolar for RxD
+            initial_concentration = species_data.get("initial_concentration", 0)   # mM = molar / m3
             diffusion_constant = species_data.get("diffusion_constant", 0)
             charge = species_data.get("charge", 0)
             regions = species_data.get("regions", ("soma_internal", "dendrites_internal"))

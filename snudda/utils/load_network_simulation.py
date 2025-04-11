@@ -263,8 +263,9 @@ class SnuddaLoadSimulation:
 
         neuron_id_list = np.array(sorted([int(x) for x in self.network_simulation_file["neurons"].keys()]))
 
-        if not ((np.diff(neuron_id_list) == 1).all() and neuron_id_list[0] == 0):
-            print(f"Failed sanity check on neuron ID, not all neurons simulated? {neuron_id_list}")
+        # We can have virtual neurons, leading to gaps
+        # if not ((np.diff(neuron_id_list) == 1).all() and neuron_id_list[0] == 0):
+        #     print(f"Failed sanity check on neuron ID, not all neurons simulated? {neuron_id_list}")
 
         time = self.get_time()
         dt = time[1] - time[0]
