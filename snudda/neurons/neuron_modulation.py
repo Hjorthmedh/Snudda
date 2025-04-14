@@ -139,7 +139,6 @@ class NeuronModulation:
 
         return species_list
 
-
     def add_decay(self, species_name, decay_rate):
 
         species = self.species[species_name]
@@ -458,24 +457,26 @@ class NeuronModulation:
                 left_side = eval(reaction_data["reactants"])
                 right_side = eval(reaction_data["products"])
 
-                try:
-                    # Ta inte bort ettan (Do not remove the 1) -- or else...
-                    n_left = sum((left_side*1)._items.values())
-                    n_right = sum((right_side*1)._items.values())
-                except:
-                    import traceback
-                    print(traceback.format_exc())
-                    import pdb
-                    pdb.set_trace()
-
-                assert n_left >= 1 and n_right >= 1
+                # try:
+                #     # Ta inte bort ettan (Do not remove the 1) -- or else...
+                #     n_left = sum((left_side*1)._items.values())
+                #     n_right = sum((right_side*1)._items.values())
+                # except:
+                #     import traceback
+                #     print(traceback.format_exc())
+                #     import pdb
+                #     pdb.set_trace()
+                #
+                # assert n_left >= 1 and n_right >= 1
 
                 # First 1e3 is for 1/second to 1/ms, second term is to correct for concentration
-                left_scale_from_SI = 1e-3 * 1e-3 ** (n_left - 1)
-                right_scale_from_SI = 1e-3 * 1e-3 ** (n_right - 1)
+                # 2025-04-14: We switched to mM for conc units in Snudda (SI unit), which is same as RxD
+                #             so only need to convert s -> ms (for RxD)
+                left_scale_from_si = 1e-3   # * 1e-3 ** (n_left - 1)  -- NO LONGER NEEDED
+                right_scale_from_si = 1e-3   # * 1e-3 ** (n_right - 1) -- NO LONGER NEEDED, use mM in Snudda and RxD
 
-                scaled_forward_rate = forward_rate * left_scale_from_SI if forward_rate is not None else forward_rate
-                scaled_backward_rate = backward_rate * right_scale_from_SI if backward_rate is not None else backward_rate
+                scaled_forward_rate = forward_rate * left_scale_from_si if forward_rate is not None else forward_rate
+                scaled_backward_rate = backward_rate * right_scale_from_si if backward_rate is not None else backward_rate
 
                 print(f"Reaction name: {reaction_name}, left: {left_side}, right: {right_side}")
                 print(f"k_forward: {forward_rate} (scaled: {scaled_forward_rate})")

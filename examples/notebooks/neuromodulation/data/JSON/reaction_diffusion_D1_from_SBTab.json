@@ -1196,7 +1196,7 @@
             "products": "GaolfGDP",
             "forward_rate": 30.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -1208,7 +1208,7 @@
             "products": "Gbgolf + D1R_DA + GaolfGTP",
             "forward_rate": 15.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -1218,10 +1218,10 @@
         "ReactionFlux2": {
             "reactants": "D1R_Golf + DA",
             "products": "D1R_Golf_DA",
-            "forward_rate": 50000000.0,
+            "forward_rate": 50000.0,
             "backward_rate": 250.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1230,10 +1230,10 @@
         "ReactionFlux3": {
             "reactants": "D1R + DA",
             "products": "D1R_DA",
-            "forward_rate": 50000000.0,
+            "forward_rate": 50000.0,
             "backward_rate": 250.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1242,10 +1242,10 @@
         "ReactionFlux4": {
             "reactants": "AC5 + GaolfGTP",
             "products": "AC5_GaolfGTP",
-            "forward_rate": 9999999999.999998,
+            "forward_rate": 9999999.999999998,
             "backward_rate": 1.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1254,10 +1254,10 @@
         "ReactionFlux5": {
             "reactants": "CaM + Ca",
             "products": "CaM_Ca2",
-            "forward_rate": 5999999.999999999,
+            "forward_rate": 5999.999999999999,
             "backward_rate": 20.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1266,10 +1266,10 @@
         "ReactionFlux6": {
             "reactants": "PP2B + CaM",
             "products": "PP2B_CaM",
-            "forward_rate": 100000000.0,
+            "forward_rate": 100000.0,
             "backward_rate": 3000.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1278,10 +1278,10 @@
         "ReactionFlux7": {
             "reactants": "CaM_Ca4 + PP2B",
             "products": "PP2Bc",
-            "forward_rate": 100000000.0,
+            "forward_rate": 100000.0,
             "backward_rate": 0.003,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1290,10 +1290,10 @@
         "ReactionFlux8": {
             "reactants": "PKAc + D32",
             "products": "PKAc_D32",
-            "forward_rate": 10000000.0,
+            "forward_rate": 10000.0,
             "backward_rate": 200.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1304,7 +1304,7 @@
             "products": "D32p34 + PKAc",
             "forward_rate": 10.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -1314,10 +1314,10 @@
         "ReactionFlux10": {
             "reactants": "PKAc + B56PP2A",
             "products": "PKAc_B56PP2A",
-            "forward_rate": 999999.9999999999,
+            "forward_rate": 999.9999999999999,
             "backward_rate": 0.3,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1328,7 +1328,7 @@
             "products": "B56PP2Ap + PKAc",
             "forward_rate": 0.2,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -1338,10 +1338,10 @@
         "ReactionFlux12": {
             "reactants": "D32p34 + PP1",
             "products": "PP1_D32p34",
-            "forward_rate": 999999999.9999999,
+            "forward_rate": 999999.9999999999,
             "backward_rate": 1.5,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1350,10 +1350,10 @@
         "ReactionFlux13": {
             "reactants": "CDK5 + D32",
             "products": "CDK5_D32",
-            "forward_rate": 999999.9999999999,
+            "forward_rate": 999.9999999999999,
             "backward_rate": 100.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1364,7 +1364,7 @@
             "products": "CDK5 + D32p75",
             "forward_rate": 10.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -1374,10 +1374,10 @@
         "ReactionFlux15": {
             "reactants": "D32p75 + PKAc",
             "products": "PKAc_D32p75",
-            "forward_rate": 100000000.0,
+            "forward_rate": 100000.0,
             "backward_rate": 100.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1386,10 +1386,10 @@
         "ReactionFlux16": {
             "reactants": "B72PP2A + Ca",
             "products": "B72PP2A_Ca",
-            "forward_rate": 10000000.0,
+            "forward_rate": 10000.0,
             "backward_rate": 10.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1398,10 +1398,10 @@
         "ReactionFlux17": {
             "reactants": "B56PP2Ap + D32p75",
             "products": "B56PP2Ap_D32p75",
-            "forward_rate": 14999999.999999998,
+            "forward_rate": 14999.999999999998,
             "backward_rate": 100.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1410,10 +1410,10 @@
         "ReactionFlux18": {
             "reactants": "B72PP2A + D32p75",
             "products": "B72PP2A_D32p75",
-            "forward_rate": 7999999.999999999,
+            "forward_rate": 7999.999999999999,
             "backward_rate": 100.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1422,10 +1422,10 @@
         "ReactionFlux19": {
             "reactants": "D32p75 + B72PP2A_Ca",
             "products": "B72PP2A_Ca_D32p75",
-            "forward_rate": 14999999.999999998,
+            "forward_rate": 14999.999999999998,
             "backward_rate": 100.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1436,7 +1436,7 @@
             "products": "B56PP2Ap + D32",
             "forward_rate": 8.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -1448,7 +1448,7 @@
             "products": "B72PP2A + D32",
             "forward_rate": 1.5,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -1460,7 +1460,7 @@
             "products": "B72PP2A_Ca + D32",
             "forward_rate": 8.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -1470,10 +1470,10 @@
         "ReactionFlux23": {
             "reactants": "D32p34 + PP2Bc",
             "products": "PP2Bc_D32p34",
-            "forward_rate": 1299999999.9999998,
+            "forward_rate": 1299999.9999999998,
             "backward_rate": 0.1,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1482,10 +1482,10 @@
         "ReactionFlux24": {
             "reactants": "CaM_Ca2 + Ca",
             "products": "CaM_Ca4",
-            "forward_rate": 100000000.0,
+            "forward_rate": 100000.0,
             "backward_rate": 1000.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1494,10 +1494,10 @@
         "ReactionFlux25": {
             "reactants": "Ca + PP2B_CaM",
             "products": "PP2B_CaM_Ca2",
-            "forward_rate": 5999999.999999999,
+            "forward_rate": 5999.999999999999,
             "backward_rate": 0.00019999999999999998,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1506,10 +1506,10 @@
         "ReactionFlux26": {
             "reactants": "Ca + PP2B_CaM_Ca2",
             "products": "PP2Bc",
-            "forward_rate": 100000000.0,
+            "forward_rate": 100000.0,
             "backward_rate": 100.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1518,10 +1518,10 @@
         "ReactionFlux27": {
             "reactants": "CaM_Ca2 + PP2B",
             "products": "PP2B_CaM_Ca2",
-            "forward_rate": 100000000.0,
+            "forward_rate": 100000.0,
             "backward_rate": 0.030000000000000002,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1530,10 +1530,10 @@
         "ReactionFlux28": {
             "reactants": "AC5 + Ca",
             "products": "AC5_Ca",
-            "forward_rate": 999999.9999999999,
+            "forward_rate": 999.9999999999999,
             "backward_rate": 10.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1542,10 +1542,10 @@
         "ReactionFlux29": {
             "reactants": "AC5_Ca + GaolfGTP",
             "products": "AC5_Ca_GaolfGTP",
-            "forward_rate": 9999999999.999998,
+            "forward_rate": 9999999.999999998,
             "backward_rate": 1.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1554,10 +1554,10 @@
         "ReactionFlux30": {
             "reactants": "D32p75 + B56PP2A",
             "products": "B56PP2A_D32p75",
-            "forward_rate": 7999999.999999999,
+            "forward_rate": 7999.999999999999,
             "backward_rate": 100.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1568,7 +1568,7 @@
             "products": "B56PP2A + D32",
             "forward_rate": 1.5,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -1580,7 +1580,7 @@
             "products": "B72PP2A_Ca + D32",
             "forward_rate": 3.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -1592,7 +1592,7 @@
             "products": "D32 + B72PP2A",
             "forward_rate": 3.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -1602,10 +1602,10 @@
         "ReactionFlux34": {
             "reactants": "D32p34 + B72PP2A_Ca",
             "products": "B72PP2A_Ca_D32p34",
-            "forward_rate": 499999.99999999994,
+            "forward_rate": 499.99999999999994,
             "backward_rate": 1.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1614,10 +1614,10 @@
         "ReactionFlux35": {
             "reactants": "D32p34 + B72PP2A",
             "products": "B72PP2A_D32p34",
-            "forward_rate": 499999.99999999994,
+            "forward_rate": 499.99999999999994,
             "backward_rate": 1.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1628,7 +1628,7 @@
             "products": "D32 + PP2Bc",
             "forward_rate": 1.2,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -1640,7 +1640,7 @@
             "products": "B56PP2A",
             "forward_rate": 0.008,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -1650,10 +1650,10 @@
         "ReactionFlux38": {
             "reactants": "cAMP + PKA",
             "products": "PKA_Ca2MP",
-            "forward_rate": 25999999.999999996,
+            "forward_rate": 25999.999999999996,
             "backward_rate": 350.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1662,10 +1662,10 @@
         "ReactionFlux39": {
             "reactants": "cAMP + PKA_Ca2MP",
             "products": "PKA_Ca4MP",
-            "forward_rate": 34600000.0,
+            "forward_rate": 34600.0,
             "backward_rate": 50.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1675,9 +1675,9 @@
             "reactants": "PKA_Ca4MP",
             "products": "PKAc + PKAreg",
             "forward_rate": 50.0,
-            "backward_rate": 29999999.999999996,
-            "forward_rate_unit": "1/second",
-            "backward_rate_unit": "litre/(mole*second)",
+            "backward_rate": 29999.999999999996,
+            "forward_rate_unit": "1/s",
+            "backward_rate_unit": "m^3/(s*mol)",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1686,10 +1686,10 @@
         "ReactionFlux41": {
             "reactants": "cAMP + PDE4",
             "products": "PDE4_cAMP",
-            "forward_rate": 29999999.999999996,
+            "forward_rate": 29999.999999999996,
             "backward_rate": 1.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1700,7 +1700,7 @@
             "products": "PDE4 + AMP",
             "forward_rate": 2.5,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -1710,10 +1710,10 @@
         "ReactionFlux43": {
             "reactants": "PDE10r + 2 * cAMP",
             "products": "PDE10c",
-            "forward_rate": 999999999999.9999,
+            "forward_rate": 999999.9999999999,
             "backward_rate": 1.0,
-            "forward_rate_unit": "litre^2/(mole^2*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^6/(s*mol^2)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1724,7 +1724,7 @@
             "products": "PDE10r + AMP",
             "forward_rate": 3.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -1734,10 +1734,10 @@
         "ReactionFlux45": {
             "reactants": "cAMP + PDE10r",
             "products": "PDE10r_cAMP",
-            "forward_rate": 100000000.0,
+            "forward_rate": 100000.0,
             "backward_rate": 2.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1748,7 +1748,7 @@
             "products": "PDE10c + AMP",
             "forward_rate": 10.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -1758,9 +1758,9 @@
         "ReactionFlux47": {
             "reactants": "GaolfGDP + Gbgolf",
             "products": "Golf",
-            "forward_rate": 100000000000.0,
+            "forward_rate": 100000000.0,
             "backward_rate": null,
-            "forward_rate_unit": "litre/(mole*second)",
+            "forward_rate_unit": "m^3/(s*mol)",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -1770,10 +1770,10 @@
         "ReactionFlux48": {
             "reactants": "AC5_GaolfGTP + ATP",
             "products": "AC5_GaolfGTP_ATP",
-            "forward_rate": 2550000.0,
+            "forward_rate": 2550.0,
             "backward_rate": 1.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1782,10 +1782,10 @@
         "ReactionFlux49": {
             "reactants": "AC5 + ATP",
             "products": "AC5_ATP",
-            "forward_rate": 99999.99999999999,
+            "forward_rate": 99.99999999999999,
             "backward_rate": 1.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1794,10 +1794,10 @@
         "ReactionFlux50": {
             "reactants": "AC5_Ca + ATP",
             "products": "AC5_Ca_ATP",
-            "forward_rate": 74999.99999999999,
+            "forward_rate": 74.99999999999999,
             "backward_rate": 1.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1806,10 +1806,10 @@
         "ReactionFlux51": {
             "reactants": "AC5_Ca_GaolfGTP + ATP",
             "products": "AC5_Ca_GaolfGTP_ATP",
-            "forward_rate": 1300000.0,
+            "forward_rate": 1300.0,
             "backward_rate": 1.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1818,10 +1818,10 @@
         "ReactionFlux52": {
             "reactants": "GaolfGTP + AC5_ATP",
             "products": "AC5_GaolfGTP_ATP",
-            "forward_rate": 9999999999.999998,
+            "forward_rate": 9999999.999999998,
             "backward_rate": 1.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1830,10 +1830,10 @@
         "ReactionFlux53": {
             "reactants": "GaolfGTP + AC5_Ca_ATP",
             "products": "AC5_Ca_GaolfGTP_ATP",
-            "forward_rate": 9999999999.999998,
+            "forward_rate": 9999999.999999998,
             "backward_rate": 1.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1842,10 +1842,10 @@
         "ReactionFlux54": {
             "reactants": "Ca + AC5_ATP",
             "products": "AC5_Ca_ATP",
-            "forward_rate": 999999.9999999999,
+            "forward_rate": 999.9999999999999,
             "backward_rate": 10.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -1856,7 +1856,7 @@
             "products": "cAMP + AC5_GaolfGTP",
             "forward_rate": 50.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -1866,9 +1866,9 @@
         "ReactionFlux56": {
             "reactants": "cAMP + AC5_GaolfGTP",
             "products": "AC5_GaolfGTP_ATP",
-            "forward_rate": 2550000000.0,
+            "forward_rate": 2550000.0,
             "backward_rate": null,
-            "forward_rate_unit": "litre/(mole*second)",
+            "forward_rate_unit": "m^3/(s*mol)",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -1880,7 +1880,7 @@
             "products": "cAMP + AC5",
             "forward_rate": 1.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -1890,9 +1890,9 @@
         "ReactionFlux58": {
             "reactants": "cAMP + AC5",
             "products": "AC5_ATP",
-            "forward_rate": 1999999.9999999998,
+            "forward_rate": 1999.9999999999998,
             "backward_rate": null,
-            "forward_rate_unit": "litre/(mole*second)",
+            "forward_rate_unit": "m^3/(s*mol)",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -1904,7 +1904,7 @@
             "products": "cAMP + AC5_Ca",
             "forward_rate": 0.5,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -1914,9 +1914,9 @@
         "ReactionFlux60": {
             "reactants": "cAMP + AC5_Ca",
             "products": "AC5_Ca_ATP",
-            "forward_rate": 749999.9999999999,
+            "forward_rate": 749.9999999999999,
             "backward_rate": null,
-            "forward_rate_unit": "litre/(mole*second)",
+            "forward_rate_unit": "m^3/(s*mol)",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -1928,7 +1928,7 @@
             "products": "cAMP + AC5_Ca_GaolfGTP",
             "forward_rate": 25.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -1938,9 +1938,9 @@
         "ReactionFlux62": {
             "reactants": "cAMP + AC5_Ca_GaolfGTP",
             "products": "AC5_Ca_GaolfGTP_ATP",
-            "forward_rate": 649999999.9999999,
+            "forward_rate": 649999.9999999999,
             "backward_rate": null,
-            "forward_rate_unit": "litre/(mole*second)",
+            "forward_rate_unit": "m^3/(s*mol)",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -1952,7 +1952,7 @@
             "products": "AC5 + GaolfGDP",
             "forward_rate": 1.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -1964,7 +1964,7 @@
             "products": "AC5_Ca + GaolfGDP",
             "forward_rate": 1.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -1976,7 +1976,7 @@
             "products": "AC5_ATP + GaolfGDP",
             "forward_rate": 1.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -1988,7 +1988,7 @@
             "products": "AC5_Ca_ATP + GaolfGDP",
             "forward_rate": 1.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -1998,10 +1998,10 @@
         "ReactionFlux67": {
             "reactants": "D1R + Golf",
             "products": "D1R_Golf",
-            "forward_rate": 59999999.99999999,
+            "forward_rate": 59999.99999999999,
             "backward_rate": 250.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2010,10 +2010,10 @@
         "ReactionFlux68": {
             "reactants": "Golf + D1R_DA",
             "products": "D1R_Golf_DA",
-            "forward_rate": 59999999.99999999,
+            "forward_rate": 59999.99999999999,
             "backward_rate": 250.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2022,10 +2022,10 @@
         "ReactionFlux69": {
             "reactants": "cAMP + PDE10c",
             "products": "PDE10c_cAMP",
-            "forward_rate": 100000000.0,
+            "forward_rate": 100000.0,
             "backward_rate": 2.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2034,10 +2034,10 @@
         "ReactionFlux70": {
             "reactants": "CaMKII + CaM_Ca4",
             "products": "CaMKII_CaM_Ca4",
-            "forward_rate": 100000000.0,
+            "forward_rate": 100000.0,
             "backward_rate": 40.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2046,10 +2046,10 @@
         "ReactionFlux71": {
             "reactants": "CaM_Ca2 + CaMKII",
             "products": "CaMKII_CaM_Ca2",
-            "forward_rate": 100000000.0,
+            "forward_rate": 100000.0,
             "backward_rate": 400.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2058,10 +2058,10 @@
         "ReactionFlux72": {
             "reactants": "CaM + CaMKII",
             "products": "CaMKII_CaM",
-            "forward_rate": 100000000.0,
+            "forward_rate": 100000.0,
             "backward_rate": 4000.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2070,10 +2070,10 @@
         "ReactionFlux73": {
             "reactants": "CaMKII_CaM_Ca2 + Ca",
             "products": "CaMKII_CaM_Ca4",
-            "forward_rate": 100000000.0,
+            "forward_rate": 100000.0,
             "backward_rate": 100.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2082,10 +2082,10 @@
         "ReactionFlux74": {
             "reactants": "CaMKII_CaM + Ca",
             "products": "CaMKII_CaM_Ca2",
-            "forward_rate": 5999999.999999999,
+            "forward_rate": 5999.999999999999,
             "backward_rate": 2.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2094,10 +2094,10 @@
         "ReactionFlux75": {
             "reactants": "pCaMKII_CaM_Ca2 + Ca",
             "products": "pCaMKII_CaM_Ca4",
-            "forward_rate": 100000000.0,
+            "forward_rate": 100000.0,
             "backward_rate": 10.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2106,10 +2106,10 @@
         "ReactionFlux76": {
             "reactants": "pCaMKII_CaM + Ca",
             "products": "pCaMKII_CaM_Ca2",
-            "forward_rate": 5999999.999999999,
+            "forward_rate": 5999.999999999999,
             "backward_rate": 2.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2118,10 +2118,10 @@
         "ReactionFlux77": {
             "reactants": "pCaMKII + CaM_Ca4",
             "products": "pCaMKII_CaM_Ca4",
-            "forward_rate": 100000000.0,
+            "forward_rate": 100000.0,
             "backward_rate": 0.4,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2130,10 +2130,10 @@
         "ReactionFlux78": {
             "reactants": "pCaMKII + CaM_Ca2",
             "products": "pCaMKII_CaM_Ca2",
-            "forward_rate": 100000000.0,
+            "forward_rate": 100000.0,
             "backward_rate": 40.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2142,10 +2142,10 @@
         "ReactionFlux79": {
             "reactants": "pCaMKII + CaM",
             "products": "pCaMKII_CaM",
-            "forward_rate": 100000000.0,
+            "forward_rate": 100000.0,
             "backward_rate": 400.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2154,10 +2154,10 @@
         "ReactionFlux80": {
             "reactants": "ARPP21 + PKAc",
             "products": "PKAc_ARPP21",
-            "forward_rate": 45000000.0,
+            "forward_rate": 45000.0,
             "backward_rate": 200.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2168,7 +2168,7 @@
             "products": "PKAc + pARPP21",
             "forward_rate": 10.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -2178,10 +2178,10 @@
         "ReactionFlux82": {
             "reactants": "pARPP21 + CaM_Ca4",
             "products": "CaM_Ca4_pARPP21",
-            "forward_rate": 499999999.99999994,
+            "forward_rate": 499999.99999999994,
             "backward_rate": 10.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2192,7 +2192,7 @@
             "products": "ARPP21 + B72PP2A_Ca",
             "forward_rate": 10.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -2202,10 +2202,10 @@
         "ReactionFlux84": {
             "reactants": "pARPP21 + B72PP2A_Ca",
             "products": "B72PP2A_Ca_pARPP21",
-            "forward_rate": 6999999.999999999,
+            "forward_rate": 6999.999999999999,
             "backward_rate": 100.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2216,7 +2216,7 @@
             "products": "ARPP21 + B72PP2A",
             "forward_rate": 1.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -2226,10 +2226,10 @@
         "ReactionFlux86": {
             "reactants": "pARPP21 + B72PP2A",
             "products": "B72PP2A_pARPP21",
-            "forward_rate": 3999999.9999999995,
+            "forward_rate": 3999.9999999999995,
             "backward_rate": 100.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2240,7 +2240,7 @@
             "products": "ARPP21 + B56PP2Ap",
             "forward_rate": 10.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -2250,10 +2250,10 @@
         "ReactionFlux88": {
             "reactants": "pARPP21 + B56PP2Ap",
             "products": "B56PP2Ap_pARPP21",
-            "forward_rate": 6999999.999999999,
+            "forward_rate": 6999.999999999999,
             "backward_rate": 100.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2264,7 +2264,7 @@
             "products": "ARPP21 + B56PP2A",
             "forward_rate": 1.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -2274,10 +2274,10 @@
         "ReactionFlux90": {
             "reactants": "pARPP21 + B56PP2A",
             "products": "B56PP2A_pARPP21",
-            "forward_rate": 3999999.9999999995,
+            "forward_rate": 3999.9999999999995,
             "backward_rate": 100.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2286,10 +2286,10 @@
         "ReactionFlux91": {
             "reactants": "pSubstrate + PP1",
             "products": "PP1_pSubstrate",
-            "forward_rate": 499999.99999999994,
+            "forward_rate": 499.99999999999994,
             "backward_rate": 1.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2300,7 +2300,7 @@
             "products": "PP1 + Substrate",
             "forward_rate": 10.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -2310,10 +2310,10 @@
         "ReactionFlux93": {
             "reactants": "Substrate + pCaMKII_psd",
             "products": "pCaMKII_psd_Substrate",
-            "forward_rate": 499999.99999999994,
+            "forward_rate": 499.99999999999994,
             "backward_rate": 10.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2324,7 +2324,7 @@
             "products": "pCaMKII_psd + pSubstrate",
             "forward_rate": 10.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -2336,7 +2336,7 @@
             "products": "CaMKII",
             "forward_rate": 0.1,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -2346,10 +2346,10 @@
         "ReactionFlux96": {
             "reactants": "Substrate + pCaMKII_CaM_psd",
             "products": "pCaMKII_CaM_psd_Substrate",
-            "forward_rate": 499999.99999999994,
+            "forward_rate": 499.99999999999994,
             "backward_rate": 10.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2360,7 +2360,7 @@
             "products": "pCaMKII_CaM_psd + pSubstrate",
             "forward_rate": 10.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -2370,10 +2370,10 @@
         "ReactionFlux98": {
             "reactants": "Substrate + pCaMKII_CaM_Ca2_psd",
             "products": "pCaMKII_CaM_Ca2_psd_Substrate",
-            "forward_rate": 499999.99999999994,
+            "forward_rate": 499.99999999999994,
             "backward_rate": 10.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2384,7 +2384,7 @@
             "products": "pCaMKII_CaM_Ca2_psd + pSubstrate",
             "forward_rate": 10.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -2394,10 +2394,10 @@
         "ReactionFlux100": {
             "reactants": "Substrate + pCaMKII_CaM_Ca4_psd",
             "products": "pCaMKII_CaM_Ca4_psd_Substrate",
-            "forward_rate": 499999.99999999994,
+            "forward_rate": 499.99999999999994,
             "backward_rate": 10.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2408,7 +2408,7 @@
             "products": "pCaMKII_CaM_Ca4_psd + pSubstrate",
             "forward_rate": 10.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -2418,10 +2418,10 @@
         "ReactionFlux102": {
             "reactants": "Substrate + CaMKII_CaM_psd",
             "products": "CaMKII_CaM_psd_Substrate",
-            "forward_rate": 499999.99999999994,
+            "forward_rate": 499.99999999999994,
             "backward_rate": 10.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2432,7 +2432,7 @@
             "products": "CaMKII_CaM_psd + pSubstrate",
             "forward_rate": 10.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -2442,10 +2442,10 @@
         "ReactionFlux104": {
             "reactants": "Substrate + CaMKII_CaM_Ca2_psd",
             "products": "CaMKII_CaM_Ca2_psd_Substrate",
-            "forward_rate": 499999.99999999994,
+            "forward_rate": 499.99999999999994,
             "backward_rate": 10.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2456,7 +2456,7 @@
             "products": "CaMKII_CaM_Ca2_psd + pSubstrate",
             "forward_rate": 10.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -2466,10 +2466,10 @@
         "ReactionFlux106": {
             "reactants": "Substrate + CaMKII_CaM_Ca4_psd",
             "products": "CaMKII_CaM_Ca4_psd_Substrate",
-            "forward_rate": 499999.99999999994,
+            "forward_rate": 499.99999999999994,
             "backward_rate": 10.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2480,7 +2480,7 @@
             "products": "CaMKII_CaM_Ca4_psd + pSubstrate",
             "forward_rate": 10.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -2492,8 +2492,8 @@
             "products": "pCaMKII_CaM_Ca4_psd",
             "forward_rate": 0.5,
             "backward_rate": 0.001,
-            "forward_rate_unit": "1/second",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2504,8 +2504,8 @@
             "products": "pCaMKII_CaM_Ca2_psd",
             "forward_rate": 0.5,
             "backward_rate": 0.001,
-            "forward_rate_unit": "1/second",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2516,8 +2516,8 @@
             "products": "pCaMKII_CaM_psd",
             "forward_rate": 0.5,
             "backward_rate": 0.001,
-            "forward_rate_unit": "1/second",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2528,8 +2528,8 @@
             "products": "pCaMKII_psd",
             "forward_rate": 0.5,
             "backward_rate": 0.001,
-            "forward_rate_unit": "1/second",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2538,10 +2538,10 @@
         "ReactionFlux112": {
             "reactants": "CaM_Ca4 + pCaMKII_psd",
             "products": "pCaMKII_CaM_Ca4_psd",
-            "forward_rate": 100000000.0,
+            "forward_rate": 100000.0,
             "backward_rate": 0.4,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2550,10 +2550,10 @@
         "ReactionFlux113": {
             "reactants": "pCaMKII_psd + CaM_Ca2",
             "products": "pCaMKII_CaM_Ca2_psd",
-            "forward_rate": 100000000.0,
+            "forward_rate": 100000.0,
             "backward_rate": 40.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2562,10 +2562,10 @@
         "ReactionFlux114": {
             "reactants": "CaM + pCaMKII_psd",
             "products": "pCaMKII_CaM_psd",
-            "forward_rate": 100000000.0,
+            "forward_rate": 100000.0,
             "backward_rate": 400.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2574,10 +2574,10 @@
         "ReactionFlux115": {
             "reactants": "pCaMKII_CaM_psd + Ca",
             "products": "pCaMKII_CaM_Ca2_psd",
-            "forward_rate": 5999999.999999999,
+            "forward_rate": 5999.999999999999,
             "backward_rate": 2.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2586,10 +2586,10 @@
         "ReactionFlux116": {
             "reactants": "pCaMKII_CaM_Ca2_psd + Ca",
             "products": "pCaMKII_CaM_Ca4_psd",
-            "forward_rate": 100000000.0,
+            "forward_rate": 100000.0,
             "backward_rate": 10.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2598,10 +2598,10 @@
         "ReactionFlux117": {
             "reactants": "pCaMKII_psd + PP1",
             "products": "PP1_pCaMKII_psd",
-            "forward_rate": 799999.9999999999,
+            "forward_rate": 799.9999999999999,
             "backward_rate": 1.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2612,7 +2612,7 @@
             "products": "PP1 + CaMKII_psd",
             "forward_rate": 1.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -2624,7 +2624,7 @@
             "products": "CaMKII",
             "forward_rate": 0.5,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -2634,10 +2634,10 @@
         "ReactionFlux120": {
             "reactants": "CaM_Ca4 + CaMKII_psd",
             "products": "CaMKII_CaM_Ca4_psd",
-            "forward_rate": 100000000.0,
+            "forward_rate": 100000.0,
             "backward_rate": 40.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2646,10 +2646,10 @@
         "ReactionFlux121": {
             "reactants": "CaM_Ca2 + CaMKII_psd",
             "products": "CaMKII_CaM_Ca2_psd",
-            "forward_rate": 100000000.0,
+            "forward_rate": 100000.0,
             "backward_rate": 400.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2658,10 +2658,10 @@
         "ReactionFlux122": {
             "reactants": "CaM + CaMKII_psd",
             "products": "CaMKII_CaM_psd",
-            "forward_rate": 100000000.0,
+            "forward_rate": 100000.0,
             "backward_rate": 4000.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2670,10 +2670,10 @@
         "ReactionFlux123": {
             "reactants": "CaMKII_CaM_Ca2_psd + Ca",
             "products": "CaMKII_CaM_Ca4_psd",
-            "forward_rate": 100000000.0,
+            "forward_rate": 100000.0,
             "backward_rate": 100.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2682,10 +2682,10 @@
         "ReactionFlux124": {
             "reactants": "CaMKII_CaM_psd + Ca",
             "products": "CaMKII_CaM_Ca2_psd",
-            "forward_rate": 5999999.999999999,
+            "forward_rate": 5999.999999999999,
             "backward_rate": 2.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2696,8 +2696,8 @@
             "products": "CaMKII_CaM_psd",
             "forward_rate": 0.5,
             "backward_rate": 0.5,
-            "forward_rate_unit": "1/second",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2708,8 +2708,8 @@
             "products": "CaMKII_CaM_Ca2_psd",
             "forward_rate": 0.5,
             "backward_rate": 0.5,
-            "forward_rate_unit": "1/second",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2720,8 +2720,8 @@
             "products": "CaMKII_CaM_Ca4_psd",
             "forward_rate": 0.5,
             "backward_rate": 0.5,
-            "forward_rate_unit": "1/second",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2732,8 +2732,8 @@
             "products": "CaMKII_CaM_Ca4_CaMKII_CaM_Ca4",
             "forward_rate": 0.5,
             "backward_rate": 0.5,
-            "forward_rate_unit": "1/second",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2744,8 +2744,8 @@
             "products": "pCaMKII_CaM_Ca4_CaMKII_CaM_Ca4",
             "forward_rate": 0.001,
             "backward_rate": 0.5,
-            "forward_rate_unit": "1/second",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2754,10 +2754,10 @@
         "ReactionFlux130": {
             "reactants": "CaMKII_CaM_Ca4 + CaMKII_CaM_Ca4",
             "products": "CaMKII_CaM_Ca4_CaMKII_CaM_Ca4",
-            "forward_rate": 359999.99999999994,
+            "forward_rate": 359.99999999999994,
             "backward_rate": 23.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2768,7 +2768,7 @@
             "products": "pCaMKII_CaM_Ca4 + CaMKII_CaM_Ca4",
             "forward_rate": 3.9,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -2778,10 +2778,10 @@
         "ReactionFlux132": {
             "reactants": "pCaMKII_CaM_Ca4 + CaMKII_CaM_Ca4",
             "products": "pCaMKII_CaM_Ca4_CaMKII_CaM_Ca4",
-            "forward_rate": 1100000.0,
+            "forward_rate": 1100.0,
             "backward_rate": 5.4,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2792,7 +2792,7 @@
             "products": "pCaMKII_CaM_Ca4 + pCaMKII_CaM_Ca4",
             "forward_rate": 10000.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -2802,10 +2802,10 @@
         "ReactionFlux134": {
             "reactants": "CaMKII_CaM_Ca4_psd + CaMKII_CaM_Ca4_psd",
             "products": "CaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd",
-            "forward_rate": 359999.99999999994,
+            "forward_rate": 359.99999999999994,
             "backward_rate": 23.0,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2816,7 +2816,7 @@
             "products": "pCaMKII_CaM_Ca4_psd + CaMKII_CaM_Ca4_psd",
             "forward_rate": 3.9,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",
@@ -2826,10 +2826,10 @@
         "ReactionFlux136": {
             "reactants": "pCaMKII_CaM_Ca4_psd + CaMKII_CaM_Ca4_psd",
             "products": "pCaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd",
-            "forward_rate": 1100000.0,
+            "forward_rate": 1100.0,
             "backward_rate": 5.4,
-            "forward_rate_unit": "litre/(mole*second)",
-            "backward_rate_unit": "1/second",
+            "forward_rate_unit": "m^3/(s*mol)",
+            "backward_rate_unit": "1/s",
             "regions": [
                 "soma_internal",
                 "dend_internal"
@@ -2840,7 +2840,7 @@
             "products": "pCaMKII_CaM_Ca4_psd + pCaMKII_CaM_Ca4_psd",
             "forward_rate": 10000.0,
             "backward_rate": null,
-            "forward_rate_unit": "1/second",
+            "forward_rate_unit": "1/s",
             "backward_rate_unit": null,
             "regions": [
                 "soma_internal",

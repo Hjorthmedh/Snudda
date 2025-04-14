@@ -101,7 +101,7 @@ class ReadSBtab:
 
             try:
                 species_name = row["!Name"]
-                species_unit = pq.CompoundUnit(row["!Unit"].replace("liter", "litre"))  # str ==> enhet  # Bug in quantities 0.16.1, cant handle liter anymore
+                species_unit = pq.CompoundUnit(row["!Unit"])  # str ==> enhet
                 rescale_factor = float(species_unit.rescale(conc_unit).base)  # To get in nano molar
             except Exception as e:
                 import traceback
@@ -170,22 +170,21 @@ class ReadSBtab:
             parameter_name = row["!Name"]
             parameter_value = row["!Value:linspace"]
 
-            original_unit_str = row["!Unit"].replace("liter", "litre")  # Bug in quantities 0.16.1, cant handle liter anymore
-            target_unit_str = original_unit_str.replace("milli", "").replace("nano", "")\
-                .replace("pico", "").replace("femto", "")
+            original_unit_str = row["!Unit"]
 
             nmol_unit = self.unit_dict["nmol_unit"]
             nM_unit = self.unit_dict["nM_unit"]
 
             original_unit = pq.CompoundUnit(original_unit_str)
-            target_unit = pq.CompoundUnit(target_unit_str)
-
-            scale = float(original_unit.rescale(target_unit).base)
+            simplified_unit = original_unit.simplified
+            target_unit_str = str(simplified_unit.units._dimensionality).replace("**", "^")
+            scale = float(simplified_unit.base)
 
             print(f"{original_unit_str = }, {target_unit_str = }, {scale = }")
 
             try:
-                self.parameters[parameter_name] = {"value": parameter_value * scale, "unit": target_unit_str}
+                self.parameters[parameter_name] = {"value": parameter_value * scale,
+                                                   "unit": target_unit_str}
             except:
                 import traceback
                 print(traceback.format_exc())

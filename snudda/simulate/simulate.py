@@ -2197,7 +2197,7 @@ class SnuddaSimulate(object):
         index_ijk = (i, j, k)
 
         # Convert back from RxD millimolar -> molar
-        self.record.add_unit(data_type=species, target_unit="molar", conversion_factor=1e-3)
+        self.record.add_unit(data_type=species, target_unit="mM", conversion_factor=1)
 
         self.record.register_extracellular_data(data=vector, data_type=species, index_ijk=index_ijk,
                                                 ecs=self.extracellular_regions, region_name=volume_id)
@@ -2243,7 +2243,7 @@ class SnuddaSimulate(object):
         vector.record(conc_ref)
 
         # Convert back from RxD millimolar -> molar
-        self.record.add_unit(data_type=species, target_unit="molar", conversion_factor=1e-3)
+        self.record.add_unit(data_type=species, target_unit="mM", conversion_factor=1)
 
         self.record.register_compartment_data(neuron_id=neuron_id,
                                               data_type=species,
