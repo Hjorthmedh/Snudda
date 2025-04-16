@@ -105,7 +105,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_condition": true,
+            "boundary_condition": false,
             "unit": "mM"
         },
         "ATP": {
