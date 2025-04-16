@@ -1,98 +1,98 @@
 {
     "species": {
         "AC5": {
-            "initial_concentration": 0.0007000000000000001,
+            "initial_concentration": 2.6535270834086584e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0007000000000000001,
+            "concentration": 2.6535270834086584e-06,
             "boundary_condition": false,
             "unit": "mM"
         },
         "AC5_ATP": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 0.0006634835226187327,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 0.0006634835226187327,
             "boundary_condition": false,
             "unit": "mM"
         },
         "AC5_Ca": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 1.5922343613460398e-08,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 1.5922343613460398e-08,
             "boundary_condition": false,
             "unit": "mM"
         },
         "AC5_Ca_ATP": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 3.980899954599382e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 3.980899954599382e-06,
             "boundary_condition": false,
             "unit": "mM"
         },
         "AC5_Ca_GaolfGTP": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 7.0699682509208e-10,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 7.0699682509208e-10,
             "boundary_condition": false,
             "unit": "mM"
         },
         "AC5_Ca_GaolfGTP_ATP": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 1.7742100317228343e-07,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 1.7742100317228343e-07,
             "boundary_condition": false,
             "unit": "mM"
         },
         "AC5_GaolfGTP": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 1.1738994631079334e-07,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 1.1738994631079334e-07,
             "boundary_condition": false,
             "unit": "mM"
         },
         "AC5_GaolfGTP_ATP": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 2.9570610053251818e-05,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 2.9570610053251818e-05,
             "boundary_condition": false,
             "unit": "mM"
         },
@@ -105,7 +105,7 @@
                 "dend_internal"
             ],
             "concentration": 0.0,
-            "boundary_condition": false,
+            "boundary_condition": true,
             "unit": "mM"
         },
         "ATP": {
@@ -121,170 +121,170 @@
             "unit": "mM"
         },
         "B56PP2A": {
-            "initial_concentration": 0.0020000000000000005,
+            "initial_concentration": 0.0008850865305730253,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0020000000000000005,
+            "concentration": 0.0008850865305730253,
             "boundary_condition": false,
             "unit": "mM"
         },
         "B56PP2A_D32p75": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 0.0010173607857665195,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 0.0010173607857665195,
             "boundary_condition": false,
             "unit": "mM"
         },
         "B56PP2A_pARPP21": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 3.161357871226027e-05,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 3.161357871226027e-05,
             "boundary_condition": false,
             "unit": "mM"
         },
         "B56PP2Ap": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 1.9965110203858872e-05,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 1.9965110203858872e-05,
             "boundary_condition": false,
             "unit": "mM"
         },
         "B56PP2Ap_D32p75": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 4.043480124941804e-05,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 4.043480124941804e-05,
             "boundary_condition": false,
             "unit": "mM"
         },
         "B56PP2Ap_pARPP21": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 1.1457184997442078e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 1.1457184997442078e-06,
             "boundary_condition": false,
             "unit": "mM"
         },
         "B72PP2A": {
-            "initial_concentration": 0.0020000000000000005,
+            "initial_concentration": 0.0008438247257315753,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0020000000000000005,
+            "concentration": 0.0008438247257315753,
             "boundary_condition": false,
             "unit": "mM"
         },
         "B72PP2A_D32p34": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 1.5034959948047647e-08,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 1.5034959948047647e-08,
             "boundary_condition": false,
             "unit": "mM"
         },
         "B72PP2A_D32p75": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 0.0009699288305602878,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 0.0009699288305602878,
             "boundary_condition": false,
             "unit": "mM"
         },
         "B72PP2A_pARPP21": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 3.0139672460010643e-05,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 3.0139672460010643e-05,
             "boundary_condition": false,
             "unit": "mM"
         },
         "B72PP2A_Ca_D32p34": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 9.021315549508766e-10,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 9.021315549508766e-10,
             "boundary_condition": false,
             "unit": "mM"
         },
         "B72PP2A_Ca_D32p75": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 0.00010255359906574037,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 0.00010255359906574037,
             "boundary_condition": false,
             "unit": "mM"
         },
         "B72PP2A_Ca": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 5.0631388677744636e-05,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 5.0631388677744636e-05,
             "boundary_condition": false,
             "unit": "mM"
         },
         "B72PP2A_Ca_pARPP21": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 2.9058464131464786e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 2.9058464131464786e-06,
             "boundary_condition": false,
             "unit": "mM"
         },
@@ -301,890 +301,890 @@
             "unit": "mM"
         },
         "CaM": {
-            "initial_concentration": 0.009000000000000001,
+            "initial_concentration": 0.0031980661889771584,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.009000000000000001,
+            "concentration": 0.0031980661889771584,
             "boundary_condition": false,
             "unit": "mM"
         },
         "CaM_Ca2": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 5.7565724363696956e-05,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 5.7565724363696956e-05,
             "boundary_condition": false,
             "unit": "mM"
         },
         "CaM_Ca4": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 3.454007236992917e-07,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 3.454007236992917e-07,
             "boundary_condition": false,
             "unit": "mM"
         },
         "CaM_Ca4_pARPP21": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 1.5577113596601367e-05,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 1.5577113596601367e-05,
             "boundary_condition": false,
             "unit": "mM"
         },
         "CaMKII": {
-            "initial_concentration": 0.020000000000000004,
+            "initial_concentration": 0.016793179296055092,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.020000000000000004,
+            "concentration": 0.016793179296055092,
             "boundary_condition": false,
             "unit": "mM"
         },
         "CaMKII_CaM_Ca4": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 1.444159910722798e-05,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 1.444159910722798e-05,
             "boundary_condition": false,
             "unit": "mM"
         },
         "CaMKII_CaM": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 0.0013424891331717476,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 0.0013424891331717476,
             "boundary_condition": false,
             "unit": "mM"
         },
         "CaMKII_CaM_Ca2": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 0.0002413935094419465,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 0.0002413935094419465,
             "boundary_condition": false,
             "unit": "mM"
         },
         "CaMKII_CaM_Ca2_psd": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 2.1280627288295146e-05,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 2.1280627288295146e-05,
             "boundary_condition": false,
             "unit": "mM"
         },
         "CaMKII_CaM_psd": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 0.0001167981894001829,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 0.0001167981894001829,
             "boundary_condition": false,
             "unit": "mM"
         },
         "CaMKII_CaM_Ca4_psd": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 1.318853450778637e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 1.318853450778637e-06,
             "boundary_condition": false,
             "unit": "mM"
         },
         "CaMKII_psd": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 0.0014589422838454694,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 0.0014589422838454694,
             "boundary_condition": false,
             "unit": "mM"
         },
         "cAMP": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 3.80198874583295e-05,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 3.80198874583295e-05,
             "boundary_condition": false,
             "unit": "mM"
         },
         "Substrate": {
-            "initial_concentration": 0.0030000000000000005,
+            "initial_concentration": 0.0028984070954859806,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0030000000000000005,
+            "concentration": 0.0028984070954859806,
             "boundary_condition": false,
             "unit": "mM"
         },
         "CDK5": {
-            "initial_concentration": 0.0018000000000000004,
+            "initial_concentration": 0.0013890479852520046,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0018000000000000004,
+            "concentration": 0.0013890479852520046,
             "boundary_condition": false,
             "unit": "mM"
         },
         "CDK5_D32": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 0.0004109520147479873,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 0.0004109520147479873,
             "boundary_condition": false,
             "unit": "mM"
         },
         "D1R": {
-            "initial_concentration": 0.0020000000000000005,
+            "initial_concentration": 0.0014769984715551417,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0020000000000000005,
+            "concentration": 0.0014769984715551417,
             "boundary_condition": false,
             "unit": "mM"
         },
         "D1R_DA": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 5.959225327877008e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 5.959225327877008e-06,
             "boundary_condition": false,
             "unit": "mM"
         },
         "D1R_Golf_DA": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 2.0089021621628077e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 2.0089021621628077e-06,
             "boundary_condition": false,
             "unit": "mM"
         },
         "D1R_Golf": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 0.0005150334009548121,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 0.0005150334009548121,
             "boundary_condition": false,
             "unit": "mM"
         },
         "D32p34": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 1.4259502938054216e-07,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 1.4259502938054216e-07,
             "boundary_condition": false,
             "unit": "mM"
         },
         "D32p75": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 0.014583500826214287,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 0.014583500826214287,
             "boundary_condition": false,
             "unit": "mM"
         },
         "D32": {
-            "initial_concentration": 0.05000000000000001,
+            "initial_concentration": 0.032543776326520064,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.05000000000000001,
+            "concentration": 0.032543776326520064,
             "boundary_condition": false,
             "unit": "mM"
         },
         "DA": {
-            "initial_concentration": 2.0000000000000005e-05,
+            "initial_concentration": 2e-05,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 2.0000000000000005e-05,
+            "concentration": 2e-05,
             "boundary_condition": true,
             "unit": "mM"
         },
         "GaolfGDP": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 1.008312089516223e-08,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 1.008312089516223e-08,
             "boundary_condition": false,
             "unit": "mM"
         },
         "GaolfGTP": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 8.913481096070968e-09,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 8.913481096070968e-09,
             "boundary_condition": false,
             "unit": "mM"
         },
         "Gbgolf": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 2.988512460155055e-05,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 2.988512460155055e-05,
             "boundary_condition": false,
             "unit": "mM"
         },
         "Golf": {
-            "initial_concentration": 0.0020000000000000005,
+            "initial_concentration": 0.0014530725722815985,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0020000000000000005,
+            "concentration": 0.0014530725722815985,
             "boundary_condition": false,
             "unit": "mM"
         },
         "pCaMKII": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 9.069148501767916e-09,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 9.069148501767916e-09,
             "boundary_condition": false,
             "unit": "mM"
         },
         "pCaMKII_CaM_Ca4": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 1.8438364738294863e-09,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 1.8438364738294863e-09,
             "boundary_condition": false,
             "unit": "mM"
         },
         "pCaMKII_CaM": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 7.2429323413014645e-09,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 7.2429323413014645e-09,
             "boundary_condition": false,
             "unit": "mM"
         },
         "pCaMKII_CaM_Ca2": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 1.5103998778329567e-09,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 1.5103998778329567e-09,
             "boundary_condition": false,
             "unit": "mM"
         },
         "pCaMKII_CaM_Ca2_psd": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 1.3759536167667946e-09,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 1.3759536167667946e-09,
             "boundary_condition": false,
             "unit": "mM"
         },
         "pCaMKII_CaM_psd": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 7.4011728751846884e-09,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 7.4011728751846884e-09,
             "boundary_condition": false,
             "unit": "mM"
         },
         "pCaMKII_CaM_Ca4_psd": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 9.4053433801418e-10,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 9.4053433801418e-10,
             "boundary_condition": false,
             "unit": "mM"
         },
         "pCaMKII_psd": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 9.245488354901304e-09,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 9.245488354901304e-09,
             "boundary_condition": false,
             "unit": "mM"
         },
         "pSubstrate": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 8.138932817992712e-05,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 8.138932817992712e-05,
             "boundary_condition": false,
             "unit": "mM"
         },
         "PDE4": {
-            "initial_concentration": 0.0020000000000000005,
+            "initial_concentration": 0.0015084267780076347,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0020000000000000005,
+            "concentration": 0.0015084267780076347,
             "boundary_condition": false,
             "unit": "mM"
         },
         "PDE4_cAMP": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 0.0004915732219923632,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 0.0004915732219923632,
             "boundary_condition": false,
             "unit": "mM"
         },
         "PDE10r": {
-            "initial_concentration": 0.0007000000000000001,
+            "initial_concentration": 0.0003972079247209547,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0007000000000000001,
+            "concentration": 0.0003972079247209547,
             "boundary_condition": false,
             "unit": "mM"
         },
         "PDE10r_cAMP": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 0.00030203599241888034,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 0.00030203599241888034,
             "boundary_condition": false,
             "unit": "mM"
         },
         "PDE10c": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 5.741678946523919e-07,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 5.741678946523919e-07,
             "boundary_condition": false,
             "unit": "mM"
         },
         "PDE10c_cAMP": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 1.8191496551595204e-07,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 1.8191496551595204e-07,
             "boundary_condition": false,
             "unit": "mM"
         },
         "PKA": {
-            "initial_concentration": 0.0012000000000000001,
+            "initial_concentration": 0.0011396101935999654,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0012000000000000001,
+            "concentration": 0.0011396101935999654,
             "boundary_condition": false,
             "unit": "mM"
         },
         "PKAc": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 2.4847897987928952e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 2.4847897987928952e-06,
             "boundary_condition": false,
             "unit": "mM"
         },
         "PKAc_B56PP2A": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 4.393474995164775e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 4.393474995164775e-06,
             "boundary_condition": false,
             "unit": "mM"
         },
         "PKAc_D32": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 3.850672281460893e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 3.850672281460893e-06,
             "boundary_condition": false,
             "unit": "mM"
         },
         "PKAc_ARPP21": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 1.0120150510006974e-05,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 1.0120150510006974e-05,
             "boundary_condition": false,
             "unit": "mM"
         },
         "PKA_Ca2MP": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 3.2186706990059846e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 3.2186706990059846e-06,
             "boundary_condition": false,
             "unit": "mM"
         },
         "PKA_Ca4MP": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 8.489533258032155e-08,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 8.489533258032155e-08,
             "boundary_condition": false,
             "unit": "mM"
         },
         "PKAc_D32p75": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 3.6237152783041066e-05,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 3.6237152783041066e-05,
             "boundary_condition": false,
             "unit": "mM"
         },
         "PKAreg": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 5.708624036846696e-05,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 5.708624036846696e-05,
             "boundary_condition": false,
             "unit": "mM"
         },
         "PP1": {
-            "initial_concentration": 0.0030000000000000005,
+            "initial_concentration": 0.002730473766226413,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0030000000000000005,
+            "concentration": 0.002730473766226413,
             "boundary_condition": false,
             "unit": "mM"
         },
         "PP1_pCaMKII_psd": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 1.0097776475188849e-08,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 1.0097776475188849e-08,
             "boundary_condition": false,
             "unit": "mM"
         },
         "PP1_pSubstrate": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 1.0101424168429978e-05,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 1.0101424168429978e-05,
             "boundary_condition": false,
             "unit": "mM"
         },
         "PP1_D32p34": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 0.00025941471182866266,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 0.00025941471182866266,
             "boundary_condition": false,
             "unit": "mM"
         },
         "CaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 7.288100754314197e-11,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 7.288100754314197e-11,
             "boundary_condition": false,
             "unit": "mM"
         },
         "pCaMKII_CaM_Ca4_psd_CaMKII_CaM_Ca4_psd": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 1.3651959719768961e-16,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 1.3651959719768961e-16,
             "boundary_condition": false,
             "unit": "mM"
         },
         "CaMKII_CaM_Ca4_CaMKII_CaM_Ca4": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 2.741530845170355e-09,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 2.741530845170355e-09,
             "boundary_condition": false,
             "unit": "mM"
         },
         "pCaMKII_CaM_Ca4_CaMKII_CaM_Ca4": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 2.9273470649711094e-15,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 2.9273470649711094e-15,
             "boundary_condition": false,
             "unit": "mM"
         },
         "PP2B": {
-            "initial_concentration": 0.004000000000000001,
+            "initial_concentration": 1.9403765405336727e-05,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.004000000000000001,
+            "concentration": 1.9403765405336727e-05,
             "boundary_condition": false,
             "unit": "mM"
         },
         "PP2Bc": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 0.00022339761341779533,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 0.00022339761341779533,
             "boundary_condition": false,
             "unit": "mM"
         },
         "PP2Bc_D32p34": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 3.183174686159216e-05,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 3.183174686159216e-05,
             "boundary_condition": false,
             "unit": "mM"
         },
         "PP2B_CaM": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 2.0684842099727534e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 2.0684842099727534e-06,
             "boundary_condition": false,
             "unit": "mM"
         },
         "PP2B_CaM_Ca2": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 0.0037232983901107765,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 0.0037232983901107765,
             "boundary_condition": false,
             "unit": "mM"
         },
         "pARPP21": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 0.0009018726072655162,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 0.0009018726072655162,
             "boundary_condition": false,
             "unit": "mM"
         },
         "ARPP21": {
-            "initial_concentration": 0.020000000000000004,
+            "initial_concentration": 0.01900662531254277,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.020000000000000004,
+            "concentration": 0.01900662531254277,
             "boundary_condition": false,
             "unit": "mM"
         },
         "pCaMKII_psd_Substrate": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 6.699266647473933e-10,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 6.699266647473933e-10,
             "boundary_condition": false,
             "unit": "mM"
         },
         "pCaMKII_CaM_psd_Substrate": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 5.362877569426081e-10,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 5.362877569426081e-10,
             "boundary_condition": false,
             "unit": "mM"
         },
         "pCaMKII_CaM_Ca2_psd_Substrate": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 9.970138356490019e-11,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 9.970138356490019e-11,
             "boundary_condition": false,
             "unit": "mM"
         },
         "pCaMKII_CaM_Ca4_psd_Substrate": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 6.815100661700323e-11,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 6.815100661700323e-11,
             "boundary_condition": false,
             "unit": "mM"
         },
         "CaMKII_CaM_psd_Substrate": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 8.463216018047913e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 8.463216018047913e-06,
             "boundary_condition": false,
             "unit": "mM"
         },
         "CaMKII_CaM_Ca2_psd_Substrate": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 1.5419977434865209e-06,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 1.5419977434865209e-06,
             "boundary_condition": false,
             "unit": "mM"
         },
         "CaMKII_CaM_Ca4_psd_Substrate": {
-            "initial_concentration": 0.0,
+            "initial_concentration": 9.556433733011215e-08,
             "diffusion_constant": 0,
             "charge": 0,
             "regions": [
                 "soma_internal",
                 "dend_internal"
             ],
-            "concentration": 0.0,
+            "concentration": 9.556433733011215e-08,
             "boundary_condition": false,
             "unit": "mM"
         }
