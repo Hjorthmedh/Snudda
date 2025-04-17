@@ -1,0 +1,1 @@
+python ~/HBP/Snudda/snudda/utils/extract_steady_state_values.py data/JSON/reaction_diffusion_D1_from_SBTab.json networks/neuromodulation_bath_current_equilibrium/simulation/output_neuromodulation_ON.hdf5 --neuron_id 0
