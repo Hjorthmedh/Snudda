@@ -17,7 +17,8 @@ psutil >= 7.0.0
 cython  # Needed for compiling NEURON
 wheel  # setup.py seems to need this now
 open3d >= 0.18.0
-ruamel.yaml>=0.18.10  
+ruamel.yaml>=0.18.10
+quantities>=0.16.2
 # igraph
 # snudda
 

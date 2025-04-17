@@ -312,7 +312,7 @@ class SnuddaPlace(object):
 
     ############################################################################
 
-    def parse_config(self, config_file=None, resort_neurons=True):
+    def parse_config(self, config_file=None, resort_neurons=False):
 
         """ Pase network config_file"""
 

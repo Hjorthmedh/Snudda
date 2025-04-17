@@ -139,7 +139,6 @@ class NeuronModulation:
 
         return species_list
 
-
     def add_decay(self, species_name, decay_rate):
 
         species = self.species[species_name]
@@ -369,7 +368,7 @@ class NeuronModulation:
         # print(f"Parsing species")
 
         for species_name, species_data in self.config_data.get("species", {}).items():
-            initial_concentration = species_data.get("initial_concentration", 0) * 1e3  # Convert to millimolar for RxD
+            initial_concentration = species_data.get("initial_concentration", 0)   # mM = molar / m3
             diffusion_constant = species_data.get("diffusion_constant", 0)
             charge = species_data.get("charge", 0)
             regions = species_data.get("regions", ("soma_internal", "dendrites_internal"))
@@ -458,24 +457,26 @@ class NeuronModulation:
                 left_side = eval(reaction_data["reactants"])
                 right_side = eval(reaction_data["products"])
 
-                try:
-                    # Ta inte bort ettan (Do not remove the 1) -- or else...
-                    n_left = sum((left_side*1)._items.values())
-                    n_right = sum((right_side*1)._items.values())
-                except:
-                    import traceback
-                    print(traceback.format_exc())
-                    import pdb
-                    pdb.set_trace()
-
-                assert n_left >= 1 and n_right >= 1
+                # try:
+                #     # Ta inte bort ettan (Do not remove the 1) -- or else...
+                #     n_left = sum((left_side*1)._items.values())
+                #     n_right = sum((right_side*1)._items.values())
+                # except:
+                #     import traceback
+                #     print(traceback.format_exc())
+                #     import pdb
+                #     pdb.set_trace()
+                #
+                # assert n_left >= 1 and n_right >= 1
 
                 # First 1e3 is for 1/second to 1/ms, second term is to correct for concentration
-                left_scale_from_SI = 1e-3 * 1e-3 ** (n_left - 1)
-                right_scale_from_SI = 1e-3 * 1e-3 ** (n_right - 1)
+                # 2025-04-14: We switched to mM for conc units in Snudda (SI unit), which is same as RxD
+                #             so only need to convert s -> ms (for RxD)
+                left_scale_from_si = 1e-3   # * 1e-3 ** (n_left - 1)  -- NO LONGER NEEDED
+                right_scale_from_si = 1e-3   # * 1e-3 ** (n_right - 1) -- NO LONGER NEEDED, use mM in Snudda and RxD
 
-                scaled_forward_rate = forward_rate * left_scale_from_SI if forward_rate is not None else forward_rate
-                scaled_backward_rate = backward_rate * right_scale_from_SI if backward_rate is not None else backward_rate
+                scaled_forward_rate = forward_rate * left_scale_from_si if forward_rate is not None else forward_rate
+                scaled_backward_rate = backward_rate * right_scale_from_si if backward_rate is not None else backward_rate
 
                 print(f"Reaction name: {reaction_name}, left: {left_side}, right: {right_side}")
                 print(f"k_forward: {forward_rate} (scaled: {scaled_forward_rate})")
@@ -500,7 +501,7 @@ class NeuronModulation:
     def concentration_from_vector(self, species_name, concentration_vector, time_vector, interpolate=True):
 
         # Loops over all nodes in node_cache, and sets a vector to play
-        print(f"Playing concentration vector for {species_name} in all neurons.")
+        print(f"Playing concentration vector for {species_name} in all compartments.")
 
         if self.node_cache is None:
             raise ValueError("node_cache not build (build_node_cache)")
@@ -509,6 +510,8 @@ class NeuronModulation:
             raise ValueError(f"{species_name} not present in node_cache, does {self.neuron.name} have RxD species?")
 
         for region_name, node_dictionary in self.node_cache[species_name].items():
+
             for node_name, node_data in node_dictionary.items():
                 for nd in node_data[0]:
                     concentration_vector.play(nd._ref_concentration, time_vector, interpolate)
+

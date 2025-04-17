@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "snudda"
-version = "2.1.10"
+version = "2.1.14"
 description = "Create realistic networks of neurons, synapses placed using touch detection between axons and dendrites."
 authors = [{ name = "Johannes Hjorth", email = "hjorth@kth.se" }]
 dependencies = [
@@ -30,3 +30,5 @@ dynamic = ["license", "classifiers", "scripts", "optional-dependencies"]
 
 
 [tool.setuptools]
+packages = ["snudda"]  # Define your package
+include-package-data = true  # Include data files specified in MANIFEST.in

@@ -79,8 +79,7 @@ class NeuromodulationTestCase(unittest.TestCase):
                                         sec_x=0.5)
 
         # Add DA synapse
-
-        #da_syn = h.DASyn(soma(0.5))
+        # da_syn = h.DASyn(soma(0.5))
         mod_file = "DASyn"
         eval_str = f"self.sim.sim.neuron.h.{mod_file}"
         channel_module = eval(eval_str)
@@ -96,7 +95,7 @@ class NeuromodulationTestCase(unittest.TestCase):
         net_stim.interval = 5
 
         nc = self.sim.sim.neuron.h.NetCon(net_stim, da_syn)
-        nc.weight[0] = 100_000_000.0   #units : molecules/ms
+        nc.weight[0] = 100_000_000.0   # units : molecules/ms
 
         self.sim.neurons[0].modulation.link_synapse(species_name="DA",
                                                     region="soma_internal",
@@ -121,12 +120,12 @@ class NeuromodulationTestCase(unittest.TestCase):
         data_pka = nd.get_data("membrane.PKAi", 0)[0][0]
 
         self.assertTrue(np.max(np.abs(data_a[0][0][0] - 0)) < 1e-7)
-        self.assertTrue(np.max(np.abs(data_b[0][0][0] - 0.7e-3)) < 1e-7)
-        self.assertTrue(np.max(np.abs(data_ab[0][0][0] - 0.1e-3)) < 1e-7)
+        self.assertTrue(np.max(np.abs(data_b[0][0][0] - 0.7)) < 1e-7)
+        self.assertTrue(np.max(np.abs(data_ab[0][0][0] - 0.1)) < 1e-7)
 
-        #self.assertTrue(data_a[0][0][-1] < data_a[0][0][0])
-        #self.assertTrue(data_b[0][0][-1] < data_b[0][0][0])
-        #self.assertTrue(data_ab[0][0][-1] > data_ab[0][0][0])
+        # self.assertTrue(data_a[0][0][-1] < data_a[0][0][0])
+        # self.assertTrue(data_b[0][0][-1] < data_b[0][0][0])
+        # self.assertTrue(data_ab[0][0][-1] > data_ab[0][0][0])
 
         # Plot A, B, PKA activity
         da = data_a[0][0]

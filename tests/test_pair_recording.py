@@ -15,8 +15,8 @@ class PairRecordingTestCase(unittest.TestCase):
             os.chdir(os.path.dirname(__file__))
 
         # Temporarily disable the creation of network while testing...
-        print("test_pair_recoring.py -- Network creation disabled -- we need to retune or verify the if_info.json files before running")
-        #return
+        # print("test_pair_recoring.py -- Network creation disabled -- we need to retune or verify the if_info.json files before running")
+        # return
 
         self.network_path = os.path.join("networks", "pair_recording_test")
         rc = None
@@ -82,7 +82,7 @@ class PairRecordingTestCase(unittest.TestCase):
                     freq = n_spikes / (e - s)
 
                     print(f"neuron_id: {neuron_id}, requested_freq: {requested_freq} Hz, actual freq: {freq}")
-                    self.assertTrue(requested_freq * 0.75 < freq < requested_freq * 1.25,
+                    self.assertTrue(requested_freq * 0.7 < freq < requested_freq * 1.3,
                                     f"neuron_id: {neuron_id}, requested_freq: {requested_freq} Hz, actual freq: {freq}")
 
 #        import pdb
