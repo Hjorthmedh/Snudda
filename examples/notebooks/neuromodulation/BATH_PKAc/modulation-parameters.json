@@ -1,0 +1,208 @@
+{
+    "abc": [
+        {
+            "param_name": "mod_pka_g_min_kir_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 0.75
+        },
+        {
+            "param_name": "mod_pka_g_max_kir_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 1.25
+        },
+        {
+            "param_name": "mod_pka_g_half_kir_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 3.6e-6
+        },
+        {
+            "param_name": "mod_pka_g_slope_kir_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 10e-6
+        },
+        {
+            "param_name": "mod_pka_g_min_cal12_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 0.8
+        },
+        {
+            "param_name": "mod_pka_g_max_cal12_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 1.20
+        },
+        {
+            "param_name": "mod_pka_g_half_cal12_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 3.6e-6
+        },
+        {
+            "param_name": "mod_pka_g_slope_cal12_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 10e-6
+        },
+        {
+            "param_name": "mod_pka_g_min_cal13_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 0.8
+        },
+        {
+            "param_name": "mod_pka_g_max_cal13_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 1.20
+        },
+        {
+            "param_name": "mod_pka_g_half_cal13_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 3.6e-6
+        },
+        {
+            "param_name": "mod_pka_g_slope_cal13_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 10e-6
+        },
+        {
+            "param_name": "mod_pka_g_min_naf_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 1.1
+        },
+        {
+            "param_name": "mod_pka_g_max_naf_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 0.9
+        },
+        {
+            "param_name": "mod_pka_g_half_naf_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 3.6e-6
+        },
+        {
+            "param_name": "mod_pka_g_slope_naf_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 10e-6
+        },
+
+        {
+            "param_name": "mod_pka_g_min_kas_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 1.2
+        },
+        {
+            "param_name": "mod_pka_g_max_kas_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 0.8
+        },
+        {
+            "param_name": "mod_pka_g_half_kas_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 3.6e-6
+        },
+        {
+            "param_name": "mod_pka_g_slope_kas_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 10e-6
+        },
+
+	
+        {
+            "param_name": "mod_pka_g_min_kaf_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 1
+        },
+        {
+            "param_name": "mod_pka_g_max_kaf_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 0.9999
+        },
+        {
+            "param_name": "mod_pka_g_half_kaf_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 3.6e-6
+        },
+        {
+            "param_name": "mod_pka_g_slope_kaf_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 10e-6
+        },
+
+
+        {
+            "param_name": "mod_pka_shift_min_kaf_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": -3
+        },
+        {
+            "param_name": "mod_pka_shift_max_kaf_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 3
+        },
+        {
+            "param_name": "mod_pka_shift_half_kaf_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 3.6e-6
+        },
+        {
+            "param_name": "mod_pka_shift_slope_kaf_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 10e-6
+        }
+	
+	
+	
+    ]
+}
