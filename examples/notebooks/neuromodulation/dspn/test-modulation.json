@@ -26,7 +26,7 @@
             "type": "range",
             "sectionlist": ["soma", "basal"],
             "dist_type": "uniform",
-            "value": 100e-6
+            "value": 10e-6
         },
         {
             "param_name": "mod_pka_g_min_cal12_ms",
@@ -54,7 +54,7 @@
             "type": "range",
             "sectionlist": ["soma", "basal"],
             "dist_type": "uniform",
-            "value": 100e-6
+            "value": 10e-6
         },
         {
             "param_name": "mod_pka_g_min_cal13_ms",
@@ -82,7 +82,7 @@
             "type": "range",
             "sectionlist": ["soma", "basal"],
             "dist_type": "uniform",
-            "value": 100e-6
+            "value": 10e-6
         },
         {
             "param_name": "mod_pka_g_min_naf_ms",
@@ -110,7 +110,7 @@
             "type": "range",
             "sectionlist": ["soma", "basal"],
             "dist_type": "uniform",
-            "value": 100e-6
+            "value": 10e-6
         },
 
         {
@@ -139,7 +139,7 @@
             "type": "range",
             "sectionlist": ["soma", "basal"],
             "dist_type": "uniform",
-            "value": 100e-6
+            "value": 10e-6
         },
 
 	
@@ -169,7 +169,7 @@
             "type": "range",
             "sectionlist": ["soma", "basal"],
             "dist_type": "uniform",
-            "value": 100e-6
+            "value": 10e-6
         },
 
 
@@ -199,7 +199,7 @@
             "type": "range",
             "sectionlist": ["soma", "basal"],
             "dist_type": "uniform",
-            "value": 100e-6
+            "value": 10e-6
         }
 	
 	
