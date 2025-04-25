@@ -86,28 +86,28 @@
         },
 
         {
-            "param_name": "mod_pka_p_min_caq_ms",
+            "param_name": "mod_pka_p_min_car_ms",
             "type": "range",
             "sectionlist": ["soma", "basal"],
             "dist_type": "uniform",
             "value": 0.8
         },
         {
-            "param_name": "mod_pka_p_max_caq_ms",
+            "param_name": "mod_pka_p_max_car_ms",
             "type": "range",
             "sectionlist": ["soma", "basal"],
             "dist_type": "uniform",
             "value": 1.0
         },
         {
-            "param_name": "mod_pka_p_half_caq_ms",
+            "param_name": "mod_pka_p_half_car_ms",
             "type": "range",
             "sectionlist": ["soma", "basal"],
             "dist_type": "uniform",
             "value": 2.0e-6
         },
         {
-            "param_name": "mod_pka_p_hill_caq_ms",
+            "param_name": "mod_pka_p_hill_car_ms",
             "type": "range",
             "sectionlist": ["soma", "basal"],
             "dist_type": "uniform",
@@ -115,28 +115,28 @@
         },
 
         {
-            "param_name": "mod_pka_p2_min_caq_ms",
+            "param_name": "mod_pka_p2_min_car_ms",
             "type": "range",
             "sectionlist": ["soma", "basal"],
             "dist_type": "uniform",
             "value": 1
         },
         {
-            "param_name": "mod_pka_p2_max_caq_ms",
+            "param_name": "mod_pka_p2_max_car_ms",
             "type": "range",
             "sectionlist": ["soma", "basal"],
             "dist_type": "uniform",
             "value": 0.8
         },
         {
-            "param_name": "mod_pka_p2_half_caq_ms",
+            "param_name": "mod_pka_p2_half_car_ms",
             "type": "range",
             "sectionlist": ["soma", "basal"],
             "dist_type": "uniform",
             "value": 10e-6
         },
         {
-            "param_name": "mod_pka_p2_hill_caq_ms",
+            "param_name": "mod_pka_p2_hill_car_ms",
             "type": "range",
             "sectionlist": ["soma", "basal"],
             "dist_type": "uniform",
