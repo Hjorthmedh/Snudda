@@ -57,13 +57,15 @@
 	    "species_name" : "PKAc",
             "time": [0, 1, 1, 1.4, 1.4, 20],
             "concentration": [3.6e-6, 3.6e-6, 36e-6, 36e-6, 3.6e-6, 3.6e-6],
-	    "neuron_type": "dSPN"
+	    "neuron_type": "dSPN",
+	    "interpolate": true
         },
 	{
 	    "species_name" : "PKAc",
             "time": [0, 1, 1, 1.4, 1.4, 20],
             "concentration": [3.6e-6, 3.6e-6, 1.8e-6, 1.8e-6, 3.6e-6, 3.6e-6],
-	    "neuron_type": "iSPN"
+	    "neuron_type": "iSPN",
+	    "interpolate": true
         }
 
     ],
