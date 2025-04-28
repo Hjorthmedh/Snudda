@@ -495,6 +495,19 @@ class SnuddaSimulate(object):
                         bath_time = np.array(bath_info["time"])
                         bath_conc = np.array(bath_info["concentration"])
                         neuron_id = bath_info.get("neuron_id", None)
+
+                        neuron_type = bath_info.get("neuron_type", None)
+
+                        if neuron_type is not None:
+                            if neuron_id is None:
+                                neuron_id = self.snudda_loader.get_neuron_id_of_type(neuron_type)
+                                print(f"Adding bath application of {species_name} to all neurons of type {neuron_type}, "
+                                      f"e.g {neuron_id =} ")
+
+                            else:
+                                neuron_id = np.array(list(set(neuron_id).union(
+                                    set(self.snudda_loader.get_neuron_id_of_type(neuron_type)))))
+
                         interpolate_bath = bath_info.get("interpolate", False)
 
                         self.add_bath_application(species_name=species_name,
@@ -2307,9 +2320,6 @@ class SnuddaSimulate(object):
 
         if self.verbose:
             self.write_log(f"Bath application t={time*1e3}ms, conc={concentration} mM")
-
-        if species_name is self.bath_application:
-            raise KeyError(f"Bath application already applied for {species_name}")
 
         conc_vect = self.sim.neuron.h.Vector(concentration)  # millimolar = M/m3
         t_vect = self.sim.neuron.h.Vector(time * 1e3)  # s -> ms

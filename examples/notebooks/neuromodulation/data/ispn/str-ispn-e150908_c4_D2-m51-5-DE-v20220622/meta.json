@@ -1,0 +1,3624 @@
+{
+    "p28cfce6e": {
+        "m3a845add": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var3.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 120,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 120,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 32,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 17,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "m6486ed26": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var7.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 120,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 120,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 48,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 23,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "m69613ef9": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var4.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 37,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 19,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "m7bc82287": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var2.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 42,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 21,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "m7d1b0740": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var8.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 54,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 54,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 43,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 20,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "mc16840cd": {
+            "morphology": "51-5-DE-cor-rep-ax-res3.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 40,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 19,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "md0f5647c": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var1.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 49,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 23,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "mdefb8b16": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var6.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 54,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 54,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 41,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 19,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "mf2f3395e": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var5.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 104,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 104,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 54,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 26,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        }
+    },
+    "p4c27a9b9": {
+        "m3a845add": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var3.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 58,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 27,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "m6486ed26": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var7.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 104,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 104,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 57,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 26,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "m69613ef9": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var4.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 50,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 24,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "m7bc82287": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var2.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 56,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 26,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "m7d1b0740": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var8.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 104,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 104,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 45,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 22,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "mc16840cd": {
+            "morphology": "51-5-DE-cor-rep-ax-res3.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 60,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 28,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "md0f5647c": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var1.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 54,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 26,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "mdefb8b16": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var6.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 46,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 23,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "mf2f3395e": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var5.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 104,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 104,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 50,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 24,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        }
+    },
+    "p4d648785": {
+        "m3a845add": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var3.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 55,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 26,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "m6486ed26": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var7.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 104,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 104,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 54,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 24,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "m69613ef9": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var4.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 46,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 22,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "m7bc82287": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var2.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 50,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 24,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "m7d1b0740": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var8.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 43,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 21,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "mc16840cd": {
+            "morphology": "51-5-DE-cor-rep-ax-res3.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 43,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 20,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "md0f5647c": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var1.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 49,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 23,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "mdefb8b16": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var6.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 54,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 54,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 52,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 26,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "mf2f3395e": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var5.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 62,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 28,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        }
+    },
+    "p638990f1": {
+        "m3a845add": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var3.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 56,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 27,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "m69613ef9": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var4.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 51,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 25,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "m7bc82287": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var2.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 44,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 21,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "m7d1b0740": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var8.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 51,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 25,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "mc16840cd": {
+            "morphology": "51-5-DE-cor-rep-ax-res3.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 49,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 23,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "md0f5647c": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var1.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 64,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 30,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "mdefb8b16": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var6.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 49,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 22,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        }
+    },
+    "p9acbbe97": {
+        "m69613ef9": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var4.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 36,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 18,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "m7bc82287": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var2.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 47,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 25,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "m7d1b0740": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var8.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 59,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 29,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "mc16840cd": {
+            "morphology": "51-5-DE-cor-rep-ax-res3.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 47,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 23,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "md0f5647c": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var1.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 37,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 20,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "mdefb8b16": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var6.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 49,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 24,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        }
+    },
+    "p9ece69f7": {
+        "m69613ef9": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var4.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 45,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 21,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "m7d1b0740": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var8.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 48,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 25,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "mdefb8b16": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var6.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 41,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 20,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        }
+    },
+    "pa5b4192d": {
+        "m3a845add": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var3.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 59,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 26,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "m6486ed26": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var7.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 104,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 104,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 56,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 25,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "m69613ef9": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var4.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 47,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 23,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "m7bc82287": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var2.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 50,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 26,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "m7d1b0740": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var8.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 45,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 21,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "mc16840cd": {
+            "morphology": "51-5-DE-cor-rep-ax-res3.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 58,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 27,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "md0f5647c": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var1.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 50,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 25,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "mdefb8b16": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var6.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 47,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 21,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "mf2f3395e": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var5.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 104,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 104,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 51,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 24,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        }
+    },
+    "pa8ced85f": {
+        "m3a845add": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var3.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 45,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 23,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "m6486ed26": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var7.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 104,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 104,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 38,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 18,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "m69613ef9": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var4.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 50,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 23,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "m7bc82287": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var2.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 38,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 20,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "m7d1b0740": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var8.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 39,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 20,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "mc16840cd": {
+            "morphology": "51-5-DE-cor-rep-ax-res3.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 40,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 20,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "md0f5647c": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var1.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 43,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 21,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "mdefb8b16": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var6.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 47,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 23,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "mf2f3395e": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var5.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 104,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 104,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 34,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 17,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        }
+    },
+    "pbed7ecce": {
+        "m3a845add": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var3.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 51,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 25,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "m69613ef9": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var4.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 51,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 23,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "m7bc82287": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var2.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 40,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 19,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "m7d1b0740": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var8.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 48,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 24,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "mc16840cd": {
+            "morphology": "51-5-DE-cor-rep-ax-res3.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 42,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 21,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "md0f5647c": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var1.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 87,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 50,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 23,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        },
+        "mdefb8b16": {
+            "morphology": "51-5-DE-cor-rep-ax-res3-var6.swc",
+            "input": {
+                "cortical_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic_background": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 71,
+                    "frequency": 2,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                },
+                "cortical": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+                    "num_inputs": 46,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+                },
+                "thalamic": {
+                    "generator": "poisson",
+                    "type": "AMPA_NMDA",
+                    "synapse_density": "0.05*exp(-d/200e-6)",
+                    "num_inputs": 23,
+                    "frequency": 0.0,
+                    "population_unit_correlation": 0.0,
+                    "jitter": 0.0,
+                    "conductance": 5e-10,
+                    "mod_file": "tmGlut",
+                    "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+                }
+            }
+        }
+    }
+}
