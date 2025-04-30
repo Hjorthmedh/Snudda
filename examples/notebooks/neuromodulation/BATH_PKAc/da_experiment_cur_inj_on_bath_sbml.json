@@ -3,53 +3,70 @@
     "output_file": "../networks/neuromodulation_PKAc_clamp/simulation/output_neuromodulation_ON.hdf5",
     "log_file": "../networks/neuromodulation_PKAc_clamp/log/network-simulation-ON.txt",
     "time": 5,
-    "sim_dt": 0.005,
+    "!sim_dt": 0.005,
     "record_all_soma": true,
     "use_rxd_neuromodulation": false,
 
-    "record_rxd_species_all": [0, 1],
+    "record_rxd_species_all": [0, 1, 2, 3, 4, 5, 6, 7],
     "record_density_mechanism": {	
 	"kir_ms.modulation_factor": {
-	    "neuron_id": [0, 1],
-	    "section_id": [-1, -1],
-	    "section_x": [0.5, 0.5]
+	    "neuron_id": [0, 1, 2, 3, 4, 5, 6, 7],
+	    "section_id": [-1, -1, -1, -1, -1, -1, -1, -1],
+	    "section_x": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
 	},
 	"cal12_ms.modulation_factor": {
-	    "neuron_id": [0, 1],
-	    "section_id": [-1, -1],
-	    "section_x": [0.5, 0.5]
+	    "neuron_id": [0, 1, 2, 3, 4, 5, 6, 7],
+	    "section_id": [-1, -1, -1, -1, -1, -1, -1, -1],
+	    "section_x": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
 	},
 	"cal13_ms.modulation_factor": {
-	    "neuron_id": [0, 1],
-	    "section_id": [-1, -1],
-	    "section_x": [0.5, 0.5]
+	    "neuron_id": [0, 1, 2, 3, 4, 5, 6, 7],
+	    "section_id": [-1, -1, -1, -1, -1, -1, -1, -1],
+	    "section_x": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
 	},
 	"car_ms.modulation_factor": {
-	    "neuron_id": [0, 1],
-	    "section_id": [-1, -1],
-	    "section_x": [0.5, 0.5]
+	    "neuron_id": [0, 1, 2, 3, 4, 5, 6, 7],
+	    "section_id": [-1, -1, -1, -1, -1, -1, -1, -1],
+	    "section_x": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
 	},
 	"car_ms.modulation_factor2": {
-	    "neuron_id": [0, 1],
-	    "section_id": [-1, -1],
-	    "section_x": [0.5, 0.5]
+	    "neuron_id": [0, 1, 2, 3, 4, 5, 6, 7],
+	    "section_id": [-1, -1, -1, -1, -1, -1, -1, -1],
+	    "section_x": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
 	},
 	
 	"naf_ms.modulation_factor": {
-	    "neuron_id": [0, 1],
-	    "section_id": [-1, -1],
-	    "section_x": [0.5, 0.5]
+	    "neuron_id": [0, 1, 2, 3, 4, 5, 6, 7],
+	    "section_id": [-1, -1, -1, -1, -1, -1, -1, -1],
+	    "section_x": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
 	},
 	"kaf_ms.modulation_factor_g": {
-	    "neuron_id": [0, 1],
-	    "section_id": [-1, -1],
-	    "section_x": [0.5, 0.5]
+	    "neuron_id": [0, 1, 2, 3, 4, 5, 6, 7],
+	    "section_id": [-1, -1, -1, -1, -1, -1, -1, -1],
+	    "section_x": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
 	},
 	"kaf_ms.modulation_factor_shift": {
-	    "neuron_id": [0, 1],
-	    "section_id": [-1, -1],
-	    "section_x": [0.5, 0.5]
+	    "neuron_id": [0, 1, 2, 3, 4, 5, 6, 7],
+	    "section_id": [-1, -1, -1, -1, -1, -1, -1, -1],
+	    "section_x": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+	},
+	"sk_ms.modulation_factor": {
+	    "neuron_id": [0, 1, 2, 3, 4, 5, 6, 7],
+	    "section_id": [-1, -1, -1, -1, -1, -1, -1, -1],
+	    "section_x": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+	},
+	"sk_ms.o": {
+	    "neuron_id": [0, 1, 2, 3, 4, 5, 6, 7],
+	    "section_id": [-1, -1, -1, -1, -1, -1, -1, -1],
+	    "section_x": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+	},
+	"bk_ms.o": {
+	    "neuron_id": [0, 1, 2, 3, 4, 5, 6, 7],
+	    "section_id": [-1, -1, -1, -1, -1, -1, -1, -1],
+	    "section_x": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
 	}	
+
+	
     },
     "rxd_enable_extracellular": false,
     "bath_application": [
@@ -70,5 +87,5 @@
 
     ],
     
-    "current_injection_file": "bath_current_injection.json"
+    "current_injection_file": "bath_current_injection10.json"
 }

@@ -3,7 +3,7 @@
     "output_file": "../networks/neuromodulation_PKAc_clamp/simulation/output_neuromodulation_OFF.hdf5",
     "log_file": "../networks/neuromodulation_PKAc_clamp/log/network-simulation-OFF.txt",
     "time": 5,
-    "sim_dt": 0.005,
+    "!sim_dt": 0.005,
     "record_all_soma": true,
     "use_rxd_neuromodulation": false,
 
@@ -52,5 +52,5 @@
 	}	
     },
     "rxd_enable_extracellular": false,
-    "current_injection_file": "bath_current_injection.json"
+    "current_injection_file": "bath_current_injection10.json"
 }
