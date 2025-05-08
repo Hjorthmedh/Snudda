@@ -1,0 +1,119 @@
+{
+    "abc": [
+        {
+            "param_name": "mod_pka_g_min_sk_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 1.8
+        },
+        {
+            "param_name": "mod_pka_g_max_sk_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 0.2
+        },
+        {
+            "param_name": "mod_pka_g_half_sk_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 3.6e-6
+        },
+        {
+            "param_name": "mod_pka_g_hill_sk_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 4
+        },
+	
+        {
+            "param_name": "mod_pka_g_min_kas_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 1.2
+        },
+        {
+            "param_name": "mod_pka_g_max_kas_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 0.8
+        },
+        {
+            "param_name": "mod_pka_g_half_kas_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 3.6e-6
+        },
+        {
+            "param_name": "mod_pka_g_hill_kas_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 2
+        },
+
+        {
+            "param_name": "mod_pka_p_min_cal12_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 0.8
+        },
+        {
+            "param_name": "mod_pka_p_max_cal12_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 1.20
+        },
+        {
+            "param_name": "mod_pka_p_half_cal12_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 3.6e-6
+        },
+        {
+            "param_name": "mod_pka_p_hill_cal12_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 4
+        },
+        {
+            "param_name": "mod_pka_p_min_cal13_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 0.8
+        },
+        {
+            "param_name": "mod_pka_p_max_cal13_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 1.20
+        },
+        {
+            "param_name": "mod_pka_p_half_cal13_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 3.6e-6
+        },
+        {
+            "param_name": "mod_pka_p_hill_cal13_ms",
+            "type": "range",
+            "sectionlist": ["soma", "basal"],
+            "dist_type": "uniform",
+            "value": 4
+        }
+	
+    ]
+}
