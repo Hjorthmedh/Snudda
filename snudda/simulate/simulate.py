@@ -319,9 +319,19 @@ class SnuddaSimulate(object):
         # Make sure the output dir exists, so we don't fail at end because we cant write file
         self.create_dir(os.path.join("save", "traces"))
 
-        self.conv_factor = {"tauR": 1e3,
-                            "tauF": 1e3,
-                            "tau": 1e3}
+        conversion_factor_lookup_file = os.path.join(os.path.dirname(__file__), "..", "convert_units.json")
+        if os.path.isfile(conversion_factor_lookup_file):
+            with open(conversion_factor_lookup_file, "r") as f:
+                self.conv_factor = json.load(f)
+        else:
+            self.conv_factor = {}
+
+        if self.verbose:
+            print(f"Using conversion factor lookup for mod files: {self.conv_factor}")
+
+#            self.conv_factor = {"tauR": 1e3,
+#                            "tauF": 1e3,
+#                            "tau": 1e3}
 
         # We need to initialise random streams, see Lytton el at 2016 (p2072)
 
