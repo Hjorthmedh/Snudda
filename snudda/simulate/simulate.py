@@ -2017,7 +2017,16 @@ class SnuddaSimulate(object):
 
         segment = self.neurons[neuron_id].map_id_to_compartment(sec_id)(sec_x)
         mech = getattr(segment, density_mechanism)
-        var = getattr(mech, f"_ref_{variable}")
+        try:
+            # print(f"Trying : add_density_mechanism_recording: {density_mechanism =}, {variable =}, "
+            #                f"{neuron_id =}, {sec_id =}, {sec_x =}\n")
+            var = getattr(mech, f"_ref_{variable}")
+        except Exception as e:
+            self.write_log(f"add_density_mechanism_recording: {density_mechanism =}, {variable =}, "
+                           f"{neuron_id =}, {sec_id =}, {sec_x =}\n"
+                           f"{e}", is_error=True)
+            raise e
+
         data = self.sim.neuron.h.Vector().record(var)
 
         self.record.register_compartment_data(data_type=f"{density_mechanism}.{variable}",

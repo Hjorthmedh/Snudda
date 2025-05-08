@@ -191,6 +191,9 @@ class Snudda(object):
 
         n_total = np.sum(number_of_neurons)
 
+        if snudda_data is None:
+            print(f"Warning, no snudda_data set!")
+
         si = SnuddaInit(network_path=self.network_path,
                         snudda_data=snudda_data,
                         random_seed=random_seed)

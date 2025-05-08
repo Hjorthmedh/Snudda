@@ -12,14 +12,13 @@ class TestSnuddaPath(unittest.TestCase):
         self.assertEqual(snudda_parse_path("$SNUDDA_DATA/test", "abc/def/"),
                          os.path.abspath(os.path.join(os.path.dirname(__file__), "abc/def/test")))
 
-
-
     def test_get(self):
 
         self.assertEqual(get_snudda_data(),
                          os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "snudda", "data")))
 
-        self.assertEqual(get_snudda_data(snudda_data="/abc"), "/abc")
+        self.assertEqual(get_snudda_data(snudda_data=os.path.dirname(__file__)),
+                         os.path.dirname(__file__))
 
         # A few more cases to test...
 

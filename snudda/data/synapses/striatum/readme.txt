@@ -9,7 +9,3 @@ See SynapticFitting/runPlanert2010.sh which uses
 
 Planert2010.py and Planert2010part2.py
 
-
-Recordings are made on the right hand side so:
-
-RH are ipsilateral connections, and LH are contralateral

@@ -1,21 +1,35 @@
 {
     "dSPN": {
-	"cortical": {
+	"!cortical_extra": {
 	    "generator": "poisson",
-	    "start": 0,
-	    "end": 1,
-	    "frequency": 10,
-	    "cluster_size": 5,
-	    "cluster_spread": 2e-5,
-	    "conductance": 0.5e-9
+	    "start": 1.2,
+	    "end": 1.4,
+	    "frequency": 40,
+	    "correlation": 1,
+	    "cluster_size": 30,
+	    "cluster_spread": 1e-5,
+	    "conductance": 0.5e-9,
+	    "num_inputs": 30,
+	    "mod_file": "tmGlut",
+	    "synapse_density": "d**2",
+	    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json"
+	},
+	"cortical_background": {
+	    "generator": "poisson",
+	    "frequency": 1.6
+	},
+	"thalamic_background": {
+	    "generator": "poisson",
+	    "frequency": 1.6
 	}
+
     },
     "iSPN": {
 	"cortical": {
 	    "generator": "poisson",
 	    "start": 0,
-	    "end": 1,
-	    "frequency": 10,
+	    "end": 2,
+	    "frequency": 3,
 	    "cluster_size": 5,
 	    "cluster_spread": 2e-5,
 	    "conductance": 0.5e-9
