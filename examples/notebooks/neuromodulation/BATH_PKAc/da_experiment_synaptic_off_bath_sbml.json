@@ -1,0 +1,56 @@
+{
+    "network_file": "../networks/neuromodulation_PKAc_synaptic_input/network-synapses.hdf5",
+    "output_file": "../networks/neuromodulation_PKAc_synaptic_input/simulation/output_neuromodulation_OFF.hdf5",
+    "log_file": "../networks/neuromodulation_PKAc_synaptic_input/log/network-simulation-OFF.txt",
+    "time": 5,
+    "!sim_dt": 0.005,
+    "record_all_soma": true,
+    "use_rxd_neuromodulation": false,
+
+    "record_rxd_species_all": [0, 1],
+    "record_density_mechanism": {	
+	"kir_ms.modulation_factor": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	},
+	"cal12_ms.modulation_factor": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	},
+	"cal13_ms.modulation_factor": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	},
+	"car_ms.modulation_factor": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	},
+	"car_ms.modulation_factor2": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	},
+	
+	"naf_ms.modulation_factor": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	},
+	"kaf_ms.modulation_factor_g": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	},
+	"kaf_ms.modulation_factor_shift": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	}	
+    },
+    "rxd_enable_extracellular": false
+
+}

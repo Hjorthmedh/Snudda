@@ -1,0 +1,24 @@
+{
+    "dSPN": {
+	"cortical": {
+	    "generator": "poisson",
+	    "start": 0,
+	    "end": 1,
+	    "frequency": 10,
+	    "cluster_size": 5,
+	    "cluster_spread": 2e-5,
+	    "conductance": 0.5e-9
+	}
+    },
+    "iSPN": {
+	"cortical": {
+	    "generator": "poisson",
+	    "start": 0,
+	    "end": 1,
+	    "frequency": 10,
+	    "cluster_size": 5,
+	    "cluster_spread": 2e-5,
+	    "conductance": 0.5e-9
+	}
+    }
+}
