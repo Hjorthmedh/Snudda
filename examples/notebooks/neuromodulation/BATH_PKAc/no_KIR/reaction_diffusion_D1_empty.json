@@ -1,0 +1,16 @@
+{
+    "species": {
+        "PKAc": {
+            "initial_concentration": 3.66078057924366,
+            "diffusion_constant": 0,
+            "charge": 0,
+            "regions": [
+                "soma_internal",
+                "dend_internal"
+            ],
+            "concentration": 3.66078057924366
+        }
+    },
+    "reactions": {},
+    "rates": {}
+}
