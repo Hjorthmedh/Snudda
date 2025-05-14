@@ -1,9 +1,13 @@
+#!/usr/bin/env python3
+
 import argparse
 import os
 import glob
 import json
 import numpy as np
-from snudda.utils import snudda_parse_path
+
+from snudda import SnuddaLoad
+from snudda.utils import snudda_parse_path, SnuddaLoadSimulation
 
 
 class PurgeBadParameters:
@@ -11,9 +15,18 @@ class PurgeBadParameters:
     """ This code assumes you have manually moved all the figures
         corresponding to 'bad' parametersets to a 'bad' folder """
 
-    def __init__(self, network_path, bad_figure_path=None, bad_meta_key_list=None, snudda_data=None):
+    def __init__(self, network_path, bad_figure_path=None, bad_meta_key_list=None,
+                 network_simulation_path=None, snudda_data=None):
 
-        self.network_path = network_path
+        if os.path.isfile(network_path):
+            self.network_path = os.path.dirname(network_path)
+            self.network_file = network_path
+        elif os.path.isdir(network_path):
+            self.network_path = network_path
+            self.network_file = os.path.join(network_path, "network-synapses.hdf5")
+        else:
+            raise ValueError(f"No such file or directory {network_path}")
+
         self.snudda_data = snudda_data
         self.bad_keys = dict()
 
@@ -23,9 +36,41 @@ class PurgeBadParameters:
         if bad_figure_path is not None:
             self.get_bad_keys_in_dir(path=bad_figure_path)
 
+        if network_simulation_path is not None:
+
+            if "*" in network_simulation_path:
+                for sim_files in glob.glob(network_simulation_path):
+                    print(f"Processing {sim_files}")
+                    self.remove_depolarisation_blocked_neurons(sim_files)
+
+            else:
+                print(f"Processing {network_simulation_path}")
+                self.remove_depolarisation_blocked_neurons(network_simulation_path)
+
     def process(self, update_files=True):
         neuron_paths = self.load_network_config(network_path=self.network_path)
         self.purge_bad_parameters(neuron_paths=neuron_paths, update_files=update_files)
+
+    def remove_depolarisation_blocked_neurons(self, network_simulation_path):
+        sls = SnuddaLoadSimulation(network_simulation_output_file=network_simulation_path,
+                                   network_path=self.network_path,
+                                   do_test=True)
+
+        sl = SnuddaLoad(network_file=self.network_path)
+        neuron_info = sl.data["neurons"]
+
+        bad_cell_id = sorted(list(set([x for x, ts, te in sls.depolarisation_block])))
+
+        for b_id in bad_cell_id:
+            param_key = neuron_info[b_id]["parameter_key"]
+            morph_key = neuron_info[b_id]["morphology_key"]
+
+            print(f"Purging neuron {b_id} ({param_key}, {morph_key})")
+
+            if param_key not in self.bad_keys:
+                self.bad_keys[param_key] = []
+
+            self.bad_keys[param_key].append(morph_key)
 
     def parse_meta_key_list(self, bad_meta_key_list):
         for morph_key, param_key in bad_meta_key_list:
@@ -117,6 +162,7 @@ def cli():
     parser.add_argument("--bad_figure_path", help="Path to 'bad' figure folder", default=None, type=str)
     parser.add_argument("--bad_key_list_file", help="Path to 'bad' meta key list file", default=None, type=str)
     parser.add_argument("--snudda_data", type=str, default=None)
+    parser.add_argument("--network_simulation_path", type=str, default=None)
     parser.add_argument("--mock_run", action="store_true")
     args = parser.parse_args()
 
@@ -128,6 +174,7 @@ def cli():
     pbp = PurgeBadParameters(network_path=args.network_path,
                              bad_figure_path=args.bad_figure_path,
                              bad_meta_key_list=bad_key_list,
+                             network_simulation_path=args.network_simulation_path,
                              snudda_data=args.snudda_data)
 
     pbp.process(update_files=not args.mock_run)
