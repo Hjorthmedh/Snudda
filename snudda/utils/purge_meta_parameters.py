@@ -11,18 +11,28 @@ class PurgeBadParameters:
     """ This code assumes you have manually moved all the figures
         corresponding to 'bad' parametersets to a 'bad' folder """
 
-    def __init__(self, network_path, bad_figure_path, snudda_data=None):
+    def __init__(self, network_path, bad_figure_path=None, bad_meta_key_list=None, snudda_data=None):
 
         self.network_path = network_path
-        self.bad_figure_path = bad_figure_path
         self.snudda_data = snudda_data
         self.bad_keys = dict()
 
-    def process(self, update_files=True):
+        if bad_meta_key_list is not None:
+            self.parse_meta_key_list(bad_meta_key_list)
 
-        self.get_bad_keys_in_dir(path=self.bad_figure_path)
+        if bad_figure_path is not None:
+            self.get_bad_keys_in_dir(path=bad_figure_path)
+
+    def process(self, update_files=True):
         neuron_paths = self.load_network_config(network_path=self.network_path)
         self.purge_bad_parameters(neuron_paths=neuron_paths, update_files=update_files)
+
+    def parse_meta_key_list(self, bad_meta_key_list):
+        for morph_key, param_key in bad_meta_key_list:
+            if param_key not in self.bad_keys:
+                self.bad_keys[param_key] = []
+
+            self.bad_keys[param_key].append(morph_key)
 
     def get_bad_keys_in_dir(self, path, file_extension=".png"):
         file_list = glob.glob(os.path.join(path, f"*{file_extension}"))
@@ -104,14 +114,22 @@ def cli():
     import argparse
     parser = argparse.ArgumentParser(description="Purge the bad input parameters from meta.json")
     parser.add_argument("network_path", help="Path to network folder")
-    parser.add_argument("bad_figure_path", help="Path to 'bad' figure folder")
+    parser.add_argument("--bad_figure_path", help="Path to 'bad' figure folder", default=None, type=str)
+    parser.add_argument("--bad_key_list_file", help="Path to 'bad' meta key list file", default=None, type=str)
     parser.add_argument("--snudda_data", type=str, default=None)
     parser.add_argument("--mock_run", action="store_true")
     args = parser.parse_args()
 
+    if args.bad_key_list_file is not None:
+        bad_key_list =np.genfromtxt(args.bad_key_list_file, delimiter=",", dtype=None, encoding="utf-8", skip_header=0)
+    else:
+        bad_key_list = None
+
     pbp = PurgeBadParameters(network_path=args.network_path,
                              bad_figure_path=args.bad_figure_path,
+                             bad_meta_key_list=bad_key_list,
                              snudda_data=args.snudda_data)
+
     pbp.process(update_files=not args.mock_run)
 
 
