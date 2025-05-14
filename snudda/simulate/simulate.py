@@ -319,9 +319,19 @@ class SnuddaSimulate(object):
         # Make sure the output dir exists, so we don't fail at end because we cant write file
         self.create_dir(os.path.join("save", "traces"))
 
-        self.conv_factor = {"tauR": 1e3,
-                            "tauF": 1e3,
-                            "tau": 1e3}
+        conversion_factor_lookup_file = os.path.join(os.path.dirname(__file__), "..", "convert_units.json")
+        if os.path.isfile(conversion_factor_lookup_file):
+            with open(conversion_factor_lookup_file, "r") as f:
+                self.conv_factor = json.load(f)
+        else:
+            self.conv_factor = {}
+
+        if self.verbose:
+            print(f"Using conversion factor lookup for mod files: {self.conv_factor}")
+
+#            self.conv_factor = {"tauR": 1e3,
+#                            "tauF": 1e3,
+#                            "tau": 1e3}
 
         # We need to initialise random streams, see Lytton el at 2016 (p2072)
 
@@ -2017,7 +2027,16 @@ class SnuddaSimulate(object):
 
         segment = self.neurons[neuron_id].map_id_to_compartment(sec_id)(sec_x)
         mech = getattr(segment, density_mechanism)
-        var = getattr(mech, f"_ref_{variable}")
+        try:
+            # print(f"Trying : add_density_mechanism_recording: {density_mechanism =}, {variable =}, "
+            #                f"{neuron_id =}, {sec_id =}, {sec_x =}\n")
+            var = getattr(mech, f"_ref_{variable}")
+        except Exception as e:
+            self.write_log(f"add_density_mechanism_recording: {density_mechanism =}, {variable =}, "
+                           f"{neuron_id =}, {sec_id =}, {sec_x =}\n"
+                           f"{e}", is_error=True)
+            raise e
+
         data = self.sim.neuron.h.Vector().record(var)
 
         self.record.register_compartment_data(data_type=f"{density_mechanism}.{variable}",

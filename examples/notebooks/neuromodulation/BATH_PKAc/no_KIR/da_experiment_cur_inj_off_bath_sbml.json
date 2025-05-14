@@ -1,7 +1,7 @@
 {
-    "network_file": "../networks/neuromodulation_PKAc_clamp/network-synapses.hdf5",
-    "output_file": "../networks/neuromodulation_PKAc_clamp/simulation/output_neuromodulation_OFF.hdf5",
-    "log_file": "../networks/neuromodulation_PKAc_clamp/log/network-simulation-OFF.txt",
+    "network_file": "networks/neuromodulation_PKAc_clamp/network-synapses.hdf5",
+    "output_file": "networks/neuromodulation_PKAc_clamp/simulation/output_neuromodulation_OFF.hdf5",
+    "log_file": "networks/neuromodulation_PKAc_clamp/log/network-simulation-OFF.txt",
     "time": 5,
     "!sim_dt": 0.005,
     "record_all_soma": true,
