@@ -52,6 +52,8 @@ class PurgeBadParameters:
         self.purge_bad_parameters(neuron_paths=neuron_paths, update_files=update_files)
 
     def remove_depolarisation_blocked_neurons(self, network_simulation_path):
+
+        print(f"Processing: {network_simulation_path} ({self.network_path})")
         sls = SnuddaLoadSimulation(network_simulation_output_file=network_simulation_path,
                                    network_path=self.network_path,
                                    do_test=True)
