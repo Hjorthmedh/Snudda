@@ -33,7 +33,7 @@
     "bath_application": {
 	"DA": {
 	    "time": [0, 0.499, 0.5, 1, 1.001, 10],
-	    "concentration": [0, 0, 60e-6, 60e-6, 0, 0]
+	    "concentration": [0, 0, 60e-3, 60e-3, 0, 0]
 	}
     }    
 }

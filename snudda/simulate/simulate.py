@@ -21,6 +21,7 @@ import os
 import re
 import time
 import timeit
+import warnings
 # Plot all sections
 # [neuron.h.psection(x) for x in neuron.h.allsec()]
 from collections import OrderedDict
@@ -318,9 +319,19 @@ class SnuddaSimulate(object):
         # Make sure the output dir exists, so we don't fail at end because we cant write file
         self.create_dir(os.path.join("save", "traces"))
 
-        self.conv_factor = {"tauR": 1e3,
-                            "tauF": 1e3,
-                            "tau": 1e3}
+        conversion_factor_lookup_file = os.path.join(os.path.dirname(__file__), "..", "convert_units.json")
+        if os.path.isfile(conversion_factor_lookup_file):
+            with open(conversion_factor_lookup_file, "r") as f:
+                self.conv_factor = json.load(f)
+        else:
+            self.conv_factor = {}
+
+        if self.verbose:
+            print(f"Using conversion factor lookup for mod files: {self.conv_factor}")
+
+#            self.conv_factor = {"tauR": 1e3,
+#                            "tauF": 1e3,
+#                            "tau": 1e3}
 
         # We need to initialise random streams, see Lytton el at 2016 (p2072)
 
@@ -464,18 +475,62 @@ class SnuddaSimulate(object):
                                                              density_mechanism=density_mechanism_name,
                                                              variable=variable_name)
             if "bath_application" in self.sim_info:
-                for species_name, bath_info in self.sim_info["bath_application"].items():
 
-                    bath_time = np.array(bath_info["time"])
-                    bath_conc = np.array(bath_info["concentration"])
-                    neuron_id = bath_info.get("neuron_id", None)
-                    interpolate_bath = bath_info.get("interpolate", False)
+                if isinstance(self.sim_info["bath_application"], dict):
 
-                    self.add_bath_application(species_name=species_name,
-                                              concentration=bath_conc,
-                                              time=bath_time,
-                                              neuron_id=neuron_id,
-                                              interpolate=interpolate_bath)
+                    warnings.warn(
+                        "bath_application old format, new format is a list of dictionaries with keys "
+                        "'species_name', 'time', 'concentration', 'neuron_id' (optional), 'interpolate' (optional)",
+                        category=DeprecationWarning,
+                        stacklevel=2
+                    )
+
+                    for species_name, bath_info in self.sim_info["bath_application"].items():
+
+                        bath_time = np.array(bath_info["time"])
+                        bath_conc = np.array(bath_info["concentration"])
+                        neuron_id = bath_info.get("neuron_id", None)
+                        interpolate_bath = bath_info.get("interpolate", False)
+
+                        self.add_bath_application(species_name=species_name,
+                                                  concentration=bath_conc,
+                                                  time=bath_time,
+                                                  neuron_id=neuron_id,
+                                                  interpolate=interpolate_bath)
+                elif isinstance(self.sim_info["bath_application"], list):
+
+                    for bath_info in self.sim_info["bath_application"]:
+                        species_name = bath_info["species_name"]
+
+                        bath_time = np.array(bath_info["time"])
+                        bath_conc = np.array(bath_info["concentration"])
+                        neuron_id = bath_info.get("neuron_id", None)
+
+                        neuron_type = bath_info.get("neuron_type", None)
+
+                        if neuron_type is not None:
+                            if neuron_id is None:
+                                neuron_id = self.snudda_loader.get_neuron_id_of_type(neuron_type)
+                                print(f"Adding bath application of {species_name} to all neurons of type {neuron_type}, "
+                                      f"e.g {neuron_id =} ")
+
+                            else:
+                                neuron_id = np.array(list(set(neuron_id).union(
+                                    set(self.snudda_loader.get_neuron_id_of_type(neuron_type)))))
+
+                        interpolate_bath = bath_info.get("interpolate", False)
+
+                        self.add_bath_application(species_name=species_name,
+                                                  concentration=bath_conc,
+                                                  time=bath_time,
+                                                  neuron_id=neuron_id,
+                                                  interpolate=interpolate_bath)
+
+                else:
+                    #import pdb
+                    #pdb.set_trace()
+                    raise ValueError(f"Unable to parse bath_application: {self.sim_info['bath_application']}")
+
 
             # Add any current injections that are specified
             self.parse_current_injection_info()
@@ -1261,14 +1316,14 @@ class SnuddaSimulate(object):
 
         # We need to remove gap junctions where one or both of the neurons are virtual
 
-        real_gj_idx = ~np.logical_or(self.is_virtual_neuron[self.gap_junctions[:, 0]],
-                                     self.is_virtual_neuron[self.gap_junctions[:, 1]])
+        real_gj_idx = np.where(~np.logical_or(self.is_virtual_neuron[self.gap_junctions[:, 0]],
+                                              self.is_virtual_neuron[self.gap_junctions[:, 1]]))[0]
 
         if np.sum(real_gj_idx) == 0:
             return np.array([]), np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
 
-        gj_idx_a = np.where([self.neuron_id_on_node[x] for x in self.gap_junctions[real_gj_idx, 0]])[0]
-        gj_idx_b = np.where([self.neuron_id_on_node[x] for x in self.gap_junctions[real_gj_idx, 1]])[0]
+        gj_idx_a = real_gj_idx[np.where([self.neuron_id_on_node[x] for x in self.gap_junctions[real_gj_idx, 0]])[0]]
+        gj_idx_b = real_gj_idx[np.where([self.neuron_id_on_node[x] for x in self.gap_junctions[real_gj_idx, 1]])[0]]
 
         gj_id_offset = 100 * self.num_neurons
         gj_gid_src_a = gj_id_offset + 2 * gj_idx_a
@@ -1972,7 +2027,16 @@ class SnuddaSimulate(object):
 
         segment = self.neurons[neuron_id].map_id_to_compartment(sec_id)(sec_x)
         mech = getattr(segment, density_mechanism)
-        var = getattr(mech, f"_ref_{variable}")
+        try:
+            # print(f"Trying : add_density_mechanism_recording: {density_mechanism =}, {variable =}, "
+            #                f"{neuron_id =}, {sec_id =}, {sec_x =}\n")
+            var = getattr(mech, f"_ref_{variable}")
+        except Exception as e:
+            self.write_log(f"add_density_mechanism_recording: {density_mechanism =}, {variable =}, "
+                           f"{neuron_id =}, {sec_id =}, {sec_x =}\n"
+                           f"{e}", is_error=True)
+            raise e
+
         data = self.sim.neuron.h.Vector().record(var)
 
         self.record.register_compartment_data(data_type=f"{density_mechanism}.{variable}",
@@ -2165,7 +2229,7 @@ class SnuddaSimulate(object):
         index_ijk = (i, j, k)
 
         # Convert back from RxD millimolar -> molar
-        self.record.add_unit(data_type=species, target_unit="molar", conversion_factor=1e-3)
+        self.record.add_unit(data_type=species, target_unit="mM", conversion_factor=1)
 
         self.record.register_extracellular_data(data=vector, data_type=species, index_ijk=index_ijk,
                                                 ecs=self.extracellular_regions, region_name=volume_id)
@@ -2211,7 +2275,7 @@ class SnuddaSimulate(object):
         vector.record(conc_ref)
 
         # Convert back from RxD millimolar -> molar
-        self.record.add_unit(data_type=species, target_unit="molar", conversion_factor=1e-3)
+        self.record.add_unit(data_type=species, target_unit="mM", conversion_factor=1)
 
         self.record.register_compartment_data(neuron_id=neuron_id,
                                               data_type=species,
@@ -2273,22 +2337,23 @@ class SnuddaSimulate(object):
         if neuron_id is None:
             neuron_id = self.snudda_loader.get_neuron_id(include_virtual=False)
 
-        conc_vect = self.sim.neuron.h.Vector(concentration * 1e3)  # SI to millimolar
+        if self.verbose:
+            self.write_log(f"Bath application t={time*1e3}ms, conc={concentration} mM")
+
+        conc_vect = self.sim.neuron.h.Vector(concentration)  # millimolar = M/m3
         t_vect = self.sim.neuron.h.Vector(time * 1e3)  # s -> ms
 
-        if self.verbose:
-            self.write_log(f"Bath application t={time*1e3}ms, conc={concentration*1e3}")
+        if species_name not in self.bath_application:
+            self.bath_application[species_name] = []
 
-        if species_name is self.bath_application:
-            raise KeyError(f"Bath application already applied for {species_name}")
-
-        self.bath_application[species_name] = (time, concentration, t_vect, conc_vect)
+        self.bath_application[species_name].append((time, concentration, t_vect, conc_vect))
 
         for nid in neuron_id:
             if nid in self.neurons:
                 n = self.neurons[nid]
 
                 if n.modulation is not None:
+
                     n.modulation.concentration_from_vector(species_name=species_name,
                                                            concentration_vector=conc_vect,
                                                            time_vector=t_vect,

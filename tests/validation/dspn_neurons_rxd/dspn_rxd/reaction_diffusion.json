@@ -10,7 +10,7 @@
 	    "represents": "DA"   
 	},
 	"B":{
-	    "initial_concentration": 0.7e-3,
+	    "initial_concentration": 0.7,
 	    "diffusion_constant": 0,
 	    "charge": 0,
 	    "regions": ["soma_internal", "dend_internal"],
@@ -19,7 +19,7 @@
 	    "represents": "DA"	    
 	},
 	"PKA":{
-	    "initial_concentration": 0.1e-3,
+	    "initial_concentration": 0.1,
 	    "diffusion_constant": 0,
 	    "charge": 0,
 	    "regions": ["soma_internal", "dend_internal"],

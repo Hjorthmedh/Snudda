@@ -420,6 +420,8 @@ class SnuddaSaveNetworkRecordings:
 
                 meta_data.create_dataset("population_unit", data=self.network_data["population_unit"], compression="gzip")
                 meta_data.create_dataset("position", data=self.network_data["neuron_positions"], compression="gzip")
+                meta_data.create_dataset("virtual_neuron", compression="gzip",
+                                         data=[n["virtual_neuron"] for n in self.network_data["neurons"]])
 
                 # TODO: Also write extraAxons info to file
 

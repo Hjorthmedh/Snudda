@@ -50,6 +50,7 @@ class ReadSBtab:
 
         self.unit_dict["nmol_unit"] = pq.UnitQuantity('nanomole', pq.nano * pq.mole, symbol='nmol')
         self.unit_dict["nM_unit"] = pq.UnitQuantity('nanomolar', pq.nano * pq.molar, symbol='nM')
+        self.unit_dict["liter"] = pq.UnitQuantity("liter", pq.litre, symbol="liter")
 
         self.parameters = dict()
 
@@ -92,15 +93,22 @@ class ReadSBtab:
         nM_unit = self.unit_dict["nM_unit"]
 
         # conc_unit = nM_unit
-        conc_unit = pq.M
+        conc_unit = pq.UnitQuantity("millimolar", pq.M * pq.milli, "mM")      # mM = mol / m3 = milli mol / litre
 
         # TODO: Should UNITS be nano Molar or Molar?
 
         for row_idx, row in self.compounds_data.iterrows():
 
-            species_name = row["!Name"]
-            species_unit = pq.CompoundUnit(row["!Unit"])  # str ==> enhet
-            rescale_factor = float(species_unit.rescale(conc_unit).base)  # To get in nano molar
+            try:
+                species_name = row["!Name"]
+                species_unit = pq.CompoundUnit(row["!Unit"])  # str ==> enhet
+                rescale_factor = float(species_unit.rescale(conc_unit).base)  # To get in nano molar
+            except Exception as e:
+                import traceback
+                print(traceback.format_exc())
+                print(e)
+                import pdb
+                pdb.set_trace()
 
             species_data = { "initial_concentration": row["!InitialValue"] * rescale_factor,
                              "diffusion_constant": self._get_optional_value(row, "DiffusionConstant", 0),
@@ -162,23 +170,21 @@ class ReadSBtab:
             parameter_name = row["!Name"]
             parameter_value = row["!Value:linspace"]
 
-
             original_unit_str = row["!Unit"]
-            target_unit_str = original_unit_str.replace("milli", "").replace("nano", "")\
-                .replace("pico", "").replace("femto", "")
 
             nmol_unit = self.unit_dict["nmol_unit"]
             nM_unit = self.unit_dict["nM_unit"]
 
             original_unit = pq.CompoundUnit(original_unit_str)
-            target_unit = pq.CompoundUnit(target_unit_str)
-
-            scale = float(original_unit.rescale(target_unit).base)
+            simplified_unit = original_unit.simplified
+            target_unit_str = str(simplified_unit.units._dimensionality).replace("**", "^")
+            scale = float(simplified_unit.base)
 
             print(f"{original_unit_str = }, {target_unit_str = }, {scale = }")
 
             try:
-                self.parameters[parameter_name] = {"value": parameter_value * scale, "unit": target_unit_str}
+                self.parameters[parameter_name] = {"value": parameter_value * scale,
+                                                   "unit": target_unit_str}
             except:
                 import traceback
                 print(traceback.format_exc())

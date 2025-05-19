@@ -256,6 +256,26 @@ class SnuddaLoadSimulation:
 
         return depolarisation_block
 
+    def check_trace_depolarisation_block_NEW(neuron_id, time, voltage, threshold, max_duration):
+
+        depolarisation_block = []
+
+        above = (voltage > threshold).astype(int)
+
+        changes = np.diff(above)
+        idx_start = np.where(changes == 1)[0] + 1
+        idx_end = np.where(changes == -1)[0] + 1
+
+        if above[0]:
+            idx_start = np.r_[0, idx_start]
+
+        if above[-1]:
+            idx_end = np.r_[idx_end, len(above)]
+
+        durations = time[idx_end - 1] - time[idx_start]
+
+        return np.any(durations > max_duration)
+
     def check_depolarisation_block(self, threshold=-40e-3, max_duration=200e-3, quiet=False):
 
         if self.verbose:
@@ -263,8 +283,9 @@ class SnuddaLoadSimulation:
 
         neuron_id_list = np.array(sorted([int(x) for x in self.network_simulation_file["neurons"].keys()]))
 
-        if not ((np.diff(neuron_id_list) == 1).all() and neuron_id_list[0] == 0):
-            print(f"Failed sanity check on neuron ID, not all neurons simulated? {neuron_id_list}")
+        # We can have virtual neurons, leading to gaps
+        # if not ((np.diff(neuron_id_list) == 1).all() and neuron_id_list[0] == 0):
+        #     print(f"Failed sanity check on neuron ID, not all neurons simulated? {neuron_id_list}")
 
         time = self.get_time()
         dt = time[1] - time[0]
