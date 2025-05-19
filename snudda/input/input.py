@@ -975,13 +975,12 @@ class SnuddaInput(object):
     def add_external_input(self, neuron_id, input_type, input_inf):
 
         keys_to_copy = ["generator", "RxD", "jitter", "start", "end", "conductance",
-                        "frequency", "frequency_function", "correlation",
+                        "frequency", "frequency_function",
                         "num_inputs", "num_soma_synapses",
                         "mod_file", "parameter_file", "parameter_list",
                         "synapse_density", "cluster_size", "cluster_spread", "dendrite_location",
-                        "population_unit_correlation", "population_unit_correlation_fraction",
+                        "correlation", "population_unit_correlation_fraction", "population_unit_id",
                         "num_soma_synapses", "location_random_seed",
-                        "population_unit_id", "population_unit_fraction",
                         "add_mother_spikes", "set_mother_spikes"]
 
         defaults = {"jitter": 0.0,
@@ -990,9 +989,8 @@ class SnuddaInput(object):
                     "synapse_density": "1",
                     "cluster_spread": 20e-6,
                     "population_unit_id": 0,
-                    "population_unit_correlation": 0,
-                    "population_unit_correlation_fraction": 1,
                     "correlation": 0,
+                    "population_unit_correlation_fraction": 1,
                     }
 
         input = {k: copy.deepcopy(input_inf.get(k, defaults.get(k, None)))
@@ -2497,8 +2495,8 @@ class SnuddaInput(object):
         data = self.make_input_helper_serial(neuron_id=input_info["neuron_id"],
                                              input_type=input_info["input_type"],
                                              freq=input_info["frequency"],
-                                             t_start=input_info["start"],
-                                             t_end=input_info["end"],
+                                             t_start=np.array(input_info["start"]),
+                                             t_end=np.array(input_info["end"]),
                                              synapse_density=input_info["synapse_density"],
                                              num_spike_trains=input_info["num_inputs"],
                                              population_unit_spikes=input_info["population_unit_spikes"],
@@ -2514,7 +2512,7 @@ class SnuddaInput(object):
                                              cluster_spread=input_info["cluster_spread"],
                                              dendrite_location=input_info["dendrite_location"],
                                              input_generator=input_info["generator"],
-                                             population_unit_fraction=input_info["population_unit_fraction"],
+                                             population_unit_fraction=np.array(input_info["population_unit_correlation_fraction"]),
                                              num_soma_synapses=input_info["num_soma_synapses"])
 
         assert data[0] == input_info["neuron_id"]

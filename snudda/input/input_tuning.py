@@ -1743,7 +1743,7 @@ class InputTuning(object):
             self.input_info[input_target][input_type]["correlation"] = input_correlation
         self.input_info[input_target][input_type]["start"] = input_start
         self.input_info[input_target][input_type]["end"] = input_end
-        self.input_info[input_target][input_type]["population_unit_correlation"] = 0.0
+        self.input_info[input_target][input_type]["correlation"] = 0.0
         self.input_info[input_target][input_type]["jitter"] = 0.0
         self.input_info[input_target][input_type]["conductance"] = input_conductance
         self.input_info[input_target][input_type]["mod_file"] = "tmGlut"

@@ -276,9 +276,6 @@ class InputTestCase(unittest.TestCase):
 
         for extra_spike in [0.2, 0.3, 0.45]:
 
-            import pdb
-            pdb.set_trace()
-
             self.assertTrue(np.sum(np.abs(some_spikes - extra_spike) < 1e-4) >= n_trains)
             self.assertTrue(np.sum(np.abs(some_spikes - extra_spike + 0.05) < 1e-3) < 50)
 
@@ -294,13 +291,14 @@ class InputTestCase(unittest.TestCase):
         # and also checks input correlation
 
         # TODO: New cell numbering, so need to pick other cell numbers
-        check_id2, check_id3 = sl.get_neuron_id_of_type(neuron_type="dSPN")[0:2]
+        check_id2 = sl.get_neuron_id_of_type(neuron_type="dSPN", population_unit_id=1, num_neurons=1)[0]
+        check_id3 = sl.get_neuron_id_of_type(neuron_type="dSPN", population_unit_id=2, num_neurons=1)[0]
 
         some_spikes_c0 = input_data[f"input/{check_id2}/CorticalSignal/spikes"][()]
-        some_spikes_c1 = input_data[f"input/{check_id3}/CorticalSignal/spikes"][()]
+        # some_spikes_c1 = input_data[f"input/{check_id3}/CorticalSignal/spikes"][()]
 
         pop0 = input_data[f"input/{check_id2}/CorticalSignal/population_unit_spikes"][()]
-        pop1 = input_data[f"input/{check_id3}/CorticalSignal/population_unit_spikes"][()]
+        # pop1 = input_data[f"input/{check_id3}/CorticalSignal/population_unit_spikes"][()]
 
         # TODO: Add checks
 

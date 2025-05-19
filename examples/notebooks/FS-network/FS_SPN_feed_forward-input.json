@@ -8,7 +8,7 @@
             "frequency" : "10 * ((t % (1/20)) < (0.3 * 1/20))",
             "num_inputs" : 50,
             "conductance" : 0.5e-9,
-            "population_unit_correlation" : 0.7,
+            "correlation" : 0.7,
 	    "population_unit_id" : 1,
             "jitter" : 0,        
             "mod_file": "tmGlut",
