@@ -65,8 +65,8 @@ class PurgeBadParameters:
 
         for neuron_id, parameter_key, morphology_key \
             in zip(meta_data["id"][()].copy(),
-                   meta_data["morphology_key"][()].copy(),
-                   meta_data["parameter_key"][()].copy()):
+                   meta_data["parameter_key"][()].copy(),
+                   meta_data["morphology_key"][()].copy()):
 
             if morphology_key != sl.data["neurons"][neuron_id]["morphology_key"] \
                     or parameter_key != sl.data["neurons"][neuron_id]["parameter_key"]:
