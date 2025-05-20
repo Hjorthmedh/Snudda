@@ -775,7 +775,7 @@ class SnuddaInput(object):
         if self.d_view is not None:
             self.write_log("Sending jobs to workers, using dView")
             self.d_view.scatter("input_list", self.flatten_input(), block=True)
-            cmd_str = "inpt = list(map(nl._make_input_helper))"
+            cmd_str = "inpt = list(map(nl._make_input_helper, input_list))"
 
             self.write_log("Calling workers to generate input in parallel")
             self.d_view.execute(cmd_str, block=True)
