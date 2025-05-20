@@ -126,8 +126,14 @@ class NeuronPrototype:
             return
 
         if self.meta_path and os.path.exists(self.meta_path):
-            with open(self.meta_path, "r") as fm:
-                self.meta_info = json.load(fm)
+            try:
+                with open(self.meta_path, "r") as fm:
+                    self.meta_info = json.load(fm)
+            except Exception as e:
+                print(f"!! Attempting to load {self.meta_path}")
+                import traceback
+                print(traceback.format_exc())
+                raise e
 
         with open(par_path, "r") as f:
             self.parameter_info = json.load(f)
