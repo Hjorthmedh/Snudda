@@ -68,8 +68,8 @@ class PurgeBadParameters:
                    meta_data["parameter_key"][()].copy(),
                    meta_data["morphology_key"][()].copy()):
 
-            if SnuddaLoad.to_str(morphology_key != sl.data["neurons"][neuron_id]["morphology_key"]) \
-                    or SnuddaLoad.to_str(parameter_key != sl.data["neurons"][neuron_id]["parameter_key"]):
+            if SnuddaLoad.to_str(morphology_key) != sl.data["neurons"][neuron_id]["morphology_key"] \
+                    or SnuddaLoad.to_str(parameter_key) != sl.data["neurons"][neuron_id]["parameter_key"]:
                 raise ValueError(f"Neurons do not match in network file {self.network_file} "
                                  f"and simulation file {network_simulation_path}.\n"
                                  f"Neuron id: {neuron_id}: "
