@@ -61,7 +61,7 @@ class PurgeBadParameters:
         sl = SnuddaLoad(network_file=self.network_path)
         neuron_info = sl.data["neurons"]
 
-        meta_data = self.network_simulation_file["meta_data"]
+        meta_data = sls.network_simulation_file["meta_data"]
 
         for neuron_id, parameter_key, morphology_key \
             in zip(meta_data["id"][()].copy(),
