@@ -61,6 +61,22 @@ class PurgeBadParameters:
         sl = SnuddaLoad(network_file=self.network_path)
         neuron_info = sl.data["neurons"]
 
+        meta_data = self.network_simulation_file["meta_data"]
+
+        for neuron_id, parameter_key, morphology_key \
+            in zip(meta_data["id"][()].copy(),
+                   meta_data["morphology_key"][()].copy(),
+                   meta_data["parameter_key"][()].copy()):
+
+            if morphology_key != sl.data["neurons"][neuron_id]["morphology_key"] \
+                    or parameter_key != sl.data["neurons"][neuron_id]["parameter_key"]:
+                raise ValueError(f"Neurons do not match in network file {self.network_file} "
+                                 f"and simulation file {network_simulation_path}.\n"
+                                 f"Neuron id: {neuron_id}: "
+                                 f"({sl.data['neurons'][neuron_id]['morphology_key']}, "
+                                 f"{sl.data['neurons'][neuron_id]['parameter_key']}) "
+                                 f"vs ({morphology_key} {parameter_key})")
+
         bad_cell_id = sorted(list(set([x for x, ts, te in sls.depolarisation_block])))
 
         for b_id in bad_cell_id:
