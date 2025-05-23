@@ -708,11 +708,11 @@ class SnuddaInput(object):
 
             # The input can be specified using neuron_id, neuron_name or neuron_type
             if str(neuron_id) in self.input_info:
-                input_info = copy.deepcopy(self.input_info[str(neuron_id)])
+                input_info = self.input_info[str(neuron_id)].copy()
             elif neuron_name in self.input_info:
-                input_info = copy.deepcopy(self.input_info[neuron_name])
+                input_info = self.input_info[neuron_name].copy()
             elif neuron_type in self.input_info:
-                input_info = copy.deepcopy(self.input_info[neuron_type])
+                input_info = self.input_info[neuron_type].copy()
             else:
                 input_info = dict()
 
@@ -746,21 +746,19 @@ class SnuddaInput(object):
                                    f" (input_type was commented with ! before name)")
                     continue
 
-                input_inf = copy.deepcopy(input_info[input_type])
-
                 # Check if neuron belongs to the population id of the input, else skip input
-                if "population_unit_id" in input_inf:
-                    if (isinstance(input_inf["population_unit_id"], (list, np.ndarray))
-                            and population_unit_id not in input_inf["population_unit_id"]) \
-                            or population_unit_id != int(input_inf["population_unit_id"]):
+                if "population_unit_id" in input_info[input_type]:
+                    if (isinstance(input_info[input_type]["population_unit_id"], (list, np.ndarray))
+                            and population_unit_id not in input_info[input_type]["population_unit_id"]) \
+                            or population_unit_id != int(input_info[input_type]["population_unit_id"]):
                         continue
 
                 self.neuron_input[neuron_id][input_type] = dict([])
 
                 rng_master = np.random.default_rng(self.random_seed + neuron_id + 10072)
 
-                if "generator" in input_inf and input_inf["generator"] == "csv":
-                    self.neuron_input[neuron_id][input_type] = self.add_csv_input(input_inf=input_inf,
+                if "generator" in input_info[input_type] and input_info[input_type]["generator"] == "csv":
+                    self.neuron_input[neuron_id][input_type] = self.add_csv_input(input_inf=input_info[input_type],
                                                                                   neuron_id=neuron_id,
                                                                                   rng_master=rng_master)
                     continue
@@ -770,7 +768,7 @@ class SnuddaInput(object):
 
                 self.neuron_input[neuron_id][input_type] = self.add_external_input(neuron_id=neuron_id,
                                                                                    input_type=input_type,
-                                                                                   input_inf=input_inf)
+                                                                                   input_inf=input_info[input_type])
 
         self.input_update_random_seeds()
         self.process_neuron_input()
@@ -778,7 +776,8 @@ class SnuddaInput(object):
         # Since we replaced deep copies with copies for efficiency, make sure the original
         # data is intact,
         if not deep_compare(original_input_info, self.input_info):
-            raise ValueError(f"make_neuron_input_parallel: Internal error, self.input_info modified.")
+            raise ValueError(f"make_neuron_input_parallel: Internal error, self.input_info modified. "
+                             f"Please send input.json file to hjorth@kth.se for debugging.")
 
 
         # TODO: Plan!
@@ -855,6 +854,8 @@ class SnuddaInput(object):
 
     def add_meta_input(self, neuron_id, input_info):
 
+        # TODO: Clean up logic, get rid of deepcopy
+
         # Also see if we have additional input specified in the meta.json file for the neuron?
 
         # Add baseline activity:
@@ -884,6 +885,8 @@ class SnuddaInput(object):
                                                      self.snudda_data)
 
                         with open(par_file, 'r') as f:
+
+                            # TODO: This cleanup and JSON load could be cached...
                             par_data_dict_orig = json.load(f, object_pairs_hook=OrderedDict)
 
                             # Clean up dictionary
@@ -931,10 +934,8 @@ class SnuddaInput(object):
                                 f"(meta modified by input_config)",
                                 force_print=True)
 
-                            old_info = copy.deepcopy(input_info[existing_inp_name])
-
                             # Let input.json info override meta.json input parameters if given
-                            for key, data in old_info.items():
+                            for key, data in input_info[existing_inp_name].items():
                                 if key == "parameter_list" and data is None:
                                     continue
 
@@ -973,9 +974,7 @@ class SnuddaInput(object):
 
         # location has to be computed by the worker, to parallelize it
 
-        csv_input = {k: copy.deepcopy(input_inf[k])
-                     for k in keys_to_copy
-                     if k in input_inf}
+        csv_input = {k: input_inf[k] for k in keys_to_copy if k in input_inf}
 
         csv_file = snudda_parse_path(input_inf["csv_file"] % neuron_id, self.snudda_data)
 
@@ -1019,8 +1018,7 @@ class SnuddaInput(object):
                     "population_unit_correlation_fraction": 1,
                     }
 
-        input = {k: copy.deepcopy(input_inf.get(k, defaults.get(k, None)))
-                 for k in keys_to_copy}
+        input = {k: input_inf.get(k, defaults.get(k, None)) for k in keys_to_copy}
 
         if isinstance(input["num_inputs"], (dict, OrderedDict)):
             if self.neuron_info[neuron_id]["morphology_key"] in input["num_inputs"]:
@@ -1084,6 +1082,8 @@ class SnuddaInput(object):
     ############################################################################
 
     def make_neuron_input_parallel(self):
+
+        raise DeprecationWarning(f"OLD version of make_neuron_input_parallel")
 
         """ Generate input, able to run in parallel if rc (Remote Client) has been provided at initialisation."""
 
