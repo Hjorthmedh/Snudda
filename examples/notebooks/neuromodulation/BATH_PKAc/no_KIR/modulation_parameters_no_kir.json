@@ -29,35 +29,6 @@
             "value": 4
         },
 
-	
-        {
-            "param_name": "mod_pka_g_min_kir_ms",
-            "type": "range",
-            "sectionlist": ["soma", "basal"],
-            "dist_type": "uniform",
-            "value": 0.7
-        },
-        {
-            "param_name": "mod_pka_g_max_kir_ms",
-            "type": "range",
-            "sectionlist": ["soma", "basal"],
-            "dist_type": "uniform",
-            "value": 1.3
-        },
-        {
-            "param_name": "mod_pka_g_half_kir_ms",
-            "type": "range",
-            "sectionlist": ["soma", "basal"],
-            "dist_type": "uniform",
-            "value": 3.6e-6
-        },
-        {
-            "param_name": "mod_pka_g_hill_kir_ms",
-            "type": "range",
-            "sectionlist": ["soma", "basal"],
-            "dist_type": "uniform",
-            "value": 1
-        },
         {
             "param_name": "mod_pka_p_min_cal12_ms",
             "type": "range",

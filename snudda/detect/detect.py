@@ -359,6 +359,9 @@ class SnuddaDetect(object):
                                                           exec_time=exec_time,
                                                           voxel_overflow_counter=voxel_overflow_ctr)
 
+
+            self.work_history.close()
+            self.work_history = None
         # We need to gather data from all the HDF5 files -- that is done in prune
 
     ############################################################################

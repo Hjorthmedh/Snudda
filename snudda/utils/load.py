@@ -763,7 +763,7 @@ class SnuddaLoad(object):
     # OBS, random_permute is not using a controled rng, so not affected by random seed set
 
     def get_neuron_id_of_type(self, neuron_type, num_neurons=None, random_permute=False, volume=None,
-                              include_virtual=True):
+                              include_virtual=True, population_unit_id=None):
 
         """
         Find all neuron ID of a specific neuron type.
@@ -782,7 +782,8 @@ class SnuddaLoad(object):
         neuron_id = np.array([x["neuron_id"] for x in self.data["neurons"]
                               if (neuron_type is None or x["type"] == neuron_type)
                               and (volume is None or x["volume_id"] == volume)
-                              and (include_virtual or not x["virtual_neuron"])])
+                              and (include_virtual or not x["virtual_neuron"])
+                              and (population_unit_id is None or x["population_unit"] == population_unit_id)])
 
         assert not random_permute or num_neurons is not None, "random_permute is only valid when num_neurons is given"
 

@@ -7,7 +7,7 @@
             "generator" : "poisson",        
             "type" : "AMPA_NMDA",
             "synapse_density": "0.092*(1-exp(-d/200e-6))",           
-            "population_unit_correlation" : 0.0,
+            "correlation" : 0.0,
             "jitter" : 0.001,
             "mod_file": "tmGlut",
             "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-FS.json"
@@ -21,7 +21,7 @@
             "jitter": 0.0,
             "modFile": "tmGlut",
             "parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-FS.json",
-            "population_unit_correlation": 0.0,
+            "correlation": 0.0,
             "synapse_density": "0.05*exp(-d/200e-6)",
             "type": "AMPA_NMDA"
         }

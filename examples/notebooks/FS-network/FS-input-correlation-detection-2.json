@@ -5,7 +5,7 @@
             "frequency" : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
 	    "start" : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
 	    "end" :   [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
-	    "population_unit_correlation" : 0.7,
+	    "correlation" : 0.7,
 	    "population_unit_correlation_fraction" : 0,
 	    "population_unit_id" : 1,
             "num_inputs" : 100,

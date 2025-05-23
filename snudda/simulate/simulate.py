@@ -405,7 +405,7 @@ class SnuddaSimulate(object):
                 self.add_volt_recording_soma(cell_id=record_soma_cell_id)
 
             if "record_all_compartments" in self.sim_info:
-                raise DeprecationWarning("record_all_compartments deprecated, please use record_voltate_all_compartments")
+                raise DeprecationWarning("record_all_compartments deprecated, please use record_voltage_all_compartments")
                 record_comp_cell_id = np.array(self.sim_info["record_all_compartments"], dtype=int)
                 self.add_volt_recording_all(cell_id=record_comp_cell_id)
 

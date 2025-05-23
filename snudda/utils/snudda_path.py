@@ -82,7 +82,7 @@ def get_snudda_data(snudda_data=None, config_file=None, network_path=None, verbo
 
     if snudda_data is None:
         snudda_data = os.path.join(os.path.dirname(__file__), os.pardir, "data")
-        warnings.warn(f"SNUDDA_DATA not set, using {snudda_data}")
+        # warnings.warn(f"SNUDDA_DATA not set, using {snudda_data}")
 
     if not os.path.isdir(snudda_data):
         raise ValueError(f"SNUDDA_DATA = {snudda_data} DOES NOT EXIST")

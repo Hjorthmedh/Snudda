@@ -41,15 +41,9 @@ class TimeVaryingInput:
         if check_positive:
             frequency[frequency <= 0] = 0
 
-        try:
-            stretched_time = np.cumsum(frequency*dt) - frequency[0]*dt  # We want stretched time to start at 0
-            func = lambda t, stretched_time=stretched_time, time=time: np.interp(t, stretched_time, time)
-            stretch_end_time = stretched_time[-1]
-        except:
-            import traceback
-            print(traceback.format_exc())
-            import pdb
-            pdb.set_trace()
+        stretched_time = np.cumsum(frequency*dt) - frequency[0]*dt  # We want stretched time to start at 0
+        func = lambda t, stretched_time=stretched_time, time=time: np.interp(t, stretched_time, time)
+        stretch_end_time = stretched_time[-1]
 
         return func, stretch_end_time
 

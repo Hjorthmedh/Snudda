@@ -271,12 +271,16 @@ class Snudda(object):
 
     ############################################################################
 
-    def create_network(self, honor_morphology_stay_inside=True):
+    def create_network(self, honor_morphology_stay_inside=True, verbose=False):
 
         # This is a helper function, to create the full network
-        self.place_neurons(honor_morphology_stay_inside=honor_morphology_stay_inside)
-        self.detect_synapses()
-        self.prune_synapses()
+        self.place_neurons(honor_morphology_stay_inside=honor_morphology_stay_inside, verbose=verbose)
+        self.detect_synapses(verbose=verbose)
+        self.prune_synapses(verbose=verbose)
+
+    def create_network_wrapper(self, args):
+
+        self.create_network()
 
     ############################################################################
 
