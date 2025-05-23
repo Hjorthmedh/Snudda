@@ -1023,7 +1023,8 @@ class SnuddaInput(object):
         if "population_unit_correlation" in input_inf:
             # Warn the user that we renamed the variable.
             raise DeprecationWarning(f"'population_unit_correlation' is deprecated "
-                                     f"in favour of correlation, value is ignored.")
+                                     f"in favour of correlation, value is ignored."
+                                     f" ({neuron_id = }, {input_type = }")
 
         if isinstance(input["num_inputs"], (dict, OrderedDict)):
             if self.neuron_info[neuron_id]["morphology_key"] in input["num_inputs"]:
