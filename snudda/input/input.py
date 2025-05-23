@@ -312,6 +312,11 @@ class SnuddaInput(object):
                     if "correlation" in neuron_in:
                         spike_set.attrs["correlation"] = neuron_in["correlation"]
 
+                    if "population_unit_correlation" in neuron_in:
+                        # Warn the user that we renamed the variable.
+                        raise DeprecationWarning(f"'population_unit_correlation' is deprecated "
+                                                 f"in favour of correlation, value is ignored.")
+
                     if "jitter" in neuron_in and neuron_in["jitter"]:
                         spike_set.attrs["jitter"] = neuron_in["jitter"]
 
