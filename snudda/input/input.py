@@ -19,12 +19,14 @@ import json
 import os
 import sys
 from collections import OrderedDict
+import time
 
 import h5py
 import numexpr
 import re
 import numpy as np
 import copy
+# from numba import jit
 
 from snudda.neurons import NeuronMorphologyExtended
 from snudda.utils.snudda_path import get_snudda_data
@@ -32,6 +34,7 @@ from snudda.input.time_varying_input import TimeVaryingInput
 from snudda.neurons.neuron_prototype import NeuronPrototype
 from snudda.utils.load import SnuddaLoad
 from snudda.utils.snudda_path import snudda_parse_path
+from snudda.utils.deepcompare import deep_compare
 
 nl = None
 
@@ -203,20 +206,31 @@ class SnuddaInput(object):
 
         # Only the master node should start the work
         if self.is_master:
+
             # Initialises lbView and dView (load balance, and direct view)
             self.setup_parallel()
+
+            t0 = time.time()
 
             # Make the "master input" for each channel
             rng = self.get_master_node_rng()
             self.make_population_unit_spike_trains(rng=rng)
+
+            t1 = time.time()
 
             # Generate the actual input spikes, and the locations
             # stored in self.neuronInput dictionary
 
             self.make_neuron_input_parallel_NEW()
 
+            t2 = time.time()
+
             # Write spikes to disk, HDF5 format
             self.write_hdf5()
+
+            t3 = time.time()
+
+            self.write_log(f"Creating mother spikes {t1-t0:.4f}s, daughter spikes {t2-t1:.4f}s, writing {t3-t2:.4f}s")
 
             # Verify correlation --- THIS IS VERY VERY SLOW
             # self.verifyCorrelation()
@@ -251,6 +265,8 @@ class SnuddaInput(object):
 
         """ Writes input spikes to HDF5 file. """
 
+        t0 = time.time()
+
         self.write_log(f"Writing spikes to {self.spike_data_filename}", force_print=True)
 
         out_file = h5py.File(self.spike_data_filename, 'w', libver=self.h5libver)
@@ -283,6 +299,7 @@ class SnuddaInput(object):
 
                     it_group = nid_group.create_group(input_type)
                     spike_set = it_group.create_dataset("spikes", data=spike_mat, compression="gzip", dtype=np.float32)
+
                     spike_set.attrs["num_spikes"] = num_spikes
 
                     it_group.attrs["section_id"] = neuron_in["location"][1].astype(np.int16)
@@ -447,6 +464,7 @@ class SnuddaInput(object):
                     # activity_spikes.attrs["generator"] = generator
 
         out_file.close()
+        self.write_log(f"HDF5 write time: {time.time() - t0:.4f} s")
 
     ############################################################################
 
@@ -676,6 +694,8 @@ class SnuddaInput(object):
         # Dictionary hold all input information, this will be iterated over by the parallel workers
         self.neuron_input = dict([])
 
+        original_input_info = copy.deepcopy(self.input_info)
+
         if self.use_meta_input:
             self.write_log("Input from meta.json will be used")
         else:
@@ -755,6 +775,12 @@ class SnuddaInput(object):
         self.input_update_random_seeds()
         self.process_neuron_input()
 
+        # Since we replaced deep copies with copies for efficiency, make sure the original
+        # data is intact,
+        if not deep_compare(original_input_info, self.input_info):
+            raise ValueError(f"make_neuron_input_parallel: Internal error, self.input_info modified.")
+
+
         # TODO: Plan!
         # Skip step where self.neuron_input is chopped up into multiple lists
         # instead just iterate over the dictionary directly in parallel
@@ -806,7 +832,7 @@ class SnuddaInput(object):
 
         for neuron_id in self.neuron_input.keys():
             for input_type in self.neuron_input[neuron_id].keys():
-                info = copy.deepcopy(self.neuron_input[neuron_id][input_type])
+                info = self.neuron_input[neuron_id][input_type]
                 info["neuron_id"] = neuron_id
                 info["input_type"] = input_type
                 flat.append(info)
@@ -1720,10 +1746,12 @@ class SnuddaInput(object):
 
             # Return spike times
             return np.concatenate(t_spikes)
+
         else:
             # Frequency was 0 or negative(!)
             assert not freq < 0, "Negative frequency specified."
             return np.array([])
+
 
     def generate_spikes_function_helper(self, frequencies, time_ranges, rng, dt, p_keep=1):
 

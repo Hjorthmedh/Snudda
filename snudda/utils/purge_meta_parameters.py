@@ -41,7 +41,7 @@ class PurgeBadParameters:
             if "*" in network_simulation_path:
                 for sim_files in glob.glob(network_simulation_path):
                     print(f"Processing {sim_files}")
-                    
+
                     try:
                         self.remove_depolarisation_blocked_neurons(sim_files)
                     except Exception as e:
