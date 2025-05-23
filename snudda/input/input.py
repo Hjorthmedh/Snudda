@@ -221,7 +221,7 @@ class SnuddaInput(object):
             # Generate the actual input spikes, and the locations
             # stored in self.neuronInput dictionary
 
-            self.make_neuron_input_parallel_NEW()
+            self.make_neuron_input_parallel()
 
             t2 = time.time()
 
@@ -656,7 +656,7 @@ class SnuddaInput(object):
 
     ############################################################################
 
-    def make_neuron_input_parallel_NEW(self):
+    def make_neuron_input_parallel(self):
 
         """ Generate input, able to run in parallel if rc (Remote Client) has been provided at initialisation."""
 
