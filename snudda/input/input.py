@@ -25,6 +25,7 @@ import h5py
 import numexpr
 import re
 import numpy as np
+import scipy
 import copy
 # from numba import jit
 
@@ -1209,6 +1210,64 @@ class SnuddaInput(object):
 
         # Double check correct dimension
         return spikes
+
+    ###################################################################################
+
+    import numpy as np
+
+    # TODO: New version of Poisson spike generation (we might get small edge effects at t=0, and at transitions
+    #       between different time periods with new frequencies.
+    #       Below function suggested by ChatGPT, need to verify!
+
+    def generate_poisson_spikes_rng(self,
+                                    frequency,
+                                    time_range_start,
+                                    time_range_end,
+                                    rng,
+                                    oversample_factor=1.5):
+
+        freq_list = np.atleast_1d(frequency)
+        start_list = np.atleast_1d(time_range_start)
+        end_list = np.atleast_1d(time_range_end)
+
+        # Broadcast all inputs to same length
+        n = max(len(freq_list), len(start_list), len(end_list))
+        if len(freq_list) == 1:
+            freq_list = np.full(n, freq_list[0])
+        if len(start_list) == 1:
+            start_list = np.full(n, start_list[0])
+        if len(end_list) == 1:
+            end_list = np.full(n, end_list[0])
+
+        all_spike_times = []
+
+        for f, t_start, t_end in zip(freq_list, start_list, end_list):
+            duration = t_end - t_start
+            if f <= 0 or duration <= 0:
+                continue
+
+            lam = f * duration
+            n_spikes_estimate = max(1, int(oversample_factor * lam))
+
+            # Generate ISIs
+            isis = rng.exponential(scale=1 / f, size=n_spikes_estimate)
+            spike_times = np.cumsum(isis)
+
+            # Top up if needed
+            while spike_times[-1] < duration:
+                extra_isis = rng.exponential(scale=1 / f, size=int(0.5 * lam))
+                spike_times = np.concatenate([spike_times, spike_times[-1] + np.cumsum(extra_isis)])
+
+            # Cut and shift
+            spike_times = spike_times[spike_times <= duration] + t_start
+            all_spike_times.append(spike_times)
+
+        if all_spike_times:
+            return np.sort(np.concatenate(all_spike_times))
+        else:
+            return np.array([])
+
+    ###################################################################################
 
     def generate_spikes_function(self, frequency_function, time_range, rng, dt=1e-4, p_keep=1):
 
