@@ -476,6 +476,10 @@ class SnuddaSimulate(object):
                                                              variable=variable_name)
 
             if "record_membrane" in self.sim_info:
+
+                # The recording data is a list of dictionaries, that contain neuron_id and variable,
+                # sec_id and sec_x are optional (if not given, then all sections and segments are recorded)
+
                 record_info = self.sim_info["record_membrane"]
 
                 for recording in record_info:
