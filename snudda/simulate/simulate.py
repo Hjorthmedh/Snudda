@@ -474,6 +474,35 @@ class SnuddaSimulate(object):
                                                              sec_id=sid, sec_x=sex,
                                                              density_mechanism=density_mechanism_name,
                                                              variable=variable_name)
+
+            if "record_membrane" in self.sim_info:
+                record_info = self.sim_info["record_membrane"]
+
+                for recording in record_info:
+                    neuron_id = recording["neuron_id"]
+                    record_variable = recording["variable"]
+                    sec_id = recording.get("sec_id", None)
+                    sec_x = recording.get("sec_x", None)
+
+                    if sec_id is None and sec_x is None:
+                        # Loop over all the sections and add recordings
+                        for sec_id, sec in self.neurons[neuron_id].section_lookup:
+                            for seg in sec.allseg():
+                                print(f"Adding recording to neuron {neuron_id} ({sec_id}:{sec_x}")
+                                self.add_membrane_recording(variable=record_variable,
+                                                            neuron_id=neuron_id,
+                                                            sec_id=sec_id,
+                                                            sec_x=seg.x)
+
+                    elif sec_id is not None and sec_x is not None:
+                        print(f"Adding recording to neuron {neuron_id} ({sec_id}:{sec_x}")
+                        self.add_membrane_recording(variable=record_variable,
+                                                    neuron_id=neuron_id,
+                                                    sec_id=sec_id,
+                                                    sec_x=sec_x)
+                    else:
+                        raise ValueError(f"record_membrane: either both sec_id and sec_x are defined, or neither")
+
             if "bath_application" in self.sim_info:
 
                 if isinstance(self.sim_info["bath_application"], dict):
