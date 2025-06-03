@@ -25,6 +25,7 @@ import h5py
 import numexpr
 import re
 import numpy as np
+import scipy
 import copy
 # from numba import jit
 
@@ -1210,6 +1211,64 @@ class SnuddaInput(object):
         # Double check correct dimension
         return spikes
 
+    ###################################################################################
+
+    import numpy as np
+
+    # TODO: New version of Poisson spike generation (we might get small edge effects at t=0, and at transitions
+    #       between different time periods with new frequencies.
+    #       Below function suggested by ChatGPT, need to verify!
+
+    def generate_poisson_spikes_rng(self,
+                                    frequency,
+                                    time_range_start,
+                                    time_range_end,
+                                    rng,
+                                    oversample_factor=1.5):
+
+        freq_list = np.atleast_1d(frequency)
+        start_list = np.atleast_1d(time_range_start)
+        end_list = np.atleast_1d(time_range_end)
+
+        # Broadcast all inputs to same length
+        n = max(len(freq_list), len(start_list), len(end_list))
+        if len(freq_list) == 1:
+            freq_list = np.full(n, freq_list[0])
+        if len(start_list) == 1:
+            start_list = np.full(n, start_list[0])
+        if len(end_list) == 1:
+            end_list = np.full(n, end_list[0])
+
+        all_spike_times = []
+
+        for f, t_start, t_end in zip(freq_list, start_list, end_list):
+            duration = t_end - t_start
+            if f <= 0 or duration <= 0:
+                continue
+
+            lam = f * duration
+            n_spikes_estimate = max(1, int(oversample_factor * lam))
+
+            # Generate ISIs
+            isis = rng.exponential(scale=1 / f, size=n_spikes_estimate)
+            spike_times = np.cumsum(isis)
+
+            # Top up if needed
+            while spike_times[-1] < duration:
+                extra_isis = rng.exponential(scale=1 / f, size=int(0.5 * lam))
+                spike_times = np.concatenate([spike_times, spike_times[-1] + np.cumsum(extra_isis)])
+
+            # Cut and shift
+            spike_times = spike_times[spike_times <= duration] + t_start
+            all_spike_times.append(spike_times)
+
+        if all_spike_times:
+            return np.sort(np.concatenate(all_spike_times))
+        else:
+            return np.array([])
+
+    ###################################################################################
+
     def generate_spikes_function(self, frequency_function, time_range, rng, dt=1e-4, p_keep=1):
 
         # TODO: Replace this with the code in time_varying_input.py
@@ -1966,6 +2025,7 @@ class SnuddaInput(object):
         assert data[1] == input_info["input_type"]
         spikes = data[2]
         freq = data[5]
+        synapse_parameter_id = data[14]
 
         # Handle synapse location
         if "dendrite_location" in input_info and input_info["dendrite_location"] is not None:
@@ -1987,9 +2047,6 @@ class SnuddaInput(object):
             x = y = z = dist_to_soma = np.zeros((len(sec_id),))
             location = [(x, y, z), np.array(sec_id), np.array(sec_x), dist_to_soma]
 
-            rng = np.random.default_rng(input_info["random_seed"] + 1)
-            synapse_parameter_id = rng.integers(1e6, size=len(location))
-
         else:
 
             rng = np.random.default_rng(input_info["location_random_seed"])
@@ -2009,8 +2066,6 @@ class SnuddaInput(object):
                 location = self.add_soma_synapses(location,
                                                   n_soma_synapses=input_info["num_soma_synapses"],
                                                   neuron_id=input_info["neuron_id"])
-
-            synapse_parameter_id = rng.integers(1e6, size=len(location))
 
         return input_info["neuron_id"], input_info["input_type"], spikes, freq, location, synapse_parameter_id
 
@@ -2146,6 +2201,8 @@ class SnuddaInput(object):
                                                  jitter_dt=jitter_dt,
                                                  rng=rng,
                                                  input_generator=input_generator)
+
+            parameter_id = None
         else:
 
             if dendrite_location:
@@ -2207,8 +2264,8 @@ class SnuddaInput(object):
                                                  rng=rng,
                                                  input_generator=input_generator)
 
-        # We need to pick which parameter set to use for the input also
-        parameter_id = rng.integers(1e6, size=num_inputs)
+            # We need to pick which parameter set to use for the input also
+            parameter_id = rng.integers(1e6, size=num_inputs)
 
         # We need to keep track of the neuron_id, since it will all be jumbled
         # when doing asynchronous parallelisation
