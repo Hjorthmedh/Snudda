@@ -2025,6 +2025,7 @@ class SnuddaInput(object):
         assert data[1] == input_info["input_type"]
         spikes = data[2]
         freq = data[5]
+        synapse_parameter_id = data[14]
 
         # Handle synapse location
         if "dendrite_location" in input_info and input_info["dendrite_location"] is not None:
@@ -2046,9 +2047,6 @@ class SnuddaInput(object):
             x = y = z = dist_to_soma = np.zeros((len(sec_id),))
             location = [(x, y, z), np.array(sec_id), np.array(sec_x), dist_to_soma]
 
-            rng = np.random.default_rng(input_info["random_seed"] + 1)
-            synapse_parameter_id = rng.integers(1e6, size=len(location))
-
         else:
 
             rng = np.random.default_rng(input_info["location_random_seed"])
@@ -2068,8 +2066,6 @@ class SnuddaInput(object):
                 location = self.add_soma_synapses(location,
                                                   n_soma_synapses=input_info["num_soma_synapses"],
                                                   neuron_id=input_info["neuron_id"])
-
-            synapse_parameter_id = rng.integers(1e6, size=len(location))
 
         return input_info["neuron_id"], input_info["input_type"], spikes, freq, location, synapse_parameter_id
 
@@ -2205,6 +2201,8 @@ class SnuddaInput(object):
                                                  jitter_dt=jitter_dt,
                                                  rng=rng,
                                                  input_generator=input_generator)
+
+            parameter_id = None
         else:
 
             if dendrite_location:
@@ -2266,8 +2264,8 @@ class SnuddaInput(object):
                                                  rng=rng,
                                                  input_generator=input_generator)
 
-        # We need to pick which parameter set to use for the input also
-        parameter_id = rng.integers(1e6, size=num_inputs)
+            # We need to pick which parameter set to use for the input also
+            parameter_id = rng.integers(1e6, size=num_inputs)
 
         # We need to keep track of the neuron_id, since it will all be jumbled
         # when doing asynchronous parallelisation
