@@ -5,5 +5,8 @@
     "tau1": 1e3,
     "tau2": 1e3,
     "tau1_ampa": 1e3,
-    "tau2_ampa": 1e3
+    "tau2_ampa": 1e3,
+    "tau1_nmda": 1e3,
+    "tau2_nmda": 1e3
+    
 }
