@@ -496,7 +496,7 @@ class SnuddaSimulate(object):
                     if sec_id is None and sec_x is None:
                         # Loop over all the sections and add recordings
                         for sec_id, sec in self.neurons[neuron_id].section_lookup.items():
-                            for seg in sec.allseg():
+                            for seg in sec:    #sec.allseg():
                                 print(f"Adding recording to neuron {neuron_id} ({sec_id}:{sec_x}")
                                 self.add_membrane_recording(variable=record_variable,
                                                             neuron_id=neuron_id,
@@ -504,7 +504,7 @@ class SnuddaSimulate(object):
                                                             sec_x=seg.x)
 
                     elif sec_id is not None and sec_x is not None:
-                        print(f"Adding recording to neuron {neuron_id} ({sec_id}:{sec_x}")
+                        print(f"Adding recording to neuron {neuron_id} ({sec_id}:{sec_x})")
                         self.add_membrane_recording(variable=record_variable,
                                                     neuron_id=neuron_id,
                                                     sec_id=sec_id,
