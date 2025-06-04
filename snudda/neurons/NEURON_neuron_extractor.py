@@ -1,10 +1,8 @@
 import numpy as np
-from snudda.simulate import SnuddaSimulate
-
 
 class NEURONNeuronExtractor:
 
-    def __init__(self, sim: SnuddaSimulate):
+    def __init__(self, sim):
 
         self.sim = sim
 
