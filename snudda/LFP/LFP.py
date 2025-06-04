@@ -26,17 +26,17 @@ class LFP:
 
         self.extracellular_electrode_parameters = {
             "sigma": sigma,
-            "x": x, "y": y, "z": z
+            "x": x*1e6, "y": y*1e6, "z": z*1e6   # micrometers for LFPy
         }
 
     def calculate_potential(self, neuron_id):
 
         geometry, membrane_current = self.get_data(neuron_id=neuron_id)
 
-        cell_geometry = CellGeometry(x=geometry[:, [0, 1]],
-                                     y=geometry[:, [2, 3]],
-                                     z=geometry[:, [4, 5]],
-                                     d=geometry[:, [6, 7]])
+        cell_geometry = CellGeometry(x=geometry[:, [0, 1]]*1e6,
+                                     y=geometry[:, [2, 3]]*1e6,
+                                     z=geometry[:, [4, 5]]*1e6,
+                                     d=geometry[:, [6, 7]]*1e6)
 
         forward_model = PointSourcePotential(cell_geometry, **self.extracellular_electrode_parameters)
 
