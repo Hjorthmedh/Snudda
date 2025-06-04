@@ -1,5 +1,5 @@
 import numpy as np
-from snudda import SnuddaSimulate
+from snudda.simulate import SnuddaSimulate
 
 
 class NEURONNeuronExtractor:
