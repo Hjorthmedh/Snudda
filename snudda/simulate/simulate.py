@@ -347,7 +347,7 @@ class SnuddaSimulate(object):
         self.record.add_unit(data_type="synaptic_current", target_unit="A", conversion_factor=1e-9)
         self.record.add_unit(data_type="spikes", target_unit="s", conversion_factor=1e-3)
         self.record.add_unit(data_type="time", target_unit="s", conversion_factor=1e-3)
-        self.record.add_unit(data_type="i", target_unit="A", conversion_factor=1e-9)
+        self.record.add_unit(data_type="i_membrane_", target_unit="A", conversion_factor=1e-9)
         # TODO: Add more units as needed https://www.neuron.yale.edu/neuron/static/docs/units/unitchart.html
 
     # def __del__(self):
