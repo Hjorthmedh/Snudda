@@ -66,7 +66,7 @@ class LFP:
 
     def plot_lfp(self, v_e, t):
 
-        plt.plot(t, v_e)
+        plt.plot(t, v_e.T)
         plt.xlabel("Time (s)")
         plt.ylabel("Voltage (V)")
         plt.ion()
