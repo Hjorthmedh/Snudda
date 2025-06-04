@@ -18,7 +18,7 @@ class NEURONNeuronExtractor:
             coords = np.array([[sec.x3d(i), sec.y3d(i), sec.z3d(i), sec.diam3d(i), sec.arc3d(i)]
                                 for i in range(sec.n3d())])
 
-            arc_points = np.linspace(0,1, 1.0/sec.nseg)
+            arc_points = np.linspace(0.0,1.0, num=sec.nseg+1, endpoint=True)
 
             xp = np.interp(arc_points, coords[:, 4], coords[:,0])
             yp = np.interp(arc_points, coords[:, 4], coords[:,1])
