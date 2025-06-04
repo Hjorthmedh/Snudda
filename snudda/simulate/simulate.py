@@ -474,8 +474,10 @@ class SnuddaSimulate(object):
                                                              sec_id=sid, sec_x=sex,
                                                              density_mechanism=density_mechanism_name,
                                                              variable=variable_name)
-
+                        
             if "record_membrane" in self.sim_info:
+
+                h.cvode.use_fast_imem(True)  # Activating membrane current recording
 
                 # The recording data is a list of dictionaries, that contain neuron_id and variable,
                 # sec_id and sec_x are optional (if not given, then all sections and segments are recorded)
