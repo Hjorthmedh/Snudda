@@ -1,0 +1,88 @@
+import h5py
+import numpy as np
+from lfpykit import CellGeometry, PointSourcePotential
+import matplotlib.pyplot as plt
+
+# You need to install lfpykit for this part
+
+class LFP:
+
+    def __init__(self, output_file):
+
+        self.file = h5py.File(output_file, "r")
+
+        self.extracellular_electrode_parameters = None
+
+    def get_data(self, neuron_id):
+
+        geometry = self.file["neurons"][str(neuron_id)]["geometry"][()].copy() * 1e6
+        membrane_current = self.file["neurons"][str(neuron_id)]["membrane.i_membrane_"]*1e9
+
+        return geometry, membrane_current
+
+    def set_electrode(self, sigma, x, y, z):
+
+        self.extracellular_electrode_parameters = {
+            "sigma": sigma,
+            "x": x, "y": y, "z": z
+        }
+
+    def calculate_potential(self, neuron_id):
+
+        geometry, membrane_current = self.get_data(neuron_id=neuron_id)
+
+        cell_geometry = CellGeometry(x=geometry[:, 0],
+                                     y=geometry[:, 1],
+                                     z=geometry[:, 2],
+                                     d=geometry[:, 3])
+
+        forward_model = PointSourcePotential(cell_geometry, **self.extracellular_electrode_parameters)
+
+        M = forward_model.get_transformation_matrix()
+        V_e = M @ membrane_current
+
+        return V_e * 1e-6   # Convert to SI units
+
+    def calculate_potential_network(self):
+
+        V_e_list = []
+        for neuron_id in self.file["neurons"].keys():
+            V_e = self.calculate_potential(neuron_id=neuron_id)
+            V_e_list.append(V_e)
+
+        return np.sum(V_e_list)
+
+    def get_time(self):
+
+        t = self.file["time"][()].copy()
+        return t
+
+    def plot_lfp(self, v_e, t):
+
+        plt.plot(t, v_e)
+        plt.xlabel("Time (s)")
+        plt.ylabel("Voltage (V)")
+        plt.ion()
+        plt.show()
+
+
+def cli():
+
+    from argparse import ArgumentParser
+
+    parser = ArgumentParser(description="Generate LFP")
+    parser.add_argument("simulation_file")
+
+    args = parser.parse_args()
+
+    lfp = LFP(output_file=args.simulation_file)
+
+    v_e = lfp.calculate_potential_network()
+    t = lfp.get_time()
+
+    lfp.plot(v_e, t)
+
+    input("Press a key to continue")
+
+    import pdb
+    pdb.set_trace()
