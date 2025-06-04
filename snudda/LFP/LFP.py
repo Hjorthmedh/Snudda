@@ -85,7 +85,7 @@ def cli():
     v_e = lfp.calculate_potential_network()
     t = lfp.get_time()
 
-    lfp.plot(v_e, t)
+    lfp.plot_lfp(v_e, t)
 
     input("Press a key to continue")
 
