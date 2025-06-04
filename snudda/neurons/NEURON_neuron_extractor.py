@@ -24,6 +24,7 @@ class NEURONNeuronExtractor:
         print(f"Writing geometry to {hdf5_file.file.filename}")
 
         for neuron_id in self.sim.neurons.keys():
+            print(f"Writing neuron {neuron_id}")
 
             geometry = self.extract_geometry_for_neuron(neuron_id=neuron_id)
             hdf5_file["neurons"][str(neuron_id)].create_dataset("geometry", geometry)
