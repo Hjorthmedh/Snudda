@@ -79,6 +79,7 @@ def cli():
 
     lfp = LFP(output_file=args.simulation_file)
 
+    lfp.set_electrode(sigma=0.3, x=0, y=0, z=0)
     v_e = lfp.calculate_potential_network()
     t = lfp.get_time()
 
