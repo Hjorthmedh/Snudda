@@ -12,8 +12,9 @@ class NEURONNeuronExtractor:
 
         for sec_id, sec in self.sim.neurons[neuron_id].section_lookup.items():
 
-            loc_info.append(np.array([[sec.x3d(i), sec.y3d(i), sec.z3d(i), sec.diam3d(i)]
-                                      for i in range(sec.n3d())]))
+            if sec.n3d() > 0:
+                loc_info.append(np.array([[sec.x3d(i), sec.y3d(i), sec.z3d(i), sec.diam3d(i)]
+                                          for i in range(sec.n3d())]))
 
         geometry = np.vstack(loc_info)
 
