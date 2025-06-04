@@ -12,8 +12,8 @@ class NEURONNeuronExtractor:
 
         for sec_id, sec in self.sim.neurons[neuron_id].section_lookup.items():
 
-            loc_info.append(np.array([[sec.x3d(i), sec.y3d(i), sec.z3d(i), sec.dim3d(i)]
-                                      for i in range(sec.n3d)]))
+            loc_info.append(np.array([[sec.x3d(i), sec.y3d(i), sec.z3d(i), sec.diam3d(i)]
+                                      for i in range(sec.n3d())]))
 
         geometry = np.vstack(loc_info)
 
@@ -24,7 +24,8 @@ class NEURONNeuronExtractor:
         print(f"Writing geometry to {hdf5_file.file.filename}")
 
         for neuron_id in self.sim.neurons.keys():
-            print(f"Writing neuron {neuron_id}")
 
             geometry = self.extract_geometry_for_neuron(neuron_id=neuron_id)
             hdf5_file["neurons"][str(neuron_id)].create_dataset("geometry", geometry)
+
+            print(f"Writing neuron {neuron_id}, {geometry=}")
