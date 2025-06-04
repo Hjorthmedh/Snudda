@@ -34,6 +34,7 @@ from mpi4py import MPI  # This must be imported before neuron, to run parallel
 from neuron import h  # , gui
 
 import snudda.utils.memory
+from snudda.neurons.NEURON_neuron_extractor import NEURONNeuronExtractor
 from snudda.neurons.neuromodulation_extracellular import ExtracellularNeuromodulation
 from snudda.neurons.neuron_model_extended import NeuronModel
 from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
@@ -477,6 +478,7 @@ class SnuddaSimulate(object):
                         
             if "record_membrane" in self.sim_info:
 
+                self.record.include_geometry(simulation=self)
                 h.cvode.use_fast_imem(True)  # Activating membrane current recording
 
                 # The recording data is a list of dictionaries, that contain neuron_id and variable,

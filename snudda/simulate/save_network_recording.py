@@ -5,6 +5,7 @@ import numpy as np
 from mpi4py import MPI  # This must be imported before neuron, to run parallel
 from neuron import h  # , gui
 
+from snudda.neurons.NEURON_neuron_extractor import NEURONNeuronExtractor
 
 """
 
@@ -276,6 +277,13 @@ class SnuddaSaveNetworkRecordings:
 
         self.pc = h.ParallelContext()
 
+        self.save_geometry = False
+        self.simulation = None
+
+    def include_geometry(self, simulation):
+        self.simulation = simulation
+        self.save_geometry = True
+
     def set_new_output_file(self, output_file):
         self.output_file = output_file
         self.header_exists = False
@@ -533,6 +541,10 @@ class SnuddaSaveNetworkRecordings:
                             ecs_data_group.create_dataset("index", data=index)
                             ecs_data_group.create_dataset("xyz", data=coords)
                             ecs_data_group.create_dataset("data", data=data)
+
+                if self.save_geometry:
+                    nne = NEURONNeuronExtractor(sim=self.simulation)
+                    nne.write_all_coordinates_to_hdf5(hdf5_file=out_file)
 
                 out_file.close()
 
