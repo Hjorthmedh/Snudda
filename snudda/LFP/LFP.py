@@ -26,7 +26,9 @@ class LFP:
 
         self.extracellular_electrode_parameters = {
             "sigma": sigma,
-            "x": x*1e6, "y": y*1e6, "z": z*1e6   # micrometers for LFPy
+            "x": np.array(x)*1e6,
+            "y": np.array(y)*1e6,
+            "z": np.array(z)*1e6   # micrometers for LFPy
         }
 
     def calculate_potential(self, neuron_id):
