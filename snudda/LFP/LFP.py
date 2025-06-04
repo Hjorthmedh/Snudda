@@ -33,10 +33,10 @@ class LFP:
 
         geometry, membrane_current = self.get_data(neuron_id=neuron_id)
 
-        cell_geometry = CellGeometry(x=geometry[:, 0],
-                                     y=geometry[:, 1],
-                                     z=geometry[:, 2],
-                                     d=geometry[:, 3])
+        cell_geometry = CellGeometry(x=geometry[:, [0, 1]],
+                                     y=geometry[:, [2, 3]],
+                                     z=geometry[:, [4, 5]],
+                                     d=geometry[:, [6, 7]])
 
         forward_model = PointSourcePotential(cell_geometry, **self.extracellular_electrode_parameters)
 
