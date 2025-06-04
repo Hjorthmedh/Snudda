@@ -54,7 +54,10 @@ class LFP:
             V_e = self.calculate_potential(neuron_id=neuron_id)
             V_e_list.append(V_e)
 
-        return np.sum(V_e_list)
+        if len(V_e_list) > 1:
+            return sum(V_e_list)
+        else:
+            return V_e
 
     def get_time(self):
 
