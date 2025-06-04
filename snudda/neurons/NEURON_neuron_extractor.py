@@ -12,6 +12,35 @@ class NEURONNeuronExtractor:
 
         for sec_id, sec in self.sim.neurons[neuron_id].section_lookup.items():
 
+            if sec.n3d() <= 1:
+                continue
+
+            coords = np.array([[sec.x3d(i), sec.y3d(i), sec.z3d(i), sec.diam3d(i), sec.arc3d(i)]
+                                for i in range(sec.n3d())])
+
+            arc_points = np.linspace(0,1, 1.0/sec.nseg)
+
+            xp = np.interp(arc_points, coords[:, 4], coords[:,0])
+            yp = np.interp(arc_points, coords[:, 4], coords[:,1])
+            zp = np.interp(arc_points, coords[:, 4], coords[:,2])
+            dp = np.interp(arc_points, coords[:, 4], coords[:,3])
+
+            for i in range(0, sec.nseg):
+                loc_info.append(np.array([xp[i], xp[i+1],
+                                          yp[i], yp[i+1],
+                                          zp[i], zp[i+1],
+                                          dp[i], dp[i+1]]))
+
+        geometry = np.vstack(loc_info) * 1e-6  # We save in meter
+
+        return geometry
+
+    def extract_geometry_for_neuron_OLD(self, neuron_id):
+
+        loc_info = []
+
+        for sec_id, sec in self.sim.neurons[neuron_id].section_lookup.items():
+
             if sec.n3d() > 1:
                 loc_info.append(np.array([[sec.x3d(i), sec.x3d(i+1),
                                            sec.y3d(i), sec.y3d(i+1),
@@ -30,7 +59,7 @@ class NEURONNeuronExtractor:
         for sec_id, sec in self.sim.neurons[neuron_id].section_lookup.items():
 
             if sec.n3d() > 1:
-                loc_info.append(np.array([[sec.x3d(i), sec.y3d(i), sec.z3d(i), sec.diam3d(i)]
+                loc_info.append(np.array([[sec.x3d(i), sec.y3d(i), sec.z3d(i), sec.diam3d(i), sec.arc3d(i)]
                                           for i in range(sec.n3d())]))
 
         coordinates = np.vstack(loc_info) * 1e-6  # We save in meter
