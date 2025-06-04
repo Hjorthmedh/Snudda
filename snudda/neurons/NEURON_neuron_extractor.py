@@ -16,7 +16,7 @@ class NEURONNeuronExtractor:
                 loc_info.append(np.array([[sec.x3d(i), sec.y3d(i), sec.z3d(i), sec.diam3d(i)]
                                           for i in range(sec.n3d())]))
 
-        geometry = np.vstack(loc_info)
+        geometry = np.vstack(loc_info) * 1e-6  # We save in meter
 
         return geometry
 
