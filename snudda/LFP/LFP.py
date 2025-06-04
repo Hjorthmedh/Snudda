@@ -18,7 +18,7 @@ class LFP:
     def get_data(self, neuron_id):
 
         geometry = self.file["neurons"][str(neuron_id)]["geometry"][()].copy() * 1e6
-        membrane_current = self.file["neurons"][str(neuron_id)]["membrane.i_membrane_"]*1e9
+        membrane_current = self.file["neurons"][str(neuron_id)]["membrane.i_membrane_"][()]*1e9
 
         return geometry, membrane_current
 
