@@ -185,12 +185,17 @@ class SnuddaSimulate(object):
                 import sys
                 sys.exit(-1)
 
+            if "network_path" in self.sim_info:
+                self.network_path = self.sim_info["network_path"]
+                self.write_log(f"Network path: {self.network_file}")
+
             if "log_file" in self.sim_info:
 
                 if self.total_nodes > 1:
-                    log_file_name = f"{self.sim_info['log_file']}-{self.node_id}"
+                    log_file_name = f"{self.sim_info['log_file']}-{self.node_id}".replace("$network_path",
+                                                                                          self.network_path)
                 else:
-                    log_file_name = self.sim_info["log_file"]
+                    log_file_name = self.sim_info["log_file"].replace("$network_path", self.network_path)
 
                 self.log_file = open(log_file_name, "w")
                 self.write_log(f"Using log file {self.log_file}")
@@ -198,20 +203,16 @@ class SnuddaSimulate(object):
             elif isinstance(self.log_file, str):
                 self.log_file = open(self.log_file, "w")
 
-            if "network_path" in self.sim_info:
-                self.network_path = self.sim_info["network_path"]
-                self.write_log(f"Network path: {self.network_file}")
-
             if "network_file" in self.sim_info:
-                self.network_file = self.sim_info["network_file"]
+                self.network_file = self.sim_info["network_file"].replace("$network_path", self.network_path)
                 self.write_log(f"Network file: {self.network_file}")
 
             if "input_file" in self.sim_info:
-                self.input_file = self.sim_info["input_file"]
+                self.input_file = self.sim_info["input_file"].replace("$network_path", self.network_path)
                 self.write_log(f"Input file: {self.input_file}")
 
             if "output_file" in self.sim_info:
-                self.output_file = self.sim_info["output_file"]
+                self.output_file = self.sim_info["output_file"].replace("$network_path", self.network_path)
                 self.write_log(f"Output file: {self.output_file}")
 
             if "use_cvode" in self.sim_info:
