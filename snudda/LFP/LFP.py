@@ -17,8 +17,8 @@ class LFP:
 
     def get_data(self, neuron_id):
 
-        geometry = self.file["neurons"][str(neuron_id)]["geometry"][()].copy() * 1e6
-        membrane_current = self.file["neurons"][str(neuron_id)]["membrane.i_membrane_"][()]*1e9
+        geometry = self.file["neurons"][str(neuron_id)]["geometry"][()].copy()
+        membrane_current = self.file["neurons"][str(neuron_id)]["membrane.i_membrane_"][()]
 
         return geometry, membrane_current
 
@@ -43,9 +43,9 @@ class LFP:
         forward_model = PointSourcePotential(cell_geometry, **self.extracellular_electrode_parameters)
 
         M = forward_model.get_transformation_matrix()
-        V_e = M @ membrane_current
+        V_e = M @ (membrane_current * 1e9)
 
-        return V_e * 1e-6   # Convert to SI units
+        return V_e * 1e-3   # Convert to SI units
 
     def calculate_potential_network(self):
 
