@@ -4,7 +4,7 @@
     "output_file": "$network_path/simulation/output_neuromodulation_OFF.hdf5",
     "log_file": "$network_path/log/network-simulation-OFF.txt",
     "time": 11,
-    "sim_dt": 0.005,
+    "!sim_dt": 0.005,
     "record_all_soma": true,
     "use_rxd_neuromodulation": true,
 
@@ -52,9 +52,9 @@
     "bath_application": {
 	"DA": {
 	    "time": [0, 20],
-	    "concentration": [20e-9, 20e-9],
+	    "concentration": [20e-6, 20e-6],
 	    "interpolate": true
 	}
     },
-    "current_injection_file": "bevan_current_injection.json"
+    "current_injection_file": "data/bevan_current_injection_figure1.json"
 }
