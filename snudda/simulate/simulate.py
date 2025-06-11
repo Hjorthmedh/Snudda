@@ -3062,8 +3062,17 @@ if __name__ == "__main__":
     args = parser.parse_args()
     network_data_file = args.networkFile
     input_file = args.inputFile
-    log_file = os.path.join(os.path.dirname(args.networkFile), "log", "network-simulation-log.txt")
-    save_dir = os.path.join(os.path.dirname(args.networkFile), "simulation")
+
+    if os.path.isdir(args.networkFile):
+        network_path = args.networkFile
+        log_file = os.path.join(network_path, "log", "network-simulation-log.txt")
+        save_dir = os.path.join(network_path, "simulation")
+        network_file = None
+    else:
+        log_file = os.path.join(os.path.dirname(args.networkFile), "log", "network-simulation-log.txt")
+        save_dir = os.path.join(os.path.dirname(args.networkFile), "simulation")
+        network_path = None
+        network_file = args.networkFile
 
     if not os.path.exists(save_dir):
         print(f"Creating directory {save_dir}")
@@ -3095,7 +3104,8 @@ if __name__ == "__main__":
     else:
         output_file = None
 
-    sim = SnuddaSimulate(network_file=network_data_file,
+    sim = SnuddaSimulate(network_path=network_path,
+                         network_file=network_file,
                          input_file=input_file,
                          output_file=output_file,
                          disable_gap_junctions=args.disable_gapjunctions,
