@@ -6,7 +6,7 @@
 #SBATCH --time-min=10:59:00
 #SBATCH -J VBT_scan
 #SBATCH -A naiss2025-5-309
-#SBATCH --nodes=1
+#SBATCH --nodes=2
 #SBATCH --tasks-per-node=100   # 128 worked?  This depends on memory, 48 worked, 64 worked
 #SBATCH --mail-type=ALL
 

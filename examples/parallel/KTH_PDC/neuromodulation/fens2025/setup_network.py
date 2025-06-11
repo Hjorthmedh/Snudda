@@ -21,9 +21,9 @@ network_path = os.path.join("networks", "small_network")
 
 random_seed = 12345
 
-n_dspn = 100  # 1000
+n_dspn = 500  # 1000
 n_ispn = 0  # 1000
-n_fs = 4  # 40
+n_fs = 20  # 40
 
 n_total = n_dspn + n_ispn + n_fs
 connectivity_info = os.path.join(snudda_data, "connectivity", "striatum", "striatum-connectivity.json")
