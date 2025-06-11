@@ -1,5 +1,5 @@
 {
-    "network_path": "networks/bevan_fig1_bath_current_SBML",
+    "network_path": "networks/bevan_fig3_bath_current_SBML",
     "network_file": "$network_path/network-synapses.hdf5",
     "output_file": "$network_path/simulation/output_neuromodulation_ON.hdf5",
     "log_file": "$network_path/log/network-simulation-ON.txt",
@@ -51,14 +51,10 @@
     "rxd_enable_extracellular": false,
     "bath_application": {
 	"DA": {
-	    "time": [0, 3, 3.5, 6, 6.5, 8, 20],
-	    "concentration": [20e-6, 20e-6, 0.1e-3, 0.3e-3, 0.3e-3, 20e-6, 20e-6],
-	    "!time": [0, 5, 5.5, 8, 8.5, 10, 20],
-	    "!concentration": [20e-6, 20e-6, 0.1e-3, 0.3e-3, 0.3e-3, 20e-6, 20e-6],
-	    "!!time": [0, 0.5, 1.0, 2.0],
-	    "!!concentration": [20e-6, 20e-6, 0.3e-3, 0.3e-3],	    
+	    "time": [0, 10],
+	    "concentration": [0.3e-3, 0.3e-3],
 	    "interpolate": true
 	}
     },
-    "current_injection_file": "data/bevan_current_injection_figure1.json"
+    "current_injection_file": "data/bevan_current_injection_figure3.json"
 }
