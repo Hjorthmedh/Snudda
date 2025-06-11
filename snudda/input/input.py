@@ -543,7 +543,8 @@ class SnuddaInput(object):
                 except:
                     import traceback
                     self.write_log(traceback.format_exc(), is_error=True)
-                    self.write_log(f"Did you forget to specify the name of the input to {neuron_type}?")
+                    self.write_log(f"Did you forget to specify the name of the input to {neuron_type}?",
+                                   force_print=True)
                     sys.exit(-1)
 
         if max_time > self.time:

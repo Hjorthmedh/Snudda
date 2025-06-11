@@ -1,0 +1,11 @@
+{
+    "network_path": "networks/small_network",
+    "time": 4,
+    "record_all_soma": true,
+    "use_rxd_neuromodulation": true,
+
+    "bath_application": [{"species_name": "DA",
+			  "time": [0, 2, 2, 3, 3, 10],
+			  "concentration": [20e-6, 20e-6, 300e-6, 300e-6, 20e-6, 20e-6],
+			  "interpolate": true}]
+}

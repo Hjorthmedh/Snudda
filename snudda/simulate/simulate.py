@@ -762,8 +762,9 @@ class SnuddaSimulate(object):
                         del channel_param_dict["parameter_file"]
 
                 else:
-                    assert False, (f"No channel module specified for {pre_type}->{post_type} synapses, "
-                                   f"type ID={synapse_type_id}")
+                    self.write_log(f"No channel module specified for {pre_type}->{post_type} synapses, "
+                                   f"type ID={synapse_type_id}", force_print=True)
+                    continue
 
                 if "parameter_file" in info_dict["channel_parameters"] \
                         and info_dict["channel_parameters"]["parameter_file"] is not None:
@@ -1774,14 +1775,21 @@ class SnuddaSimulate(object):
 
     def get_rxd_external_input_parameters(self, neuron_input):
 
-        if "RxD" in neuron_input.attrs.keys() and self.use_rxd_neuromodulation:
+        if "RxD" in neuron_input.attrs.keys() and self.use_rxd_neuromodulation\
+                and neuron_input.attrs["RxD"] != "null":
 
-            rxd_dict = json.loads(neuron_input.attrs["RxD"])
+            try:
+                rxd_dict = json.loads(neuron_input.attrs["RxD"])
 
-            species_name = rxd_dict.get("species_name")
-            flux_variable = rxd_dict.get("flux_variable")
-            region = rxd_dict.get("region")
-            weight_scale = rxd_dict.get("weight_scale", 1.0)
+                species_name = rxd_dict.get("species_name")
+                flux_variable = rxd_dict.get("flux_variable")
+                region = rxd_dict.get("region")
+                weight_scale = rxd_dict.get("weight_scale", 1.0)
+            except:
+                import traceback
+                self.write_log(traceback.format_exc(), is_error=True)
+                import pdb
+                pdb.set_trace()
 
         else:
             species_name = None
