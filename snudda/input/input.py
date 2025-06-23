@@ -972,7 +972,8 @@ class SnuddaInput(object):
                         "parameter_list", "synapse_density", "RxD",
                         "dendrite_location"
                         "num_soma_synapses",
-                        "cluster_size", "cluster_spread"]
+                        "cluster_size", "cluster_spread",
+                        "dendrite_location", "morphology_key"]
 
         # location has to be computed by the worker, to parallelize it
 
@@ -1005,7 +1006,8 @@ class SnuddaInput(object):
                         "frequency", "frequency_function",
                         "num_inputs", "num_soma_synapses",
                         "mod_file", "parameter_file", "parameter_list",
-                        "synapse_density", "cluster_size", "cluster_spread", "dendrite_location",
+                        "synapse_density", "cluster_size", "cluster_spread",
+                        "dendrite_location", "morphology_key",
                         "correlation", "population_unit_correlation_fraction", "population_unit_id",
                         "num_soma_synapses", "location_random_seed",
                         "add_mother_spikes", "set_mother_spikes"]
