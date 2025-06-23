@@ -543,7 +543,8 @@ class SnuddaInput(object):
                 except:
                     import traceback
                     self.write_log(traceback.format_exc(), is_error=True)
-                    self.write_log(f"Did you forget to specify the name of the input to {neuron_type}?")
+                    self.write_log(f"Did you forget to specify the name of the input to {neuron_type}?",
+                                   force_print=True)
                     sys.exit(-1)
 
         if max_time > self.time:
@@ -971,7 +972,8 @@ class SnuddaInput(object):
                         "parameter_list", "synapse_density", "RxD",
                         "dendrite_location"
                         "num_soma_synapses",
-                        "cluster_size", "cluster_spread"]
+                        "cluster_size", "cluster_spread",
+                        "dendrite_location", "morphology_key"]
 
         # location has to be computed by the worker, to parallelize it
 
@@ -1004,7 +1006,8 @@ class SnuddaInput(object):
                         "frequency", "frequency_function",
                         "num_inputs", "num_soma_synapses",
                         "mod_file", "parameter_file", "parameter_list",
-                        "synapse_density", "cluster_size", "cluster_spread", "dendrite_location",
+                        "synapse_density", "cluster_size", "cluster_spread",
+                        "dendrite_location", "morphology_key",
                         "correlation", "population_unit_correlation_fraction", "population_unit_id",
                         "num_soma_synapses", "location_random_seed",
                         "add_mother_spikes", "set_mother_spikes"]
@@ -2210,8 +2213,9 @@ class SnuddaInput(object):
                 sec_id, sec_x = zip(*dendrite_location)
 
                 # TODO: Calculate the correct x,y,z and distance to soma
-                x = y = z = dist_to_soma = np.zeros((len(sec_id),))
-                input_loc = np.array([(x, y, z), np.array(sec_id), np.array(sec_x), dist_to_soma])
+                xyz = np.zeros((len(sec_id), 3))
+                dist_to_soma = np.zeros((len(sec_id),))
+                input_loc = xyz, np.array(sec_id), np.array(sec_x), dist_to_soma
 
             else:
 

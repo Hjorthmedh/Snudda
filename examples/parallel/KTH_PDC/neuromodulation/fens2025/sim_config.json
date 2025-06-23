@@ -1,0 +1,65 @@
+{
+    "network_path": "networks/small_network",
+    "log_file": "$network_path/log/simulation-log.txt",
+    "time": 12,
+    "record_all_soma": true,
+    "use_rxd_neuromodulation": true,
+    "record_rxd_species_soma": [50, 60, 70],
+    "record_density_mechanism": {	
+	"kir_ms.modulation_factor": {
+	    "neuron_id": [50, 60, 70],
+	    "section_id": [-1, -1, -1],
+	    "section_x": [0.5, 0.5, 0.5]
+	},
+	"naf_ms.modulation_factor": {
+	    "neuron_id": [50, 60, 70],
+	    "section_id": [-1, -1, -1],
+	    "section_x": [0.5, 0.5, 0.5]
+	},
+	"kaf_ms.modulation_factor_g": {
+	    "neuron_id": [50, 60, 70],
+	    "section_id": [-1, -1, -1],
+	    "section_x": [0.5, 0.5, 0.5]
+	},
+	"kaf_ms.modulation_factor_shift": {
+	    "neuron_id": [50, 60, 70],
+	    "section_id": [-1, -1, -1],
+	    "section_x": [0.5, 0.5, 0.5]
+	},
+	"kas_ms.modulation_factor": {
+	    "neuron_id": [50, 60, 70],
+	    "section_id": [-1, -1, -1],
+	    "section_x": [0.5, 0.5, 0.5]
+	},
+	"sk_ms.modulation_factor": {
+	    "neuron_id": [50, 60, 70],
+	    "section_id": [-1, -1, -1],
+	    "section_x": [0.5, 0.5, 0.5]
+	},
+	"car_ms.modulation_factor": {
+	    "neuron_id": [50, 60, 70],
+	    "section_id": [-1, -1, -1],
+	    "section_x": [0.5, 0.5, 0.5]
+	},
+	"car_ms.modulation_factor2": {
+	    "neuron_id": [50, 60, 70],
+	    "section_id": [-1, -1, -1],
+	    "section_x": [0.5, 0.5, 0.5]
+	},
+	"cal12_ms.modulation_factor": {
+	    "neuron_id": [50, 60, 70],
+	    "section_id": [-1, -1, -1],
+	    "section_x": [0.5, 0.5, 0.5]
+	},
+	"cal13_ms.modulation_factor": {
+	    "neuron_id": [50, 60, 70],
+	    "section_id": [-1, -1, -1],
+	    "section_x": [0.5, 0.5, 0.5]
+	}
+    },
+
+    "bath_application": [{"species_name": "DA",
+			  "time": [0, 5, 5, 7, 7, 12],
+			  "concentration": [20e-6, 20e-6, 300e-6, 300e-6, 20e-6, 20e-6],
+			  "interpolate": true}]
+}

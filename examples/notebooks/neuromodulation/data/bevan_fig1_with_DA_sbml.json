@@ -1,0 +1,64 @@
+{
+    "network_path": "networks/bevan_fig1_bath_current_SBML",
+    "network_file": "$network_path/network-synapses.hdf5",
+    "output_file": "$network_path/simulation/output_neuromodulation_ON.hdf5",
+    "log_file": "$network_path/log/network-simulation-ON.txt",
+    "time": 11,
+    "!sim_dt": 0.005,
+    "record_all_soma": true,
+    "use_rxd_neuromodulation": true,
+
+    "record_rxd_species_soma": [0, 1],
+    "record_density_mechanism": {	
+	"kir_ms.modulation_factor": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	},
+	"naf_ms.modulation_factor": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	},
+	"kaf_ms.modulation_factor_g": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	},
+	"kaf_ms.modulation_factor_shift": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	},
+	"kas_ms.modulation_factor": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	},
+
+	"cal12_ms.modulation_factor": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	},
+	"cal13_ms.modulation_factor": {
+	    "neuron_id": [0, 1],
+	    "section_id": [-1, -1],
+	    "section_x": [0.5, 0.5]
+	}
+	
+    },
+    "rxd_enable_extracellular": false,
+    "bath_application": {
+	"DA": {
+	    "time": [0, 3, 3.5, 6, 6.5, 8, 20],
+	    "concentration": [20e-6, 20e-6, 0.1e-3, 0.3e-3, 0.3e-3, 20e-6, 20e-6],
+	    "!time": [0, 5, 5.5, 8, 8.5, 10, 20],
+	    "!concentration": [20e-6, 20e-6, 0.1e-3, 0.3e-3, 0.3e-3, 20e-6, 20e-6],
+	    "!!time": [0, 0.5, 1.0, 2.0],
+	    "!!concentration": [20e-6, 20e-6, 0.3e-3, 0.3e-3],	    
+	    "interpolate": true
+	}
+    },
+    "current_injection_file": "data/bevan_current_injection_figure1.json"
+}

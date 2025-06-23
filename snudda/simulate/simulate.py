@@ -34,6 +34,7 @@ from mpi4py import MPI  # This must be imported before neuron, to run parallel
 from neuron import h  # , gui
 
 import snudda.utils.memory
+from snudda.neurons.NEURON_neuron_extractor import NEURONNeuronExtractor
 from snudda.neurons.neuromodulation_extracellular import ExtracellularNeuromodulation
 from snudda.neurons.neuron_model_extended import NeuronModel
 from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
@@ -184,12 +185,17 @@ class SnuddaSimulate(object):
                 import sys
                 sys.exit(-1)
 
+            if "network_path" in self.sim_info:
+                self.network_path = self.sim_info["network_path"]
+                self.write_log(f"Network path: {self.network_file}")
+
             if "log_file" in self.sim_info:
 
                 if self.total_nodes > 1:
-                    log_file_name = f"{self.sim_info['log_file']}-{self.node_id}"
+                    log_file_name = f"{self.sim_info['log_file']}-{self.node_id}".replace("$network_path",
+                                                                                          self.network_path)
                 else:
-                    log_file_name = self.sim_info["log_file"]
+                    log_file_name = self.sim_info["log_file"].replace("$network_path", self.network_path)
 
                 self.log_file = open(log_file_name, "w")
                 self.write_log(f"Using log file {self.log_file}")
@@ -197,20 +203,16 @@ class SnuddaSimulate(object):
             elif isinstance(self.log_file, str):
                 self.log_file = open(self.log_file, "w")
 
-            if "network_path" in self.sim_info:
-                self.network_path = self.sim_info["network_path"]
-                self.write_log(f"Network path: {self.network_file}")
-
             if "network_file" in self.sim_info:
-                self.network_file = self.sim_info["network_file"]
+                self.network_file = self.sim_info["network_file"].replace("$network_path", self.network_path)
                 self.write_log(f"Network file: {self.network_file}")
 
             if "input_file" in self.sim_info:
-                self.input_file = self.sim_info["input_file"]
+                self.input_file = self.sim_info["input_file"].replace("$network_path", self.network_path)
                 self.write_log(f"Input file: {self.input_file}")
 
             if "output_file" in self.sim_info:
-                self.output_file = self.sim_info["output_file"]
+                self.output_file = self.sim_info["output_file"].replace("$network_path", self.network_path)
                 self.write_log(f"Output file: {self.output_file}")
 
             if "use_cvode" in self.sim_info:
@@ -346,6 +348,7 @@ class SnuddaSimulate(object):
         self.record.add_unit(data_type="synaptic_current", target_unit="A", conversion_factor=1e-9)
         self.record.add_unit(data_type="spikes", target_unit="s", conversion_factor=1e-3)
         self.record.add_unit(data_type="time", target_unit="s", conversion_factor=1e-3)
+        self.record.add_unit(data_type="membrane.i_membrane_", target_unit="A", conversion_factor=1e-9)
         # TODO: Add more units as needed https://www.neuron.yale.edu/neuron/static/docs/units/unitchart.html
 
     # def __del__(self):
@@ -474,8 +477,11 @@ class SnuddaSimulate(object):
                                                              sec_id=sid, sec_x=sex,
                                                              density_mechanism=density_mechanism_name,
                                                              variable=variable_name)
-
+                        
             if "record_membrane" in self.sim_info:
+
+                self.record.include_geometry(simulation=self)
+                h.cvode.use_fast_imem(True)  # Activating membrane current recording
 
                 # The recording data is a list of dictionaries, that contain neuron_id and variable,
                 # sec_id and sec_x are optional (if not given, then all sections and segments are recorded)
@@ -491,7 +497,11 @@ class SnuddaSimulate(object):
                     if sec_id is None and sec_x is None:
                         # Loop over all the sections and add recordings
                         for sec_id, sec in self.neurons[neuron_id].section_lookup.items():
-                            for seg in sec.allseg():
+                            if sec.n3d() <= 1:
+                                # This will exclude the axon stubs, which have no coordinates defined
+                                continue
+
+                            for seg in sec:    #sec.allseg():
                                 print(f"Adding recording to neuron {neuron_id} ({sec_id}:{sec_x}")
                                 self.add_membrane_recording(variable=record_variable,
                                                             neuron_id=neuron_id,
@@ -499,7 +509,7 @@ class SnuddaSimulate(object):
                                                             sec_x=seg.x)
 
                     elif sec_id is not None and sec_x is not None:
-                        print(f"Adding recording to neuron {neuron_id} ({sec_id}:{sec_x}")
+                        print(f"Adding recording to neuron {neuron_id} ({sec_id}:{sec_x})")
                         self.add_membrane_recording(variable=record_variable,
                                                     neuron_id=neuron_id,
                                                     sec_id=sec_id,
@@ -752,8 +762,9 @@ class SnuddaSimulate(object):
                         del channel_param_dict["parameter_file"]
 
                 else:
-                    assert False, (f"No channel module specified for {pre_type}->{post_type} synapses, "
-                                   f"type ID={synapse_type_id}")
+                    self.write_log(f"No channel module specified for {pre_type}->{post_type} synapses, "
+                                   f"type ID={synapse_type_id}", force_print=True)
+                    continue
 
                 if "parameter_file" in info_dict["channel_parameters"] \
                         and info_dict["channel_parameters"]["parameter_file"] is not None:
@@ -1764,14 +1775,21 @@ class SnuddaSimulate(object):
 
     def get_rxd_external_input_parameters(self, neuron_input):
 
-        if "RxD" in neuron_input.attrs.keys() and self.use_rxd_neuromodulation:
+        if "RxD" in neuron_input.attrs.keys() and self.use_rxd_neuromodulation\
+                and neuron_input.attrs["RxD"] != "null":
 
-            rxd_dict = json.loads(neuron_input.attrs["RxD"])
+            try:
+                rxd_dict = json.loads(neuron_input.attrs["RxD"])
 
-            species_name = rxd_dict.get("species_name")
-            flux_variable = rxd_dict.get("flux_variable")
-            region = rxd_dict.get("region")
-            weight_scale = rxd_dict.get("weight_scale", 1.0)
+                species_name = rxd_dict.get("species_name")
+                flux_variable = rxd_dict.get("flux_variable")
+                region = rxd_dict.get("region")
+                weight_scale = rxd_dict.get("weight_scale", 1.0)
+            except:
+                import traceback
+                self.write_log(traceback.format_exc(), is_error=True)
+                import pdb
+                pdb.set_trace()
 
         else:
             species_name = None
@@ -3044,8 +3062,17 @@ if __name__ == "__main__":
     args = parser.parse_args()
     network_data_file = args.networkFile
     input_file = args.inputFile
-    log_file = os.path.join(os.path.dirname(args.networkFile), "log", "network-simulation-log.txt")
-    save_dir = os.path.join(os.path.dirname(args.networkFile), "simulation")
+
+    if os.path.isdir(args.networkFile):
+        network_path = args.networkFile
+        log_file = os.path.join(network_path, "log", "network-simulation-log.txt")
+        save_dir = os.path.join(network_path, "simulation")
+        network_file = None
+    else:
+        log_file = os.path.join(os.path.dirname(args.networkFile), "log", "network-simulation-log.txt")
+        save_dir = os.path.join(os.path.dirname(args.networkFile), "simulation")
+        network_path = None
+        network_file = args.networkFile
 
     if not os.path.exists(save_dir):
         print(f"Creating directory {save_dir}")
@@ -3077,7 +3104,8 @@ if __name__ == "__main__":
     else:
         output_file = None
 
-    sim = SnuddaSimulate(network_file=network_data_file,
+    sim = SnuddaSimulate(network_path=network_path,
+                         network_file=network_file,
                          input_file=input_file,
                          output_file=output_file,
                          disable_gap_junctions=args.disable_gapjunctions,

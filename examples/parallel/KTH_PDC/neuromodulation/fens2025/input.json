@@ -1,0 +1,20 @@
+{
+    "dSPN": {
+	"cortical": {
+	    "generator": "poisson",
+	    "frequency": 4
+	}
+    },
+    "iSPN": {
+	"cortical": {
+	    "generator": "poisson",
+	    "frequency": 4
+	}
+    },
+    "FS": {
+	"cortical": {
+	    "generator": "poisson",
+	    "frequency": 4
+	}
+    }
+}

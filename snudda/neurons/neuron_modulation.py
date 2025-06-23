@@ -15,7 +15,7 @@ from itertools import chain
 class NeuronModulation:
     should_update_rxd_nodes = True
 
-    def __init__(self, neuron, config_file=None):
+    def __init__(self, neuron, config_file=None, verbose=False):
 
         self.neuron = neuron
         self.compartments = dict()
@@ -28,6 +28,8 @@ class NeuronModulation:
         self.extracellular_region = None  # Extracellular comparment
 
         self.node_cache = None
+
+        self.verbose = verbose
 
         self.build = {"soma_internal": lambda neuron_dummy: self.set_default_compartments("soma", nrn_region="i"),
                       "dend_internal": lambda neuron_dummy: self.set_default_compartments("dend", nrn_region="i"),
@@ -262,16 +264,22 @@ class NeuronModulation:
         import itertools
 
         if force_update:
-            print("Forcing rxd update...", flush=True)
+            if self.verbose:
+                print("Forcing rxd update...", flush=True)
+
             NeuronModulation.should_update_rxd_nodes = False
 
             rxd.species._nrn_shape_update()
             if rxd.initializer.is_initialized():
-                print("Updating node data... (takes ≈ 1 microcentury)")
+                if self.verbose:
+                    print("Updating node data... (takes ≈ 1 microcentury)")
+
                 rxd.rxd._update_node_data()
             else:
                 rxd.initializer._do_init()
-            print("RxD update completed.")
+
+            if self.verbose:
+                print("RxD update completed.")
         else:
             rxd.initializer._do_init()
 
@@ -291,7 +299,9 @@ class NeuronModulation:
         )
 
     def build_node_cache(self):
-        print(f"Build node cache {self.neuron.name} ({self.neuron.icell})", flush=True)
+        if self.verbose:
+            print(f"Build node cache {self.neuron.name} ({self.neuron.icell})", flush=True)
+
         self.node_cache = {}
 
         for species_name, species_data in self.species.items():
@@ -320,7 +330,8 @@ class NeuronModulation:
                     node_list, node_x = self.node_cache[species_name][region_name][node_key]
                     self.node_cache[species_name][region_name][node_key] = (node_list, np.array(node_x))
 
-        print(f"Node cache built.", flush=True)
+        if self.verbose:
+            print(f"Node cache built.", flush=True)
 
     def get_node_from_cache(self, species_name, seg, region_name):
         try:
@@ -352,7 +363,8 @@ class NeuronModulation:
 
     def load_json(self, config_path=None, extracellular_regions=None, neuron_region=None):
 
-        # print(f"Parsing neuromodulation json: {config_path}")
+        if self.verbose:
+            print(f"Parsing neuromodulation json: {config_path}")
 
         if extracellular_regions is not None and neuron_region in extracellular_regions:
             self.extracellular_region = extracellular_regions[neuron_region]
@@ -478,9 +490,10 @@ class NeuronModulation:
                 scaled_forward_rate = forward_rate * left_scale_from_si if forward_rate is not None else forward_rate
                 scaled_backward_rate = backward_rate * right_scale_from_si if backward_rate is not None else backward_rate
 
-                print(f"Reaction name: {reaction_name}, left: {left_side}, right: {right_side}")
-                print(f"k_forward: {forward_rate} (scaled: {scaled_forward_rate})")
-                print(f"k_backward: {backward_rate} (scaled: {scaled_backward_rate})")
+                if self.verbose:
+                    print(f"Reaction name: {reaction_name}, left: {left_side}, right: {right_side}")
+                    print(f"k_forward: {forward_rate} (scaled: {scaled_forward_rate})")
+                    print(f"k_backward: {backward_rate} (scaled: {scaled_backward_rate})")
 
                 self.add_reaction(reaction_name=reaction_name,
                                   left_side=left_side,
@@ -501,7 +514,8 @@ class NeuronModulation:
     def concentration_from_vector(self, species_name, concentration_vector, time_vector, interpolate=True):
 
         # Loops over all nodes in node_cache, and sets a vector to play
-        print(f"Playing concentration vector for {species_name} in all compartments.")
+        if self.verbose:
+            print(f"Playing concentration vector for {species_name} in all compartments.")
 
         if self.node_cache is None:
             raise ValueError("node_cache not build (build_node_cache)")

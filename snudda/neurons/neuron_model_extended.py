@@ -43,7 +43,8 @@ class NeuronModel(ephys.models.CellModel):
                  replace_axon_myelin_diameter=None,
                  position=None,
                  rotation=None,
-                 volume_id=None):
+                 volume_id=None,
+                 verbose=False):
 
         """
         Constructor
@@ -81,6 +82,8 @@ class NeuronModel(ephys.models.CellModel):
         self.position = position
         self.rotation = rotation
         self.volume_id = volume_id
+
+        self.verbose = verbose
 
         if os.path.isfile(morph_path):
             # If morph_path is a swc file, use it directly
@@ -144,7 +147,7 @@ class NeuronModel(ephys.models.CellModel):
             # Only load the module if actually used, this avoids weird RxD stuff happening in NEURON when not needed
             from snudda.neurons.neuron_modulation import NeuronModulation
 
-            self.modulation = NeuronModulation(neuron=self)
+            self.modulation = NeuronModulation(neuron=self, verbose=self.verbose)
             self.modulation.config_file = reaction_diffusion_file
         else:
             self.modulation = None
@@ -233,7 +236,8 @@ class NeuronModel(ephys.models.CellModel):
         elif type(param_configs) == list and type(param_configs[0]) == list:
             # Parameter ID no longer exists, we default to parameter_id = 0
             # This is old fallback code, for old version format of parameters.json, remove in the future.
-            print("Warning: Old format of parameter config, using parameter_id = 0.")
+            if self.verbose:
+                print("Warning: Old format of parameter config, using parameter_id = 0.")
             parameter_id = 0
             num_params = len(param_configs)
             p_config = param_configs[parameter_id % num_params]
@@ -338,7 +342,9 @@ class NeuronModel(ephys.models.CellModel):
                                                              axon_nseg_frequency=replace_axon_nseg_frequency*1e6)
         else:
             # Special treatment, if we have both length and diameter requirements
-            print(f"Axon diameter given, assuming both axon diameter and length are lists or arrays")
+            if self.verbose:
+                print(f"Axon diameter given, assuming both axon diameter and length are lists or arrays")
+
             nrn_morph = NrnFileMorphology_axon_fix(morphology_path=morph_file,
                                                    axon_length=replace_axon_length,
                                                    axon_diameter=replace_axon_diameter,
@@ -439,10 +445,6 @@ class NeuronModel(ephys.models.CellModel):
          ''' % dict(template_name=template_name, objref_str=objref_str,
                     newseclist_str=new_seclist_str,
                     create_str=create_str)
-
-        # print(">>>> begin template")
-        # print(str(template))
-        # print(">>>> end template")
 
         return template
 
