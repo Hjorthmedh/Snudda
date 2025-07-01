@@ -3,6 +3,8 @@
 # nM --> mM (in Snudda, derived from M/m3 = mM/litre)
 # python ../../../../snudda/utils/sbml_to_snudda.py SBML/Robert-MODEL_speedy_reduced2_UPDATED.xml JSON/reaction_diffusion_D1.json --conc_scale_factor 1e-6
 
+python ../../../../snudda/utils/sbml_to_snudda.py SBML/Robert-MODEL_speedy_reduced2_UPDATED.xml JSON/reaction_diffusion_D1_with_target.json --conc_scale_factor 1e-6
+
 python ../../../../snudda/utils/sbml_to_snudda.py SBML/Robert-MODEL_speedy_reduced2_UPDATED_notarget.xml JSON/reaction_diffusion_D1.json --conc_scale_factor 1e-6
 
 # python ../../../../snudda/utils/sbml_to_snudda.py SBML/Nair_2016_optimized_UPDATED.xml JSON/reaction_diffusion_D1.json

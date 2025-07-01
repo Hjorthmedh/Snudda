@@ -26,12 +26,12 @@ def snudda_cli():
     sub_parsers = parser.add_subparsers(help="action", dest="action")
     sub_parsers.required = True
 
-    # TODO: Remove the create_parser
     create_parser = sub_parsers.add_parser("create")
     create_parser.add_argument("path", help="Location of network")
-    create_parser.add_argument("-overwrite", "--overwrite", help="Allow overwriting of old directory",
-                               action="store_true")
+    create_parser.add_argument("-overwrite", "--overwrite", help="Allow overwriting of old directory", action="store_true")
+    create_parser.add_argument("-parallel", "--parallel", action="store_true", default=False)
     create_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
+    create_parser.add_argument("--verbose", action="store_true")
 
     init_parser = sub_parsers.add_parser("init")
     init_parser.add_argument("path", help="Location of network")
@@ -70,7 +70,6 @@ def snudda_cli():
     place_parser.add_argument("-ipython_profile", "--ipython_profile", default=None)
     place_parser.add_argument("-ipython_timeout", "--ipython_timeout", default=120, type=int)
 
-
     detect_parser = sub_parsers.add_parser("detect")
     detect_parser.add_argument("path", help="Location of network")
     detect_parser.add_argument("-randomseed", "--randomseed", "--seed", default=None, help="Random seed", type=int)
@@ -84,7 +83,6 @@ def snudda_cli():
     detect_parser.add_argument("-parallel", "--parallel", action="store_true", default=False)
     detect_parser.add_argument("-ipython_profile", "--ipython_profile", default=None)
     detect_parser.add_argument("-ipython_timeout", "--ipython_timeout", default=120, type=int)
-
 
     prune_parser = sub_parsers.add_parser("prune")
     prune_parser.add_argument("path", help="Location of network")
@@ -101,7 +99,6 @@ def snudda_cli():
     prune_parser.add_argument("-parallel", "--parallel", action="store_true", default=False)
     prune_parser.add_argument("-ipython_profile", "--ipython_profile", default=None)
     prune_parser.add_argument("-ipython_timeout", "--ipython_timeout", default=120, type=int)
-
 
     input_parser = sub_parsers.add_parser("input")
     input_parser.add_argument("path", help="Location of network")
@@ -163,11 +160,12 @@ def snudda_cli():
     export_parser.add_argument("--verbose", action="store_true")
 
     args = parser.parse_args()
-
-    snudda = Snudda(args.path)
+    parallel = args.parallel if "parallel" in vars(args) else None
+    snudda = Snudda(args.path, parallel=parallel)
 
     actions = {"init": snudda.init_config_wrapper,
                "import": snudda.import_config_wrapper,
+               "create": snudda.create_network_wrapper,
                "place": snudda.place_neurons_wrapper,
                "detect": snudda.detect_synapses_wrapper,
                "prune": snudda.prune_synapses_wrapper,

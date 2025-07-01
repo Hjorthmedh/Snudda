@@ -7,7 +7,7 @@
             "frequency" : [2, 4, 2],
             "conductance" : 0.5e-9,
             "num_inputs" : 20,
-            "population_unit_correlation" : [0.5, 1.0, 0.5],
+            "correlation" : [0.5, 1.0, 0.5],
             "jitter" : 0.01,	    
             "mod_file": "tmGlut"
         }
@@ -22,7 +22,7 @@
             "conductance" : 0.5e-9,
             "nInputs" : 10,
             "jitter" : 0.01,
-            "population_unit_correlation" : 0.2,
+            "correlation" : 0.2,
             "population_unit_id" : 1,
             "mod_file": "tmGlut"
         }

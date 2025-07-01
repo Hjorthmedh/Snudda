@@ -268,7 +268,7 @@ class InputTestCase(unittest.TestCase):
         # OBS, population unit 0 does not get any of the extra mother spikes specified
         # So we need to check FS neuron that belongs to population unit 1 or 2.
         sl = SnuddaLoad(self.network_path)
-        check_id = sl.get_neuron_id_of_type(neuron_type="FS")[0]
+        check_id = sl.get_neuron_id_of_type(neuron_type="FS", population_unit_id=1)[0]
 
         some_spikes = input_data[f"input/{check_id}/Cortical/spikes"][()].flatten()
         some_spikes = some_spikes[some_spikes >= 0]
@@ -276,8 +276,7 @@ class InputTestCase(unittest.TestCase):
 
         for extra_spike in [0.2, 0.3, 0.45]:
 
-            self.assertTrue(np.sum(np.abs(some_spikes - extra_spike) < 1e-4)
-                            >= n_trains)
+            self.assertTrue(np.sum(np.abs(some_spikes - extra_spike) < 1e-4) >= n_trains)
             self.assertTrue(np.sum(np.abs(some_spikes - extra_spike + 0.05) < 1e-3) < 50)
 
         some_spikes2 = input_data[f"input/{check_id}/Thalamic/spikes"][()].flatten()
@@ -292,13 +291,14 @@ class InputTestCase(unittest.TestCase):
         # and also checks input correlation
 
         # TODO: New cell numbering, so need to pick other cell numbers
-        check_id2, check_id3 = sl.get_neuron_id_of_type(neuron_type="dSPN")[0:2]
+        check_id2 = sl.get_neuron_id_of_type(neuron_type="dSPN", population_unit_id=1, num_neurons=1)[0]
+        check_id3 = sl.get_neuron_id_of_type(neuron_type="dSPN", population_unit_id=2, num_neurons=1)[0]
 
         some_spikes_c0 = input_data[f"input/{check_id2}/CorticalSignal/spikes"][()]
-        some_spikes_c1 = input_data[f"input/{check_id3}/CorticalSignal/spikes"][()]
+        # some_spikes_c1 = input_data[f"input/{check_id3}/CorticalSignal/spikes"][()]
 
         pop0 = input_data[f"input/{check_id2}/CorticalSignal/population_unit_spikes"][()]
-        pop1 = input_data[f"input/{check_id3}/CorticalSignal/population_unit_spikes"][()]
+        # pop1 = input_data[f"input/{check_id3}/CorticalSignal/population_unit_spikes"][()]
 
         # TODO: Add checks
 
