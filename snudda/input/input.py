@@ -2254,9 +2254,10 @@ class SnuddaInput(object):
                 mother_spikes = self.generate_spikes_helper(frequency=freq, time_range=time_range, rng=rng,
                                                             input_generator=input_generator)
 
-            self.write_log(f"Generating {num_inputs} inputs (correlation={correlation}, p_keep={p_keep}, "
-                           f"population_unit_fraction={population_unit_fraction}) "
-                           f"for {self.neuron_name[neuron_id]} ({neuron_id})")
+            if self.verbose:
+                self.write_log(f"Generating {num_inputs} inputs (correlation={correlation}, p_keep={p_keep}, "
+                               f"population_unit_fraction={population_unit_fraction}) "
+                               f"for {self.neuron_name[neuron_id]} ({neuron_id})")
 
             # OBS, n_inputs might differ slightly from n_spike_trains if that is given
             spikes = self.make_correlated_spikes(freq=freq,
