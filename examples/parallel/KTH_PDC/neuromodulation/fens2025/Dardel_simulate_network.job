@@ -32,7 +32,7 @@ module load snic-env
 # export IPYTHONDIR="$network_path/.ipython"
 
 module load cray-python
-module load cray-mpich-ab
+module load cray-mpich-abi
 module load snic-env
 module swap PrgEnv-cray PrgEnv-gnu
 module unload cray-libsci
