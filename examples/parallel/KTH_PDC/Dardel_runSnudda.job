@@ -10,7 +10,13 @@
 #SBATCH --cpus-per-task=2
 #SBATCH --mem-per-cpu=930M
 #SBATCH --mail-type=ALL                                                         
+
 module load snic-env
+module load cray-python
+module load cray-mpich-abi
+module swap PrgEnv-cray PrgEnv-gnu
+module unload cray-libsci
+
 
 # This is important, otherwise Snudda import will fail
 unset DISPLAY
