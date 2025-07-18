@@ -16,7 +16,7 @@ export sim_config=sim_config.json
 
 # Make sure this is right python version
 export SNUDDA_DIR=$HOME/Snudda
-export PYTHONPATH=$SNUDDA_DIR/snudda_env/lib/python3.9/
+export PYTHONPATH=$SNUDDA_DIR/snudda_env/lib/python3.11/
 
 # This is important, otherwise Snudda import will fail
 unset DISPLAY
@@ -27,6 +27,17 @@ export N_WORKERS=$SLURM_NTASKS
 # as ALL compartment voltage will be recorded
 
 module load snic-env
+
+# New lines summer 2025
+# export IPYTHONDIR="$network_path/.ipython"
+
+module load cray-python
+module load cray-mpich-ab
+module load snic-env
+module swap PrgEnv-cray PrgEnv-gnu
+module unload cray-libsci
+# End new lines summer 2025
+
 source $HOME/Snudda/snudda_env/bin/activate
 
 ### CREATE NETWORK
@@ -63,3 +74,5 @@ rm current_run-$SLURM_JOB_ID.csv
 export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
 srun -n $N_WORKERS $SPECIAL_PATH -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py $network_path $input_file --simulation_config $sim_config
 
+
+# rm -r $IPYTHONDIR

@@ -15,6 +15,7 @@ pushd $HOME/Snudda
 git pull
 
 module load cray-python
+module load cray-mpich-ab
 module load snic-env
 module swap PrgEnv-cray PrgEnv-gnu
 module unload cray-libsci atp
