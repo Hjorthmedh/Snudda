@@ -26,16 +26,18 @@ export N_WORKERS=$SLURM_NTASKS
 # OBS!! If the option --recordALLcompartments is passed to simulate.py, then files will be large,
 # as ALL compartment voltage will be recorded
 
+
+
 module load snic-env
 
 # New lines summer 2025
 # export IPYTHONDIR="$network_path/.ipython"
 
 module load cray-python
-module load cray-mpich-abi
-module load snic-env
 module swap PrgEnv-cray PrgEnv-gnu
+module load cray-mpich-abi
 module unload cray-libsci
+
 # End new lines summer 2025
 
 source $HOME/Snudda/snudda_env/bin/activate
@@ -48,6 +50,11 @@ python setup_network.py
 SPECIAL_PATH=x86_64/special
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CRAY_LD_LIBRARY_PATH
+
+# Explicitly adding MPI paths (suggested by ChatGTP, why are they not loaded automatically?)
+export LD_LIBRARY_PATH=/opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3/lib:$LD_LIBRARY_PATH
+export MPI_LIB_NRN_PATH=/opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3/lib
+
 
 rm -r x86_64
 

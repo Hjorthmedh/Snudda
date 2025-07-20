@@ -22,6 +22,11 @@ module unload cray-libsci
 
 # Setup virtual environment
 python -m venv snudda_env
+
+# Move env files to secondary storage location
+mv snudda_env /cfs/klemming/projects/supr/snic2021-5-492/
+ln -s /cfs/klemming/projects/supr/snic2021-5-492/snudda_env
+
 source snudda_env/bin/activate
 
 pip install --upgrade pip
