@@ -53,7 +53,12 @@ echo "Network dir: "$NETWORK_DIR
 
 export PATH=$SNUDDA_DIR/snudda_env/bin/:$PATH
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CRAY_LD_LIBRARY_PATH
-export PYTHONPATH=$SNUDDA_DIR/snudda_env/lib/python3.9/
+
+# 2025-07: Explicitly adding MPI paths (suggested by ChatGTP, why are they not loaded automatically?)
+export LD_LIBRARY_PATH=/opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3/lib:$LD_LIBRARY_PATH
+export MPI_LIB_NRN_PATH=/opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3/lib
+
+
 
 ##############
 
