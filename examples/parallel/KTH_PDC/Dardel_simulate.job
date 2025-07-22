@@ -5,7 +5,7 @@
 #SBATCH -t 1:59:00
 #SBATCH --time-min=1:59:00
 #SBATCH -J Simulate
-#SBATCH -A naiss2023-5-231
+#SBATCH -A naiss2025-5-309
 #SBATCH --nodes=1-10
 #SBATCH --tasks-per-node=128
 #SBATCH --mail-type=ALL
@@ -14,6 +14,11 @@
 NETWORK_DIR=/cfs/klemming/home/${USER:0:1}/$USER/Snudda/examples/parallel/KTH_PDC/networks/test_10k
 
 export N_WORKERS=$SLURM_NTASKS
+
+# Make sure this is right python version
+export SNUDDA_DIR=$HOME/Snudda
+export PYTHONPATH=$SNUDDA_DIR/snudda_env/lib/python3.11/
+
 
 # This is important, otherwise Snudda import will fail
 unset DISPLAY

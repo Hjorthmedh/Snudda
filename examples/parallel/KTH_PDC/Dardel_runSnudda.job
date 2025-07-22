@@ -4,12 +4,15 @@
 #SBATCH -e log/runSnudda-%j-error.txt
 #SBATCH -t 00:30:00
 #SBATCH -J Snudda
-#SBATCH -A naiss2023-5-231
+#SBATCH -A naiss2025-5-309
 #SBATCH --nodes=2
 #SBATCH -n 256
 #SBATCH --cpus-per-task=2
 #SBATCH --mem-per-cpu=930M
 #SBATCH --mail-type=ALL                                                         
+# Make sure this is right python version
+export SNUDDA_DIR=$HOME/Snudda
+export PYTHONPATH=$SNUDDA_DIR/snudda_env/lib/python3.11/
 
 module load snic-env
 module load cray-python
