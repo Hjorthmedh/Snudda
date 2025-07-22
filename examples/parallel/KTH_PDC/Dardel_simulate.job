@@ -19,6 +19,11 @@ export N_WORKERS=$SLURM_NTASKS
 unset DISPLAY
 
 module load snic-env
+module load cray-python
+module swap PrgEnv-cray PrgEnv-gnu
+module load cray-mpich-abi
+module unload cray-libsci
+
 source $HOME/Snudda/snudda_env/bin/activate
 SNUDDA_DIR=/cfs/klemming/home/"${USER:0:1}"/$USER/Snudda
 

@@ -13,8 +13,8 @@
 
 module load snic-env
 module load cray-python
-module load cray-mpich-abi
 module swap PrgEnv-cray PrgEnv-gnu
+module load cray-mpich-abi  # This needs to be loaded after
 module unload cray-libsci
 
 
