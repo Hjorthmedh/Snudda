@@ -10,6 +10,7 @@ unset DISPLAY
 
 module load snic-env
 
+# Here we are just running in serial for Snudda network generation 
 # export IPYTHONDIR="$network_path/.ipython"
 
 module load cray-python
