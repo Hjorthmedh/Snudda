@@ -10,7 +10,7 @@ unset DISPLAY
 
 module load snic-env
 
-export IPYTHONDIR="$network_path/.ipython"
+# export IPYTHONDIR="$network_path/.ipython"
 
 module load cray-python
 module swap PrgEnv-cray PrgEnv-gnu
