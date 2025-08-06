@@ -3,17 +3,18 @@ export IPYTHON_PROFILE=default
 
 # If the BasalGangliaData directory exists, then use that for our data
     
-ipcluster start --n=4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
+ipcluster start --n=6 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
 sleep 20
 
-simName=networks/test-10k
+# simName=networks/test-10k
+simName=networks/test-5k
 
 #snudda init $simName --size 1760000
 #snudda init $simName --size 100000
 if [[ -d "../../BasalGangliaData/data" ]]; then
-    snudda init $simName --size 10000 --overwrite --seed 1234 --snudda_data ../../BasalGangliaData/data
+    snudda init $simName --size 5000 --overwrite --seed 1234 --snudda_data ../../BasalGangliaData/data
 else
-    snudda init $simName --size 10000 --overwrite --seed 1234
+    snudda init $simName --size 5000 --overwrite --seed 1234
 fi
 
 snudda place $simName --parallel
@@ -22,7 +23,7 @@ snudda prune $simName --parallel
 
 # Copy over template input, you might need to update the path here if not
 # run from the examples directory
-cp -a ../snudda/data/input_config/external-input-dSTR-scaled-v4.json $simName/input.json
+cp -a ../snudda/data/input_config/input-v10-scaled.json $simName/input.json
 echo "Make sure the input config file was found, otherwise provide your own"
 
 # TODO, maybe use to get snudda base install dir:

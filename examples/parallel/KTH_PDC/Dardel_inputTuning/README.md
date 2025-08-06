@@ -3,10 +3,13 @@
 First, here are install instructions adapted for these files. You may use your own method ofcourse. 
 Just be aware that you may have to adapt paths in the batch files (and setup_env.sh).
 
-Use Python 3.7 or above. For example on the Dardel cluster write:
+Use Python 3.11 or above. For example on the Dardel cluster write:
 ```
 module load cray-python
 module swap PrgEnv-cray PrgEnv-gnu
+module load cray-python
+module load cray-mpich-abi
+
 ``` 
 Change directory in terminal to somewhere you want the clone and the run:
 ```

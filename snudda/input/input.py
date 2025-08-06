@@ -691,7 +691,7 @@ class SnuddaInput(object):
         #                           'num_spikes' -- n integers, number of spikes in each spike train
         #
 
-        self.write_log("Running make_neuron_input_parallel_NEW")
+        self.write_log("Running make_neuron_input_parallel")
 
         # Dictionary hold all input information, this will be iterated over by the parallel workers
         self.neuron_input = dict([])
@@ -725,7 +725,7 @@ class SnuddaInput(object):
             if self.neuron_info[neuron_id]["virtual_neuron"]:
                 # Is a virtual neuron, we will read activity from file, skip neuron
                 if "virtual_neuron" in input_info:
-                    self.neuron_input[neuron_id]["virtual_neuron"] = input_info["virtual_neuron"]
+                    self.neuron_input[neuron_id]["virtual_neuron"] = input_info["virtual_neuron"].copy()
                 else:
                     print(f"Missing activity for virtual neuron {neuron_id} ({neuron_name})")
                 continue
@@ -822,7 +822,10 @@ class SnuddaInput(object):
         for neuron_id, input_type, spikes, freq, loc, synapse_parameter_id in amr:
 
             self.write_log(f"Gathering {neuron_id} - {input_type}")
-            self.neuron_input[neuron_id][input_type]["spikes"] = spikes
+
+            if spikes is not None:
+                self.neuron_input[neuron_id][input_type]["spikes"] = spikes
+
             self.neuron_input[neuron_id][input_type]["location"] = loc
             self.neuron_input[neuron_id][input_type]["parameter_id"] = synapse_parameter_id
             self.neuron_input[neuron_id][input_type]["freq"] = freq
@@ -1997,193 +2000,47 @@ class SnuddaInput(object):
 
     ############################################################################
 
-    def _make_input_helper(self, input_info):
-
-        # TODO: Add location info forwarding also, and random seed for location
-
-        data = self.make_input_helper_serial(neuron_id=input_info["neuron_id"],
-                                             input_type=input_info["input_type"],
-                                             freq=input_info["frequency"],
-                                             t_start=np.array(input_info["start"]),
-                                             t_end=np.array(input_info["end"]),
-                                             synapse_density=input_info["synapse_density"],
-                                             num_spike_trains=input_info["num_inputs"],
-                                             population_unit_spikes=input_info["population_unit_spikes"],
-                                             jitter_dt=input_info["jitter"],
-                                             population_unit_id=input_info["population_unit_id"],
-                                             conductance=input_info["conductance"],
-                                             correlation=input_info["correlation"],
-                                             mod_file=input_info["mod_file"],
-                                             parameter_file=input_info["parameter_file"],
-                                             parameter_list=input_info["parameter_list"],
-                                             random_seed=input_info["random_seed"],
-                                             cluster_size=input_info["cluster_size"],
-                                             cluster_spread=input_info["cluster_spread"],
-                                             dendrite_location=input_info["dendrite_location"],
-                                             input_generator=input_info["generator"],
-                                             population_unit_fraction=np.array(input_info["population_unit_correlation_fraction"]),
-                                             num_soma_synapses=input_info["num_soma_synapses"])
-
-        assert data[0] == input_info["neuron_id"]
-        assert data[1] == input_info["input_type"]
-        spikes = data[2]
-        freq = data[5]
-        synapse_parameter_id = data[14]
-
-        # Handle synapse location
-        if "dendrite_location" in input_info and input_info["dendrite_location"] is not None:
-            # User specified dendrite location
-
-            if "morphology_key" not in input_info:
-                raise KeyError(f"If you specify dendrite_location you must also specify morphology_key\n"
-                               f"neuron_id = {input_info['neuron_id']}, input_type = {input_info['input_type']}")
-
-            assert input_info["morphology_key"] == self.network_data["neurons"][input_info['neuron_id']]["morphology_key"], \
-                f"Neuron {input_info['neuron_id']} has morphology_key " \
-                f"{self.network_data['neurons'][input_info['neuron_id']]['morphology_key']}" \
-                f"which does not match what is specified in input JSON file: {input_info['morphology_key']}"
-
-            dendrite_location = input_info["dendrite_location"]
-            sec_id, sec_x = zip(*dendrite_location)
-
-            # TODO: Calculate the correct x,y,z and distance to soma
-            x = y = z = dist_to_soma = np.zeros((len(sec_id),))
-            location = [(x, y, z), np.array(sec_id), np.array(sec_x), dist_to_soma]
-
-        else:
-
-            rng = np.random.default_rng(input_info["location_random_seed"])
-
-            num_spike_trains = input_info["num_inputs"] - input_info["num_soma_synapses"] \
-                if input_info["num_soma_synapses"] is not None else input_info["num_inputs"]
-
-            location = self.dendrite_input_locations(neuron_id=input_info["neuron_id"],
-                                                     synapse_density=input_info["synapse_density"],
-                                                     num_spike_trains=num_spike_trains,
-                                                     rng=rng,
-                                                     cluster_size=input_info["cluster_size"],
-                                                     cluster_spread=input_info["cluster_spread"])
-
-            # If there are synapses on the soma then we need to add those also
-            if input_info["num_soma_synapses"] is not None and input_info["num_soma_synapses"] > 0:
-                location = self.add_soma_synapses(location,
-                                                  n_soma_synapses=input_info["num_soma_synapses"],
-                                                  neuron_id=input_info["neuron_id"])
-
-        return input_info["neuron_id"], input_info["input_type"], spikes, freq, location, synapse_parameter_id
-
-    def make_input_helper_parallel(self, args):
-
-        """ Helper function for parallel input generation."""
-
-        try:
-
-            neuron_id, input_type, freq, start, end, synapse_density, num_spike_trains, \
-            population_unit_spikes, jitter_dt, population_unit_id, conductance, correlation, mod_file, \
-            parameter_file, parameter_list, random_seed, cluster_size, cluster_spread, \
-            dendrite_location_override, input_generator, population_unit_fraction, num_soma_synapses = args
-
-            return self.make_input_helper_serial(neuron_id=neuron_id,
-                                                 input_type=input_type,
-                                                 freq=freq,
-                                                 t_start=start,
-                                                 t_end=end,
-                                                 synapse_density=synapse_density,
-                                                 num_spike_trains=num_spike_trains,
-                                                 population_unit_spikes=population_unit_spikes,
-                                                 jitter_dt=jitter_dt,
-                                                 population_unit_id=population_unit_id,
-                                                 conductance=conductance,
-                                                 correlation=correlation,
-                                                 mod_file=mod_file,
-                                                 parameter_file=parameter_file,
-                                                 parameter_list=parameter_list,
-                                                 random_seed=random_seed,
-                                                 cluster_size=cluster_size,
-                                                 cluster_spread=cluster_spread,
-                                                 dendrite_location=dendrite_location_override,
-                                                 input_generator=input_generator,
-                                                 population_unit_fraction=population_unit_fraction,
-                                                 num_soma_synapses=num_soma_synapses)
-
-        except:
-            import traceback
-            tstr = traceback.format_exc()
-            self.write_log(tstr, is_error=True)
-            import pdb
-            pdb.set_trace()
-
-    ############################################################################
-
     # Normally specify synapse_density which then sets number of inputs
     # ie leave nSpikeTrains as None. If num_spike_trains is set, that will then
     # scale synapse_density to get the requested number of inputs (approximately)
 
     # For virtual neurons nSpikeTrains must be set, as it defines their activity
 
-    def make_input_helper_serial(self,
-                                 neuron_id,
-                                 input_type,
-                                 freq,
-                                 t_start,
-                                 t_end,
-                                 synapse_density,
-                                 num_spike_trains,
-                                 population_unit_spikes,
-                                 jitter_dt,
-                                 population_unit_id,
-                                 conductance,
-                                 correlation,
-                                 mod_file,
-                                 parameter_file,
-                                 parameter_list,
-                                 random_seed,
-                                 cluster_size=None,
-                                 cluster_spread=None,
-                                 dendrite_location=None,
-                                 input_generator=None,
-                                 population_unit_fraction=1,
-                                 num_soma_synapses=0):
+    def _make_input_helper(self, input_info):
 
-        """
-        Generate poisson input.
+        neuron_id = input_info["neuron_id"]
+        freq = input_info.get("frequency", None)
+        t_start = np.array(input_info["start"]) if "start" in input_info else None
+        t_end = np.array(input_info["end"]) if "end" in input_info else None
+        synapse_density = input_info.get("synapse_density", None)  # Density function f(d), d=distance to soma along dendrite
+        num_spike_trains = input_info.get("num_inputs", None)
+        population_unit_spikes = input_info.get("population_unit_spikes", None)
+        jitter_dt = input_info.get("jitter", None)
+        correlation = input_info.get("correlation", None)
+        cluster_size = input_info.get("cluster_size", None)
+        cluster_spread = input_info.get("cluster_spread", None)  # Spread of cluster along dendrite (in meters)
+        dendrite_location = input_info.get("dendrite_location", None)  # Override location of dendrites, list of (sec_id, sec_x) tuples.
+        location_random_seed = input_info.get("location_random_seed", None)
+        input_generator = input_info.get("generator", None)  # "poisson" or "frequency_function"
 
-        Args:
-            neuron_id (int): Neuron ID to generate input for
-            input_type: Input type
-            freq: Frequency of input
-            t_start: Start time of input
-            t_end: End time of input
-            synapse_density: Density function f(d), d=distance to soma along dendrite
-            num_spike_trains: Number of spike trains
-            jitter_dt: Amount of time to jitter all spikes
-            population_unit_spikes: Population unit spikes
-            population_unit_id: Population unit ID
-            conductance: Conductance
-            correlation: correlation
-            mod_file: Mod file
-            parameter_file: Parameter file for input synapses
-            parameter_list: Parameter list (to inline parameters, instead of reading from file)
-            random_seed: Random seed.
-            cluster_size: Input synapse cluster size
-            cluster_spread: Spread of cluster along dendrite (in meters)
-            dendrite_location: Override location of dendrites, list of (sec_id, sec_x) tuples.
-            input_generator: "poisson" or "frequency_function"
-            population_unit_fraction: Fraction of population unit spikes used, 1.0=all correlation within population unit, 0.0 = only correlation within the particular neuron
-            num_soma_synapses: How many additional synapses are placed on the soma
+        # Fraction of population unit spikes used, 1.0=all correlation within population unit, 0.0 = only correlation within the particular neuron
+        population_unit_fraction = np.array(input_info["population_unit_correlation_fraction"]) \
+            if "population_unit_correlation_fraction" in input_info else None
 
-        """
+        num_soma_synapses = input_info.get("num_soma_synapses", 0)  # How many additional synapses are placed on the soma
 
-    # First, find out how many inputs and where, based on morphology and
+        # First, find out how many inputs and where, based on morphology and
         # synapse density
 
         time_range = (t_start, t_end)
 
-        rng = np.random.default_rng(random_seed)
+        if "random_seed" in input_info:
+            rng = np.random.default_rng(input_info["random_seed"])
+        else:
+            rng = np.random.default_rng()
 
-        if input_type.lower() == "virtual_neuron".lower():
+        if input_info["input_type"].lower() == "virtual_neuron".lower():
             # This specifies activity of a virtual neuron
-            conductance = None
 
             assert num_spike_trains is None or num_spike_trains == 1, \
                 (f"Virtual neuron {self.neuron_name[neuron_id]}"
@@ -2192,24 +2049,25 @@ class SnuddaInput(object):
             # Virtual neurons input handled through touch detection
             input_loc = None
 
-            num_inputs = 1
-            p_keep = np.sqrt(correlation)
+            if "spike_file" in input_info:
+                spikes = None  # We are reading spikes from file later
+            else:
+                # !!! Pass the input_generator
+                p_keep = np.sqrt(correlation)
+                spikes = self.make_correlated_spikes(freq=input_info["frequency"],
+                                                     time_range=time_range,
+                                                     num_spike_trains=1,
+                                                     p_keep=p_keep,
+                                                     population_unit_spikes=population_unit_spikes,
+                                                     jitter_dt=jitter_dt,
+                                                     rng=rng,
+                                                     input_generator=input_generator)
 
-            # !!! Pass the input_generator
-            spikes = self.make_correlated_spikes(freq=freq,
-                                                 time_range=time_range,
-                                                 num_spike_trains=1,
-                                                 p_keep=p_keep,
-                                                 population_unit_spikes=population_unit_spikes,
-                                                 jitter_dt=jitter_dt,
-                                                 rng=rng,
-                                                 input_generator=input_generator)
-
-            parameter_id = None
+            synapse_parameter_id = None
         else:
 
             if dendrite_location:
-                self.write_log(f"Overriding input location for {input_type} on neuron_id={neuron_id}")
+                self.write_log(f"Overriding input location for {input_info['input_type']} on neuron_id={neuron_id}")
                 sec_id, sec_x = zip(*dendrite_location)
 
                 # TODO: Calculate the correct x,y,z and distance to soma
@@ -2219,11 +2077,16 @@ class SnuddaInput(object):
 
             else:
 
+                # If location_random_seed is given, use that for location
+                # otherwise use default rng
+                location_rng = np.random.default_rng(location_random_seed) \
+                    if location_random_seed is not None else rng
+
                 # (x,y,z), secID, secX, dist_to_soma
                 input_loc = self.dendrite_input_locations(neuron_id=neuron_id,
                                                           synapse_density=synapse_density,
                                                           num_spike_trains=num_spike_trains,
-                                                          rng=rng,
+                                                          rng=location_rng,
                                                           cluster_size=cluster_size,
                                                           cluster_spread=cluster_spread)
 
@@ -2254,9 +2117,10 @@ class SnuddaInput(object):
                 mother_spikes = self.generate_spikes_helper(frequency=freq, time_range=time_range, rng=rng,
                                                             input_generator=input_generator)
 
-            self.write_log(f"Generating {num_inputs} inputs (correlation={correlation}, p_keep={p_keep}, "
-                           f"population_unit_fraction={population_unit_fraction}) "
-                           f"for {self.neuron_name[neuron_id]} ({neuron_id})")
+            if self.verbose:
+                self.write_log(f"Generating {num_inputs} inputs (correlation={correlation}, p_keep={p_keep}, "
+                               f"population_unit_fraction={population_unit_fraction}) "
+                               f"for {self.neuron_name[neuron_id]} ({neuron_id})")
 
             # OBS, n_inputs might differ slightly from n_spike_trains if that is given
             spikes = self.make_correlated_spikes(freq=freq,
@@ -2269,14 +2133,12 @@ class SnuddaInput(object):
                                                  input_generator=input_generator)
 
             # We need to pick which parameter set to use for the input also
-            parameter_id = rng.integers(1e6, size=num_inputs)
+            synapse_parameter_id = rng.integers(1e6, size=num_inputs)
 
         # We need to keep track of the neuron_id, since it will all be jumbled
         # when doing asynchronous parallelisation
-        return (neuron_id, input_type, spikes, input_loc, synapse_density, freq,
-                jitter_dt, population_unit_id, conductance, correlation,
-                time_range,
-                mod_file, parameter_file, parameter_list, parameter_id)
+
+        return input_info["neuron_id"], input_info["input_type"], spikes, freq, input_loc, synapse_parameter_id
 
     ############################################################################
 
