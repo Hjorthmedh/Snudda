@@ -5,8 +5,8 @@
 #SBATCH -t 1:59:00
 #SBATCH --time-min=1:59:00
 #SBATCH -J Simulate
-#SBATCH -A naiss2023-5-231
-#SBATCH --nodes=1-10
+#SBATCH -A naiss2025-5-309
+#SBATCH --nodes=4-10
 #SBATCH --tasks-per-node=128
 #SBATCH --mail-type=ALL
 
@@ -15,10 +15,20 @@ NETWORK_DIR=/cfs/klemming/home/${USER:0:1}/$USER/Snudda/examples/parallel/KTH_PD
 
 export N_WORKERS=$SLURM_NTASKS
 
+# Make sure this is right python version
+export SNUDDA_DIR=$HOME/Snudda
+export PYTHONPATH=$SNUDDA_DIR/snudda_env/lib/python3.11/
+
+
 # This is important, otherwise Snudda import will fail
 unset DISPLAY
 
 module load snic-env
+module load cray-python
+module swap PrgEnv-cray PrgEnv-gnu
+module load cray-mpich-abi
+module unload cray-libsci
+
 source $HOME/Snudda/snudda_env/bin/activate
 SNUDDA_DIR=/cfs/klemming/home/"${USER:0:1}"/$USER/Snudda
 
@@ -43,7 +53,12 @@ echo "Network dir: "$NETWORK_DIR
 
 export PATH=$SNUDDA_DIR/snudda_env/bin/:$PATH
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CRAY_LD_LIBRARY_PATH
-export PYTHONPATH=$SNUDDA_DIR/snudda_env/lib/python3.9/
+
+# 2025-07: Explicitly adding MPI paths (suggested by ChatGTP, why are they not loaded automatically?)
+export LD_LIBRARY_PATH=/opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3/lib:$LD_LIBRARY_PATH
+export MPI_LIB_NRN_PATH=/opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3/lib
+
+
 
 ##############
 

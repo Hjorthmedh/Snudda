@@ -24,6 +24,9 @@ echo "Network dir: "$NETWORK_DIR
 
 ##############
 echo "Loading environment"
+module load cray-python
+module load cray-mpich-abi
+
 module load snic-env
 # --- I have tried with the gnu compiler, and also with the cray compiler
 module swap PrgEnv-cray PrgEnv-gnu

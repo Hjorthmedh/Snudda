@@ -14,52 +14,24 @@ export network_path=networks/small_network
 export input_file=networks/small_network/input-spikes.hdf5
 export sim_config=sim_config.json
 
-# Make sure this is right python version
-export SNUDDA_DIR=$HOME/Snudda
-export PYTHONPATH=$SNUDDA_DIR/snudda_env/lib/python3.9/
-
-# This is important, otherwise Snudda import will fail
-unset DISPLAY
+# The environment setup is now moved to dardel_environment.sh
+source dardel_environment.sh
 
 export N_WORKERS=$SLURM_NTASKS
 
 # OBS!! If the option --recordALLcompartments is passed to simulate.py, then files will be large,
 # as ALL compartment voltage will be recorded
 
-module load snic-env
-source $HOME/Snudda/snudda_env/bin/activate
-
 ### CREATE NETWORK
 
 python setup_network.py
-
-# Do we need to give absolute path?
-SPECIAL_PATH=x86_64/special
-
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CRAY_LD_LIBRARY_PATH
-
-rm -r x86_64
-
-export CXX=CC
-export CC=cc
-export FC=ftn
-export MPICC=cc
-export MPICXX=CC
-
-CC --version
-
-echo "About to run nrnivmodl"
-which nrnivmodl
-
-export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
-srun -n 1 nrnivmodl -incflags "-lltdl=/usr/lib64/libltdl.so.7 -lreadline=/lib64/libreadline.so.7 -lncurses=/lib64/libncurses.so.6.1" -loadflags "-DLTDL_LIBRARY=/usr/lib64/libltdl.so.7 -DREADLINE_LIBRARY=/lib64/libreadline.so.7 -DNCURSES_LIBRARY=/lib64/libncurses.so.6.1" mechanisms/
 
 # Remove these two lines if you want to continue a failed run, keeping this will RESTART run from beginning
 cp run_list.csv runs_left.csv
 rm current_run-$SLURM_JOB_ID.csv
 
-
-
 export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
 srun -n $N_WORKERS $SPECIAL_PATH -mpi -python $SNUDDA_DIR/snudda/simulate/simulate.py $network_path $input_file --simulation_config $sim_config
 
+
+# rm -r $IPYTHONDIR
