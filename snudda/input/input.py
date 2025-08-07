@@ -178,6 +178,12 @@ class SnuddaInput(object):
 
     def load_network(self, hdf5_network_file=None):
 
+        """ Load network file using snudda.load
+
+            Args:
+                hdf5_network_file: path to network file
+        """
+
         if hdf5_network_file is None:
             hdf5_network_file = self.hdf5_network_file
 
@@ -197,7 +203,8 @@ class SnuddaInput(object):
 
     def generate(self):
 
-        """ Generates input for network. """
+        """ Generates input for network. This umbrella function takes care
+            of everything and saves input-spikes.hdf5"""
 
         # Read in the input configuration information from JSON file
         self.read_input_config_file()
@@ -264,7 +271,7 @@ class SnuddaInput(object):
 
     def write_hdf5(self):
 
-        """ Writes input spikes to HDF5 file. """
+        """ Writes input spikes to HDF5 file (input-spikes.hdf5 in the network folder). """
 
         t0 = time.time()
 
@@ -494,7 +501,10 @@ class SnuddaInput(object):
 
     def read_input_config_file(self):
 
-        """ Read input configuration from JSON file. """
+        """ Read input configuration from JSON file.
+
+            The path is defined in self.input_config_file
+        """
 
         if isinstance(self.input_config_file, dict):
             self.write_log(f"Input was specified directly by a dictionary")
@@ -565,6 +575,9 @@ class SnuddaInput(object):
         Each synaptic input will contain a fraction of population unit spikes, which are
         taken from a stream of spikes unique to that particular population unit
         This function generates these correlated spikes
+
+        Args:
+            rng: Numpy random stream
         """
 
         self.write_log("Running make_population_unit_spike_trains")
@@ -660,36 +673,38 @@ class SnuddaInput(object):
 
     def make_neuron_input_parallel(self):
 
-        """ Generate input, able to run in parallel if rc (Remote Client) has been provided at initialisation."""
+        """ Generate external input for every neuron.
+        Runs in parallel if rc (Remote Client) has been provided at initialisation.
 
-        # File format:
-        # "config" --> str represenation of JSON config file data
-        # "input"
-        #     --> cell id, e.g. "0", "1", "2"
-        #         --> input_name, e.g. "cortical", "thalamic", ...
-        #                attrs: 'conductance' -- 1 float, synapse conductance in siemens (S)
-        #                       'distance_to_soma' -- n floats, distance to soma in meters (m)
-        #                       'mod_file' -- str, NEURON mod file, e.g. 'tmGlut'
-        #                       'parameter_file' -- str, path to JSON parameter file
-        #                       'parameter_id' -- n integers, parameter id of synapse
-        #                       'parameter_list' -- str representation of list of dictionaries with parameters
-        #                                           parameter_id[x] % len(parameter_list) is used for synapse X
-        #                       'population_unit_id' -- int, population unit id this input belongs to
-        #                       'section_id' -- n int, section id on neuron where synapse is located
-        #                       'section_x' -- n float, section x for synapse
-        #                       'synapse_density' -- str, equation used to place the input on the dendrites
-        #
-        #             --> spikes -- spike matrix, size n x m, float
-        #                           Each row corresponds to one spike train for a synapse
-        #                           the rows are padded with -1 when spikes are missing
-        #                    attrs:
-        #                           'start' -- 1 float, start time of spike trains
-        #                           'end' -- 1 float, end time of spike trains
-        #                           'freq' -- 1 float, frequency of spike trains
-        #                           'correlation' -- 1 float, correlation of spike train
-        #                           'generator' -- str, method used to generate spikes
-        #                           'num_spikes' -- n integers, number of spikes in each spike train
-        #
+          File format:
+          "config" --> str represenation of JSON config file data
+          "input"
+              --> cell id, e.g. "0", "1", "2"
+                  --> input_name, e.g. "cortical", "thalamic", ...
+                         attrs: 'conductance' -- 1 float, synapse conductance in siemens (S)
+                                'distance_to_soma' -- n floats, distance to soma in meters (m)
+                                'mod_file' -- str, NEURON mod file, e.g. 'tmGlut'
+                                'parameter_file' -- str, path to JSON parameter file
+                                'parameter_id' -- n integers, parameter id of synapse
+                                'parameter_list' -- str representation of list of dictionaries with parameters
+                                                    parameter_id[x] % len(parameter_list) is used for synapse X
+                                'population_unit_id' -- int, population unit id this input belongs to
+                                'section_id' -- n int, section id on neuron where synapse is located
+                                'section_x' -- n float, section x for synapse
+                                'synapse_density' -- str, equation used to place the input on the dendrites
+
+                      --> spikes -- spike matrix, size n x m, float
+                                    Each row corresponds to one spike train for a synapse
+                                    the rows are padded with -1 when spikes are missing
+                             attrs:
+                                    'start' -- 1 float, start time of spike trains
+                                    'end' -- 1 float, end time of spike trains
+                                    'freq' -- 1 float, frequency of spike trains
+                                    'correlation' -- 1 float, correlation of spike train
+                                    'generator' -- str, method used to generate spikes
+                                    'num_spikes' -- n integers, number of spikes in each spike train
+
+        """
 
         self.write_log("Running make_neuron_input_parallel")
 
@@ -771,7 +786,6 @@ class SnuddaInput(object):
                 self.neuron_input[neuron_id][input_type] = self.add_external_input(neuron_id=neuron_id,
                                                                                    input_type=input_type,
                                                                                    input_inf=input_info[input_type])
-
         self.input_update_random_seeds()
         self.process_neuron_input()
 
@@ -780,7 +794,6 @@ class SnuddaInput(object):
         if not deep_compare(original_input_info, self.input_info):
             raise ValueError(f"make_neuron_input_parallel: Internal error, self.input_info modified. "
                              f"Please send input.json file to hjorth@kth.se for debugging.")
-
 
         # TODO: Plan!
         # Skip step where self.neuron_input is chopped up into multiple lists
@@ -797,11 +810,13 @@ class SnuddaInput(object):
 
     def process_neuron_input(self):
 
+        """ Helper function to parallelize input generation"""
+
         # OBS REMEMBER TO GENERATE INPUT LOCATIONS IN PARALLEL
 
         if self.d_view is not None:
             self.write_log("Sending jobs to workers, using dView")
-            self.d_view.scatter("input_list", self.flatten_input(), block=True)
+            self.d_view.scatter("input_list", self._flatten_input(), block=True)
             cmd_str = "inpt = list(map(nl._make_input_helper, input_list))"
 
             self.write_log("Calling workers to generate input in parallel")
@@ -817,7 +832,7 @@ class SnuddaInput(object):
             self.write_log("Running input generation in serial")
 
             amr = map(self._make_input_helper,
-                      self.flatten_input())
+                      self._flatten_input())
 
         for neuron_id, input_type, spikes, freq, loc, synapse_parameter_id in amr:
 
@@ -830,7 +845,9 @@ class SnuddaInput(object):
             self.neuron_input[neuron_id][input_type]["parameter_id"] = synapse_parameter_id
             self.neuron_input[neuron_id][input_type]["freq"] = freq
 
-    def flatten_input(self):
+    def _flatten_input(self):
+
+        """ Flattens dictionary self.neuron_input to a list, for parallel execution. """
 
         flat = []
 
@@ -1177,7 +1194,6 @@ class SnuddaInput(object):
             # Frequency was 0 or negative(!)
             assert not freq < 0, "Negative frequency specified."
             return np.array([])
-
 
     def generate_spikes_function_helper(self, frequencies, time_ranges, rng, dt, p_keep=1):
 
