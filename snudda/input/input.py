@@ -13,6 +13,8 @@
 # Smith, Galvan, ..., Bolam 2014 -- Bra info om thalamic inputs, CM/PF
 #
 
+# TODO: Add lognormal distribution to generate_spikes_helper
+
 # TODO: Randomise conductance for the inputs and store it, use it later when adding external synapses in simulate.py
 
 import json
@@ -777,6 +779,7 @@ class SnuddaInput(object):
                 if "generator" in input_info[input_type] and input_info[input_type]["generator"] == "csv":
                     self.neuron_input[neuron_id][input_type] = self.add_csv_input(input_inf=input_info[input_type],
                                                                                   neuron_id=neuron_id,
+                                                                                  input_type=input_type,
                                                                                   rng_master=rng_master)
                     continue
 
@@ -864,6 +867,9 @@ class SnuddaInput(object):
 
     def input_update_random_seeds(self):
 
+        """ Sets a unique random_seed for each input_type on every neuron,
+        to make inputs reproducible on parallel architectures. """
+
         ctr = sum(len(v.keys()) for k, v in self.neuron_input.items())
 
         seed_list = self.generate_seeds(num_states=ctr)
@@ -876,13 +882,37 @@ class SnuddaInput(object):
 
     def add_meta_input(self, neuron_id, input_info):
 
-        # TODO: Clean up logic, get rid of deepcopy
+        """ The input has two parts.
 
-        # Also see if we have additional input specified in the meta.json file for the neuron?
+            The first part is defined by input.json
 
+            In addition each neuron model has a meta.json file, which can also define an input
+            specifically for that morphology_key/parameter_key combination. This allows the
+            modeller to specify more input to less excitable neurons if needed.
+
+            The meta.json typically contains both a background input (with number of inputs and
+            frequency defined), and signal input (e.g. cortical or thalamic) which has the number
+            of inputs defined, but the input frequency default set to 0. This input frequency can
+            then be overridden in input.json to allow the user cell-model-specific control over input.
+
+            This function adds the meta.json input to the input_info.
+
+            Args:
+                neuron_id (int): ID of neuron
+                input_info (dict): Input information for neuron_id
+
+            Returns:
+                input_info (dict): Updated input information, now including meta.json input
+
+        """
+
+        # Summary:
+        #
+        # See if we have additional input specified in the meta.json file for the neuron?
+        #
         # Add baseline activity:
         #  1. From neuron_id derive the parameter_id and morphology_id
-        #  2. Using parameter_id, morphology_id check if the meta.json has any additional input specified
+        #  2. Using parameter_key, morphology_key check if the meta.json has any additional input specified
         #  3. Add the input to input_info
 
         parameter_key = self.network_data["neurons"][neuron_id]["parameter_key"]
@@ -981,7 +1011,20 @@ class SnuddaInput(object):
 
     ############################################################################
 
-    def add_csv_input(self, neuron_id, input_inf, rng_master):
+    def add_csv_input(self, neuron_id, input_inf, input_type, rng_master):
+
+        """
+        This code loads and input spikes defined in csv format.
+
+        Args:
+             neuron_id (int): ID of neuron
+             input_inf (dict): Input info of the specific neuron/input_type
+             rng_master: Numpy random stream
+
+        Returns:
+             csv_input (dict)
+
+        """
 
         if input_inf["generator"] != "csv":
             raise ValueError(f"add_csv_input handles csv inputs")
@@ -1008,7 +1051,9 @@ class SnuddaInput(object):
         csv_input["num_spikes"] = np.array([len(x) for x in csv_spikes])
         csv_input["synapse_density"] = csv_input.get("synapse_density", "1")
 
-        csv_input["location_random_seed"] = self.get_location_random_seed()
+        csv_input["location_random_seed"] = self.get_location_random_seed(neuron_id=neuron_id,
+                                                                          input_type=input_type,
+                                                                          input_inf=input_inf)
         csv_input["num_soma_synapses"] = csv_input.get("num_soma_synapses", 0)
         csv_input["cluster_spread"] = csv_input.get("cluster_spread", None)
         csv_input["cluster_size"] = csv_input.get("cluster_size", None)
@@ -1021,6 +1066,19 @@ class SnuddaInput(object):
     ###########################################################################
 
     def add_external_input(self, neuron_id, input_type, input_inf):
+
+        """
+            This function sets up input_info for external input generation (not csv input).
+
+            Args:
+                neuron_id (int) : ID of neuron
+                input_type (str): Name of input type
+                input_inf (dict): Input info for neuron_id/input_type
+
+            Returns:
+                input_inf (dict): Formatted input_inf with default parameters
+
+        """
 
         keys_to_copy = ["generator", "RxD", "jitter", "start", "end", "conductance",
                         "frequency", "frequency_function",
@@ -1077,7 +1135,18 @@ class SnuddaInput(object):
 
     ############################################################################
 
-    def get_location_random_seed(self, neuron_id, input_inf):
+    def get_location_random_seed(self, neuron_id, input_type, input_inf):
+
+        """
+            Allow user to define random_seed for csv input that depends on
+            morphology_key and parameter_key.
+
+            Args:
+                neuron_id (int): ID of neuron
+                input_type (str): Name of input_type
+                input_inf (dict): Input info for neuron_id/input_type
+
+        """
 
         seed_dict = input_inf.get("random_seed", {})
         parameter_key = self.neuron_info[neuron_id]["parameter_key"]
@@ -1092,13 +1161,20 @@ class SnuddaInput(object):
                 random_seed = random_seed[neuron_id % len(random_seed)]
 
         else:
-            random_seed = self.random_seed + neuron_id + 10072
+            import hashlib
+            random_seed = int(hashlib.md5(f"{neuron_id}_{input_type}_{self.random_seed}".encode()).hexdigest(), 16) % (2**32)
 
         return random_seed
 
     ############################################################################
 
     def mark_virtual(self, neuron_id):
+
+        """ Specify a certain neuron as virtual.
+
+        Args:
+            neuron_id (int): ID of neuron to make virtual
+            """
 
         if "virtual_neuron" not in self.neuron_input["neuron_id"]:
             raise ValueError(f"neuron_id {neuron_id} does not have virtual input")
@@ -1113,11 +1189,24 @@ class SnuddaInput(object):
 
     def generate_spikes_helper(self, frequency, time_range, rng, input_generator=None):
 
+        """ Helper function to generate spikes with different input generators
+
+            Args:
+                frequency (float): Frequency of input
+                time_range (float, float): Start and end time of input
+                rng: Numpy random stream
+                input_generator (str): Name of input generator
+
+        """
+
         if input_generator == "poisson":
             spikes = self.generate_poisson_spikes(freq=frequency, time_range=time_range, rng=rng)
         elif input_generator == "frequency_function":
             spikes = self.generate_spikes_function(frequency_function=frequency,
                                                    time_range=time_range, rng=rng)
+        elif input_generator == "lognormal":
+            # TODO: Add lognormal distributed spikes!
+            raise NotImplementedError(f"lognormal is not yet implemented.")
         else:
             assert False, f"Unknown input_generator {input_generator}"
 
