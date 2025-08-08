@@ -1232,7 +1232,14 @@ class SnuddaInput(object):
         return np.sort(np.concatenate(t_spikes))
 
     def generate_poisson_spikes(self, freq, time_range, rng):
-        # This generates poisson spikes with frequency freq, for a given time range
+        """ This generates poisson spikes with frequency freq, for a given time range
+
+        Args:
+            freq (float): frequency
+            time_range (float, float): start and end time of input with frequency
+            rng: Numpy random stream
+
+        """
 
         assert np.size(freq) == np.size(time_range[0]) or np.size(freq) == 1
 
@@ -1663,10 +1670,6 @@ class SnuddaInput(object):
 
     ############################################################################
 
-    # If a timeRange (start,endtime) is given then all spike times will
-    # be modulo duration, so if we jitter and they go to before start time,
-    # they wrap around and appear at end of the timeline
-
     @staticmethod
     def jitter_spikes(spike_trains, dt, rng, time_range=None):
 
@@ -1959,6 +1962,14 @@ class SnuddaInput(object):
     ############################################################################
 
     def add_soma_synapses(self, input_loc, n_soma_synapses, neuron_id):
+
+        """ Add synapses specifically on the soma.
+
+        Args:
+            input_loc: xyz, sec_id, sec_x, dist_to_soma
+            n_soma_synapses (int): Number of somatic synapses
+            neuron_id (int): ID of neuron
+        """
 
         if n_soma_synapses is None or n_soma_synapses == 0:
             return input_loc
