@@ -244,7 +244,7 @@ class RegionMesh(object):
             return
 
         with d_view.sync_imports():
-            from snudda.place.region_mesh import RegionMesh
+            from snudda.place.region_mesh_OLD import RegionMesh
 
         try:
             self.write_log("Setting up RegionMesh on workers")

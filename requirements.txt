@@ -23,3 +23,7 @@ quantities>=0.16.2
 # snudda
 
 # python-libsbml   # optional, to get access to libsbml
+
+# Testing alternatives to open3d... but it was slower
+# trimesh
+# rtree
