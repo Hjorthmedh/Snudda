@@ -44,7 +44,7 @@ else:
         "numexpr>=2.7.3",
         "numba>=0.56.4",
         "wheel",
-        "open3d",
+        "vedo",
         "quantities>=0.16.2",
         # "igraph"
     ]

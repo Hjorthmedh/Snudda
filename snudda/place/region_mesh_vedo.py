@@ -5,7 +5,7 @@ import vedo
 from numba import jit
 
 
-class RegionMeshRedux:
+class RegionMesh:
 
     def __init__(self, mesh_path, verbose=False):
 
@@ -36,27 +36,36 @@ class RegionMeshRedux:
     def check_inside(self, points):
         """ Check if points are inside, returns bool array."""
 
-        # Process points in batches to reduce memory usage
-        batch_size = 50000  # Adjust based on available memory
-        n_points = len(points)
-        is_inside = np.zeros(n_points, dtype=bool)
-
-        if self.verbose:
-            print(f"Processing {n_points} points in batches of {batch_size}")
-
-        for i in range(0, n_points, batch_size):
-            end_idx = min(i + batch_size, n_points)
-            batch_points = points[i:end_idx]
-
-            if self.verbose and i % (batch_size * 10) == 0:
-                print(f"Processing batch {i // batch_size + 1}/{(n_points - 1) // batch_size + 1}")
-
-            # Use vedo's inside method on batch
-            is_inside[i:end_idx] = self.mesh.inside_points(batch_points)
+        is_inside = np.zeros(len(points), dtype=bool)
+        inside_idx = self.mesh.inside_points(points, return_ids=True)
+        is_inside[inside_idx] = True
 
         return is_inside
 
-    def distance_to_border(self, points):
+    def distance_to_border_orig(self, points):
+
+        pcloud = vedo.Points(points)
+        signed_distances = self.mesh.distance_to(pcloud=pcloud, signed=True)
+        return signed_distances
+
+    def distance_to_border(self, points, batch_size=100000):
+        signed_distances_list = []
+        n_points = points.shape[0]
+
+        for start_idx in range(0, n_points, batch_size):
+            print(f"Processing {start_idx}")
+            end_idx = min(start_idx + batch_size, n_points)
+            batch_points = points[start_idx:end_idx]
+
+            pcloud = vedo.Points(batch_points)
+            signed_distances = pcloud.distance_to(self.mesh, signed=True)
+            signed_distances_list.append(signed_distances)
+
+        # Concatenate all results into a single array
+        all_signed_distances = np.concatenate(signed_distances_list)
+        return all_signed_distances
+
+    def distance_to_border_old(self, points):
         """ Positive values are distance to mesh (outside), and negative (inside)"""
 
         # Process in batches for memory efficiency
@@ -156,7 +165,7 @@ class NeuronPlacer:
             n_putative_points (int): Number of putative positions to place within volume (before d_min filtering)"""
 
         self.verbose = verbose
-        self.region_mesh = RegionMeshRedux(mesh_path=mesh_path, verbose=verbose)
+        self.region_mesh = RegionMesh(mesh_path=mesh_path, verbose=verbose)
         self.d_min = d_min
         self.density_functions = dict()
 
@@ -232,15 +241,23 @@ class NeuronPlacer:
 
     def plot_points(self, points, colour=None):
         """Plot points using vedo"""
-        plt = vedo.Plotter()
+        print("plot_points starting")
+
+        plt = vedo.Plotter(interactive=False)
 
         # Create points object
         if colour is None:
             colour = 'blue'
 
+        alpha = 1
         point_cloud = vedo.Points(points, c=colour)
-        plt.add([self.region_mesh.mesh, point_cloud])
-        plt.show()
+        mesh_with_alpha = self.region_mesh.mesh.alpha(alpha)  # 30% opaque
+
+        plt.add([mesh_with_alpha, point_cloud])
+        plt.show(interactive=False, zoom=1)  # still non-blocking
+        plt.reset_camera()  # ensure camera sees everything
+        plt.render()
+        print("plot_points done")
 
     def plot_points_matplotlib(self, points, colour=None):
         """Alternative matplotlib plotting (original method)"""
@@ -393,17 +410,18 @@ if __name__ == "__main__":
     # nep.plot_putative_points()
 
     points_flat = nep.get_neuron_positions(5000)
-    nep.plot_points(points_flat, colour="black")
+    nep.plot_points_matplotlib(points_flat, colour="black")
 
     points = nep.get_neuron_positions(200000, neuron_density="exp((y-0.0025)*2000)")
-    nep.plot_points(points, colour="red")
+    nep.plot_points_matplotlib(points, colour="red")
 
     points_flat2 = nep.get_neuron_positions(5000)
-    nep.plot_points(points_flat2, colour="blue")
+    nep.plot_points_matplotlib(points_flat2, colour="blue")
 
     # Also show matplotlib histograms
     import matplotlib.pyplot as plt
 
+    plt.ion()
     plt.figure()
     plt.hist(points_flat[:, 1], color="black", alpha=0.7, label='Flat')
     plt.hist(points[:, 1], color="red", alpha=0.5, label='Density')

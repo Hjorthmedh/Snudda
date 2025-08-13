@@ -1,8 +1,7 @@
 import numexpr
 import numpy as np
 from scipy.spatial import cKDTree
-# import open3d as o3d
-import trimesh
+import open3d as o3d
 from numba import jit
 
 
