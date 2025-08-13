@@ -20,6 +20,7 @@ wheel  # setup.py seems to need this now
 vedo  # replaces open3d
 ruamel.yaml>=0.18.10
 quantities>=0.16.2
+plotly
 # igraph
 # snudda
 
