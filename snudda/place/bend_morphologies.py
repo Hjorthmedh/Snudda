@@ -4,15 +4,16 @@ from scipy.spatial.transform import Rotation
 
 from snudda.neurons import NeuronMorphologyExtended
 from snudda.neurons.morphology_data import MorphologyData, SectionMetaData
-from snudda.place.region_mesh_redux import RegionMeshRedux
+# from snudda.place.region_mesh_redux import RegionMeshRedux
+from snudda.place.region_mesh_vedo import RegionMesh
 
 
 class BendMorphologies:
 
-    def __init__(self, region_mesh: RegionMeshRedux, rng):
+    def __init__(self, region_mesh: RegionMesh, rng):
 
         if type(region_mesh) == str:
-            region_mesh = RegionMeshRedux(mesh_path=region_mesh)
+            region_mesh = RegionMesh(mesh_path=region_mesh)
 
         self.region_mesh = region_mesh
         self.rng = rng

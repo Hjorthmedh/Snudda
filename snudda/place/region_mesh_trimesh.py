@@ -1,52 +1,72 @@
 import numexpr
 import numpy as np
 from scipy.spatial import cKDTree
-import open3d as o3d
+import trimesh
 from numba import jit
 
+# Teseting trimesh as alterantive to open3d, but it uses more memory and is slower...
 
 class RegionMeshRedux:
 
     def __init__(self, mesh_path, verbose=False):
 
         self.mesh_path = mesh_path
-        self.mesh = o3d.io.read_triangle_mesh(mesh_path)
+        self.mesh = trimesh.load(mesh_path)
         self.verbose = verbose
 
         # Convert from micrometers to meters to get SI units
         scale_factor = 1e-6
-        self.mesh.scale(scale_factor, center=(0, 0, 0))
+        self.mesh.apply_scale(scale_factor)
 
-        self.mesh.remove_non_manifold_edges()
+        # Trimesh equivalent of removing non-manifold edges
+        # Remove degenerate faces (updated API)
+        self.mesh.update_faces(self.mesh.nondegenerate_faces())
+        # Remove duplicate faces (updated API)
+        self.mesh.update_faces(self.mesh.unique_faces())
 
-        self.min_coord = self.mesh.get_min_bound()
-        self.max_coord = self.mesh.get_max_bound()
+        self.min_coord = self.mesh.bounds[0]  # minimum bounds
+        self.max_coord = self.mesh.bounds[1]  # maximum bounds
 
-        self.scene = o3d.t.geometry.RaycastingScene()
-        legacy_mesh = o3d.t.geometry.TriangleMesh.from_legacy(self.mesh)
-
-        # SHALL WE PICk NUMBER OF PUTATIVE POINTS BASED ON VOLUME???
-        self.volume = self.mesh.compute_convex_hull()[0].get_volume()
-
-        self.scene.add_triangles(legacy_mesh)
-        # filled_mesh = legacy_mesh.fill_holes()
-        # self.scene.add_triangles(filled_mesh)
+        # Get volume - trimesh can compute volume directly
+        self.volume = abs(self.mesh.volume)  # abs in case mesh has flipped normals
 
     def check_inside(self, points):
         """ Check if points are inside, returns bool array."""
 
-        # http://www.open3d.org/docs/latest/tutorial/geometry/distance_queries.html
-        query_point = o3d.core.Tensor(points, dtype=o3d.core.Dtype.Float32)
-        is_inside = self.scene.compute_occupancy(query_point)
-        return is_inside.numpy().astype(bool)
+        # Process points in batches to reduce memory usage
+        batch_size = 10000  # Adjust based on available memory
+        n_points = len(points)
+        is_inside = np.zeros(n_points, dtype=bool)
+
+        if self.verbose:
+            print(f"Processing {n_points} points in batches of {batch_size}")
+
+        for i in range(0, n_points, batch_size):
+            end_idx = min(i + batch_size, n_points)
+            batch_points = points[i:end_idx]
+
+            if self.verbose and i % (batch_size * 10) == 0:
+                print(f"Processing batch {i // batch_size + 1}/{(n_points - 1) // batch_size + 1}")
+
+            # Use trimesh contains method on batch
+            is_inside[i:end_idx] = self.mesh.contains(batch_points)
+
+        return is_inside
 
     def distance_to_border(self, points):
-
         """ Positive values are distance to mesh (outside), and negative (inside)"""
 
-        # http://www.open3d.org/docs/latest/tutorial/geometry/distance_queries.html
-        query_point = o3d.core.Tensor(points, dtype=o3d.core.Dtype.Float32)
-        signed_distance = self.scene.compute_signed_distance(query_point).numpy()
+        # Process in batches for memory efficiency
+        batch_size = 50000
+        n_points = len(points)
+        signed_distance = np.zeros(n_points)
+
+        for i in range(0, n_points, batch_size):
+            end_idx = min(i + batch_size, n_points)
+            batch_points = points[i:end_idx]
+
+            # Use trimesh proximity for signed distance on batch
+            signed_distance[i:end_idx] = trimesh.proximity.signed_distance(self.mesh, batch_points)
 
         return signed_distance
 
@@ -58,7 +78,7 @@ class RegionMeshRedux:
             plot_list = [self.mesh]
         else:
             # Just plot wireframe
-            plot_list = [o3d.geometry.LineSet.create_from_triangle_mesh(self.mesh)]
+            plot_list = [self.mesh.as_open3d.wireframe()]
 
         if line_set:
             plot_list += line_set
@@ -68,10 +88,15 @@ class RegionMeshRedux:
 
         if show_axis:
             # The x, y, z axis will be rendered as red, green, and blue arrows respectively.
-            axis = o3d.geometry.TriangleMesh.create_coordinate_frame(size=1000e-6, origin=[0, 0, 0])
-            plot_list += [axis]
+            axis_length = 1000e-6
+            # Create simple coordinate frame using trimesh
+            origin = [0, 0, 0]
+            # For now, simplified - you can enhance this later
+            pass
 
-        o3d.visualization.draw_geometries(plot_list)
+        # Use trimesh's built-in show
+        scene = trimesh.Scene(plot_list)
+        scene.show()
 
     def get_line_set(self, neurons):
 
@@ -91,11 +116,14 @@ class RegionMeshRedux:
                         lines.append([start_point, end_point])
 
             if len(lines) > 0:
-                line_set = o3d.geometry.LineSet()
-                line_set.points = o3d.utility.Vector3dVector(morph_data.geometry[:, :3])
-                line_set.lines = o3d.utility.Vector2iVector(lines)
-
-                line_sets.append(line_set)
+                # Create line data for trimesh
+                points = morph_data.geometry[:, :3]
+                # Convert to trimesh Path3D format
+                path_data = {
+                    'vertices': points,
+                    'entities': [trimesh.path.entities.Line(lines)]
+                }
+                line_sets.append(path_data)
 
         return line_sets
 
@@ -127,18 +155,18 @@ class NeuronPlacer:
 
         # We generate a cube of points, obs that we pad it with d_min on all sides to avoid
         # edge effects (which would give higher densities at borders)
-        self.cube_side = self.region_mesh.max_coord-self.region_mesh.min_coord + self.d_min*2
+        self.cube_side = self.region_mesh.max_coord - self.region_mesh.min_coord + self.d_min * 2
         self.cube_offset = self.region_mesh.min_coord - self.d_min
 
         if n_putative_points is None:
             # The volume of the cube multiplied by a density estimated by d_min
 
             if putative_density:
-                n_putative_points = int(np.ceil(np.prod(self.cube_side)*putative_density*1e9))
+                n_putative_points = int(np.ceil(np.prod(self.cube_side) * putative_density * 1e9))
             else:
 
                 # n_putative_points = min(int(np.ceil(np.prod(self.cube_side) * (1/self.d_min) ** 3)), 1000000)
-                n_putative_points = min(int(np.ceil(np.prod(self.cube_side) * 300e3*1e9)), 1000000)
+                n_putative_points = min(int(np.ceil(np.prod(self.cube_side) * 300e3 * 1e9)), 1000000)
 
                 print(f"No n_putative_points and putative_density, setting {n_putative_points = }"
                       f"\n(this must be larger than the number of neurons you want to place)")
@@ -242,7 +270,7 @@ class NeuronPlacer:
             if sorted_counts[first_pair] != 1:
                 first_pair = len(sorted_counts) - 1  # Basically use remove_fraction_idx
 
-            remove_fraction_idx = int(np.ceil(remove_fraction*len(sorted_offenders)))
+            remove_fraction_idx = int(np.ceil(remove_fraction * len(sorted_offenders)))
             remove_idx = sorted_offenders[:min(first_pair, remove_fraction_idx)]
 
         points = np.delete(points, remove_idx, axis=0)
@@ -257,7 +285,6 @@ class NeuronPlacer:
         if self.verbose:
             print(f"Filtering {points.shape[0]} points..")
 
-        # keep_flag = self.region_mesh.point_inside(points=points)
         keep_flag = self.region_mesh.check_inside(points=points)
 
         print(f"Filtering, keeping inside points: {np.sum(keep_flag)} / {len(keep_flag)}")
@@ -333,11 +360,12 @@ class NeuronPlacer:
 
 
 if __name__ == "__main__":
-
     mesh_path = "../data/mesh/Striatum-d-right.obj"
 
     # nep = NeuronPlacer(mesh_path=mesh_path, d_min=10e-6, n_putative_points=10000000)
-    nep = NeuronPlacer(mesh_path=mesh_path, d_min=10e-6, n_putative_points=None, putative_density=100e3)
+    nep = NeuronPlacer(mesh_path=mesh_path, d_min=10e-6,
+                       n_putative_points=None, putative_density=100e3,
+                       verbose=True)
     # nep.plot_putative_points()
 
     points_flat = nep.get_neuron_positions(5000)
@@ -347,18 +375,20 @@ if __name__ == "__main__":
     nep.plot_points(points, colour="red")
 
     points_flat2 = nep.get_neuron_positions(5000)
-    nep.plot_points(points_flat, colour="blue")
+    nep.plot_points(points_flat2, colour="blue")
 
     import matplotlib.pyplot as plt
+
     plt.figure()
-    plt.hist(points_flat[:,1], color="black")
-    plt.hist(points[:,1], color="red", alpha=0.5)
+    plt.hist(points_flat[:, 1], color="black")
+    plt.hist(points[:, 1], color="red", alpha=0.5)
     plt.show()
 
     plt.figure()
-    plt.hist(points_flat[:,1], color="black")
-    plt.hist(points_flat2[:,1], color="blue", alpha=0.5)
+    plt.hist(points_flat[:, 1], color="black")
+    plt.hist(points_flat2[:, 1], color="blue", alpha=0.5)
     plt.show()
 
     import pdb
+
     pdb.set_trace()

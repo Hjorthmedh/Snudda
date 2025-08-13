@@ -1,79 +1,129 @@
 import numexpr
 import numpy as np
 from scipy.spatial import cKDTree
-import open3d as o3d
+import vedo
 from numba import jit
 
 
-class RegionMeshRedux:
+class RegionMesh:
 
     def __init__(self, mesh_path, verbose=False):
 
         self.mesh_path = mesh_path
-        self.mesh = o3d.io.read_triangle_mesh(mesh_path)
+        self.mesh = vedo.load(mesh_path)
         self.verbose = verbose
 
         # Convert from micrometers to meters to get SI units
         scale_factor = 1e-6
-        self.mesh.scale(scale_factor, center=(0, 0, 0))
+        self.mesh.scale(scale_factor)
 
-        self.mesh.remove_non_manifold_edges()
+        # Vedo mesh cleaning
+        self.mesh.clean()  # Remove duplicate points and degenerate faces
+        self.mesh.fill_holes()  # Fill holes if any
 
-        self.min_coord = self.mesh.get_min_bound()
-        self.max_coord = self.mesh.get_max_bound()
+        # Get bounds
+        bounds = self.mesh.bounds()
+        self.min_coord = np.array([bounds[0], bounds[2], bounds[4]])  # xmin, ymin, zmin
+        self.max_coord = np.array([bounds[1], bounds[3], bounds[5]])  # xmax, ymax, zmax
 
-        self.scene = o3d.t.geometry.RaycastingScene()
-        legacy_mesh = o3d.t.geometry.TriangleMesh.from_legacy(self.mesh)
+        # Get volume - vedo can compute volume directly
+        self.volume = abs(self.mesh.volume())
 
-        # SHALL WE PICk NUMBER OF PUTATIVE POINTS BASED ON VOLUME???
-        self.volume = self.mesh.compute_convex_hull()[0].get_volume()
-
-        self.scene.add_triangles(legacy_mesh)
-        # filled_mesh = legacy_mesh.fill_holes()
-        # self.scene.add_triangles(filled_mesh)
+        if self.verbose:
+            print(f"Mesh loaded: {self.mesh.npoints} vertices, {self.mesh.ncells} faces")
+            print(f"Volume: {self.volume:.2e} m³")
 
     def check_inside(self, points):
         """ Check if points are inside, returns bool array."""
 
-        # http://www.open3d.org/docs/latest/tutorial/geometry/distance_queries.html
-        query_point = o3d.core.Tensor(points, dtype=o3d.core.Dtype.Float32)
-        is_inside = self.scene.compute_occupancy(query_point)
-        return is_inside.numpy().astype(bool)
+        is_inside = np.zeros(len(points), dtype=bool)
+        inside_idx = self.mesh.inside_points(points, return_ids=True)
+        is_inside[inside_idx] = True
 
-    def distance_to_border(self, points):
+        return is_inside
 
+    def distance_to_border_orig(self, points):
+
+        pcloud = vedo.Points(points)
+        signed_distances = self.mesh.distance_to(pcloud=pcloud, signed=True)
+        return signed_distances
+
+    def distance_to_border(self, points, batch_size=100000):
+        signed_distances_list = []
+        n_points = points.shape[0]
+
+        for start_idx in range(0, n_points, batch_size):
+            print(f"Processing {start_idx}")
+            end_idx = min(start_idx + batch_size, n_points)
+            batch_points = points[start_idx:end_idx]
+
+            pcloud = vedo.Points(batch_points)
+            signed_distances = pcloud.distance_to(self.mesh, signed=True)
+            signed_distances_list.append(signed_distances)
+
+        # Concatenate all results into a single array
+        all_signed_distances = np.concatenate(signed_distances_list)
+        return all_signed_distances
+
+    def distance_to_border_old(self, points):
         """ Positive values are distance to mesh (outside), and negative (inside)"""
 
-        # http://www.open3d.org/docs/latest/tutorial/geometry/distance_queries.html
-        query_point = o3d.core.Tensor(points, dtype=o3d.core.Dtype.Float32)
-        signed_distance = self.scene.compute_signed_distance(query_point).numpy()
+        # Process in batches for memory efficiency
+        batch_size = 50000
+        n_points = len(points)
+        signed_distance = np.zeros(n_points)
+
+        for i in range(0, n_points, batch_size):
+            end_idx = min(i + batch_size, n_points)
+            batch_points = points[i:end_idx]
+
+            # Use vedo's distance method
+            # Get closest points on surface
+            closest_points = self.mesh.closest_point(batch_points)
+            distances = np.linalg.norm(batch_points - closest_points, axis=1)
+
+            # Determine sign (negative if inside)
+            is_inside = self.mesh.inside_points(batch_points)
+            signed_distance[i:end_idx] = np.where(is_inside, -distances, distances)
 
         return signed_distance
 
     def plot(self, line_set=None, neurons=None, show_axis=False, show_faces=True):
+        """Plot the mesh using vedo's visualization"""
 
-        # Press w to see wireframe...
+        # Create plotter
+        plt = vedo.Plotter()
 
+        # Add mesh
         if show_faces:
-            plot_list = [self.mesh]
+            plt.add(self.mesh)
         else:
-            # Just plot wireframe
-            plot_list = [o3d.geometry.LineSet.create_from_triangle_mesh(self.mesh)]
+            # Show wireframe
+            wireframe = self.mesh.wireframe()
+            plt.add(wireframe)
 
+        # Add line sets
         if line_set:
-            plot_list += line_set
+            for lines in line_set:
+                plt.add(lines)
 
+        # Add neurons as line sets
         if neurons:
-            plot_list += self.get_line_set(neurons)
+            neuron_lines = self.get_line_set(neurons)
+            for lines in neuron_lines:
+                plt.add(lines)
 
+        # Add coordinate axis
         if show_axis:
-            # The x, y, z axis will be rendered as red, green, and blue arrows respectively.
-            axis = o3d.geometry.TriangleMesh.create_coordinate_frame(size=1000e-6, origin=[0, 0, 0])
-            plot_list += [axis]
+            axis_length = 1000e-6
+            axes = vedo.Axes(self.mesh, xtitle='X (m)', ytitle='Y (m)', ztitle='Z (m)')
+            plt.add(axes)
 
-        o3d.visualization.draw_geometries(plot_list)
+        # Show the scene
+        plt.show()
 
     def get_line_set(self, neurons):
+        """Convert neurons to vedo Line objects"""
 
         if type(neurons) != list:
             return self.get_line_set(neurons=[neurons])
@@ -81,21 +131,23 @@ class RegionMeshRedux:
         line_sets = []
 
         for neuron in neurons:
-
             morph_data = neuron.morphology_data["neuron"]
 
-            lines = []
+            # Collect all line segments
+            line_segments = []
+            points = morph_data.geometry[:, :3]
+
             for section in morph_data.section_iterator():
                 if len(section.point_idx) > 1:
-                    for start_point, end_point in zip(section.point_idx[:-1], section.point_idx[1:]):
-                        lines.append([start_point, end_point])
+                    for start_idx, end_idx in zip(section.point_idx[:-1], section.point_idx[1:]):
+                        start_point = points[start_idx]
+                        end_point = points[end_idx]
+                        line_segments.append([start_point, end_point])
 
-            if len(lines) > 0:
-                line_set = o3d.geometry.LineSet()
-                line_set.points = o3d.utility.Vector3dVector(morph_data.geometry[:, :3])
-                line_set.lines = o3d.utility.Vector2iVector(lines)
-
-                line_sets.append(line_set)
+            if len(line_segments) > 0:
+                # Create vedo Lines object
+                lines = vedo.Lines(line_segments)
+                line_sets.append(lines)
 
         return line_sets
 
@@ -106,14 +158,14 @@ class NeuronPlacer:
                  n_putative_points=None, putative_density=None, verbose=False):
 
         """ Args:
-            mesh_path (str): Path to wavefront obj file
+            mesh_path (str): Path to mesh file (supports many formats via vedo)
             d_min (float): Minimum distance between neurons
             random_seed (int): Random seed
             rng: Numpy rng object, either rng or random_seed is given
             n_putative_points (int): Number of putative positions to place within volume (before d_min filtering)"""
 
         self.verbose = verbose
-        self.region_mesh = RegionMeshRedux(mesh_path=mesh_path, verbose=verbose)
+        self.region_mesh = RegionMesh(mesh_path=mesh_path, verbose=verbose)
         self.d_min = d_min
         self.density_functions = dict()
 
@@ -127,18 +179,18 @@ class NeuronPlacer:
 
         # We generate a cube of points, obs that we pad it with d_min on all sides to avoid
         # edge effects (which would give higher densities at borders)
-        self.cube_side = self.region_mesh.max_coord-self.region_mesh.min_coord + self.d_min*2
+        self.cube_side = self.region_mesh.max_coord - self.region_mesh.min_coord + self.d_min * 2
         self.cube_offset = self.region_mesh.min_coord - self.d_min
 
         if n_putative_points is None:
             # The volume of the cube multiplied by a density estimated by d_min
 
             if putative_density:
-                n_putative_points = int(np.ceil(np.prod(self.cube_side)*putative_density*1e9))
+                n_putative_points = int(np.ceil(np.prod(self.cube_side) * putative_density * 1e9))
             else:
 
                 # n_putative_points = min(int(np.ceil(np.prod(self.cube_side) * (1/self.d_min) ** 3)), 1000000)
-                n_putative_points = min(int(np.ceil(np.prod(self.cube_side) * 300e3*1e9)), 1000000)
+                n_putative_points = min(int(np.ceil(np.prod(self.cube_side) * 300e3 * 1e9)), 1000000)
 
                 print(f"No n_putative_points and putative_density, setting {n_putative_points = }"
                       f"\n(this must be larger than the number of neurons you want to place)")
@@ -182,14 +234,33 @@ class NeuronPlacer:
         return self.get_neuron_positions(n_positions=num_neurons, neuron_density=density_function)
 
     def plot_putative_points(self):
-
         self.plot_points(points=self.putative_points)
 
     def plot_placed_points(self):
-
         self.plot_points(points=self.putative_points[self.allocated_points, :])
 
     def plot_points(self, points, colour=None):
+        """Plot points using vedo"""
+        print("plot_points starting")
+
+        plt = vedo.Plotter(interactive=False)
+
+        # Create points object
+        if colour is None:
+            colour = 'blue'
+
+        alpha = 1
+        point_cloud = vedo.Points(points, c=colour)
+        mesh_with_alpha = self.region_mesh.mesh.alpha(alpha)  # 30% opaque
+
+        plt.add([mesh_with_alpha, point_cloud])
+        plt.show(interactive=False, zoom=1)  # still non-blocking
+        plt.reset_camera()  # ensure camera sees everything
+        plt.render()
+        print("plot_points done")
+
+    def plot_points_matplotlib(self, points, colour=None):
+        """Alternative matplotlib plotting (original method)"""
         import matplotlib.pyplot as plt
 
         fig = plt.figure()
@@ -242,7 +313,7 @@ class NeuronPlacer:
             if sorted_counts[first_pair] != 1:
                 first_pair = len(sorted_counts) - 1  # Basically use remove_fraction_idx
 
-            remove_fraction_idx = int(np.ceil(remove_fraction*len(sorted_offenders)))
+            remove_fraction_idx = int(np.ceil(remove_fraction * len(sorted_offenders)))
             remove_idx = sorted_offenders[:min(first_pair, remove_fraction_idx)]
 
         points = np.delete(points, remove_idx, axis=0)
@@ -257,7 +328,6 @@ class NeuronPlacer:
         if self.verbose:
             print(f"Filtering {points.shape[0]} points..")
 
-        # keep_flag = self.region_mesh.point_inside(points=points)
         keep_flag = self.region_mesh.check_inside(points=points)
 
         print(f"Filtering, keeping inside points: {np.sum(keep_flag)} / {len(keep_flag)}")
@@ -333,32 +403,41 @@ class NeuronPlacer:
 
 
 if __name__ == "__main__":
-
     mesh_path = "../data/mesh/Striatum-d-right.obj"
 
     # nep = NeuronPlacer(mesh_path=mesh_path, d_min=10e-6, n_putative_points=10000000)
-    nep = NeuronPlacer(mesh_path=mesh_path, d_min=10e-6, n_putative_points=None, putative_density=100e3)
+    nep = NeuronPlacer(mesh_path=mesh_path, d_min=10e-6, n_putative_points=None, putative_density=100e3, verbose=True)
     # nep.plot_putative_points()
 
     points_flat = nep.get_neuron_positions(5000)
-    nep.plot_points(points_flat, colour="black")
+    nep.plot_points_matplotlib(points_flat, colour="black")
 
     points = nep.get_neuron_positions(200000, neuron_density="exp((y-0.0025)*2000)")
-    nep.plot_points(points, colour="red")
+    nep.plot_points_matplotlib(points, colour="red")
 
     points_flat2 = nep.get_neuron_positions(5000)
-    nep.plot_points(points_flat, colour="blue")
+    nep.plot_points_matplotlib(points_flat2, colour="blue")
 
+    # Also show matplotlib histograms
     import matplotlib.pyplot as plt
+
+    plt.ion()
     plt.figure()
-    plt.hist(points_flat[:,1], color="black")
-    plt.hist(points[:,1], color="red", alpha=0.5)
+    plt.hist(points_flat[:, 1], color="black", alpha=0.7, label='Flat')
+    plt.hist(points[:, 1], color="red", alpha=0.5, label='Density')
+    plt.xlabel('Y coordinate (m)')
+    plt.ylabel('Count')
+    plt.legend()
     plt.show()
 
     plt.figure()
-    plt.hist(points_flat[:,1], color="black")
-    plt.hist(points_flat2[:,1], color="blue", alpha=0.5)
+    plt.hist(points_flat[:, 1], color="black", alpha=0.7, label='Flat 1')
+    plt.hist(points_flat2[:, 1], color="blue", alpha=0.5, label='Flat 2')
+    plt.xlabel('Y coordinate (m)')
+    plt.ylabel('Count')
+    plt.legend()
     plt.show()
 
     import pdb
+
     pdb.set_trace()
