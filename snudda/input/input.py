@@ -629,6 +629,18 @@ class SnuddaInput(object):
                         self.population_unit_spikes[cell_type][input_type][idx_pop_unit] = \
                             self.generate_poisson_spikes(freq=freq, time_range=(start_time, end_time), rng=rng)
 
+                elif self.input_info[cell_type][input_type]["generator"] == "lognormal":
+
+                    freq = self.input_info[cell_type][input_type]["frequency"]
+                    std_freq = self.input_info[cell_type][input_type]["std_freq"]
+                    self.population_unit_spikes[cell_type][input_type] = dict([])
+
+                    for idx_pop_unit in pop_unit_list:
+                        self.population_unit_spikes[cell_type][input_type][idx_pop_unit] = \
+                            self.generate_log_normal_spikes(mean_freq=np.atleast_1d(freq), std_freq=std_freq,
+                                                            time_ranges=(start_time, end_time),
+                                                            rng=rng)
+
                 # Handle frequency function
                 elif self.input_info[cell_type][input_type]["generator"] == "frequency_function":
 
@@ -1088,7 +1100,7 @@ class SnuddaInput(object):
                         "dendrite_location", "morphology_key",
                         "correlation", "population_unit_correlation_fraction", "population_unit_id",
                         "num_soma_synapses", "location_random_seed",
-                        "add_mother_spikes", "set_mother_spikes"]
+                        "add_mother_spikes", "set_mother_spikes", "std_freq"]
 
         defaults = {"jitter": 0.0,
                     "start": 0.0,
@@ -1187,7 +1199,7 @@ class SnuddaInput(object):
 
     ############################################################################
 
-    def generate_spikes_helper(self, frequency, time_range, rng, input_generator=None):
+    def generate_spikes_helper(self, frequency, time_range, rng, input_generator=None, std_freq=None):
 
         """ Helper function to generate spikes with different input generators
 
@@ -1196,6 +1208,7 @@ class SnuddaInput(object):
                 time_range (float, float): Start and end time of input
                 rng: Numpy random stream
                 input_generator (str): Name of input generator
+                std_freq (float): Standard deviation, optional, used for lognormal
 
         """
 
@@ -1205,8 +1218,10 @@ class SnuddaInput(object):
             spikes = self.generate_spikes_function(frequency_function=frequency,
                                                    time_range=time_range, rng=rng)
         elif input_generator == "lognormal":
-            # TODO: Add lognormal distributed spikes!
-            raise NotImplementedError(f"lognormal is not yet implemented.")
+            spikes = self.generate_log_normal_spikes(mean_freq=np.atleast_1d(frequency),
+                                                     std_freq=std_freq,
+                                                     time_ranges=time_range,
+                                                     rng=rng)
         else:
             assert False, f"Unknown input_generator {input_generator}"
 
@@ -1290,6 +1305,95 @@ class SnuddaInput(object):
             # Frequency was 0 or negative(!)
             assert not freq < 0, "Negative frequency specified."
             return np.array([])
+
+    def generate_log_normal_spikes(self, mean_freq, std_freq, time_ranges, rng):
+        """
+        Generate spike times using log-normal distribution for inter-spike intervals.
+
+        Parameters:
+        - mean_freq: array-like, mean firing frequency for each time range (Hz)
+        - std_freq: array-like, standard deviation of firing frequency (Hz)
+        - time_ranges: tuple of (start_times, end_times) arrays
+        - rng: numpy random number generator
+
+        Returns:
+        - sorted array of spike times
+        """
+
+        if std_freq is None:
+            self.write_log(f"std_freq must not be None for lognormal input", is_error=True)
+            raise ValueError(f"std_freq must not be None for lognormal input")
+
+        # Convert frequency to ISI statistics
+        mean_isi = 1.0 / mean_freq  # Mean inter-spike interval
+        std_isi = std_freq / (mean_freq ** 2)  # Standard deviation of ISI (using delta method)
+
+        # Calculate log-normal parameters for ISI distribution
+        mu_list = np.log(mean_isi / np.sqrt(1 + (std_isi ** 2) / (mean_isi ** 2)))
+        sigma_list = np.sqrt(np.log(1 + (std_isi ** 2) / (mean_isi ** 2)))
+        t_spikes = []
+
+        for mu, sigma, t_start, t_end in zip(mu_list, sigma_list, time_ranges[0], time_ranges[1]):
+
+            duration = t_end - t_start
+
+            if duration <= 0:
+                t_spikes.append(np.array([]))
+                continue
+
+            if np.isnan(mu) or np.isnan(sigma):
+                t_spikes.append(np.array([]))
+                continue
+
+            # Estimate number of spikes needed (with generous buffer)
+            mean_isi_est = np.exp(mu + sigma ** 2 / 2)  # Mean ISI from log-normal
+            mean_freq_est = 1.0 / mean_isi_est  # Convert back to frequency
+
+            try:
+                n_spikes_est = int(duration * mean_freq_est * 2)  # 2x buffer for safety
+                n_spikes_est = max(n_spikes_est, 100)  # Minimum batch size
+            except:
+                import traceback
+                print(traceback.format_exc())
+                import pdb
+                pdb.set_trace()
+
+            spikes = []
+            remaining_time = duration
+            current_pos = t_start
+
+            while remaining_time > 0:
+                # Generate batch of ISIs
+                isis = rng.lognormal(mu, sigma, size=n_spikes_est)
+
+                # Convert to spike times using cumsum
+                spike_times = current_pos + np.cumsum(isis)
+
+                # Find spikes within the time range
+                valid_mask = spike_times < t_end
+                if np.any(valid_mask):
+                    valid_spikes = spike_times[valid_mask]
+                    spikes.extend(valid_spikes)
+
+                    # Update position for next batch (if needed)
+                    if len(valid_spikes) == len(spike_times):
+                        # All spikes were valid, continue from last spike
+                        current_pos = spike_times[-1]
+                        remaining_time = t_end - current_pos
+                    else:
+                        # We've exceeded the time range, we're done
+                        remaining_time = 0
+                else:
+                    # No valid spikes in this batch, we're done
+                    remaining_time = 0
+
+            t_spikes.append(np.array(spikes))
+
+        # Concatenate all spike times and sort
+        if t_spikes:  # Check if we have any spikes
+            return np.sort(np.concatenate(t_spikes))
+        else:
+            return np.array([])  # Return empty array if no spikes generated
 
     def generate_spikes_function_helper(self, frequencies, time_ranges, rng, dt, p_keep=1):
 
@@ -1591,7 +1695,8 @@ class SnuddaInput(object):
                                freq, time_range, num_spike_trains, p_keep, rng,
                                population_unit_spikes=None,
                                ret_pop_unit_spikes=False, jitter_dt=None,
-                               input_generator=None):
+                               input_generator=None,
+                               std_freq=None):
 
         """
         Make correlated spikes.
@@ -1607,16 +1712,18 @@ class SnuddaInput(object):
                                         if true returns (spikes, population unit spikes)
             jitter_dt (float): amount to jitter all spikes
             input_generator (str) : "poisson" (default) or "frequency_functon"
+            std_freq (float): Standard deviation of frequency, used for lognormal
         """
 
         assert np.all(np.logical_and(0 <= p_keep, p_keep <= 1)), f"p_keep = {p_keep} should be between 0 and 1"
 
         if population_unit_spikes is None:
             population_unit_spikes = self.generate_spikes_helper(freq, time_range, rng=rng,
-                                                                 input_generator=input_generator)
+                                                                 input_generator=input_generator,
+                                                                 std_freq=std_freq)
         spike_trains = []
 
-        if input_generator == "poisson":
+        if input_generator in ("poisson", "lognormal"):
             pop_freq = np.multiply(freq, 1 - p_keep)
         elif input_generator == "frequency_function":
             pop_freq = freq
@@ -1628,7 +1735,7 @@ class SnuddaInput(object):
 
         for i in range(0, num_spike_trains):
             t_unique = self.generate_spikes_helper(frequency=pop_freq, time_range=time_range, rng=rng,
-                                                   input_generator=input_generator)
+                                                   input_generator=input_generator, std_freq=std_freq)
             t_population_unit = self.cull_spikes(spikes=population_unit_spikes,
                                                  p_keep=p_keep, rng=rng,
                                                  time_range=time_range)
@@ -2126,6 +2233,7 @@ class SnuddaInput(object):
 
         neuron_id = input_info["neuron_id"]
         freq = input_info.get("frequency", None)
+        std_freq = input_info.get("std_freq", None)
         t_start = np.array(input_info["start"]) if "start" in input_info else None
         t_end = np.array(input_info["end"]) if "end" in input_info else None
         synapse_density = input_info.get("synapse_density", None)  # Density function f(d), d=distance to soma along dendrite
@@ -2137,7 +2245,7 @@ class SnuddaInput(object):
         cluster_spread = input_info.get("cluster_spread", None)  # Spread of cluster along dendrite (in meters)
         dendrite_location = input_info.get("dendrite_location", None)  # Override location of dendrites, list of (sec_id, sec_x) tuples.
         location_random_seed = input_info.get("location_random_seed", None)
-        input_generator = input_info.get("generator", None)  # "poisson" or "frequency_function"
+        input_generator = input_info.get("generator", None)  # "poisson", "lognormal", or "frequency_function"
 
         # Fraction of population unit spikes used, 1.0=all correlation within population unit, 0.0 = only correlation within the particular neuron
         population_unit_fraction = np.array(input_info["population_unit_correlation_fraction"]) \
@@ -2177,7 +2285,8 @@ class SnuddaInput(object):
                                                      population_unit_spikes=population_unit_spikes,
                                                      jitter_dt=jitter_dt,
                                                      rng=rng,
-                                                     input_generator=input_generator)
+                                                     input_generator=input_generator,
+                                                     std_freq=std_freq)
 
             synapse_parameter_id = None
         else:
@@ -2224,14 +2333,15 @@ class SnuddaInput(object):
 
             if population_unit_spikes is not None:
                 neuron_correlated_spikes = self.generate_spikes_helper(frequency=freq, time_range=time_range, rng=rng,
-                                                                       input_generator=input_generator)
+                                                                       input_generator=input_generator,
+                                                                       std_freq=std_freq)
 
                 mother_spikes = SnuddaInput.mix_fraction_of_spikes(population_unit_spikes, neuron_correlated_spikes,
                                                                    population_unit_fraction, 1-population_unit_fraction,
                                                                    rng=rng, time_range=time_range)
             else:
                 mother_spikes = self.generate_spikes_helper(frequency=freq, time_range=time_range, rng=rng,
-                                                            input_generator=input_generator)
+                                                            input_generator=input_generator, std_freq=std_freq)
 
             if self.verbose:
                 self.write_log(f"Generating {num_inputs} inputs (correlation={correlation}, p_keep={p_keep}, "
@@ -2246,7 +2356,8 @@ class SnuddaInput(object):
                                                  population_unit_spikes=mother_spikes,
                                                  jitter_dt=jitter_dt,
                                                  rng=rng,
-                                                 input_generator=input_generator)
+                                                 input_generator=input_generator,
+                                                 std_freq=std_freq)
 
             # We need to pick which parameter set to use for the input also
             synapse_parameter_id = rng.integers(1e6, size=num_inputs)
