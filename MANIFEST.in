@@ -1,5 +1,7 @@
 include README.md
 
+include snudda/*.json
+
 recursive-include snudda/data *.json
 recursive-include snudda/data *.swc
 recursive-include snudda/data *.mod
