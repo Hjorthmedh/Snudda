@@ -53,7 +53,7 @@ class RegionMesh:
         n_points = points.shape[0]
 
         for start_idx in range(0, n_points, batch_size):
-            print(f"Processing {start_idx}")
+            # print(f"Processing {start_idx}")
             end_idx = min(start_idx + batch_size, n_points)
             batch_points = points[start_idx:end_idx]
 
