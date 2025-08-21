@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.abspath('..'))
 
 import mock
  
-MOCK_MODULES = ['mpi4py', 'NEURON', 'neuron', 'neuron.rxd', 'bluepyopt', 'bluepyopt.ephys', 'bluepyopt.ephys.simulators', 'ipyparallel', 'matplotlib', 'matplotlib.pyplot', 'h5py', 'numpy', 'scipy', 'scipy.spatial', 'scipy.sparse', 'scipy.cluster', 'scipy.interpolate', 'sonata', 'pyzmq', 'numexpr', 'argparse', 'pyswarms', 'numba', 'psutil']
+MOCK_MODULES = ['mpi4py', 'NEURON', 'neuron', 'neuron.rxd', 'bluepyopt', 'bluepyopt.ephys', 'bluepyopt.ephys.simulators', 'ipyparallel', 'matplotlib', 'matplotlib.pyplot', 'h5py', 'numpy', 'scipy', 'scipy.spatial', 'scipy.sparse', 'scipy.cluster', 'scipy.interpolate', 'sonata', 'pyzmq', 'numexpr', 'argparse', 'pyswarms', 'numba', 'psutil', "vedo", "ruamel.yaml", "quantities", "plotly"]
 
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = mock.Mock()
