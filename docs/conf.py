@@ -39,7 +39,7 @@ author = 'Johannes Hjorth'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosummary','sphinx.ext.coverage', 'sphinx.ext.viewcode', 'sphinxarg.ext', 'sphinx.ext.napoleon', 'm2r2', 'myst_parser']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosummary','sphinx.ext.coverage', 'sphinx.ext.viewcode', 'sphinxarg.ext', 'sphinx.ext.napoleon', 'myst_parser']
 
 autodoc_mock_imports = ['mpi4py', 'neuron', 'neuron.rxd', 'bluepyopt', 'bluepyopt.ephys', 'bluepyopt.ephys.simulators', 'ipyparallel', 'matplotlib', 'h5py', 'numpy', 'scipy', 'scipy.spatial', 'scipy.sparse', 'sonata', 'pyzmq', 'numexpr', 'argparse', 'pyswarms', 'numba', "setuptools", "psutil", "cython", "wheel", "vedo", "ruamel.yaml", "quantities", "plotly"]
 
