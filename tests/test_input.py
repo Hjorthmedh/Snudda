@@ -301,6 +301,13 @@ class InputTestCase(unittest.TestCase):
         # pop1 = input_data[f"input/{check_id3}/CorticalSignal/population_unit_spikes"][()]
 
         # TODO: Add checks
+        dspn_id = sl.get_neuron_id_of_type(neuron_type="dSPN", num_neurons=1)[0]
+        spikes = input_data[f"input/{dspn_id}"]["ExtraTestInput"]["spikes"][()].copy()
+
+        self.assertTrue((spikes[:, 0] > 2).all())  # No input spikes were specified before 2 seconds
+
+        freq68 = len(np.where((spikes >= 6) & (spikes <= 8))[0]) / (2 * spikes.shape[0])
+        self.assertTrue(5 <= freq68 < 7)  # Should be 6 Hz
 
     def test_arbitrary_function(self):
 
@@ -332,7 +339,6 @@ class InputTestCase(unittest.TestCase):
                 with self.subTest(f"Checking frequency at {t_check} (expecting around {t_check*100} Hz)"):
                     self.assertTrue((t_check-1)*80 <= freq <= (t_check-1)*120,
                                     f"Found frequency {freq} Hz at {t_check}s, expected {t_check*100} Hz")
-
 
     def test_arbitrary_function_range(self):
 

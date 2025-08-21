@@ -40,6 +40,20 @@
 	    "conductance" : 0.5e-9,
 	    "mod_file": "tmGlut",
 	    "parameter_file":"$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
+	},
+	"ExtraTestInput" : {
+	    "generator" : "lognormal",	    
+	    "type" : "AMPA_NMDA",
+	    "synapse_density" : "20*0.05*exp(-d/200e-6)",
+	    "frequency" : [0,2,4,6],
+	    "std_freq" : 0.5,
+	    "start": [0, 2, 4, 6],
+	    "end": [1, 4, 6, 8],
+	    "correlation" : 0.0,
+	    "jitter" : 0.01,
+	    "conductance" : 0.5e-9,
+	    "mod_file": "tmGlut",
+	    "parameter_file":"$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json"
 	}	
     },
 

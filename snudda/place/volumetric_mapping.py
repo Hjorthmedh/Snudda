@@ -12,7 +12,7 @@ import os
 import numpy as np
 from scipy.spatial.distance import pdist, squareform
 
-from snudda.place.region_mesh import RegionMesh
+from snudda.place.region_mesh_OLD import RegionMesh
 
 
 class VolumetricMap:
