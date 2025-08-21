@@ -4,3 +4,4 @@ myst-parser
 sphinx-argparse
 mock
 m2r2
+sphinx_rtd_theme
