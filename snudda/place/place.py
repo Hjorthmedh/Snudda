@@ -691,6 +691,8 @@ class SnuddaPlace(object):
                     else:
                         file.write(f"\n '{var}' not defined.")
 
+            raise e
+
         return modified_morphologies
 
     ############################################################################
