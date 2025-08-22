@@ -678,6 +678,9 @@ class SnuddaPlace(object):
             error_str = (f"Error in avoid_edges_helper:\n {bend_neuron_info =}, {network_path =}"
                          f"Exception:\n {e}\n\nTraceback:\n{traceback.format_exc()}")
 
+            print(error_str)
+            print(f"Writing detailed error to {file_name}")
+
             # Write the error message to the file
             with open(file_name, "w") as file:
                 file.write(error_str)
