@@ -459,15 +459,31 @@ class NeuronModulation:
                 # TODO: Sanitise species_name_str before exec call
                 # exec(f"{species_name_vars} = self.get_species('{species_name_str}', region_name=region)")
                 try:
-                    exec(f"{species_name_vars} = self.get_species_with_regions('{species_name_str}', region_name=region)")
-                except:
+                    namespace = {"self": self, "region": region}
+                    exec(f"{species_name_vars} = self.get_species_with_regions('{species_name_str}', region_name=region)",
+                         {}, namespace)
+
+                except Exception as e:
                     import traceback
                     print(traceback.format_exc())
                     import pdb
                     pdb.set_trace()
 
-                left_side = eval(reaction_data["reactants"])
-                right_side = eval(reaction_data["products"])
+                    raise e
+
+                try:
+                    left_side = eval(reaction_data["reactants"], {}, namespace)
+                    right_side = eval(reaction_data["products"], {}, namespace)
+                except Exception as e:
+                    import traceback
+                    print(traceback.format_exc())
+                    print(f"Problem with reactants or products.\n{locals() = }\n")
+
+                    import pdb
+                    pdb.set_trace()
+
+                    raise e
+
 
                 # try:
                 #     # Ta inte bort ettan (Do not remove the 1) -- or else...
