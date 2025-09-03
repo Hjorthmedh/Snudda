@@ -12,6 +12,7 @@ import os
 import numpy as np
 from scipy.spatial.distance import pdist, squareform
 
+# TODO: Headsup Scott, you might want to use region_mesh_vedo instead that has RegionMesh using vedo
 from snudda.place.region_mesh_OLD import RegionMesh
 
 

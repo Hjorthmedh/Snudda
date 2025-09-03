@@ -1,13 +1,16 @@
 [build-system]
-requires = ["setuptools>=42", "wheel", "numpy"]
+requires = ["setuptools>=61", "wheel", "numpy"]
 build-backend = "setuptools.build_meta"
-
 
 [project]
 name = "snudda"
-version = "2.1.17"
+version = "2.2.4"
 description = "Create realistic networks of neurons, synapses placed using touch detection between axons and dendrites."
 authors = [{ name = "Johannes Hjorth", email = "hjorth@kth.se" }]
+readme = { file = "README.md", content-type = "text/markdown" }
+license = { text = "GPLv3" }
+requires-python = ">=3.8"
+
 dependencies = [
     "bluepyopt>=1.11.7",
     "h5py>=3.2.1",
@@ -23,17 +26,27 @@ dependencies = [
     "vedo"
 ]
 
-readme = { file = "README.md", content-type = "text/markdown" }
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
+]
 
 
-dynamic = ["license", "classifiers", "scripts", "optional-dependencies"]
+[project.optional-dependencies]
+dev = ["sphinx"]
 
+[project.scripts]
+snudda = "snudda.cli:snudda_cli"
+snudda_load = "snudda.utils.load:snudda_load_cli"
+snudda_load_simulation_data = "snudda.utils.load_network_simulation:load_network_simulation_cli"
+snudda_ablate_network = "snudda.utils.ablate_network:snudda_ablate_network_cli"
+snudda_plot_network = "snudda.plotting.plot_network:snudda_plot_network_cli"
+snudda_plot_trace = "snudda.plotting.plot_traces:snudda_plot_traces_cli"
+snudda_create_cube_mesh = "snudda.place.create_cube_mesh:cube_cli"
 
 [tool.setuptools]
-include-package-data = true  # Include data files specified in MANIFEST.in
-
+include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["snudda*"]
-
