@@ -1,9 +1,10 @@
 {
-    "network_file": "networks/neuromodulation_bath_current_SBTab/network-synapses.hdf5",
-    "output_file": "networks/neuromodulation_bath_current_SBTab/simulation/output_neuromodulation_OFF.hdf5",
-    "log_file": "networks/neuromodulation_bath_current_SBTab/log/network-simulation-OFF.txt",
+    "network_path": "networks/neuromodulation_bath_current_SBTab",
+    "network_file": "$network_path/network-synapses.hdf5",
+    "output_file": "$network_path/simulation/output_neuromodulation_OFF.hdf5",
+    "log_file": "$network_path/log/network-simulation-OFF.txt",
     "time": 5,
-    "sim_dt": 0.005,
+    "!sim_dt": 0.005,
     "record_all_soma": true,
     "use_rxd_neuromodulation": false,
 
