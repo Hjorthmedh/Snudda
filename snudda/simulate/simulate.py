@@ -226,7 +226,7 @@ class SnuddaSimulate(object):
 
             if "sample_dt" in self.sim_info:
                 self.sample_dt = self.sim_info["sample_dt"]
-                self.write_log(f"Sample dt: {self.sample_dt}")
+                self.write_log(f"Sample dt: {self.sample_dt} s")
 
             if "disable_synapses" in self.sim_info:
                 self.disable_synapses = self.sim_info["disable_synapses"]
