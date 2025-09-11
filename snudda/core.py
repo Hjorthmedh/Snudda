@@ -385,7 +385,7 @@ class Snudda(object):
                              ipython_profile=args.ipython_profile,
                              ipython_timeout=args.ipython_timeout,
                              hyper_voxel_size=hyper_voxel_size,
-                             volume_id=args.volumeID,
+                             volume_id=args.volume_id,
                              h5libver=h5libver,
                              verbose=args.verbose,
                              cont=args.cont)
@@ -492,7 +492,7 @@ class Snudda(object):
                             ipython_timeout=args.ipython_timeout,
                             verbose=args.verbose,
                             keep_files=args.keepfiles,
-                            save_putative_synapses = args.savePutative)
+                            save_putative_synapses = args.save_putative)
 
     def prune_synapses(self,
                        config_file=None,
@@ -762,7 +762,7 @@ class Snudda(object):
                             record_volt=args.record_volt,
                             record_all=args.record_all,
                             simulation_config=args.simulation_config,
-                            export_core_neuron=args.exportCoreNeuron,
+                            export_core_neuron=args.export_core_neuron,
                             use_rxd_neuromodulation=use_rxd_neuromodulation,
                             verbose=args.verbose)
 
