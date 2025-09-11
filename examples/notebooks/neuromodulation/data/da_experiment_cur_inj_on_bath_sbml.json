@@ -1,5 +1,5 @@
 {
-    "network_path": "networks/neuromodulation_bath_current_SBML"
+    "network_path": "networks/neuromodulation_bath_current_SBML",
     "network_file": "$network_path/network-synapses.hdf5",
     "output_file": "$network_path/simulation/output_neuromodulation_ON.hdf5",
     "log_file": "$network_path/log/network-simulation-ON.txt",
