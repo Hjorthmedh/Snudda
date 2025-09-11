@@ -197,6 +197,7 @@ class SnuddaSimulate(object):
                 else:
                     log_file_name = self.sim_info["log_file"].replace("$network_path", self.network_path)
 
+                os.makedirs(os.path.dirname(log_file_name), exist_ok=True)
                 self.log_file = open(log_file_name, "w")
                 self.write_log(f"Using log file {self.log_file}")
 
