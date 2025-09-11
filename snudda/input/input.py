@@ -1125,6 +1125,8 @@ class SnuddaInput(object):
                 input["num_inputs"] = input["num_inputs"][self.neuron_info[neuron_id]["morphology_key"]]
             if self.neuron_info[neuron_id]["name"] in input["num_inputs"]:
                 input["num_inputs"] = input["num_inputs"][self.neuron_info[neuron_id]["name"]]
+            if self.neuron_info[neuron_id]["type"] in input["num_inputs"]:
+                input["num_inputs"] = input["num_inputs"][self.neuron_info[neuron_id]["type"]]
             else:
                 input["num_inputs"] = None
 
