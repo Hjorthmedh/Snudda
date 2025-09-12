@@ -1,0 +1,44 @@
+{
+    "connectivity": {
+        "iSPN,iSPN": {
+            "GABA": {
+                "pruning": {
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
+                    "f1": 0.3105,
+                    "mu2": 1.6518,
+                    "a3": 0.999
+                }
+            }
+        },
+        "dSPN,dSPN": {
+            "GABA": {
+                "pruning": {
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
+                    "f1": 0.209,
+                    "mu2": 1.6864,
+                    "a3": 0.9998
+                }
+            }
+        },
+        "dSPN,iSPN": {
+            "GABA": {
+                "pruning": {
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
+                    "f1": 0.2175,
+                    "mu2": 1.7053,
+                    "a3": 0.4214
+                }
+            }
+        },
+        "iSPN,dSPN": {
+            "GABA": {
+                "pruning": {
+                    "distPruning": "1-exp(-(0.4*d/60e-6)**2)",
+                    "f1": 0.1741,
+                    "mu2": 1.5767,
+                    "a3": 0.9837
+                }
+            }
+        }
+    }
+}
