@@ -2,13 +2,14 @@
     "network_path": "networks/modify_network",
     "snudda_data": null,
     "random_seed": {
-        "init": 382852155,
-        "place": 2661793429,
-        "detect": 2899653573,
-        "project": 3976424250,
-        "prune": 942058172,
-        "input": 1371845126,
-        "simulate": 305116783
+        "master_seed": 999,
+        "init": 3725289502,
+        "place": 1184018025,
+        "detect": 2508506124,
+        "project": 1620569567,
+        "prune": 725428872,
+        "input": 3315147746,
+        "simulate": 1536093142
     },
     "regions": {
         "Striatum": {

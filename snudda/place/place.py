@@ -638,32 +638,63 @@ class SnuddaPlace(object):
         # TODO: We need name, swc_file, position, rotation
         # This needs to be passed, since self.neurons is not pickleable...
 
-        from snudda.place.bend_morphologies import BendMorphologies
+        try:
 
-        bend_morph = dict()
-        bend_morph_path = os.path.join(network_path, "modified_morphologies")
+            from snudda.place.bend_morphologies import BendMorphologies
 
-        modified_morphologies = []
+            bend_morph = dict()
+            bend_morph_path = os.path.join(network_path, "modified_morphologies")
 
-        for neuron_id, neuron_name, swc_filename, position, rotation, random_seed, volume_id, mesh_file,\
-            k_dist, n_random, max_angle in bend_neuron_info:
+            modified_morphologies = []
 
-            if volume_id not in bend_morph:
-                bend_morph[volume_id] = BendMorphologies(region_mesh=mesh_file, rng=None)
+            for neuron_id, neuron_name, swc_filename, position, rotation, random_seed, volume_id, mesh_file,\
+                k_dist, n_random, max_angle in bend_neuron_info:
 
-            # Returns None if unchanged
-            new_morph_name = os.path.join(bend_morph_path, f"{neuron_name}-{neuron_id}.swc")
-            new_morphology = bend_morph[volume_id].edge_avoiding_morphology(swc_file=swc_filename,
-                                                                            new_file=new_morph_name,
-                                                                            original_position=position,
-                                                                            original_rotation=rotation,
-                                                                            random_seed=random_seed,
-                                                                            k_dist=k_dist,
-                                                                            n_random=n_random,
-                                                                            max_angle=max_angle)
+                if volume_id not in bend_morph:
+                    bend_morph[volume_id] = BendMorphologies(region_mesh=mesh_file, rng=None)
 
-            if new_morphology:
-                modified_morphologies.append((neuron_id, new_morphology))
+                # Returns None if unchanged
+                new_morph_name = os.path.join(bend_morph_path, f"{neuron_name}-{neuron_id}.swc")
+                new_morphology = bend_morph[volume_id].edge_avoiding_morphology(swc_file=swc_filename,
+                                                                                new_file=new_morph_name,
+                                                                                original_position=position,
+                                                                                original_rotation=rotation,
+                                                                                random_seed=random_seed,
+                                                                                k_dist=k_dist,
+                                                                                n_random=n_random,
+                                                                                max_angle=max_angle)
+
+                if new_morphology:
+                    modified_morphologies.append((neuron_id, new_morphology))
+
+        except Exception as e:
+
+            # If the code fails in parallel, let's just write a error file with some info
+
+            import traceback
+            import uuid
+
+            file_name = f"error_{uuid.uuid4().hex}.txt"
+            error_str = (f"Error in avoid_edges_helper:\n {bend_neuron_info =}, {network_path =}"
+                         f"Exception:\n {e}\n\nTraceback:\n{traceback.format_exc()}")
+
+            print(error_str)
+            print(f"Writing detailed error to {file_name}")
+
+            # Write the error message to the file
+            with open(file_name, "w") as file:
+                file.write(error_str)
+
+                for var in ["neuron_id", "swc_filename", "neuron_name", "new_morph_name", "random_seed",
+                            "position", "rotation", "k_dist", "n_random", "max_angle", "modified_morphologies"]:
+
+                    if var in locals():
+                        value = locals()[var]
+                        file.write(f"\n {var} = {value}\n")
+                    else:
+                        file.write(f"\n '{var}' not defined.")
+
+            raise e
 
         return modified_morphologies
 

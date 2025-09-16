@@ -52,7 +52,7 @@ class TestCLI(unittest.TestCase):
             os.environ["IPYTHONDIR"] = os.path.join(os.path.abspath(os.getcwd()), ".ipython")
             os.environ["IPYTHON_PROFILE"] = "default"
             os.system("ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&")
-            time.sleep(10)
+            time.sleep(15)
 
         # with self.subTest(stage="init-parallel-BIG"):
         #     run_cli_command("init tiny_parallel --size 1000000 --overwrite")
