@@ -198,11 +198,17 @@ class Snudda(object):
                         snudda_data=snudda_data,
                         random_seed=random_seed)
 
+        if n_total > 1:
+            side_len = (n_total/density)**(1/3)*1e-3
+        else:
+            # When placing one neuron in a really small volume, sometimes it is too small
+            side_len = (2/density)**(1/3)*1e-3
+
         si.define_structure(struct_name="Cube",
                             struct_mesh="cube",
                             d_min=d_min,
                             struct_centre=(0.0, 0.0, 0.0),
-                            side_len=(n_total/density)**(1/3)*1e-3,
+                            side_len=side_len,
                             num_neurons=n_total,
                             n_putative_points=n_total*5)
 
