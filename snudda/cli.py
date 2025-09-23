@@ -211,6 +211,7 @@ def snudda_cli():
         bl.stop_timer(args.action)
         bl.write_log()
 
+    snudda.close_log_file()
 
 if __name__ == "__main__":
     snudda_cli()

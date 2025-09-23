@@ -86,6 +86,7 @@ class Snudda(object):
         self.d_view = None
         self.rc = None
         self.slurm_id = 0
+        self.logfile = None
 
         self.parallel = parallel
         self.ipython_profile = ipython_profile
@@ -359,7 +360,6 @@ class Snudda(object):
         self.cleanup_workers()
 
         self.stop_parallel()
-        self.close_log_file()
 
         return sp
 
@@ -473,7 +473,6 @@ class Snudda(object):
         self.cleanup_workers()
 
         self.stop_parallel()
-        self.close_log_file()
 
         return sd, sp
 
@@ -557,7 +556,6 @@ class Snudda(object):
         self.cleanup_workers()
 
         self.stop_parallel()
-        self.close_log_file()
 
         return sp
 
@@ -650,7 +648,6 @@ class Snudda(object):
         self.cleanup_workers()
 
         self.stop_parallel()
-        self.close_log_file()
 
         return si
 
@@ -1028,14 +1025,17 @@ class Snudda(object):
 
     def cleanup_workers(self):
 
-        self.logfile.write(f"Calling cleanup on workers.")
+        if self.logfile is not None and not self.logfile.closed:
+            self.logfile.write(f"Calling cleanup on workers.")
+        else:
+            print(f"Calling cleanup on workers (log file already closed).")
         # Cleanup, and do garbage collection
 
         # spd uses the sd log file
-        close_logs_cmd = ("if 'sm' in locals(): sm.close_log_file()\n"
-                          "if 'sd' in locals(): sd.close_local_file()\n"
-                          "if 'sp' in locals(): sp.close_log_file()\n"
-                          "if 'nl' in locals(): nl.close_log_file()\n")
+        close_logs_cmd = ("if 'sm' in locals() and sm is not None: sm.close_log_file()\n"
+                          "if 'sd' in locals() and sd is not None: sd.close_log_file()\n"
+                          "if 'sp' in locals() and sp is not None: sp.close_log_file()\n"
+                          "if 'nl' in locals() and nl is not None: nl.close_log_file()\n")
 
         if self.d_view is not None:
             self.d_view.execute(close_logs_cmd, block=True)
@@ -1080,6 +1080,7 @@ class Snudda(object):
             self.logfile.write('Starting log file\n')
         except:
             print("Unable to set up log file " + str(log_file_name))
+            self.logfile = None
 
     ############################################################################
 
@@ -1090,9 +1091,11 @@ class Snudda(object):
 
         print(f"\nExecution time: {stop - self.start:.1f}s")
 
-        self.logfile.write(f"Execution time: {stop - self.start:.1f}s")
-        self.logfile.write("End of log. Closing file.")
-        self.logfile.close()
+        if self.logfile is not None and not self.logfile.closed:
+            self.logfile.write(f"Execution time: {stop - self.start:.1f}s")
+            self.logfile.write("End of log. Closing file.")
+            self.logfile.close()
+            self.logfile = None
 
     ############################################################################
 

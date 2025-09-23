@@ -664,6 +664,7 @@ class SnuddaInput(object):
                             print(traceback.format_exc())
                             import pdb
                             pdb.set_trace()
+
                 elif self.input_info[cell_type][input_type]["generator"] == "csv":
                     # Input spikes are simply read from csv file, no population spikes generated here
                     continue
@@ -807,6 +808,7 @@ class SnuddaInput(object):
                 self.neuron_input[neuron_id][input_type] = self.add_external_input(neuron_id=neuron_id,
                                                                                    input_type=input_type,
                                                                                    input_inf=input_info[input_type])
+
         self.input_update_random_seeds()
         self.process_neuron_input()
 
@@ -857,7 +859,7 @@ class SnuddaInput(object):
 
         for neuron_id, input_type, spikes, freq, loc, synapse_parameter_id in amr:
 
-            self.write_log(f"Gathering {neuron_id} - {input_type}")
+            self.write_log(f"Gathering {neuron_id} - {input_type} ({len(spikes)} spikes)")
 
             if spikes is not None:
                 self.neuron_input[neuron_id][input_type]["spikes"] = spikes
@@ -1332,8 +1334,18 @@ class SnuddaInput(object):
             self.write_log(f"std_freq must not be None for lognormal input", is_error=True)
             raise ValueError(f"std_freq must not be None for lognormal input")
 
-        # Convert frequency to ISI statistics
-        mean_isi = 1.0 / mean_freq  # Mean inter-spike interval
+        if (mean_freq <= 0).any():
+            # Remove any time ranges with mean freq 0
+            keep_idx = np.where(mean_freq > 0)[0]
+            mean_freq = mean_freq[keep_idx]
+
+            if isinstance(std_freq, (list, np.ndarray)):
+                std_freq = std_freq[keep_idx]
+
+            time_ranges = (time_ranges[0][keep_idx], time_ranges[1][keep_idx])
+
+        # Convert frequency to ISI statistics, mean_freq == 0 is removed lower down, here we just want to avoid warnings
+        mean_isi = 1.0 / mean_freq # Mean inter-spike interval
         std_isi = std_freq / (mean_freq ** 2)  # Standard deviation of ISI (using delta method)
 
         # Calculate log-normal parameters for ISI distribution
@@ -1341,11 +1353,11 @@ class SnuddaInput(object):
         sigma_list = np.sqrt(np.log(1 + (std_isi ** 2) / (mean_isi ** 2)))
         t_spikes = []
 
-        for mu, sigma, t_start, t_end in zip(mu_list, sigma_list, time_ranges[0], time_ranges[1]):
+        for mu, sigma, t_start, t_end, m_freq in zip(mu_list, sigma_list, time_ranges[0], time_ranges[1], mean_freq):
 
             duration = t_end - t_start
 
-            if duration <= 0:
+            if duration <= 0 or m_freq == 0:
                 t_spikes.append(np.array([]))
                 continue
 
