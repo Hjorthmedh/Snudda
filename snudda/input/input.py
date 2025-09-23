@@ -859,7 +859,7 @@ class SnuddaInput(object):
 
         for neuron_id, input_type, spikes, freq, loc, synapse_parameter_id in amr:
 
-            self.write_log(f"Gathering {neuron_id} - {input_type} ({len(spikes)} spikes)")
+            self.write_log(f"Gathering {neuron_id} - {input_type} ({len(spikes) if spikes is not None else 'No'} spikes)")
 
             if spikes is not None:
                 self.neuron_input[neuron_id][input_type]["spikes"] = spikes
