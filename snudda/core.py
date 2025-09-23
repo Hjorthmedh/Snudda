@@ -936,6 +936,10 @@ class Snudda(object):
     def setup_parallel(self, ipython_profile=None, timeout=120, n_workers=None):
         """Setup ipyparallel workers."""
 
+        if self.rc is not None:
+            self.logfile.write("setup_parallel: ipyparallel clients already setup, ignoring. ")
+            return
+
         self.slurm_id = os.getenv('SLURM_JOBID')
 
         if self.slurm_id is None:
