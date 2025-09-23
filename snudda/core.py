@@ -461,6 +461,8 @@ class Snudda(object):
         else:
             sd.detect(restart_detection_flag=True)
 
+        sd.close_log_file()
+
         # Also run SnuddaProject to handle projections between volume
 
         from snudda.detect.project import SnuddaProject
@@ -643,6 +645,7 @@ class Snudda(object):
                          verbose=verbose,
                          use_meta_input=use_meta_input)
         si.generate()
+        si.close_log_file()
 
         self.cleanup_workers()
 
@@ -1027,6 +1030,15 @@ class Snudda(object):
 
         self.logfile.write(f"Calling cleanup on workers.")
         # Cleanup, and do garbage collection
+
+        # spd uses the sd log file
+        close_logs_cmd = ("if 'sm' in locals(): sm.close_log_file()\n"
+                          "if 'sd' in locals(): sd.close_local_file()\n"
+                          "if 'sp' in locals(): sp.close_log_file()\n"
+                          "if 'nl' in locals(): nl.close_log_file()\n")
+
+        if self.d_view is not None:
+            self.d_view.execute(close_logs_cmd, block=True)
 
         clean_cmd = ("sm = None\nsd = None\nsp = None\nspd = None\nnl = None\nsim = None"
                      "\ninner_mask = None\nmin_max = None\nneuron_hv_list = None"

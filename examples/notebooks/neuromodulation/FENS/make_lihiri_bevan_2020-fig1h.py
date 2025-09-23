@@ -34,7 +34,7 @@ df = pd.DataFrame({
 # Plotting
 sns.set(style='whitegrid')
 fig, axes = plt.subplots(1, 2, figsize=(4, 6), sharey=True)
-palette = {'pre': 'gray', 'post': 'magenta'}
+palette = {'pre': 'gray', 'post': 'red'}
 
 for i, stim in enumerate(['4 Hz', '20 Hz']):
     ax = axes[i]
@@ -46,12 +46,15 @@ for i, stim in enumerate(['4 Hz', '20 Hz']):
     # Individual subject lines
     for subj in range(1, 7):
         subj_df = stim_df[stim_df['Subject'] == subj]
-        ax.plot(['pre', 'post'], subj_df['Frequency (Hz)'].values, color='gray', marker='o', linewidth=1)
+        ax.plot(['pre', 'post'], subj_df['Frequency (Hz)'].values, color='black', marker='o', linewidth=1)
 
-    ax.set_title(stim)
+    ax.set_title(stim, fontsize=22)
     ax.set_ylim(0, 35)
     ax.set_xlabel('')
-
+    ax.set_xlabel('', fontsize=30)
+    ax.set_ylabel('Frequency (Hz)', fontsize=30 if i == 0 else 0)  # only left panel
+    ax.tick_params(axis='both', labelsize=22)
+    
     # Add asterisk for significance
     y_max = stim_df['Frequency (Hz)'].max() + 2
     ax.plot([0, 1], [y_max, y_max], color='black', linewidth=1)

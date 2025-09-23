@@ -61,7 +61,7 @@ class SnuddaExportConnectionMatrix(object):
             np.save(self.out_file, self.con_mat.astype(np.int32))
             # np.savetxt(self.out_file, self.con_mat, delimiter=",", fmt="%d")
 
-        print("Writing " + self.out_file_meta)
+            print("Writing " + self.out_file_meta)
         with open(self.out_file_meta, "w") as f_out_meta:
             for i, (nt, nn, p, mf, pu) in enumerate(zip(self.neuron_type, self.neuron_name, self.pos, self.neuron_morph,
                                                         self.population_unit)):

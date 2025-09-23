@@ -223,6 +223,12 @@ class SnuddaPrune(object):
         # "protection" against pruning.
         self.cluster_distance = 10e-6
 
+    def close_log_file(self):
+
+        if self.logfile is not None:
+            self.logfile.close()
+            self.logfile = None
+
     ############################################################################
 
     def prune(self):

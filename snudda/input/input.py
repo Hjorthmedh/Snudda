@@ -178,6 +178,12 @@ class SnuddaInput(object):
 
         self.is_master = is_master
 
+    def close_log_file(self):
+
+        if not isinstance(self.logfile, str) and self.logfile:
+            self.logfile.close()
+            self.logfile = None
+
     def load_network(self, hdf5_network_file=None):
 
         """ Load network file using snudda.load
