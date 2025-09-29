@@ -349,13 +349,11 @@ class BendMorphologies:
             swc_data[bad_idx, 1] = s_type[0]
             print(f"Setting {output_file} row {bad_idx} type to {s_type[0]}.")
 
-        with open(output_file, "wt") as f:
-            if comment:
-                f.write(f"#{comment}\n")
-
-            for row in swc_data:
-                f.write(f"{row[0]:.0f} {row[1]:.0f} {row[2]:.5f} {row[3]:.5f} {row[4]:.5f} {row[5]:.5f} {row[6]:.0f}\n")
-
+        header = comment if comment else ""
+        np.savetxt(output_file, swc_data, 
+                   fmt=['%d', '%d', '%.5f', '%.5f', '%.5f', '%.5f', '%d'],
+                   header=header, comments='#')
+        
         print(f"Wrote {output_file}")
 
     def edge_avoiding_morphology(self, swc_file, new_file, original_position, original_rotation,
