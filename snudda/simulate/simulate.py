@@ -197,6 +197,7 @@ class SnuddaSimulate(object):
                 else:
                     log_file_name = self.sim_info["log_file"].replace("$network_path", self.network_path)
 
+                os.makedirs(os.path.dirname(log_file_name), exist_ok=True)
                 self.log_file = open(log_file_name, "w")
                 self.write_log(f"Using log file {self.log_file}")
 
@@ -226,7 +227,7 @@ class SnuddaSimulate(object):
 
             if "sample_dt" in self.sim_info:
                 self.sample_dt = self.sim_info["sample_dt"]
-                self.write_log(f"Sample dt: {self.sample_dt}")
+                self.write_log(f"Sample dt: {self.sample_dt} s")
 
             if "disable_synapses" in self.sim_info:
                 self.disable_synapses = self.sim_info["disable_synapses"]
@@ -389,12 +390,14 @@ class SnuddaSimulate(object):
                 # Setting default to False
                 self.use_rxd_neuromodulation = False
 
-        if self.use_rxd_neuromodulation:
-            self.write_log(f"RxD for neuromodulation: {'ENABLED' if self.use_rxd_neuromodulation else 'DiSABLED'}.")
+        self.write_log(f"RxD for neuromodulation: {'ENABLED' if self.use_rxd_neuromodulation else 'DISABLED'}.",
+                       force_print=True)
 
-        if "rxd_enable_extracellular" in self.sim_info:
-            import neuron.rxd as rxd
-            rxd.options.enable.extracellular = self.sim_info["rxd_enable_extracellular"]
+        if self.use_rxd_neuromodulation:
+            if "rxd_enable_extracellular" in self.sim_info and self.sim_info["rxd_enable_extracellular"]:
+                self.write_log(f"ENABLE RxD Extracellular simulation")
+                import neuron.rxd as rxd
+                rxd.options.enable.extracellular = self.sim_info["rxd_enable_extracellular"]
 
     def setup_parse_sim_info(self):
 

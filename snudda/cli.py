@@ -44,9 +44,9 @@ def snudda_cli():
                              help="Path to neurons_dir, default is $DATA/neurons (DEPRECATED, use --snudda_data instead")
     init_parser.add_argument("-overwrite", "--overwrite", help="Allow overwriting of old directory",
                              action="store_true")
-    init_parser.add_argument("-connectionFile", "--connectionFile", default=None, dest="connection_file",
+    init_parser.add_argument("--connection_file", "-connectionFile", "--connectionFile", default=None, dest="connection_file",
                              help="Use connectivity from user specified JSON file")
-    init_parser.add_argument("--honorStayInside", "--stayInside", default=False, dest="stay_inside", action="store_true")
+    init_parser.add_argument("--stay_inside", "--honorStayInside", "--stayInside", default=False, dest="stay_inside", action="store_true")
     init_parser.add_argument("-randomseed", "--randomseed", "--seed", default=None, help="Random seed", type=int)
     init_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     init_parser.add_argument("--verbose", action="store_true")
@@ -62,7 +62,7 @@ def snudda_cli():
     place_parser = sub_parsers.add_parser("place")
     place_parser.add_argument("path", help="Location of network")
     place_parser.add_argument("-randomseed", "--randomseed", "--seed", default=None, help="Random seed", type=int)
-    place_parser.add_argument("--honorStayInside", "--stayInside", dest="stay_inside", default=False, action="store_true")
+    place_parser.add_argument("--stay_inside", "--honorStayInside", "--stayInside", dest="stay_inside", default=False, action="store_true")
     place_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     place_parser.add_argument("--verbose", action="store_true")
     place_parser.add_argument("--h5legacy", help="Use legacy hdf5 support", action="store_true")
@@ -76,7 +76,7 @@ def snudda_cli():
     detect_parser.add_argument("-cont", "--cont", help="Continue partial touch detection", action="store_true")
     detect_parser.add_argument("-hvsize", "--hvsize", default=100,
                                help="Hyper voxel size, eg. 100 = 100x100x100 voxels in hypervoxel")
-    detect_parser.add_argument("--volumeID", help="Specify volume ID for detection step")
+    detect_parser.add_argument("--volume_id", "--volumeID", help="Specify volume ID for detection step")
     detect_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     detect_parser.add_argument("--verbose", action="store_true")
     detect_parser.add_argument("--h5legacy", help="Use legacy hdf5 support", action="store_true")
@@ -87,14 +87,14 @@ def snudda_cli():
     prune_parser = sub_parsers.add_parser("prune")
     prune_parser.add_argument("path", help="Location of network")
     prune_parser.add_argument("-randomseed", "--randomseed", "--seed", default=None, help="Random seed", type=int)
-    prune_parser.add_argument("--configFile", dest="config_file", default=None,
+    prune_parser.add_argument("--config_file", "--configFile", dest="config_file", default=None,
                               help="Prune using different network config file, useful when tuning pruning")
     prune_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     prune_parser.add_argument("--verbose", action="store_true")
     prune_parser.add_argument("--h5legacy", help="Use legacy hdf5 support", action="store_true")
     prune_parser.add_argument("--keepfiles", action="store_true",
                               help="Keep temp and voxel files after pruning (e.g. useful if you want to rerun pruning)")
-    prune_parser.add_argument("--savePutative", action="store_true",
+    prune_parser.add_argument("--save_putative", "--savePutative", action="store_true",
                               help="Also saved network-putative-synapses.hdf5 with unpruned network")
     prune_parser.add_argument("-parallel", "--parallel", action="store_true", default=False)
     prune_parser.add_argument("-ipython_profile", "--ipython_profile", default=None)
@@ -145,7 +145,7 @@ def snudda_cli():
                                  help="mechanism directory if not default", default=None)
     simulate_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     simulate_parser.add_argument("--verbose", action="store_true")
-    simulate_parser.add_argument("--exportCoreNeuron", action="store_true")
+    simulate_parser.add_argument("--export_core_neuron", "--exportCoreNeuron", action="store_true")
     simulate_parser.add_argument("--recordALL", dest="record_all", type=str, default=None)
     simulate_parser.add_argument("--enable_rxd_neuromodulation", dest="enable_rxd_neuromodulation", action="store_true", default=None)
     simulate_parser.add_argument("--disable_rxd_neuromodulation", dest="disable_rxd_neuromodulation", action="store_true", default=None)
@@ -211,6 +211,7 @@ def snudda_cli():
         bl.stop_timer(args.action)
         bl.write_log()
 
+    snudda.close_log_file()
 
 if __name__ == "__main__":
     snudda_cli()

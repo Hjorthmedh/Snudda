@@ -212,7 +212,7 @@ ENDVERBATIM
 }
 
 FUNCTION urand() {
-    urand = scop_random(1)
+    urand = scop_random()
 }
 
 
