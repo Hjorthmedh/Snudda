@@ -11,9 +11,16 @@ from snudda import SnuddaLoad
 from snudda.input import SnuddaInput
 from snudda.utils.export_sonata import ExportSonata
 
-from sonata.circuit import File as SonataFile
+try:
+    from sonata.circuit import File as SonataFile
+    HAS_SONATA = True
+except ImportError:
+    HAS_SONATA = False
 
 
+
+
+@unittest.skipUnless(HAS_SONATA, "Skipping SONATA tests because module is missing")
 class TestSonata(unittest.TestCase):
 
     def setUp(self, create_network=True):
