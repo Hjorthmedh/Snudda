@@ -49,8 +49,10 @@ class SnuddaExportConnectionMatrix(object):
             for idx, (x, y) in enumerate(zip(x_pos, y_pos)):
                 sparse_data[idx, :] = [x, y, self.con_mat[x, y]]
 
-            # np.savetxt(self.out_file, sparse_data, delimiter=",", fmt="%d")
-            np.save(self.out_file, sparse_data.astype(np.int32))
+            if "csv" in self.out_file:
+                np.savetxt(self.out_file, sparse_data, delimiter=",", fmt="%d")
+            else:
+                np.save(self.out_file, sparse_data.astype(np.int32))
 
             # Test to verify
             for row in sparse_data:
@@ -59,7 +61,7 @@ class SnuddaExportConnectionMatrix(object):
             np.save(self.out_file, self.con_mat.astype(np.int32))
             # np.savetxt(self.out_file, self.con_mat, delimiter=",", fmt="%d")
 
-        print("Writing " + self.out_file_meta)
+            print("Writing " + self.out_file_meta)
         with open(self.out_file_meta, "w") as f_out_meta:
             for i, (nt, nn, p, mf, pu) in enumerate(zip(self.neuron_type, self.neuron_name, self.pos, self.neuron_morph,
                                                         self.population_unit)):

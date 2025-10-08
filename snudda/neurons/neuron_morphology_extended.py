@@ -453,8 +453,12 @@ class NeuronMorphologyExtended:
                 raise ValueError(f"If cluster_size is set, then num_locations must be set.")
 
             # Expected synapses is synapses per micrometers, multiply by 1e6 to get per meter (SI)
-            syn_idx = dend_idx[np.where(rng.uniform(size=dend_idx.shape) < 1e6*expected_synapses[dend_idx])[0]]
+            # 2025-09-18_ Update density, changed it to per meter, to have SI
+            syn_idx = dend_idx[np.where(rng.uniform(size=dend_idx.shape) < expected_synapses[dend_idx])[0]]
             num_locations = len(syn_idx)
+
+            if num_locations == 0 and self.verbose:
+                print(f"Warning, synapse density too low, no synapses placed.")
 
         if cluster_size is None or cluster_size == 1:
             try:

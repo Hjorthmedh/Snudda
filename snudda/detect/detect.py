@@ -366,6 +366,12 @@ class SnuddaDetect(object):
 
     ############################################################################
 
+    def close_log_file(self):
+
+        if self.logfile is not None:
+            self.logfile.close()
+            self.logfile = None
+
     def __del__(self):
 
         if self.work_history is not None:

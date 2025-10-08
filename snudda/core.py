@@ -86,6 +86,7 @@ class Snudda(object):
         self.d_view = None
         self.rc = None
         self.slurm_id = 0
+        self.logfile = None
 
         self.parallel = parallel
         self.ipython_profile = ipython_profile
@@ -198,11 +199,17 @@ class Snudda(object):
                         snudda_data=snudda_data,
                         random_seed=random_seed)
 
+        if n_total > 1:
+            side_len = (n_total/density)**(1/3)*1e-3
+        else:
+            # When placing one neuron in a really small volume, sometimes it is too small
+            side_len = (2/density)**(1/3)*1e-3
+
         si.define_structure(struct_name="Cube",
                             struct_mesh="cube",
                             d_min=d_min,
                             struct_centre=(0.0, 0.0, 0.0),
-                            side_len=(n_total/density)**(1/3)*1e-3,
+                            side_len=side_len,
                             num_neurons=n_total,
                             n_putative_points=n_total*5)
 
@@ -353,7 +360,6 @@ class Snudda(object):
         self.cleanup_workers()
 
         self.stop_parallel()
-        self.close_log_file()
 
         return sp
 
@@ -455,6 +461,8 @@ class Snudda(object):
         else:
             sd.detect(restart_detection_flag=True)
 
+        sd.close_log_file()
+
         # Also run SnuddaProject to handle projections between volume
 
         from snudda.detect.project import SnuddaProject
@@ -465,7 +473,6 @@ class Snudda(object):
         self.cleanup_workers()
 
         self.stop_parallel()
-        self.close_log_file()
 
         return sd, sp
 
@@ -549,7 +556,6 @@ class Snudda(object):
         self.cleanup_workers()
 
         self.stop_parallel()
-        self.close_log_file()
 
         return sp
 
@@ -637,11 +643,11 @@ class Snudda(object):
                          verbose=verbose,
                          use_meta_input=use_meta_input)
         si.generate()
+        si.close_log_file()
 
         self.cleanup_workers()
 
         self.stop_parallel()
-        self.close_log_file()
 
         return si
 
@@ -930,6 +936,10 @@ class Snudda(object):
     def setup_parallel(self, ipython_profile=None, timeout=120, n_workers=None):
         """Setup ipyparallel workers."""
 
+        if self.rc is not None:
+            self.logfile.write("setup_parallel: ipyparallel clients already setup, ignoring. ")
+            return
+
         self.slurm_id = os.getenv('SLURM_JOBID')
 
         if self.slurm_id is None:
@@ -1019,8 +1029,20 @@ class Snudda(object):
 
     def cleanup_workers(self):
 
-        self.logfile.write(f"Calling cleanup on workers.")
+        if self.logfile is not None and not self.logfile.closed:
+            self.logfile.write(f"Calling cleanup on workers.")
+        else:
+            print(f"Calling cleanup on workers (log file already closed).")
         # Cleanup, and do garbage collection
+
+        # spd uses the sd log file
+        close_logs_cmd = ("if 'sm' in locals() and sm is not None: sm.close_log_file()\n"
+                          "if 'sd' in locals() and sd is not None: sd.close_log_file()\n"
+                          "if 'sp' in locals() and sp is not None: sp.close_log_file()\n"
+                          "if 'nl' in locals() and nl is not None: nl.close_log_file()\n")
+
+        if self.d_view is not None:
+            self.d_view.execute(close_logs_cmd, block=True)
 
         clean_cmd = ("sm = None\nsd = None\nsp = None\nspd = None\nnl = None\nsim = None"
                      "\ninner_mask = None\nmin_max = None\nneuron_hv_list = None"
@@ -1062,6 +1084,7 @@ class Snudda(object):
             self.logfile.write('Starting log file\n')
         except:
             print("Unable to set up log file " + str(log_file_name))
+            self.logfile = None
 
     ############################################################################
 
@@ -1072,9 +1095,11 @@ class Snudda(object):
 
         print(f"\nExecution time: {stop - self.start:.1f}s")
 
-        self.logfile.write(f"Execution time: {stop - self.start:.1f}s")
-        self.logfile.write("End of log. Closing file.")
-        self.logfile.close()
+        if self.logfile is not None and not self.logfile.closed:
+            self.logfile.write(f"Execution time: {stop - self.start:.1f}s")
+            self.logfile.write("End of log. Closing file.")
+            self.logfile.close()
+            self.logfile = None
 
     ############################################################################
 

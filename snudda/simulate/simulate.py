@@ -390,12 +390,14 @@ class SnuddaSimulate(object):
                 # Setting default to False
                 self.use_rxd_neuromodulation = False
 
-        if self.use_rxd_neuromodulation:
-            self.write_log(f"RxD for neuromodulation: {'ENABLED' if self.use_rxd_neuromodulation else 'DiSABLED'}.")
+        self.write_log(f"RxD for neuromodulation: {'ENABLED' if self.use_rxd_neuromodulation else 'DISABLED'}.",
+                       force_print=True)
 
-        if "rxd_enable_extracellular" in self.sim_info:
-            import neuron.rxd as rxd
-            rxd.options.enable.extracellular = self.sim_info["rxd_enable_extracellular"]
+        if self.use_rxd_neuromodulation:
+            if "rxd_enable_extracellular" in self.sim_info and self.sim_info["rxd_enable_extracellular"]:
+                self.write_log(f"ENABLE RxD Extracellular simulation")
+                import neuron.rxd as rxd
+                rxd.options.enable.extracellular = self.sim_info["rxd_enable_extracellular"]
 
     def setup_parse_sim_info(self):
 

@@ -183,6 +183,12 @@ class SnuddaPlace(object):
         if self.verbose or is_error or force_print:
             print(text, flush=True)
 
+    def close_log_file(self):
+
+        if not isinstance(self.log_file, str) and self.log_file:
+            self.log_file.close()
+            self.log_file = None
+
     ############################################################################
 
     def add_neurons(self,
