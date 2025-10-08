@@ -6,26 +6,26 @@ stp can be turned of by setting use_stp == 0
 --------------------------------------------
 
 Neuromodulation is added as functions:
-    
+
     modulationDA = 1 + modDA*(maxModDA-1)*levelDA
 
 where:
-    
+
     modDA  [0]: is a switch for turning modulation on or off {1/0}
     maxModDA [1]: is the maximum modulation for this specific channel (read from the param file)
                     e.g. 10% increase would correspond to a factor of 1.1 (100% +10%) {0-inf}
-    levelDA  [0]: is an additional parameter for scaling modulation. 
+    levelDA  [0]: is an additional parameter for scaling modulation.
                 Can be used simulate non static modulation by gradually changing the value from 0 to 1 {0-1}
-									
+
 	  Further neuromodulators can be added by for example:
           modulationDA = 1 + modDA*(maxModDA-1)
 	  modulationACh = 1 + modACh*(maxModACh-1)
 	  ....
 
 	  etc. for other neuromodulators
-	  
-	   
-								     
+
+
+
 [] == default values
 {} == ranges
 
@@ -43,9 +43,11 @@ NEURON {
     RANGE ca_ratio_ampa, ca_ratio_nmda, mggate, use_stp
     RANGE failRateDA, failRateACh, failRate
     RANGE modDA, maxMod_AMPADA, levelDA, maxMod_AMPAACh, levelACh
-    RANGE maxMod_NMDADA, modACh, maxMod_NMDAACh			 
+    RANGE maxMod_NMDADA, modACh, maxMod_NMDAACh
     NONSPECIFIC_CURRENT i
     USEION cal WRITE ical VALENCE 2
+
+    RANDOM release_probability
 }
 
 UNITS {
@@ -56,7 +58,7 @@ UNITS {
 }
 
 PARAMETER {
-    : input_region ; cell_type 
+    : input_region ; cell_type
     e = 0 (mV)
     tau = 3 (ms)
     tauR = 100 (ms)  : tauR > tau
@@ -69,14 +71,14 @@ PARAMETER {
     modDA = 0
     maxMod_AMPADA = 1
     modACh = 0
-    maxMod_AMPAACh = 1 
+    maxMod_AMPAACh = 1
     levelACh = 0
 
-    
+
     maxMod_NMDADA = 1
     levelDA = 0
-    
-    maxMod_NMDAACh = 1 
+
+    maxMod_NMDAACh = 1
 
     failRateDA = 0
     failRateACh = 0
@@ -84,24 +86,24 @@ PARAMETER {
 
     use_stp = 1     : to turn off use_stp -> use 0
 
-    tau1_ampa      (ms)     
-    tau2_ampa      (ms)  
-    tau3_ampa      (ms)  
-    I2_ampa 
-    I3_ampa 
+    tau1_ampa      (ms)
+    tau2_ampa      (ms)
+    tau3_ampa      (ms)
+    I2_ampa
+    I3_ampa
     tpeak_ampa     (ms)
-    factor_ampa 
-    tau1_nmda      (ms)  
-    tau2_nmda      (ms)  
-    tau3_nmda      (ms) 
-    I2_nmda 
-    I3_nmda 
+    factor_ampa
+    tau1_nmda      (ms)
+    tau2_nmda      (ms)
+    tau3_nmda      (ms)
+    I2_nmda
+    I3_nmda
     tpeak_nmda     (ms)
-    factor_nmda 
-    nmda_ratio  
+    factor_nmda
+    nmda_ratio
 
 
-   
+
 
 }
 
@@ -117,9 +119,9 @@ ASSIGNED {
     g_ampa (uS)
     g_nmda (uS)
 
-    x 
+    x
 
-  
+
 }
 
 STATE {
@@ -136,9 +138,9 @@ INITIAL {
     A_ampa = 0
     B_ampa = 0
     C_ampa = 0
-				
 
-								    
+
+
     A_nmda = 0
     B_nmda = 0
     C_nmda = 0
@@ -148,26 +150,26 @@ INITIAL {
 BREAKPOINT {
     LOCAL itot_nmda, itot_ampa, mggate
     SOLVE state METHOD cnexp
-    
+
     : NMDA
     mggate    = 1 / (1 + exp(-0.062 (/mV) * v) * (mg / 2.62 (mM))) : 3.57 instead of 2.62 if LJP not corrected
     g_nmda    = (I3_nmda*C_nmda + I2_nmda* B_nmda - (I3_nmda+I2_nmda)* A_nmda) * modulationDA_NMDA()*modulationACh_NMDA()
     itot_nmda = g_nmda * (v - e) * mggate
     ical_nmda = ca_ratio_nmda*itot_nmda
     i_nmda    = itot_nmda - ical_nmda
-    
+
     : AMPA
     g_ampa    = (I3_ampa*C_ampa + I2_ampa* B_ampa - (I3_ampa+I2_ampa)* A_ampa)  * modulationDA_AMPA() * modulationACh_AMPA()
-    itot_ampa = g_ampa*(v - e) 
+    itot_ampa = g_ampa*(v - e)
     ical_ampa = ca_ratio_ampa*itot_ampa
     i_ampa    = itot_ampa - ical_ampa
-    
+
     : total values
     ical      = ical_nmda + ical_ampa
     g         = g_ampa + g_nmda
     i         = i_ampa + i_nmda
 
-    : printf("%g\t%g\t%g\t%g\t%g\n",tau1_ampa,B_ampa,A_ampa,B_nmda,A_nmda) 
+    : printf("%g\t%g\t%g\t%g\t%g\n",tau1_ampa,B_ampa,A_ampa,B_nmda,A_nmda)
     : printf("%g\t%g\t%g\t%g\t%g\n",v,g_nmda,g,i,ical)
     : printf("%g\t%g\t%g\t%g\t%g\n",tau1_ampa,tau2_ampa,tau1_nmda,tau2_nmda,nmda_ratio)
     : printf("%g\t\n",tau)
@@ -197,9 +199,9 @@ NET_RECEIVE(weight (uS), y, z, u, tsyn (ms)) {
 VERBATIM
         return;
 ENDVERBATIM
-    }    
-    if( urand() > failRate*(1 + modDA*(failRateDA-1)*levelDA + modACh*(failRateACh-1)*levelACh)) { 
- 
+    }
+    if( urand() > failRate*(1 + modDA*(failRateDA-1)*levelDA + modACh*(failRateACh-1)*levelACh)) {
+
       z = z*exp(-(t-tsyn)/tauR)
       z = z + (y*(exp(-(t-tsyn)/tau) - exp(-(t-tsyn)/tauR)) / (tau/tauR - 1) )
       y = y*exp(-(t-tsyn)/tau)
@@ -210,7 +212,7 @@ ENDVERBATIM
       } else {
           u = U
       }
-    
+
       if (use_stp > 0) {
   	 : We divide by U to normalise, so that g gives amplitude
            : of first activation
@@ -218,16 +220,16 @@ ENDVERBATIM
       } else {
           weight_ampa = weight
       }
-    
+
       weight_nmda = weight_ampa*nmda_ratio
-    
-      A_ampa = A_ampa + weight_ampa*factor_ampa 
-      B_ampa = B_ampa + weight_ampa*factor_ampa 
-      C_ampa = C_ampa + weight_ampa*factor_ampa 
-      A_nmda = A_nmda + weight_nmda*factor_nmda 
-      B_nmda = B_nmda + weight_nmda*factor_nmda 
-      C_nmda = C_nmda + weight_nmda*factor_nmda 
-    
+
+      A_ampa = A_ampa + weight_ampa*factor_ampa
+      B_ampa = B_ampa + weight_ampa*factor_ampa
+      C_ampa = C_ampa + weight_ampa*factor_ampa
+      A_nmda = A_nmda + weight_nmda*factor_nmda
+      B_nmda = B_nmda + weight_nmda*factor_nmda
+      C_nmda = C_nmda + weight_nmda*factor_nmda
+
       y = y + x*u
       : printf("** %g\t%g\t%g\t%g\t%g\n", t, t-tsyn, y, z, u)
       tsyn = t
@@ -235,35 +237,39 @@ ENDVERBATIM
 }
 
 FUNCTION urand() {
-    urand = scop_random()
+    urand = random_uniform(release_probability)
 }
 
 FUNCTION modulationDA_NMDA() {
     : returns modulation factor
-    
-    modulationDA_NMDA = 1 + modDA*(maxMod_NMDADA-1)*levelDA 
+
+    modulationDA_NMDA = 1 + modDA*(maxMod_NMDADA-1)*levelDA
 }
 
 FUNCTION modulationACh_NMDA() {
     : returns modulation factor
-    
-    modulationACh_NMDA = 1 + modACh*(maxMod_NMDAACh-1)*levelACh 
+
+    modulationACh_NMDA = 1 + modACh*(maxMod_NMDAACh-1)*levelACh
 }
 
 FUNCTION modulationDA_AMPA() {
     : returns modulation factor
-    
-    modulationDA_AMPA = 1 + modDA*(maxMod_AMPADA-1)*levelDA 
+
+    modulationDA_AMPA = 1 + modDA*(maxMod_AMPADA-1)*levelDA
 }
 
 FUNCTION modulationACh_AMPA() {
     : returns modulation factor
-    
-    modulationACh_AMPA = 1 + modACh*(maxMod_AMPAACh-1)*levelACh 
+
+    modulationACh_AMPA = 1 + modACh*(maxMod_AMPAACh-1)*levelACh
 }
 
 
 COMMENT
+(2025-10-08) NEURON 9.0+ compatibility. Replaced scop_random with the
+new RANDOM keyword.
+See: https://nrn.readthedocs.io/en/latest/nmodl/language/nmodl_neuron_extension.html#random
+
 (2020-09) C_ampa and C_nmda added to take into account a second decay time constant.
 tpeak_ampa, tpeak_nmda, factor_ampa and factor_nmda are now calculated during the fitting procedure.
 g_nmda and g_ampa updated.
@@ -277,7 +283,7 @@ reproducibility guaranteed in parallel sim.
 
 (2019-06-05) Q-factor was calculated in INITAL block, which meant if
 the synapse was reinitalised then the time constants changed with each
-initalise. Updated: Johannes Hjorth, hjorth@kth.se 
+initalise. Updated: Johannes Hjorth, hjorth@kth.se
 
 - updates by Robert Lindroos (robert.lindroos at ki.se):
 Missing line calculating Ca ratio of NMDA current fixed. The whole block were updated since
