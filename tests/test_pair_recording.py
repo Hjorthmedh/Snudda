@@ -6,6 +6,11 @@ import numpy as np
 from snudda.utils.load import SnuddaLoad
 from snudda.utils.load_network_simulation import SnuddaLoadSimulation
 
+from multiprocessing import Queue
+import traceback
+import io
+from contextlib import redirect_stdout, redirect_stderr
+
 try:
     multiprocessing.set_start_method("spawn", force=True)
 except RuntimeError:
@@ -27,6 +32,16 @@ def run_pair_recording(network_path):
 
     pr.run()
 
+def run_pair_recording_safe(network_path, q):
+    f = io.StringIO()
+    try:
+        with redirect_stdout(f), redirect_stderr(f):
+            run_pair_recording(network_path)
+        q.put(("ok", f.getvalue()))
+    except Exception:
+        q.put(("error", f.getvalue() + "\n" + traceback.format_exc()))
+    finally:
+        f.close()
 
 class PairRecordingTestCase(unittest.TestCase):
 
@@ -63,15 +78,25 @@ class PairRecordingTestCase(unittest.TestCase):
         self.experiment_config_file = os.path.join(self.network_path, "experiment.json")
         network_file = os.path.join(self.network_path, "network-synapses.hdf5")
 
+        q = multiprocessing.Queue()
         process = multiprocessing.Process(
-            target=run_pair_recording,
-            args=(self.network_path,)
+            target=run_pair_recording_safe,
+            args=(self.network_path, q)
         )
         process.start()
         process.join(timeout=120)
 
-        if process.exitcode:
-            raise RuntimeError(f"PairRecording failed with exit code {process.exitcode}")
+        if process.is_alive():
+            process.terminate()
+            raise RuntimeError("PairRecording timed out after 120s")
+
+        if not q.empty():
+            status, output = q.get()
+            print("Child process output:\n", output)
+            if status == "error":
+                raise RuntimeError("PairRecording failed:\n" + output)
+        else:
+            raise RuntimeError("PairRecording failed: no output received from process")
 
         # self.pr = PairRecording(network_path=self.network_path, network_file=network_file,
         #                         experiment_config_file=self.experiment_config_file)
