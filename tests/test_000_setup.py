@@ -25,7 +25,9 @@ def cleanup_neuron_folders(root_dir="."):
     return deleted
 
 def compile_mod_files(path):
-    os.system(f"nrnivmodl {path}")
+    mech_dir = os.path.abspath(path)
+
+    os.system(f"nrnivmodl {mech_dir}")
 
 class CleanupTest(unittest.TestCase):
 
