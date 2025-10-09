@@ -1,3 +1,4 @@
+import subprocess
 import unittest
 import os
 import time
@@ -172,7 +173,12 @@ class TestProject(unittest.TestCase):
 
         os.environ["IPYTHONDIR"] = os.path.join(os.path.abspath(os.getcwd()), ".ipython")
         os.environ["IPYTHON_PROFILE"] = "default"
-        os.system("ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&")
+        # os.system("ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&")
+        self.cluster_process = subprocess.Popen(
+            ["ipcluster", "start", "-n", "4", "--profile=default", "--ip=127.0.0.1"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
         time.sleep(15)
 
         # Run place, detect and prune in parallel by passing rc
@@ -205,7 +211,12 @@ class TestProject(unittest.TestCase):
             # All synapses should be identical regardless of serial or parallel execution path
             self.assertTrue((serial_synapses == parallel_synapses).all())
 
-        os.system("ipcluster stop")
+        # os.system("ipcluster stop")
+        self.cluster_process.terminate()  # sends SIGTERM
+        try:
+            self.cluster_process.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            self.cluster_process.kill()
 
 
 if __name__ == '__main__':

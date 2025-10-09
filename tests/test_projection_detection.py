@@ -1,4 +1,5 @@
 import os
+import subprocess
 import time
 import unittest
 
@@ -170,7 +171,13 @@ class TestProjectionDetection(unittest.TestCase):
 
         os.environ["IPYTHONDIR"] = os.path.join(os.path.abspath(os.getcwd()), ".ipython")
         os.environ["IPYTHON_PROFILE"] = "default"
-        os.system("ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&")
+        # os.system("ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&")
+        self.cluster_process = subprocess.Popen(
+            ["ipcluster", "start", "-n", "4", "--profile=default", "--ip=127.0.0.1"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+
         time.sleep(15)
 
         # Run place, detect and prune in parallel by passing rc
@@ -193,6 +200,9 @@ class TestProjectionDetection(unittest.TestCase):
         # Prune has different methods for serial and parallel execution, important to test it!
         sp = SnuddaPrune(network_path=self.network_path, rc=rc, verbose=True)
         sp.prune()
+
+        sd = None
+        sp = None
 
         with self.subTest(stage="check-parallel-identical"):
             sl2 = SnuddaLoad(network_file)
@@ -221,7 +231,13 @@ class TestProjectionDetection(unittest.TestCase):
                             f"Parallel synapse matrix: {parallel_synapses}\n")
             self.assertTrue((serial_synapses == parallel_synapses).all())
 
-        os.system("ipcluster stop")
+        # os.system("ipcluster stop")
+
+        self.cluster_process.terminate()  # sends SIGTERM
+        try:
+            self.cluster_process.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            self.cluster_process.kill()
 
 
 if __name__ == '__main__':
