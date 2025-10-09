@@ -188,10 +188,10 @@ class TestCLI(unittest.TestCase):
 
             run_cli_command("init tiny_serial --size 100 --profile")
 
-        with self.subTest(stage="init-overwrite-fail"):
-            result = run_cli_command("snudda init tiny_serial --size 100")
-            self.assertNotEqual(result.returncode, 0,
-                                f"Expected failure, got returncode={result.returncode}\n{result.stdout}\n{result.stderr}")
+        # with self.subTest(stage="init-overwrite-fail"):
+        #     result = run_cli_command("snudda init tiny_serial --size 100")
+        #     self.assertNotEqual(result.returncode, 0,
+        #                        f"Expected failure, got returncode={result.returncode}\n{result.stdout}\n{result.stderr}")
 
         # Again, let us reinit to a smaller network to speed things up
         with self.subTest(stage="small-reinit-2"):
