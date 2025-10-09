@@ -419,10 +419,12 @@ class NeuronModulation:
 
             for region, rate in zip(rate_data["regions"], rates):
                 # exec(f"{species_name_vars} = self.get_species('{species_name_str}', region_name=region)")
-                exec(f"{species_name_vars} = self.get_species_with_regions('{species_name_str}', region_name=region)")
+                namespace = {"self": self, "region": region}
+                exec(f"{species_name_vars} = self.get_species_with_regions('{species_name_str}', region_name=region)",
+                     {}, namespace)
 
                 try:
-                    right_side = eval(rate)
+                    right_side = eval(rate, {}, namespace)
                 except:
                     print(f"Problem evaluating rate {rate}")
                     import traceback
