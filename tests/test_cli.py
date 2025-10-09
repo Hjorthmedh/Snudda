@@ -3,6 +3,7 @@ import os
 import sys
 import time
 import unittest
+import subprocess
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import snudda.cli
@@ -51,7 +52,14 @@ class TestCLI(unittest.TestCase):
         with self.subTest(stage="setup-parallel"):
             os.environ["IPYTHONDIR"] = os.path.join(os.path.abspath(os.getcwd()), ".ipython")
             os.environ["IPYTHON_PROFILE"] = "default"
-            os.system("ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&")
+
+            self.cluster_process = subprocess.Popen(
+                ["ipcluster", "start", "-n", "4", "--profile=default", "--ip=127.0.0.1"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+
+            # os.system("ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&")
             time.sleep(15)
 
         # with self.subTest(stage="init-parallel-BIG"):
@@ -97,7 +105,11 @@ class TestCLI(unittest.TestCase):
         #    run_cli_command("place large_parallel --parallel")
 
         with self.subTest(stage="parallel-stop"):
-            os.system("ipcluster stop")
+            self.cluster_process.terminate()  # sends SIGTERM
+            try:
+                self.cluster_process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                self.cluster_process.kill()            # os.system("ipcluster stop")
 
         #  Only serial tests below this line, we stopped ipcluster.
 
