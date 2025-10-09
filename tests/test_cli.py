@@ -120,30 +120,33 @@ class TestCLI(unittest.TestCase):
             print(f"Running: {eval_str}")
             os.system(eval_str)
 
-            # For the unittest we for some reason need to load mechansism separately
-            from mpi4py import MPI  # This must be imported before neuron, to run parallel
-            from neuron import h  # , gui
-            import neuron
+            if False:
+                # Can we get away with not importing neuron?
 
-            # For some reason we need to import modules manually
-            # when running the unit test.
-            if os.path.exists("x86_64/.libs/libnrnmech.so"):
-                print("!!! Manually loading libraries")
-                try:
-                    h.nrn_load_dll("x86_64/.libs/libnrnmech.so")
-                except:
-                    import traceback
-                    tstr = traceback.format_exc()
-                    print(tstr)
+                # For the unittest we for some reason need to load mechansism separately
+                from mpi4py import MPI  # This must be imported before neuron, to run parallel
+                from neuron import h  # , gui
+                import neuron
 
-            if os.path.exists("aarch64/.libs/libnrnmech.so"):
-                print("Manually loading libraries")
-                try:
-                    h.nrn_load_dll("aarch64/.libs/libnrnmech.so")
-                except:
-                    import traceback
-                    tstr = traceback.format_exc()
-                    print(tstr)
+                # For some reason we need to import modules manually
+                # when running the unit test.
+                if os.path.exists("x86_64/.libs/libnrnmech.so"):
+                    print("!!! Manually loading libraries")
+                    try:
+                        h.nrn_load_dll("x86_64/.libs/libnrnmech.so")
+                    except:
+                        import traceback
+                        tstr = traceback.format_exc()
+                        print(tstr)
+
+                if os.path.exists("aarch64/.libs/libnrnmech.so"):
+                    print("Manually loading libraries")
+                    try:
+                        h.nrn_load_dll("aarch64/.libs/libnrnmech.so")
+                    except:
+                        import traceback
+                        tstr = traceback.format_exc()
+                        print(tstr)
 
             print("Time to run simulation...")
             # run_cli_command("simulate tiny_parallel --time 0.1")
