@@ -42,19 +42,10 @@ class PairRecordingTestCase(unittest.TestCase):
         self.network_path = os.path.join("networks", "pair_recording_test")
         rc = None
 
-
-        if False:
-            # Update 2025-10-10-: Compilation of nrnivmodl is done by test_00_setup.py
-
-            if os.path.isdir("x86_64"):
-                import shutil
-                shutil.rmtree("x86_64")
-
-            if os.path.isdir("aarch64"):
-                import shutil
-                shutil.rmtree("aarch64")
-
-            os.system(f"nrnivmodl {os.path.join('validation', 'mechanisms')}")
+        if not os.path.isdir("x86_64") and not os.path.isdir("aarch64"):
+            print(f"Mech files not compiled --- for some reason {os.getcwd()}, compiling!")
+            mech_path = os.path.join(os.path.dirname(__file__), "validation/mechanisms")
+            os.system(f"nrnivmodl {mech_path}")
 
         from snudda import SnuddaPlace
         from snudda import SnuddaDetect
