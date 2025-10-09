@@ -139,9 +139,8 @@ class NeuromodulationTestCase(unittest.TestCase):
 
         # mech_dir = "../validation/mechanisms_rxd"
 
-        mech_dir = os.path.abspath("../validation/mechanisms")  # Added the kirrxd and DASyn as symbolic links to mechanisms
-        os.system(f"nrnivmodl {mech_dir}")
-
+        mech_path = os.path.join(os.path.dirname(__file__), "validation/mechanisms")
+        os.system(f"nrnivmodl {mech_path}")
 
 
     def test_reaction(self):

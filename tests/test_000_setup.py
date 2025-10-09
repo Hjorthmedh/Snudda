@@ -33,7 +33,8 @@ class CleanupTest(unittest.TestCase):
 
     def setUp(self):
         cleanup_neuron_folders(".")
-        compile_mod_files("validation/mechanisms")
+        mech_path = os.path.join(os.path.dirname(__file__), "validation/mechanisms")
+        compile_mod_files(mech_path)
 
     def test_cleanup_complete(self):
         """Dummy test - just confirms setup ran"""

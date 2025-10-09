@@ -129,7 +129,8 @@ class TestCLI(unittest.TestCase):
             # mech_dir = os.path.join(os.path.dirname(__file__), os.path.pardir,
             #                        "snudda", "data", "neurons", "mechanisms")
 
-            eval_str = f"nrnivmodl {os.path.abspath("../validation/mechanisms")}"  # f"nrnivmodl {mech_dir}
+            mech_path = os.path.join(os.path.dirname(__file__), "validation/mechanisms")
+            eval_str = f"nrnivmodl {mech_path}"  # f"nrnivmodl {mech_dir}
             print(f"Running: {eval_str}")
             os.system(eval_str)
 
