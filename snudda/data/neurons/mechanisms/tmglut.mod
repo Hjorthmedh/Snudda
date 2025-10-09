@@ -1,5 +1,6 @@
 TITLE Glutamatergic synapse with short-term plasticity (stp)
 
+
 NEURON {
     THREADSAFE
     POINT_PROCESS tmGlut
@@ -12,13 +13,11 @@ NEURON {
 
     USEION PKAc READ PKAci VALENCE 0
     RANGE mod_pka_g_ampa_min, mod_pka_g_ampa_max, mod_pka_g_ampa_half, mod_pka_g_ampa_slope
-    RANGE mod_pka_g_nmda_min, mod_pka_g_nmda_max, mod_pka_g_nmda_half, mod_pka_g_nmda_slope
+    RANGE mod_pka_g_nmda_min, mod_pka_g_nmda_max, mod_pka_g_nmda_half, mod_pka_g_nmda_slope 
     RANGE modulation_factor_ampa, modulation_factor_nmda, modulation_factor_fail
-
+					
     NONSPECIFIC_CURRENT i
     USEION cal WRITE ical VALENCE 2
-
-    RANDOM release_probability
 }
 
 UNITS {
@@ -44,7 +43,7 @@ PARAMETER {
     ca_ratio_ampa = 0.005
     ca_ratio_nmda = 0.1
     mg = 1 (mM)
-
+    
     mod_pka_g_ampa_min = 1 (1)
     mod_pka_g_ampa_max = 1 (1)
     mod_pka_g_ampa_half = 0.000100 (mM)
@@ -59,7 +58,7 @@ PARAMETER {
     mod_pka_fail_max = 0 (1)
     mod_pka_fail_half = 0.000100 (mM)
     mod_pka_fail_slope = 0.01 (mM)
-
+				
     failRateScaling = 0
     failRate = 0
     use_stp = 1     : to turn of use_stp -> use 0
@@ -80,7 +79,7 @@ ASSIGNED {
     factor_nmda
     x
     PKAci (mM)
-    modulation_factor_ampa (1)
+    modulation_factor_ampa (1)    
     modulation_factor_nmda (1)
     modulation_factor_fail (1)
 }
@@ -96,11 +95,11 @@ INITIAL {
     LOCAL tp_ampa, tp_nmda
     A_ampa = 0
     B_ampa = 0
-
+				
     tp_ampa = (tau1_ampa*tau2_ampa)/(tau2_ampa-tau1_ampa) * log(tau2_ampa/tau1_ampa)
     factor_ampa = -exp(-tp_ampa/tau1_ampa) + exp(-tp_ampa/tau2_ampa)
     factor_ampa = 1/factor_ampa
-
+								    
     A_nmda = 0
     B_nmda = 0
     tp_nmda = (tau1_nmda*tau2_nmda)/(tau2_nmda-tau1_nmda) * log(tau2_nmda/tau1_nmda)
@@ -112,28 +111,28 @@ BREAKPOINT {
     LOCAL itot_nmda, itot_ampa, mggate
     SOLVE state METHOD cnexp
 
-    modulation_factor_ampa=modulation(PKAci, mod_pka_g_ampa_min, mod_pka_g_ampa_max, mod_pka_g_ampa_half, mod_pka_g_ampa_slope)
-    modulation_factor_nmda=modulation(PKAci, mod_pka_g_nmda_min, mod_pka_g_nmda_max, mod_pka_g_nmda_half, mod_pka_g_nmda_slope)
-    modulation_factor_fail=modulation(PKAci, mod_pka_fail_min, mod_pka_fail_max, mod_pka_fail_half, mod_pka_fail_slope)
+    modulation_factor_ampa=modulation(PKAci, mod_pka_g_ampa_min, mod_pka_g_ampa_max, mod_pka_g_ampa_half, mod_pka_g_ampa_slope)	   
+    modulation_factor_nmda=modulation(PKAci, mod_pka_g_nmda_min, mod_pka_g_nmda_max, mod_pka_g_nmda_half, mod_pka_g_nmda_slope)	   
+    modulation_factor_fail=modulation(PKAci, mod_pka_fail_min, mod_pka_fail_max, mod_pka_fail_half, mod_pka_fail_slope)	   
     : NMDA
     mggate    = 1 / (1 + exp(-0.062 (/mV) * v) * (mg / 3.57 (mM)))
     g_nmda    = (B_nmda - A_nmda) * modulation_factor_nmda
     itot_nmda = g_nmda * (v - e) * mggate
     ical_nmda = ca_ratio_nmda*itot_nmda
     i_nmda    = itot_nmda - ical_nmda
-
+    
     : AMPA
     g_ampa    = (B_ampa - A_ampa) * modulation_factor_ampa
-    itot_ampa = g_ampa*(v - e)
+    itot_ampa = g_ampa*(v - e) 
     ical_ampa = ca_ratio_ampa*itot_ampa
     i_ampa    = itot_ampa - ical_ampa
-
+    
     : total values
     ical      = ical_nmda + ical_ampa
     g         = g_ampa + g_nmda
     i         = i_ampa + i_nmda
 
-    : printf("%g\t%g\t%g\t%g\t%g\n",tau1_ampa,B_ampa,A_ampa,B_nmda,A_nmda)
+    : printf("%g\t%g\t%g\t%g\t%g\n",tau1_ampa,B_ampa,A_ampa,B_nmda,A_nmda) 
     : printf("%g\t%g\t%g\t%g\t%g\n",v,g_nmda,g,i,ical)
 }
 
@@ -159,9 +158,9 @@ NET_RECEIVE(weight (uS), y, z, u, tsyn (ms)) {
 VERBATIM
         return;
 ENDVERBATIM
-    }
-    if( urand() > failRate*(1 + modulation_factor_fail)) {
-
+    }    
+    if( urand() > failRate*(1 + modulation_factor_fail)) { 
+ 
       z = z*exp(-(t-tsyn)/tauR)
       z = z + (y*(exp(-(t-tsyn)/tau) - exp(-(t-tsyn)/tauR)) / (tau/tauR - 1) )
       y = y*exp(-(t-tsyn)/tau)
@@ -172,22 +171,22 @@ ENDVERBATIM
       } else {
           u = U
       }
-
+    
       if (use_stp > 0) {
-    	   : We divide by U to normalise, so that g gives amplitude
+  	 : We divide by U to normalise, so that g gives amplitude
            : of first activation
           weight_ampa = weight *x*u / U
       } else {
           weight_ampa = weight
       }
-
+    
       weight_nmda = weight_ampa*nmda_ratio
-
-      A_ampa = A_ampa + weight_ampa*factor_ampa
-      B_ampa = B_ampa + weight_ampa*factor_ampa
-      A_nmda = A_nmda + weight_nmda*factor_nmda
-      B_nmda = B_nmda + weight_nmda*factor_nmda
-
+    
+      A_ampa = A_ampa + weight_ampa*factor_ampa 
+      B_ampa = B_ampa + weight_ampa*factor_ampa 
+      A_nmda = A_nmda + weight_nmda*factor_nmda 
+      B_nmda = B_nmda + weight_nmda*factor_nmda 
+    
       y = y + x*u
       : printf("** %g\t%g\t%g\t%g\t%g\n", t, t-tsyn, y, z, u)
       tsyn = t
@@ -195,7 +194,7 @@ ENDVERBATIM
 }
 
 FUNCTION urand() {
-    urand = random_uniform(release_probability)
+    urand = scop_random()
 }
 
 FUNCTION modulation(conc (mM), mod_min (1), mod_max (1), mod_half (mM), mod_slope (mM)) (1) {
@@ -206,10 +205,6 @@ FUNCTION modulation(conc (mM), mod_min (1), mod_max (1), mod_half (mM), mod_slop
 
 
 COMMENT
-(2025-10-08) NEURON 9.0+ compatibility. Replaced scop_random with the
-new RANDOM keyword.
-See: https://nrn.readthedocs.io/en/latest/nmodl/language/nmodl_neuron_extension.html#random
-
 (2019-11-29) Synaptic failure rate (fail) added. Random factor, no
 reproducibility guaranteed in parallel sim.
 
@@ -218,7 +213,7 @@ reproducibility guaranteed in parallel sim.
 
 (2019-06-05) Q-factor was calculated in INITAL block, which meant if
 the synapse was reinitalised then the time constants changed with each
-initalise. Updated: Johannes Hjorth, hjorth@kth.se
+initalise. Updated: Johannes Hjorth, hjorth@kth.se 
 
 - updates by Robert Lindroos (robert.lindroos at ki.se):
 Missing line calculating Ca ratio of NMDA current fixed. The whole block were updated since

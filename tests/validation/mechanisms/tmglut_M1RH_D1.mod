@@ -44,8 +44,6 @@ NEURON {
     NONSPECIFIC_CURRENT i
     RANGE failRateDA, failRateACh, failRate
     USEION cal WRITE ical VALENCE 2
-
-    RANDOM release_probability
 }
 
 UNITS {
@@ -222,7 +220,7 @@ ENDVERBATIM
 }
 
 FUNCTION urand() {
-    urand = random_uniform(release_probability)
+    urand = scop_random()
 }
 
 
@@ -251,10 +249,6 @@ FUNCTION modulationACh_AMPA() {
 }
 
 COMMENT
-(2025-10-08) NEURON 9.0+ compatibility. Replaced scop_random with the
-new RANDOM keyword.
-See: https://nrn.readthedocs.io/en/latest/nmodl/language/nmodl_neuron_extension.html#random
-
 (2019-11-29) Synaptic failure rate (fail) added. Random factor, no
 reproducibility guaranteed in parallel sim.
 

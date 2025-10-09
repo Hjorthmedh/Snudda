@@ -2,7 +2,6 @@ TITLE GABA_A synapse with short-term plasticity
 
 
 NEURON {
-    THREADSAFE
     POINT_PROCESS tmGabaA
     RANGE tau1, tau2, e, i, q
     RANGE tau, tauR, tauF, U, u0
@@ -11,11 +10,8 @@ NEURON {
 
     USEION PKAc READ PKAci VALENCE 0
     RANGE mod_pka_g_min, mod_pka_g_max, mod_pka_g_half, mod_pka_g_slope
-    RANGE mod_pka_fail_min, mod_pka_fail_max, mod_pka_fail_half, mod_pka_fail_slope
+    RANGE mod_pka_fail_min, mod_pka_fail_max, mod_pka_fail_half, mod_pka_fail_slope 							     
     RANGE modulation_factor, modulation_factor_fail
-
-    RANGE g
-    RANDOM release_probability
 }
 
 UNITS {
@@ -25,7 +21,7 @@ UNITS {
 }
 
 PARAMETER {
-    : q = 2, now included in tau1,tau2 parameters.
+    : q = 2, now included in tau1,tau2 parameters.     
     tau1= 0.25 (ms) : ORIG: 0.5ms
     tau2 = 3.75 (ms)  : ORIG: 7.5ms, tau2 > tau1
     e = -60 (mV)
@@ -37,12 +33,12 @@ PARAMETER {
     mod_pka_g_min = 1 (1)
     mod_pka_g_max = 1 (1)
     mod_pka_g_half = 0.000100 (mM)
-    mod_pka_g_slope = 0.01 (mM)
+    mod_pka_g_slope = 0.01 (mM) 
     mod_pka_fail_min = 0 (1)
     mod_pka_fail_max = 0 (1)
     mod_pka_fail_half = 0.000100 (mM)
-    mod_pka_fail_slope = 0.01 (mM)
-    failRate = 0
+    mod_pka_fail_slope = 0.01 (mM) 
+    failRate = 0	 		   
     failRateModulationScaling = 0
 }
 
@@ -55,7 +51,7 @@ ASSIGNED {
     PKAci (mM)
 
     modulation_factor (1)
-    modulation_factor_fail (1)
+    modulation_factor_fail (1)    
 
 }
 
@@ -75,8 +71,8 @@ INITIAL {
 
 BREAKPOINT {
      SOLVE state METHOD cnexp
-     modulation_factor=modulation(PKAci, mod_pka_g_min, mod_pka_g_max, mod_pka_g_half, mod_pka_g_slope)
-     modulation_factor_fail=modulation(PKAci, mod_pka_fail_min, mod_pka_fail_max, mod_pka_fail_half, mod_pka_fail_slope)
+     modulation_factor=modulation(PKAci, mod_pka_g_min, mod_pka_g_max, mod_pka_g_half, mod_pka_g_slope)	   
+     modulation_factor_fail=modulation(PKAci, mod_pka_fail_min, mod_pka_fail_max, mod_pka_fail_half, mod_pka_fail_slope)	   	   
     g = (B - A)*modulation_factor
     i = g*(v - e)
 }
@@ -95,11 +91,11 @@ NET_RECEIVE(weight (uS), y, z, u, tsyn (ms)) {
         tsyn = t
     }
     if ( weight <= 0 ) {
-        VERBATIM
+VERBATIM
         return;
-        ENDVERBATIM
+ENDVERBATIM
     }
-    if( urand() > failRate*(1 + modulation_factor_fail)) {
+    if( urand() > failRate*(1 + modulation_factor_fail)) { 
       z = z*exp(-(t-tsyn)/tauR)
       z = z + (y*(exp(-(t-tsyn)/tau) - exp(-(t-tsyn)/tauR)) / (tau/tauR - 1) )
       y = y*exp(-(t-tsyn)/tau)
@@ -118,7 +114,7 @@ NET_RECEIVE(weight (uS), y, z, u, tsyn (ms)) {
 }
 
 FUNCTION urand() {
-    urand = random_uniform(release_probability)
+    urand = scop_random()
 }
 
 FUNCTION modulation(conc (mM), mod_min (1), mod_max (1), mod_half (mM), mod_slope (mM)) (1) {
@@ -127,9 +123,6 @@ FUNCTION modulation(conc (mM), mod_min (1), mod_max (1), mod_half (mM), mod_slop
 }
 
 COMMENT
-(2025-10-08) NEURON 9.0+ compatibility. Replaced scop_random with the
-new RANDOM keyword.
-See: https://nrn.readthedocs.io/en/latest/nmodl/language/nmodl_neuron_extension.html#random
 
 (2019-11-25) Synaptic failure rate (failRate) added. Random factor, no
 reproducibility guaranteed in parallel sim.
@@ -141,7 +134,7 @@ amplitude set by g
 
 (2019-06-05) Q-factor was calculated in INITAL block, which meant if
 the synapse was reinitalised then the time constants changed with each
-initalise. Updated: Johannes Hjorth, hjorth@kth.se
+initalise. Updated: Johannes Hjorth, hjorth@kth.se 
 
 (2025-04-02) Set GABA reversal potential to -60mV as per [4]
 
@@ -161,8 +154,8 @@ O'Donnell P, Finkel LH (2005) NMDA/AMPA ratio impacts state transitions
 and entrainment to oscillations in a computational model of the nucleus
 accumbens medium spiny projection neuron. J Neurosci 25(40):9080-95.
 
-[4] Day M, Belal M, Surmeier WC, Melendez A, Wokosin D, Tkatch T,
-Clarke VRJ, Surmeier DJ (2024) GABAergic regulation of striatal spiny
+[4] Day M, Belal M, Surmeier WC, Melendez A, Wokosin D, Tkatch T, 
+Clarke VRJ, Surmeier DJ (2024) GABAergic regulation of striatal spiny 
 projection neurons depends upon their activity state. PLOS Biology.
 22(7):e3002752.
 ENDCOMMENT

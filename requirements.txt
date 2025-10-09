@@ -10,7 +10,7 @@ sonata>=0.0.1
 # pyzmq>=22.0.3
 numexpr>=2.10.2
 # allensdk  # Optional, only needed for downloading meshes from Allen Institute
-neuron>=9.0  # changes to NEURON random numbers, not backward compatible
+neuron<9.0  # changes to NEURON 9.0 random numbers, not backward compatible
 pyswarms>=1.3.0
 setuptools
 psutil >= 7.0.0

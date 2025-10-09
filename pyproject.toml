@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "snudda"
-version = "2.2.5"
-description = "Create realistic networks of neurons, synapses placed using touch detection between axons and dendrites."
+version = "2.2.4.1"
+description = "Create realistic networks of neurons, synapses placed using touch detection between axons and dendrites. This is a backport version for NEURON 8."
 authors = [{ name = "Johannes Hjorth", email = "hjorth@kth.se" }]
 readme = { file = "README.md", content-type = "text/markdown" }
 license = { text = "GPLv3" }
@@ -22,6 +22,7 @@ dependencies = [
     "psutil >= 7.0.0",
     "numexpr>=2.10.2",
     "numba>=0.60.0",
+    "neuron<9.0",
     "wheel",
     "vedo"
 ]
