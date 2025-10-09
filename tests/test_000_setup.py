@@ -1,5 +1,4 @@
-import unittest
-
+import os
 import unittest
 import shutil
 from pathlib import Path
@@ -25,11 +24,14 @@ def cleanup_neuron_folders(root_dir="."):
 
     return deleted
 
+def compile_mod_files(path):
+    os.system(f"nrnivmodl {path}")
 
 class CleanupTest(unittest.TestCase):
 
     def setUp(self):
         cleanup_neuron_folders(".")
+        compile_mod_files("validation/mechanisms")
 
     def test_cleanup_complete(self):
         """Dummy test - just confirms setup ran"""
