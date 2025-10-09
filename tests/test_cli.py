@@ -37,10 +37,10 @@ class TestCLI(unittest.TestCase):
     def test_workflow(self):
 
         #with self.subTest(stage="create"):
-        #    run_cli_command("create test-project --overwrite")
+        #    run_cli_command("create test_project --overwrite")
 
         if True:
-            network_path = "test-project"
+            network_path = "test_project"
             if os.path.exists(network_path):
                 import shutil
                 shutil.rmtree(network_path)
