@@ -1,10 +1,26 @@
+import multiprocessing
 import os
 import unittest
 import json
 import numpy as np
-from snudda.simulate.pair_recording import PairRecording
 from snudda.utils.load import SnuddaLoad
 from snudda.utils.load_network_simulation import SnuddaLoadSimulation
+
+
+def run_pair_recording(network_path):
+    from neuron import h
+    from snudda.simulate.pair_recording import PairRecording
+    experiment_config_file = os.path.join(network_path, "experiment.json")
+    network_file = os.path.join(network_path, "network-synapses.hdf5")
+
+    pr = PairRecording(network_path=network_path,
+                       network_file=network_file,
+                       experiment_config_file=experiment_config_file)
+
+    # Explicitly load mechanisms compiled by nrnivmodl
+    # pr.load_mechanisms()
+
+    pr.run()
 
 
 class PairRecordingTestCase(unittest.TestCase):
@@ -46,9 +62,21 @@ class PairRecordingTestCase(unittest.TestCase):
 
         self.experiment_config_file = os.path.join(self.network_path, "experiment.json")
         network_file = os.path.join(self.network_path, "network-synapses.hdf5")
-        self.pr = PairRecording(network_path=self.network_path, network_file=network_file,
-                                experiment_config_file=self.experiment_config_file)
-        self.pr.run()
+
+        process = multiprocessing.Process(
+            target=run_pair_recording,
+            args=(self.network_path,)
+        )
+        process.start()
+        process.join(timeout=120)
+
+        if process.exitcode:
+            raise RuntimeError(f"PairRecording failed with exit code {process.exitcode}")
+
+        # self.pr = PairRecording(network_path=self.network_path, network_file=network_file,
+        #                         experiment_config_file=self.experiment_config_file)
+        # self.pr.run()
+
 
     def test_frequency(self):
 
@@ -92,8 +120,8 @@ class PairRecordingTestCase(unittest.TestCase):
 
         self.assertEqual(True, True)  # add assertion here
 
-    def tearDown(self):
-        self.pr.clear_neuron()
+    # def tearDown(self):
+    #     self.pr.clear_neuron()
 
 
 if __name__ == '__main__':
