@@ -188,7 +188,6 @@ class TestCLI(unittest.TestCase):
 
             run_cli_command("init tiny_serial --size 100 --profile")
 
-        #
         # with self.subTest(stage="init-overwrite-fail"):
         #     result = run_cli_command("snudda init tiny_serial --size 100")
         #     self.assertNotEqual(result.returncode, 0,
