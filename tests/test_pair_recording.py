@@ -6,6 +6,11 @@ import numpy as np
 from snudda.utils.load import SnuddaLoad
 from snudda.utils.load_network_simulation import SnuddaLoadSimulation
 
+try:
+    multiprocessing.set_start_method("spawn", force=True)
+except RuntimeError:
+    # Already set, fine
+    pass
 
 def run_pair_recording(network_path):
     from neuron import h
@@ -129,5 +134,4 @@ class PairRecordingTestCase(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    multiprocessing.set_start_method("spawn", force=True)
     unittest.main()

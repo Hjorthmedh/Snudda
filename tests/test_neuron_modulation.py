@@ -3,6 +3,12 @@ import os
 import numpy as np
 import multiprocessing
 
+try:
+    multiprocessing.set_start_method("spawn", force=True)
+except RuntimeError:
+    # Already set, fine
+    pass
+
 from snudda import Snudda
 from snudda.utils import SnuddaLoadSimulation
 
@@ -252,5 +258,4 @@ class NeuromodulationTestCase(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    multiprocessing.set_start_method("spawn", force=True)
     unittest.main()
