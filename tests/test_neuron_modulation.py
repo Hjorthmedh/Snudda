@@ -37,43 +37,47 @@ class NeuromodulationTestCase(unittest.TestCase):
         # Check why file size is so large, and why it is so slow to generate!
 
         # mech_dir = "../validation/mechanisms_rxd"
+
+
+    def run_sim(self, output_file):
+
+        print(f"Running simulation: {output_file}, id = {self.id}")
+
         mech_dir = "../validation/mechanisms"   # Added the kirrxd and DASyn as symbolic links to mechanisms
 
         # self.snudda.compile_mechanisms(mech_dir=mech_dir)
-        self.sim = self.snudda.simulate(time=0, mech_dir=mech_dir, use_rxd_neuromodulation=True)
+        sim = self.snudda.simulate(time=0, mech_dir=mech_dir, use_rxd_neuromodulation=True)
 
-    def test_reaction(self):
+        n = sim.neurons[0]
 
-        n = self.sim.neurons[0]
-
-        self.sim.add_rxd_concentration_recording(species="DA", neuron_id=0,
+        sim.add_rxd_concentration_recording(species="DA", neuron_id=0,
                                                  region="soma_internal",
                                                  sec_id=-1,
                                                  sec_x=0.5)
 
-        self.sim.add_rxd_concentration_recording(species="B", neuron_id=0,
+        sim.add_rxd_concentration_recording(species="B", neuron_id=0,
                                                  region="soma_internal",
                                                  sec_id=-1,
                                                  sec_x=0.5)
 
-        self.sim.add_rxd_concentration_recording(species="PKA", neuron_id=0,
+        sim.add_rxd_concentration_recording(species="PKA", neuron_id=0,
                                                  region="soma_internal",
                                                  sec_id=-1,
                                                  sec_x=0.5)
 
-        self.sim.add_density_mechanism_recording(density_mechanism="kirrxd",
+        sim.add_density_mechanism_recording(density_mechanism="kirrxd",
                                                  variable="modulation_factor",
                                                  neuron_id=0,
                                                  sec_id=-1,
                                                  sec_x=0.5)
 
-        self.sim.add_density_mechanism_recording(density_mechanism="kirrxd",
+        sim.add_density_mechanism_recording(density_mechanism="kirrxd",
                                                  variable="m",
                                                  neuron_id=0,
                                                  sec_id=-1,
                                                  sec_x=0.5)
 
-        self.sim.add_membrane_recording(variable="PKAi",
+        sim.add_membrane_recording(variable="PKAi",
                                         neuron_id=0,
                                         sec_id=-1,
                                         sec_x=0.5)
@@ -81,32 +85,49 @@ class NeuromodulationTestCase(unittest.TestCase):
         # Add DA synapse
         # da_syn = h.DASyn(soma(0.5))
         mod_file = "DASyn"
-        eval_str = f"self.sim.sim.neuron.h.{mod_file}"
+        eval_str = f"sim.sim.neuron.h.{mod_file}"
         channel_module = eval(eval_str)
 
-        da_syn = self.sim.get_external_input_synapse(channel_module=channel_module,
-                                                     section=self.sim.neurons[0].icell.soma[0],
+        da_syn = sim.get_external_input_synapse(channel_module=channel_module,
+                                                     section=sim.neurons[0].icell.soma[0],
                                                      section_x=0.5)
         da_syn.tau = 1
 
-        net_stim = self.sim.sim.neuron.h.NetStim()
+        net_stim = sim.sim.neuron.h.NetStim()
         net_stim.number = 100
         net_stim.start = 300
         net_stim.interval = 5
 
-        nc = self.sim.sim.neuron.h.NetCon(net_stim, da_syn)
+        nc = sim.sim.neuron.h.NetCon(net_stim, da_syn)
         nc.weight[0] = 100_000_000.0   # units : molecules/ms
 
-        self.sim.neurons[0].modulation.link_synapse(species_name="DA",
+        sim.neurons[0].modulation.link_synapse(species_name="DA",
                                                     region="soma_internal",
                                                     synapse=da_syn,
                                                     flux_variable="open")
 
-        self.sim.run(t=1000)
+        sim.run(t=1000)
+
+        # output_file = os.path.join(self.network_path, "simulation", "output-2.hdf5")
+        sim.record.set_new_output_file(output_file)
+        sim.record.write()
+
+        # Important we need to delete the old da_syn
+        del da_syn
+        del net_stim
+        del nc
+
+        sim.clear_neuron()
+
+
+    def test_reaction(self):
 
         output_file = os.path.join(self.network_path, "simulation", "output-2.hdf5")
-        self.sim.record.set_new_output_file(output_file)
-        self.sim.record.write()
+
+        import multiprocessing
+        p = multiprocessing.Process(target=self.run_sim, args=(output_file,))
+        p.start()
+        p.join()
 
         nd = SnuddaLoadSimulation(output_file)
         time = nd.get_time()
@@ -163,9 +184,54 @@ class NeuromodulationTestCase(unittest.TestCase):
         pass
 
     def tearDown(self):
+        os.chdir("..")
+
+        return
+
+        print("\n[DEBUG] Running tearDown() for", self.id())
+
         # Remember to clear old neuron, for next unit test!
         self.sim.clear_neuron()
-        os.chdir("..")
+
+        # Really trying to make sure noting remains in NEURON
+        # --- Hard NEURON reset to avoid stale rxd or mod pointer references ---
+        from neuron import h
+        import gc
+
+        # Clear all rxd species, regions, and reactions
+        try:
+            from neuron import rxd
+            rxd.region._all_regions.clear()
+            rxd.species._all_species.clear()
+            rxd.reaction._all_reactions.clear()
+            rxd.rxdmath._all_reactions.clear()
+            rxd.node._all_nodes.clear()
+            rxd.include_flux._all_include_fluxes.clear()
+        except Exception:
+            pass
+
+        # Reset ParallelContext and clear gids
+        try:
+            pc = h.ParallelContext()
+            pc.gid_clear()
+            del pc
+        except Exception:
+            pass
+
+        # Delete any remaining sections and point processes
+        for sec in list(h.allsec()):
+            h.delete_section(sec=sec)
+        h('forall delete_section()')
+
+        # Force NEURON to release internal handles
+        h('objref nil')
+        h('forall delete_section()')
+        h('nrnpython("import gc; gc.collect()")')
+
+        gc.collect()
+
+        import pdb
+        pdb.set_trace()
 
 
 if __name__ == '__main__':
