@@ -1,7 +1,8 @@
 import unittest
 import os
 import numpy as np
-from snudda.simulate import SnuddaSimulate
+import multiprocessing
+
 from snudda import Snudda
 from snudda.utils import SnuddaLoadSimulation
 
@@ -12,12 +13,106 @@ from snudda.utils import SnuddaLoadSimulation
 #
 # Use: https://github.com/sbmlteam/libsbml
 
+def run_sim(network_path, output_file):
+    print(f"Running simulation: {output_file}")
+
+    import os
+    print("CWD in run_sim:", os.getcwd())
+
+    mech_dir = "../validation/mechanisms"  # Added the kirrxd and DASyn as symbolic links to mechanisms
+
+    # os.system(f"nrnivmodl {mech_dir}")
+
+    snudda = Snudda(network_path=network_path)
+    # snudda.compile_mechanisms(mech_dir=mech_dir)
+
+    from neuron import h, nrn
+
+    so_path = os.path.join("aarch64", ".libs", "libnrnmech.so")
+    h.nrn_load_dll(so_path)
+
+    print("Mechanisms loaded:")
+    print("kirrxd visible?", hasattr(h, "kirrxd"))
+
+    sim = snudda.simulate(time=0, mech_dir=mech_dir, use_rxd_neuromodulation=True)
+
+    n = sim.neurons[0]
+
+    sim.add_rxd_concentration_recording(species="DA", neuron_id=0,
+                                        region="soma_internal",
+                                        sec_id=-1,
+                                        sec_x=0.5)
+
+    sim.add_rxd_concentration_recording(species="B", neuron_id=0,
+                                        region="soma_internal",
+                                        sec_id=-1,
+                                        sec_x=0.5)
+
+    sim.add_rxd_concentration_recording(species="PKA", neuron_id=0,
+                                        region="soma_internal",
+                                        sec_id=-1,
+                                        sec_x=0.5)
+
+    sim.add_density_mechanism_recording(density_mechanism="kirrxd",
+                                        variable="modulation_factor",
+                                        neuron_id=0,
+                                        sec_id=-1,
+                                        sec_x=0.5)
+
+    sim.add_density_mechanism_recording(density_mechanism="kirrxd",
+                                        variable="m",
+                                        neuron_id=0,
+                                        sec_id=-1,
+                                        sec_x=0.5)
+
+    sim.add_membrane_recording(variable="PKAi",
+                               neuron_id=0,
+                               sec_id=-1,
+                               sec_x=0.5)
+
+    # Add DA synapse
+    # da_syn = h.DASyn(soma(0.5))
+    mod_file = "DASyn"
+    eval_str = f"sim.sim.neuron.h.{mod_file}"
+    channel_module = eval(eval_str)
+
+    da_syn = sim.get_external_input_synapse(channel_module=channel_module,
+                                            section=sim.neurons[0].icell.soma[0],
+                                            section_x=0.5)
+    da_syn.tau = 1
+
+    net_stim = sim.sim.neuron.h.NetStim()
+    net_stim.number = 100
+    net_stim.start = 300
+    net_stim.interval = 5
+
+    nc = sim.sim.neuron.h.NetCon(net_stim, da_syn)
+    nc.weight[0] = 100_000_000.0  # units : molecules/ms
+
+    sim.neurons[0].modulation.link_synapse(species_name="DA",
+                                           region="soma_internal",
+                                           synapse=da_syn,
+                                           flux_variable="open")
+
+    sim.run(t=1000)
+
+    # output_file = os.path.join(self.network_path, "simulation", "output-2.hdf5")
+    sim.record.set_new_output_file(output_file)
+    sim.record.write()
+
+    # Important we need to delete the old da_syn
+    del da_syn
+    del net_stim
+    del nc
+
+    sim.clear_neuron()
+
 
 class NeuromodulationTestCase(unittest.TestCase):
 
     def setUp(self):
 
-        test_path = "test_project"
+        test_path = "test_project2"
         if os.path.isdir(test_path):
             import shutil
             shutil.rmtree(test_path)
@@ -38,94 +133,16 @@ class NeuromodulationTestCase(unittest.TestCase):
 
         # mech_dir = "../validation/mechanisms_rxd"
 
+        mech_dir = "../validation/mechanisms"  # Added the kirrxd and DASyn as symbolic links to mechanisms
+        os.system(f"nrnivmodl {mech_dir}")
 
-    def run_sim(self, output_file):
-
-        print(f"Running simulation: {output_file}, id = {self.id}")
-
-        mech_dir = "../validation/mechanisms"   # Added the kirrxd and DASyn as symbolic links to mechanisms
-
-        # self.snudda.compile_mechanisms(mech_dir=mech_dir)
-        sim = self.snudda.simulate(time=0, mech_dir=mech_dir, use_rxd_neuromodulation=True)
-
-        n = sim.neurons[0]
-
-        sim.add_rxd_concentration_recording(species="DA", neuron_id=0,
-                                                 region="soma_internal",
-                                                 sec_id=-1,
-                                                 sec_x=0.5)
-
-        sim.add_rxd_concentration_recording(species="B", neuron_id=0,
-                                                 region="soma_internal",
-                                                 sec_id=-1,
-                                                 sec_x=0.5)
-
-        sim.add_rxd_concentration_recording(species="PKA", neuron_id=0,
-                                                 region="soma_internal",
-                                                 sec_id=-1,
-                                                 sec_x=0.5)
-
-        sim.add_density_mechanism_recording(density_mechanism="kirrxd",
-                                                 variable="modulation_factor",
-                                                 neuron_id=0,
-                                                 sec_id=-1,
-                                                 sec_x=0.5)
-
-        sim.add_density_mechanism_recording(density_mechanism="kirrxd",
-                                                 variable="m",
-                                                 neuron_id=0,
-                                                 sec_id=-1,
-                                                 sec_x=0.5)
-
-        sim.add_membrane_recording(variable="PKAi",
-                                        neuron_id=0,
-                                        sec_id=-1,
-                                        sec_x=0.5)
-
-        # Add DA synapse
-        # da_syn = h.DASyn(soma(0.5))
-        mod_file = "DASyn"
-        eval_str = f"sim.sim.neuron.h.{mod_file}"
-        channel_module = eval(eval_str)
-
-        da_syn = sim.get_external_input_synapse(channel_module=channel_module,
-                                                     section=sim.neurons[0].icell.soma[0],
-                                                     section_x=0.5)
-        da_syn.tau = 1
-
-        net_stim = sim.sim.neuron.h.NetStim()
-        net_stim.number = 100
-        net_stim.start = 300
-        net_stim.interval = 5
-
-        nc = sim.sim.neuron.h.NetCon(net_stim, da_syn)
-        nc.weight[0] = 100_000_000.0   # units : molecules/ms
-
-        sim.neurons[0].modulation.link_synapse(species_name="DA",
-                                                    region="soma_internal",
-                                                    synapse=da_syn,
-                                                    flux_variable="open")
-
-        sim.run(t=1000)
-
-        # output_file = os.path.join(self.network_path, "simulation", "output-2.hdf5")
-        sim.record.set_new_output_file(output_file)
-        sim.record.write()
-
-        # Important we need to delete the old da_syn
-        del da_syn
-        del net_stim
-        del nc
-
-        sim.clear_neuron()
 
 
     def test_reaction(self):
 
         output_file = os.path.join(self.network_path, "simulation", "output-2.hdf5")
 
-        import multiprocessing
-        p = multiprocessing.Process(target=self.run_sim, args=(output_file,))
+        p = multiprocessing.Process(target=run_sim, args=(self.network_path, output_file,))
         p.start()
         p.join()
 
@@ -235,4 +252,6 @@ class NeuromodulationTestCase(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    multiprocessing.set_start_method("spawn", force=True)
+
     unittest.main()

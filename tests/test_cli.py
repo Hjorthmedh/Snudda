@@ -129,17 +129,7 @@ class TestCLI(unittest.TestCase):
             # mech_dir = os.path.join(os.path.dirname(__file__), os.path.pardir,
             #                        "snudda", "data", "neurons", "mechanisms")
 
-            mech_dir = os.path.join("..", "validation", "mechanisms")
-
-            if not os.path.exists("mechanisms"):
-                print("----> Copying mechanisms")
-                # os.symlink(mech_dir, "mechanisms")
-                from distutils.dir_util import copy_tree
-                copy_tree(mech_dir, "mechanisms")
-            else:
-                print("------------->   !!! mechanisms already exists")
-
-            eval_str = f"nrnivmodl mechanisms"  # f"nrnivmodl {mech_dir}
+            eval_str = f"nrnivmodl ../validation/mechanisms"  # f"nrnivmodl {mech_dir}
             print(f"Running: {eval_str}")
             os.system(eval_str)
 

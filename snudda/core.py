@@ -63,12 +63,6 @@ def get_data_file(*dirs):
     except FileNotFoundError:
         raise FileNotFoundError(f"Data file '{path}' not found")
 
-# def get_data_file(*dirs):
-#     path = os.path.join("data", *dirs)
-#     if not pkg_resources.resource_exists(__package__, path):
-#         raise FileNotFoundError("Data file '{}' not found".format(path))
-#     return pkg_resources.resource_filename(__package__, path)
-
 
 class Snudda(object):
 
