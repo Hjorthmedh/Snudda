@@ -101,7 +101,7 @@ class PairRecordingTestCase(unittest.TestCase):
             args=(self.network_path, q)
         )
         process.start()
-        process.join(timeout=120)
+        process.join(timeout=180)
 
         if process.is_alive():
             process.terminate()

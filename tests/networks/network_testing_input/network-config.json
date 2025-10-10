@@ -476,7 +476,7 @@
                     "rotation_mode": "random",
                     "volume_id": "Striatum",
                     "neuron_path": {
-                        "FS_0": "/home/hjorth/HBP/Snudda/tests/validation/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312"
+                        "FS_0": "/home/hjorth/DELME/Snudda/tests/validation/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312"
                     }
                 },
                 "dSPN": {
@@ -485,7 +485,7 @@
                     "rotation_mode": "random",
                     "volume_id": "Striatum",
                     "neuron_path": {
-                        "dSPN_0": "/home/hjorth/HBP/Snudda/tests/validation/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508"
+                        "dSPN_0": "/home/hjorth/DELME/Snudda/tests/validation/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508"
                     }
                 }
             },
