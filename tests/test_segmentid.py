@@ -7,7 +7,6 @@ import numpy as np
 from snudda.utils import snudda_parse_path
 from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
 
-import bluepyopt.ephys as ephys
 from snudda.neurons.neuron_model_extended import NeuronModel
 from snudda.neurons.neuron_morphology_extended import NeuronMorphologyExtended
 

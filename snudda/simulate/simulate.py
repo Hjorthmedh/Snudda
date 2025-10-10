@@ -2990,13 +2990,14 @@ class SnuddaSimulate(object):
 
         if self.pc is not None:
             self.pc.gid_clear()
+            del self.pc
+            self.pc = None
 
         self.neurons = {}
-        self.sim = None
+        self.synapse_dict = dict()
         self.neuron_nodes = []  # Is this used?
         self.virtual_neurons = {}
 
-        self.synapse_dict = dict()
         self.i_stim = []
         self.v_clamp_list = []
         self.gap_junction_dict = dict()
@@ -3013,8 +3014,10 @@ class SnuddaSimulate(object):
         self.record = None
 
         # We also need to clear everything setup by NEURON
-        for sec in h.allsec():
+        for sec in list(h.allsec()):  # Convert to list to avoid modifying during iteration
             h.delete_section(sec=sec)
+
+        self.sim = None
 
         gc.collect()
 

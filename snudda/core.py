@@ -63,12 +63,6 @@ def get_data_file(*dirs):
     except FileNotFoundError:
         raise FileNotFoundError(f"Data file '{path}' not found")
 
-# def get_data_file(*dirs):
-#     path = os.path.join("data", *dirs)
-#     if not pkg_resources.resource_exists(__package__, path):
-#         raise FileNotFoundError("Data file '{}' not found".format(path))
-#     return pkg_resources.resource_filename(__package__, path)
-
 
 class Snudda(object):
 
@@ -155,9 +149,10 @@ class Snudda(object):
                           "Thalamus": 0}
 
         if not overwrite:
-            assert not os.path.exists(self.network_path), \
-                (f"Network path {self.network_path} already exists (aborting to prevent accidental overwriting)."
-                 "\nCall snudda init with --overwrite to override and overwrite the old data.")
+            if os.path.exists(self.network_path):
+                print(f"Network path {self.network_path} already exists (aborting to prevent accidental overwriting)."
+                      "\nCall snudda init with --overwrite to override and overwrite the old data.")
+                sys.exit(1)
 
         self.make_dir_if_needed(self.network_path)
 
