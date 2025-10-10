@@ -351,6 +351,7 @@ class Snudda(object):
                          morphologies_stay_inside=honor_morphology_stay_inside)
 
         sp.place()
+        sp.close_log_file()
 
         self.cleanup_workers()
 
@@ -547,6 +548,8 @@ class Snudda(object):
 
         if save_putative_synapses:
             sp.save_putative_synapses()
+
+        sp.close_log_file()
 
         self.cleanup_workers()
 

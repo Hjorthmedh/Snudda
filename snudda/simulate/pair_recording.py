@@ -44,6 +44,7 @@ class PairRecording(SnuddaSimulate):
                  snudda_data=None,
                  disable_gap_junctions=False,
                  disable_synapses=False,
+                 log_file=None,
                  verbose=False):
 
         # Do stuff with experiment_config
@@ -65,6 +66,7 @@ class PairRecording(SnuddaSimulate):
                          disable_synapses=disable_synapses,
                          disable_gap_junctions=disable_gap_junctions,
                          snudda_data=snudda_data,
+                         log_file=log_file,
                          verbose=verbose)
 
         self.simulate_neuron_ids = None
