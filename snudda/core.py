@@ -68,7 +68,7 @@ class Snudda(object):
 
     """ Wrapper class, calls Snudda helper functions """
 
-    def __init__(self, network_path, parallel=False, ipython_profile=None):
+    def __init__(self, network_path, parallel=False, ipython_profile=None, rc=None):
 
         """
         Instantiates Snudda
@@ -78,7 +78,7 @@ class Snudda(object):
         self.network_path = network_path
 
         self.d_view = None
-        self.rc = None
+        self.rc = rc
         self.slurm_id = 0
         self.logfile = None
 
