@@ -19,12 +19,18 @@ argparse.ArgumentParser.error = on_argparse_error
 def run_cli_command(command):
     """Run a CLI command string in a subprocess and return stdout + stderr."""
     result = subprocess.run(
-        command,
+        f"snudda {command}",
         shell=True,                # interpret command as a shell command
         capture_output=True,       # capture stdout/stderr
         text=True,                 # decode to str instead of bytes
         check=False                # don't raise exception automatically
     )
+
+    if result.stdout:
+        sys.stdout.write(result.stdout)
+    if result.stderr:
+        sys.stderr.write(result.stderr)
+
     return result
 
 """
@@ -91,13 +97,13 @@ class TestCLI(unittest.TestCase):
             cnc.write_json(config_name)
 
         with self.subTest(stage="place-parallel"):
-            run_cli_command("place tiny_parallel --parallel --stayInside")
+            run_cli_command("place tiny_parallel --parallel --stayInside --keep_alive")
 
         with self.subTest(stage="detect-parallel"):
-            run_cli_command("detect tiny_parallel --parallel")
+            run_cli_command("detect tiny_parallel --parallel --keep_alive")
 
         with self.subTest(stage="prune-parallel"):
-            run_cli_command("prune tiny_parallel --parallel")
+            run_cli_command("prune tiny_parallel --parallel --keep_alive")
 
         from shutil import copyfile
         print(f"listdir: {os.listdir()}")
@@ -107,7 +113,7 @@ class TestCLI(unittest.TestCase):
         copyfile(input_file, os.path.join("tiny_parallel", "input.json"))
 
         with self.subTest(stage="input"):
-            run_cli_command("input tiny_parallel --input tiny_parallel/input.json --parallel")
+            run_cli_command("input tiny_parallel --input tiny_parallel/input.json --parallel --keep_alive")
 
         # with self.subTest(stage="init-parallel-full"):
         #     run_cli_command("init large_parallel --size 1670000 --overwrite")
