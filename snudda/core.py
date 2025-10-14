@@ -276,16 +276,16 @@ class Snudda(object):
 
     ############################################################################
 
-    def create_network(self, honor_morphology_stay_inside=True, verbose=False):
+    def create_network(self, honor_morphology_stay_inside=True, verbose=False, keep_alive=False):
 
         # This is a helper function, to create the full network
-        self.place_neurons(honor_morphology_stay_inside=honor_morphology_stay_inside, verbose=verbose)
-        self.detect_synapses(verbose=verbose)
-        self.prune_synapses(verbose=verbose)
+        self.place_neurons(honor_morphology_stay_inside=honor_morphology_stay_inside, verbose=verbose, keep_alive=True)
+        self.detect_synapses(verbose=verbose, keep_alive=True)
+        self.prune_synapses(verbose=verbose, keep_alive=keep_alive)
 
     def create_network_wrapper(self, args):
 
-        self.create_network()
+        self.create_network(keep_alive=args.keep_alive)
 
     ############################################################################
 
@@ -312,7 +312,8 @@ class Snudda(object):
                            ipython_timeout=args.ipython_timeout,
                            h5libver=h5libver,
                            verbose=args.verbose,
-                           honor_morphology_stay_inside=args.stay_inside)
+                           honor_morphology_stay_inside=args.stay_inside,
+                           keep_alive=args.keep_alive)
 
     def place_neurons(self,
                       random_seed=None,
@@ -321,7 +322,8 @@ class Snudda(object):
                       ipython_timeout=120,
                       h5libver="latest",
                       verbose=False,
-                      honor_morphology_stay_inside=True):
+                      honor_morphology_stay_inside=True,
+                      keep_alive=False):
 
         if parallel is None:
             parallel = self.parallel
@@ -355,7 +357,8 @@ class Snudda(object):
 
         self.cleanup_workers()
 
-        self.stop_parallel()
+        if not keep_alive:
+            self.stop_parallel()
 
         return sp
 
@@ -393,7 +396,8 @@ class Snudda(object):
                              volume_id=args.volume_id,
                              h5libver=h5libver,
                              verbose=args.verbose,
-                             cont=args.cont)
+                             cont=args.cont,
+                             keep_alive=args.keep_alive)
 
     def detect_synapses(self,
                         random_seed=None,
@@ -404,7 +408,8 @@ class Snudda(object):
                         volume_id=None,
                         h5libver="latest",
                         verbose=False,
-                        cont=False):
+                        cont=False,
+                        keep_alive=False):
 
         if parallel is None:
             parallel = self.parallel
@@ -468,7 +473,8 @@ class Snudda(object):
 
         self.cleanup_workers()
 
-        self.stop_parallel()
+        if not keep_alive:
+            self.stop_parallel()
 
         return sd, sp
 
@@ -498,7 +504,8 @@ class Snudda(object):
                             ipython_timeout=args.ipython_timeout,
                             verbose=args.verbose,
                             keep_files=args.keepfiles,
-                            save_putative_synapses = args.save_putative)
+                            save_putative_synapses = args.save_putative,
+                            keep_alive=args.keep_alive)
 
     def prune_synapses(self,
                        config_file=None,
@@ -509,7 +516,8 @@ class Snudda(object):
                        h5libver="latest",
                        verbose=False,
                        keep_files=False,
-                       save_putative_synapses=False):
+                       save_putative_synapses=False,
+                       keep_alive=False):
 
         if parallel is None:
             parallel = self.parallel
@@ -553,7 +561,8 @@ class Snudda(object):
 
         self.cleanup_workers()
 
-        self.stop_parallel()
+        if not keep_alive:
+            self.stop_parallel()
 
         return sp
 
@@ -584,7 +593,8 @@ class Snudda(object):
                          parallel=args.parallel,
                          ipython_profile=args.ipython_profile,
                          ipython_timeout=args.ipython_timeout,
-                         verbose=args.verbose)
+                         verbose=args.verbose,
+                         keep_alive=args.keep_alive)
 
     def setup_input(self,
                     network_file=None,
@@ -597,7 +607,8 @@ class Snudda(object):
                     parallel=None,
                     ipython_profile=None,
                     ipython_timeout=120,
-                    verbose=False):
+                    verbose=False,
+                    keep_alive=False):
 
         if parallel is None:
             parallel = self.parallel
@@ -645,7 +656,8 @@ class Snudda(object):
 
         self.cleanup_workers()
 
-        self.stop_parallel()
+        if not keep_alive:
+            self.stop_parallel()
 
         return si
 
@@ -1055,13 +1067,10 @@ class Snudda(object):
 
     def stop_parallel(self):
 
-        print("stop_parallel disabled, to keep pool running.")
-        # Disable this function, keep the pool running for now
-        return
-
-        # if self.rc is not None:
-        #    print("Stopping ipyparallel")
-        #    self.rc.shutdown(hub=True)
+        if self.rc is not None:
+            print("Stopping ipyparallel")
+            self.rc.shutdown(hub=True)
+            self.rc.close()
 
     ############################################################################
 
