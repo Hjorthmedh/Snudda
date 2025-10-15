@@ -428,6 +428,24 @@ class SnuddaSimulate(object):
                 record_syn_cell_id = np.array(self.sim_info["record_current_all_synapses"], dtype=int)
                 self.add_synapse_current_recording_all(record_syn_cell_id)
 
+            if "record_synapse" in self.sim_info:
+                #
+                # record_synapses = { "tmGabaA" : { "pre_neuron": [1, 2, 3],
+                #                                   "post_neuron": [3, 4, 5],
+                #                                   "variable": ["i", "q"] }
+                #
+                # This will record "i" and "q" for 1->3, 2->4, 3->5
+                #
+
+                record_synapse_info = self.sim_info["record_synapse"]
+
+                for synapse_type, record_info in record_synapse_info.items():
+                    for pre_id, post_id in zip(record_info["pre_neuron"], record_info["post_neuron"]):
+                        for var in record_info["variable"]:
+                            self.add_synapse_recording(source_id=pre_id, dest_id=post_id,
+                                                       synapse_type=synapse_type, variable=var,
+                                                       data_type=f"{synapse_type}.{var}")
+
             if "record_rxd_species_concentration_all_compartments" in self.sim_info and self.use_rxd_neuromodulation:
 
                 rec_info = self.sim_info["record_rxd_species_concentration_all_compartments"]
@@ -2233,7 +2251,10 @@ class SnuddaSimulate(object):
 
         return syn_ctr
 
-    def add_synapse_recording(self, source_id, dest_id, variable="i", data_type="synaptic_current"):
+    def add_synapse_recording(self, source_id, dest_id, synapse_type=None, variable="i", data_type="synaptic_current"):
+
+        if self.verbose:
+            self.write_log(f"Adding recoding of {synapse_type}.{variable} between {source_id}, {dest_id}")
 
         assert (source_id, dest_id) in self.synapse_dict, f"No synapse between {source_id} and {dest_id}"
 
@@ -2241,6 +2262,11 @@ class SnuddaSimulate(object):
         syn_ctr = 0
 
         for syn, nc, synapse_type_id, sec_id in synapse_info_list:
+
+            if synapse_type is not None \
+               and synapse_type != syn.hname().split("[")[0]:
+                continue
+
             data = self.sim.neuron.h.Vector()
             data.record(getattr(syn, f"_ref_{variable}"))
             seg = syn.get_segment()
