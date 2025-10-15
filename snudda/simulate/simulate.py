@@ -2233,6 +2233,28 @@ class SnuddaSimulate(object):
 
         return syn_ctr
 
+    def add_synapse_recording(self, source_id, dest_id, variable="i", data_type="synaptic_current"):
+
+        assert (source_id, dest_id) in self.synapse_dict, f"No synapse between {source_id} and {dest_id}"
+
+        synapse_info_list = self.synapse_dict[source_id, dest_id]
+        syn_ctr = 0
+
+        for syn, nc, synapse_type_id, sec_id in synapse_info_list:
+            data = self.sim.neuron.h.Vector()
+            data.record(getattr(syn, f"_ref_{variable}"))
+            seg = syn.get_segment()
+
+            self.record.register_synapse_data(neuron_id=dest_id, data_type=data_type, data=data,
+                                              synapse_type=synapse_type_id,
+                                              presynaptic_id=source_id,
+                                              sec_id=sec_id,
+                                              sec_x=seg.x,
+                                              cond=nc.weight[0])
+            syn_ctr += 1
+
+        return syn_ctr
+
     def add_synapse_current_recording(self, source_id, dest_id):
 
         assert (source_id, dest_id) in self.synapse_dict, f"No synapse between {source_id} and {dest_id}"
