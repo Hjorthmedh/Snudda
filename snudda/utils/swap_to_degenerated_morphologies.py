@@ -434,8 +434,9 @@ class SwapToDegeneratedMorphologies:
 
             original_morphology_id = 0  # self.old_data["neurons"][neuron_id]["morphology_id"]
             original_parameter_id = 0  # self.old_data["neurons"][neuron_id]["parameter_id"]
+            new_morph_name = os.path.basename(new_neuron_path)
 
-            return '', '', new_neuron_path, original_parameter_id, original_morphology_id
+            return '', '', new_neuron_path, new_morph_name, original_parameter_id, original_morphology_id
 
         # Here we assume there is a meta.json file
         with open(os.path.join(orig_neuron_path, "meta.json"), "r") as f:
