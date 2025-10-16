@@ -616,7 +616,7 @@ class SwapToDegeneratedMorphologies:
                     new_sec_x[idx_remap] = sec_x
                     input_group.attrs["section_x"] = new_sec_x[keep_idx2].astype(np.float16)
 
-                    input_group.attrs["parameter_id"] = old_input_data.attrs["parameter_id"][keep_idx2].astype(np.int)
+                    input_group.attrs["parameter_id"] = old_input_data.attrs["parameter_id"][keep_idx2].astype(int)
 
                     updated_dist = old_input_data.attrs["distance_to_soma"].copy()
                     updated_dist[idx_remap] = dist_to_soma

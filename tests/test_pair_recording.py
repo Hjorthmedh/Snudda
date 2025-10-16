@@ -6,7 +6,6 @@ import numpy as np
 from snudda.utils.load import SnuddaLoad
 from snudda.utils.load_network_simulation import SnuddaLoadSimulation
 
-from multiprocessing import Queue
 import traceback
 import io
 from contextlib import redirect_stdout, redirect_stderr

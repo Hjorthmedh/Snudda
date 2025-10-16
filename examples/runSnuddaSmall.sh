@@ -17,9 +17,7 @@ else
     snudda init $simName --size 5000 --overwrite --seed 1234
 fi
 
-snudda place $simName --parallel
-snudda detect $simName --volumeID Striatum --parallel --hvsize 50
-snudda prune $simName --parallel
+snudda create $simName --parallel
 
 # Copy over template input, you might need to update the path here if not
 # run from the examples directory
@@ -40,5 +38,5 @@ ipcluster stop
 # Uncomment this to run simulation
 # Remember you need to run "nrnivmodl data/cellspecs/mechanisms"
 # first to create the mechanisms
-mpiexec -x SNUDDA_DATA snudda simulate $simName --verbose
+mpirun -n 6 -x SNUDDA_DATA snudda simulate $simName --verbose
 
