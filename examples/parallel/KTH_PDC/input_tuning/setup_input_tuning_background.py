@@ -54,13 +54,13 @@ print("Calling setup_input")
 if neuron_type in ["lts"]:
     input_types = ["cortical_background"]
     input_density = ["1.15*0.05/(1+exp(-(d-30e-6)/5e-6))"]
-    input_fraction = [0.5, 0.5]
-    input_frequency = [2, 2]
+    input_fraction = [1]
+    input_frequency = [2]
 else:
     input_types = ["cortical_background", "thalamic_background"]
     input_density = ["1.15*0.05/(1+exp(-(d-30e-6)/5e-6))", "0.05*exp(-d/200e-6)"]
-    input_fraction = [1]
-    input_frequency = [2]
+    input_fraction = [0.5, 0.5]
+    input_frequency = [2, 2]
 
 
 input_tuning.setup_background_input(input_types=input_types,

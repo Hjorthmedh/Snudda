@@ -1604,7 +1604,6 @@ class InputTuning(object):
         # assert n_input_min > 0, "No point using n_input_min=0, please instead use input_frequency 0."
 
         neuron_sets = self.collect_neurons()
-        n_inputs = dict()
 
         for neuron_type in neuron_sets:
 
