@@ -21,14 +21,16 @@ def cleanup(rc, state):
         state : State to free memory (e.g. "place", "detect", "project", "prune"
         """
 
-    d_view = rc.direct_view(targets='all')
+    if rc is not None:
 
-    var_lookup = {"place": ["inner_mask", "sm"],  # region_mesh_vedo.py
-                  "detect": ["min_max", "result", "sd"],
-                  "project": [],  # Currently does not support parallel execution
-                  "prune": ["syn_before", "syn_after", "merge_result_syn", "merge_result_gj", "sp"]}
+        d_view = rc.direct_view(targets='all')
 
-    if state in var_lookup:
-        cleanup_memory(d_view, var_lookup[state])
-    else:
-        print(f"cleanup: Unknown state: {state}")
+        var_lookup = {"place": ["inner_mask", "sm"],  # region_mesh_vedo.py
+                      "detect": ["min_max", "result", "sd"],
+                      "project": [],  # Currently does not support parallel execution
+                      "prune": ["syn_before", "syn_after", "merge_result_syn", "merge_result_gj", "sp"]}
+
+        if state in var_lookup:
+            cleanup_memory(d_view, var_lookup[state])
+        else:
+            print(f"cleanup: Unknown state: {state}")
