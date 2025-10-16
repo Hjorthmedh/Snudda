@@ -37,7 +37,7 @@ This particular code optimises the input for the ```dspn``` neurons by
 setting the ```SNUDDA_TUNE_NEURON``` to ```dspn```. The
 ```SEED_LIST``` indicates how many times the simulation is repeated,
 and with what seed (this must match the ```SEED_LIST``` in the
-analysis script later.
+analysis script later. It is a string that has a list of numbers, e.g. "[10,20,55]"
 
 ## Update background input in ```meta.json```
 
