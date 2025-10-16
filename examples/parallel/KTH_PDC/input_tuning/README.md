@@ -14,6 +14,12 @@ neurons in that directory will be modified. In this example we use the
 data from the ```BasalGangliaData``` repository, but you can also use
 other locations.
 
+This script reads information about the input parameters from
+```input_config/input_info.json``` in the SNUDDA_DATA folder. If you
+want to optimize for a neuron or an input_type not previously defined,
+then you need to update this file. This is also where you can change
+the input to be clustered etc.
+
 ## Run background simulations
 
 The first step is to tune the background input. On Dardel we are able to run all combinations of parametersets and morphologies for a particular neuron type in one go.
