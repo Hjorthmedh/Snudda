@@ -68,7 +68,7 @@ class Snudda(object):
 
     """ Wrapper class, calls Snudda helper functions """
 
-    def __init__(self, network_path, parallel=False, ipython_profile=None):
+    def __init__(self, network_path, parallel=False, ipython_profile=None, rc=None):
 
         """
         Instantiates Snudda
@@ -78,7 +78,7 @@ class Snudda(object):
         self.network_path = network_path
 
         self.d_view = None
-        self.rc = None
+        self.rc = rc
         self.slurm_id = 0
         self.logfile = None
 
@@ -276,12 +276,17 @@ class Snudda(object):
 
     ############################################################################
 
-    def create_network(self, honor_morphology_stay_inside=True, verbose=False):
+    def create_network(self, honor_morphology_stay_inside=True, verbose=False, keep_rc_active=False, input_config=None):
+
+        # This function uses one remote client, that is used by all processes
 
         # This is a helper function, to create the full network
-        self.place_neurons(honor_morphology_stay_inside=honor_morphology_stay_inside, verbose=verbose)
-        self.detect_synapses(verbose=verbose)
-        self.prune_synapses(verbose=verbose)
+        self.place_neurons(honor_morphology_stay_inside=honor_morphology_stay_inside, verbose=verbose, keep_rc_active=True)
+        self.detect_synapses(verbose=verbose, keep_rc_active=True)
+        self.prune_synapses(verbose=verbose, keep_rc_active=keep_rc_active or input_config is not None)
+
+        if input_config is not None:
+            self.setup_input(input_config=input_config, keep_rc_active=keep_rc_active)
 
     def create_network_wrapper(self, args):
 
@@ -321,7 +326,8 @@ class Snudda(object):
                       ipython_timeout=120,
                       h5libver="latest",
                       verbose=False,
-                      honor_morphology_stay_inside=True):
+                      honor_morphology_stay_inside=True,
+                      keep_rc_active=False):
 
         if parallel is None:
             parallel = self.parallel
@@ -351,10 +357,12 @@ class Snudda(object):
                          morphologies_stay_inside=honor_morphology_stay_inside)
 
         sp.place()
+        sp.close_log_file()
 
         self.cleanup_workers()
 
-        self.stop_parallel()
+        if not keep_rc_active:
+            self.close_rc()
 
         return sp
 
@@ -403,7 +411,8 @@ class Snudda(object):
                         volume_id=None,
                         h5libver="latest",
                         verbose=False,
-                        cont=False):
+                        cont=False,
+                        keep_rc_active=False):
 
         if parallel is None:
             parallel = self.parallel
@@ -467,7 +476,8 @@ class Snudda(object):
 
         self.cleanup_workers()
 
-        self.stop_parallel()
+        if not keep_rc_active:
+            self.close_rc()
 
         return sd, sp
 
@@ -508,7 +518,8 @@ class Snudda(object):
                        h5libver="latest",
                        verbose=False,
                        keep_files=False,
-                       save_putative_synapses=False):
+                       save_putative_synapses=False,
+                       keep_rc_active=False):
 
         if parallel is None:
             parallel = self.parallel
@@ -548,9 +559,12 @@ class Snudda(object):
         if save_putative_synapses:
             sp.save_putative_synapses()
 
+        sp.close_log_file()
+
         self.cleanup_workers()
 
-        self.stop_parallel()
+        if not keep_rc_active:
+            self.close_rc()
 
         return sp
 
@@ -594,7 +608,8 @@ class Snudda(object):
                     parallel=None,
                     ipython_profile=None,
                     ipython_timeout=120,
-                    verbose=False):
+                    verbose=False,
+                    keep_rc_active=False):
 
         if parallel is None:
             parallel = self.parallel
@@ -642,7 +657,8 @@ class Snudda(object):
 
         self.cleanup_workers()
 
-        self.stop_parallel()
+        if not keep_rc_active:
+            self.close_rc()
 
         return si
 
@@ -1050,15 +1066,19 @@ class Snudda(object):
 
     ############################################################################
 
+    def close_rc(self):
+        if self.rc is not None:
+            print("Closing remote client (ipcluster kept running)")
+            self.rc.close()
+            self.rc = None
+
     def stop_parallel(self):
 
-        print("stop_parallel disabled, to keep pool running.")
-        # Disable this function, keep the pool running for now
-        return
-
-        # if self.rc is not None:
-        #    print("Stopping ipyparallel")
-        #    self.rc.shutdown(hub=True)
+        if self.rc is not None:
+            print("Stopping ipyparallel")
+            self.rc.shutdown(hub=True)
+            self.rc.close()
+            self.rc = None
 
     ############################################################################
 

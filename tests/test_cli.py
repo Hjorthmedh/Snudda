@@ -19,12 +19,18 @@ argparse.ArgumentParser.error = on_argparse_error
 def run_cli_command(command):
     """Run a CLI command string in a subprocess and return stdout + stderr."""
     result = subprocess.run(
-        command,
+        f"snudda {command}",
         shell=True,                # interpret command as a shell command
         capture_output=True,       # capture stdout/stderr
         text=True,                 # decode to str instead of bytes
         check=False                # don't raise exception automatically
     )
+
+    if result.stdout:
+        sys.stdout.write(result.stdout)
+    if result.stderr:
+        sys.stderr.write(result.stderr)
+
     return result
 
 """

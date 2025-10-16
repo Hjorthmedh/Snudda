@@ -434,8 +434,9 @@ class SwapToDegeneratedMorphologies:
 
             original_morphology_id = 0  # self.old_data["neurons"][neuron_id]["morphology_id"]
             original_parameter_id = 0  # self.old_data["neurons"][neuron_id]["parameter_id"]
+            new_morph_name = os.path.basename(new_neuron_path)
 
-            return '', '', new_neuron_path, original_parameter_id, original_morphology_id
+            return '', '', new_neuron_path, new_morph_name, original_parameter_id, original_morphology_id
 
         # Here we assume there is a meta.json file
         with open(os.path.join(orig_neuron_path, "meta.json"), "r") as f:
@@ -615,7 +616,7 @@ class SwapToDegeneratedMorphologies:
                     new_sec_x[idx_remap] = sec_x
                     input_group.attrs["section_x"] = new_sec_x[keep_idx2].astype(np.float16)
 
-                    input_group.attrs["parameter_id"] = old_input_data.attrs["parameter_id"][keep_idx2].astype(np.int)
+                    input_group.attrs["parameter_id"] = old_input_data.attrs["parameter_id"][keep_idx2].astype(int)
 
                     updated_dist = old_input_data.attrs["distance_to_soma"].copy()
                     updated_dist[idx_remap] = dist_to_soma

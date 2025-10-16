@@ -3,9 +3,21 @@ def snudda_help_text():
 
   Usage:
 
-  snudda init <networkPath> --size XXX
+  snudda init <network_path> --size XXX
   -- Creates an a json config file
 
+  snudda create <network_path>
+  -- Create a network defined by json config file
+     (this performs place, detect and prune)
+
+  snudda input <networkPath> [--input yourInputConfig]
+  -- Setup the input, obs you need to manually pick a input config file
+
+  snudda simulate <networkPath>
+  -- Run the network simulation using NEURON
+
+  Legacy commands:
+     
   snudda place <networkPath>
   -- Cell placement within volumes specified
 
@@ -15,14 +27,9 @@ def snudda_help_text():
   snudda prune <networkPath> [--mergeonly]
   -- Prune the synapses
 
-  snudda input <networkPath> [--input yourInputConfig]
-  -- Setup the input, obs you need to manually pick a input config file
 
   snudda export <networkPath>
   -- Export to SONATA format (optional)
-
-  snudda simulate <networkPath>
-  -- Run the network simulation using NEURON
 
   snudda analyse <networkPath>
 
