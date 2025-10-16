@@ -97,13 +97,13 @@ class TestCLI(unittest.TestCase):
             cnc.write_json(config_name)
 
         with self.subTest(stage="place-parallel"):
-            run_cli_command("place tiny_parallel --parallel --stayInside --keep_alive")
+            run_cli_command("place tiny_parallel --parallel --stayInside")
 
         with self.subTest(stage="detect-parallel"):
-            run_cli_command("detect tiny_parallel --parallel --keep_alive")
+            run_cli_command("detect tiny_parallel --parallel")
 
         with self.subTest(stage="prune-parallel"):
-            run_cli_command("prune tiny_parallel --parallel --keep_alive")
+            run_cli_command("prune tiny_parallel --parallel")
 
         from shutil import copyfile
         print(f"listdir: {os.listdir()}")
@@ -113,7 +113,7 @@ class TestCLI(unittest.TestCase):
         copyfile(input_file, os.path.join("tiny_parallel", "input.json"))
 
         with self.subTest(stage="input"):
-            run_cli_command("input tiny_parallel --input tiny_parallel/input.json --parallel --keep_alive")
+            run_cli_command("input tiny_parallel --input tiny_parallel/input.json --parallel")
 
         # with self.subTest(stage="init-parallel-full"):
         #     run_cli_command("init large_parallel --size 1670000 --overwrite")
