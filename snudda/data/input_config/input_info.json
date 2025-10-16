@@ -332,7 +332,7 @@
 	},
 
 	"thalamic": {
-	    "synapse_paramter_file": "$DATA/synapses/striatum/TH_parameters-THIN.json",
+	    "synapse_parameter_file": "$DATA/synapses/striatum/TH_parameters-THIN.json",
 	    "synapse_density": "0.05*exp(-d/200e-6)",
 	    "cluster_size": null,
 	    "cluster_spread": null,
@@ -343,7 +343,7 @@
 	},
 
 	"thalamic_background": {
-	    "synapse_paramter_file": "$DATA/synapses/striatum/TH_parameters-THIN.json",
+	    "synapse_parameter_file": "$DATA/synapses/striatum/TH_parameters-THIN.json",
 	    "synapse_density": "0.05*exp(-d/200e-6)",
 	    "cluster_size": null,
 	    "cluster_spread": null,
