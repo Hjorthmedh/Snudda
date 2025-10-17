@@ -1,5 +1,6 @@
 import os
 import ast
+
 from snudda.input.input_tuning import InputTuning
 
 print("Starting setup_input_tuning_background.py")
@@ -50,12 +51,23 @@ input_tuning.setup_network(neurons_path=neurons_path,
 
 print("Calling setup_input")
 
+if neuron_type in ["lts"]:
+    input_types = ["cortical_background"]
+    input_density = ["1.15*0.05/(1+exp(-(d-30e-6)/5e-6))"]
+    input_fraction = [1]
+    input_frequency = [2]
+else:
+    input_types = ["cortical_background", "thalamic_background"]
+    input_density = ["1.15*0.05/(1+exp(-(d-30e-6)/5e-6))", "0.05*exp(-d/200e-6)"]
+    input_fraction = [0.5, 0.5]
+    input_frequency = [2, 2]
 
-input_tuning.setup_background_input(input_types=["cortical_background", "thalamic_background"],
-                                    input_density=["1.15*0.05/(1+exp(-(d-30e-6)/5e-6))", "0.05*exp(-d/200e-6)"],
-                                    input_fraction=[0.5, 0.5],
+
+input_tuning.setup_background_input(input_types=input_types,
+                                    input_density=input_density,
+                                    input_fraction=input_fraction,
                                     num_input_min=10, num_input_max=1000,
-                                    input_frequency=[2, 2],
+                                    input_frequency=input_frequency,
                                     input_duration=10)
 
 print("All done with setup_input_tuning_background.py")

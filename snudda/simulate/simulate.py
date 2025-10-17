@@ -3062,8 +3062,9 @@ class SnuddaSimulate(object):
         self.record = None
 
         # We also need to clear everything setup by NEURON
-        for sec in list(h.allsec()):  # Convert to list to avoid modifying during iteration
-            h.delete_section(sec=sec)
+        if h is not None:
+            for sec in list(h.allsec()):  # Convert to list to avoid modifying during iteration
+                h.delete_section(sec=sec)
 
         self.sim = None
 
