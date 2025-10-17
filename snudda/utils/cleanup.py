@@ -23,6 +23,16 @@ def cleanup(rc, state):
 
     if rc is not None:
 
+        # Check if the client is still active
+        try:
+            if hasattr(rc, '_closed') and rc._closed:
+                return
+            # Alternative check: try to access a property that would fail if closed
+            _ = rc.ids
+        except (RuntimeError, AttributeError):
+            # Client is closed or invalid, skip cleanup
+            return
+
         d_view = rc.direct_view(targets='all')
 
         var_lookup = {"place": ["inner_mask", "sm"],  # region_mesh_vedo.py
