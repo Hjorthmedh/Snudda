@@ -25,6 +25,13 @@ class TestBendMorphologies(unittest.TestCase):
         before = nm.clone(position=pos, rotation=np.eye(3))
         after = nm.clone(position=pos, rotation=np.eye(3))
 
+        before_morph = before.get_morphology()
+        old_rot_rep = bm.get_full_rotation_representation(morphology=before_morph)
+        coords = bm.apply_rotation(morphology=before_morph, rotation_representation=old_rot_rep)
+
+        # Verify that rotation representation works
+        self.assertTrue((np.abs(before_morph.geometry[:, :3] - coords) < 1e-6).all())
+
         new_rot_rep, _ = bm.bend_morphology(after.get_morphology())
         new_coord = bm.apply_rotation(after.get_morphology(), new_rot_rep)
         after.get_morphology().geometry[:, :3] = new_coord
@@ -32,13 +39,12 @@ class TestBendMorphologies(unittest.TestCase):
         change = np.sum(np.abs(before.get_morphology().geometry[:, :3] - after.get_morphology().geometry[:, :3]))
         print(f"Change = {change}")
 
-        return
+        # return
 
-        import pdb
-        pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
 
-        self.assertEqual(True, False)  # add assertion here
-
+        # TODO: Add check here
 
 if __name__ == '__main__':
     unittest.main()
