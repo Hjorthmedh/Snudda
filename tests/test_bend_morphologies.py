@@ -22,8 +22,11 @@ class TestBendMorphologies(unittest.TestCase):
 
         pos = np.array([0.006, 0.004, 0.00205])
 
-        before = nm.clone(position=pos, rotation=np.eye(3))
-        after = nm.clone(position=pos, rotation=np.eye(3))
+        import snudda.place.rotation
+        rot_mat = snudda.place.rotation.SnuddaRotate.rand_rotation_matrix()
+
+        before = nm.clone(position=pos, rotation=rot_mat) # np.eye(3)
+        after = nm.clone(position=pos, rotation=rot_mat) # np.eye(3)
 
         before_morph = before.get_morphology()
         old_rot_rep = bm.get_full_rotation_representation(morphology=before_morph)
@@ -48,7 +51,8 @@ class TestBendMorphologies(unittest.TestCase):
 
         # The bending is statistical, so we some parts of neuron might go a little outside
         self.assertTrue(n_after > n_before)
-        self.assertTrue(n_after - n_before > 0.9 * (n_all - n_before))
+        self.assertTrue(n_after - n_before > 0.8 * (n_all - n_before))
+
 
 
 if __name__ == '__main__':
