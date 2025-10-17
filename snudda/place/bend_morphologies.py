@@ -57,11 +57,6 @@ class BendMorphologies:
             if (section.section_id, section.section_type) in parent_direction:
                 parent_dir, parent_point, parent_dist, parent_moved = parent_direction[section.section_id, section.section_type]
             else:
-                # if morphology.rotation is not None:
-                #     parent_dir = np.matmul(morphology.rotation, np.array([[0], [0], [1]])).T
-                # else:
-                #     parent_dir = np.array([[0, 0, 1]])
-
                 # Coordinates are already rotated (place), we don't want to double rotate. Thanks Scott for noticing!
                 parent_dir = np.array([[0, 0, 1]])
 
@@ -150,11 +145,6 @@ class BendMorphologies:
                 parent_dir = parent_direction[section.section_id, section.section_type]
             else:
 
-                # if morphology.rotation is not None:
-                #     parent_dir = np.matmul(morphology.rotation, np.array([[0, 0, 1]]).T).T
-                # else:
-                #     parent_dir = np.array([[0, 0, 1]])
-
                 # Coordinates are already rotated (place), we don't want to double rotate. Thanks Scott for noticing!
                 parent_dir = np.array([[0, 0, 1]])
 
@@ -184,11 +174,6 @@ class BendMorphologies:
             if (section.section_id, section.section_type) in parent_direction:
                 parent_dir, parent_pos = parent_direction[section.section_id, section.section_type]
             else:
-                # if morphology.rotation is not None:
-                #     parent_dir = np.matmul(morphology.rotation, np.array([[0, 0, 1]]).T).T
-                # else:
-                #     parent_dir = np.array([[0, 0, 1]])
-
                 # Coordinates are already rotated (place), we don't want to double rotate. Thanks Scott for noticing!
                 parent_dir = np.array([[0, 0, 1]])
 
