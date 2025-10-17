@@ -22,8 +22,18 @@ class TestBendMorphologies(unittest.TestCase):
 
         pos = np.array([0.006, 0.004, 0.00205])
 
-        before = nm.clone(position=pos, rotation=np.eye(3))
-        after = nm.clone(position=pos, rotation=np.eye(3))
+        import snudda.place.rotation
+        rot_mat = snudda.place.rotation.SnuddaRotate.rand_rotation_matrix()
+
+        before = nm.clone(position=pos, rotation=rot_mat) # np.eye(3)
+        after = nm.clone(position=pos, rotation=rot_mat) # np.eye(3)
+
+        before_morph = before.get_morphology()
+        old_rot_rep = bm.get_full_rotation_representation(morphology=before_morph)
+        coords = bm.apply_rotation(morphology=before_morph, rotation_representation=old_rot_rep)
+
+        # Verify that rotation representation works
+        self.assertTrue((np.abs(before_morph.geometry[:, :3] - coords) < 1e-6).all())
 
         new_rot_rep, _ = bm.bend_morphology(after.get_morphology())
         new_coord = bm.apply_rotation(after.get_morphology(), new_rot_rep)
@@ -32,12 +42,17 @@ class TestBendMorphologies(unittest.TestCase):
         change = np.sum(np.abs(before.get_morphology().geometry[:, :3] - after.get_morphology().geometry[:, :3]))
         print(f"Change = {change}")
 
-        return
+        before_inside = bm.check_if_inside(before)
+        after_inside = bm.check_if_inside(after)
 
-        import pdb
-        pdb.set_trace()
+        n_before = np.sum(before_inside)
+        n_after = np.sum(after_inside)
+        n_all = len(before_inside)
 
-        self.assertEqual(True, False)  # add assertion here
+        # The bending is statistical, so we some parts of neuron might go a little outside
+        self.assertTrue(n_after > n_before)
+        self.assertTrue(n_after - n_before > 0.8 * (n_all - n_before))
+
 
 
 if __name__ == '__main__':
