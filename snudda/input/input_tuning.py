@@ -152,7 +152,8 @@ class InputTuning(object):
         self.input_duration = input_duration
         self.max_time = self.input_duration * len(self.frequency_range)
 
-        input_info_file = snudda_parse_path("$SNUDDA_DATA/input_config/input_info.json", self.snudda_data)
+        input_info_file = snudda_parse_path(os.path.join("$SNUDDA_DATA", "input_config", "input_info.json",
+                                                         self.snudda_data))
         with open(input_info_file, "r") as f:
             input_info = json.load(f)
 
@@ -280,7 +281,7 @@ class InputTuning(object):
         self.plot_volt_vs_ninputs(voltage_data, show_plots=show_plots, input_type_name=input_type)
 
         print(f"To plot traces:\n"
-              f"python3 plotting/Network_plot_traces.py {self.network_path}output_volt.txt "
+              f"python3 plotting{os.path.sep}Network_plot_traces.py {self.network_path}output_volt.txt "
               f"{self.network_path}network-synapses.hdf5 ")
 
     def find_signal_strength(self, requested_frequency=10.0, skip_time=0.0, show_plot=True, quiet_load=False):
@@ -1517,7 +1518,7 @@ class InputTuning(object):
 
         region_def[vol_name]["volume"]["type"] = "mesh"
         region_def[vol_name]["volume"]["d_min"] = 15e-6
-        region_def[vol_name]["volume"]["mesh_file"] = "data/mesh/InputTestMesh.obj"
+        region_def[vol_name]["volume"]["mesh_file"] = os.path.join("data", "mesh", "InputTestMesh.obj")
         region_def[vol_name]["volume"]["num_putative_points"] = 100000
         region_def[vol_name]["connectivity"] = dict()  # Unconnected
 
@@ -1933,8 +1934,8 @@ if __name__ == "__main__":
                                   input_frequency_range=input_frequency,
                                   use_meta_input=args.no_meta_input)
 
-        print("Tip, to run in parallel on your local machine use: "
-              "mpiexec -n 4 python3 tuning/input_tuning.py simulate <yournetworkhere>")
+        print(f"Tip, to run in parallel on your local machine use: "
+              f"mpiexec -n 4 python3 tuning{os.path.sep}input_tuning.py simulate <yournetworkhere>")
 
     if args.action == "setup_background":
         input_frequency = ast.literal_eval(args.inputFrequency)
@@ -1962,8 +1963,8 @@ if __name__ == "__main__":
 
     elif args.action == "simulate":
         print("Run simulation...")
-        print("Tip, to run in parallel on your local machine use: "
-              "mpiexec -n 4 python3 tuning/input_tuning.py simulate <yournetworkhere>")
+        print(f"Tip, to run in parallel on your local machine use: "
+              f"mpiexec -n 4 python3 tuning{os.path.sep}input_tuning.py simulate <yournetworkhere>")
 
         if args.no_downsampling:
             sample_dt = None
