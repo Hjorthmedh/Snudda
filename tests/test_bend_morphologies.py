@@ -39,12 +39,17 @@ class TestBendMorphologies(unittest.TestCase):
         change = np.sum(np.abs(before.get_morphology().geometry[:, :3] - after.get_morphology().geometry[:, :3]))
         print(f"Change = {change}")
 
-        # return
+        before_inside = bm.check_if_inside(before)
+        after_inside = bm.check_if_inside(after)
 
-        # import pdb
-        # pdb.set_trace()
+        n_before = np.sum(before_inside)
+        n_after = np.sum(after_inside)
+        n_all = len(before_inside)
 
-        # TODO: Add check here
+        # The bending is statistical, so we some parts of neuron might go a little outside
+        self.assertTrue(n_after > n_before)
+        self.assertTrue(n_after - n_before > 0.9 * (n_all - n_before))
+
 
 if __name__ == '__main__':
     unittest.main()
