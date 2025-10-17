@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import unittest
 
@@ -8,8 +9,13 @@ from snudda.place.bend_morphologies import BendMorphologies
 class TestBendMorphologies(unittest.TestCase):
     def test_something(self):
 
-        morph_path = "validation/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508/WT-0728MSN01-cor-rep-ax.swc"
-        mesh_path = "validation/mesh/Striatum-d-right.obj"
+        base_path = os.path.dirname(__file__)
+
+        morph_path = os.path.join(base_path, "validation", "striatum", "dspn",
+                                  "str-dspn-e150602_c1_D1-mWT-0728MSN01-v20190508",
+                                  "WT-0728MSN01-cor-rep-ax.swc")
+        mesh_path = os.path.join(base_path, "validation", "mesh", "Striatum-d-right.obj")
+
         nm = NeuronMorphologyExtended(swc_filename=morph_path)
 
         bm = BendMorphologies(mesh_path, rng=np.random.default_rng(1))
