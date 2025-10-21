@@ -171,6 +171,7 @@ class TestProject(unittest.TestCase):
         serial_synapses = sl.data["synapses"].copy()
         del sl  # Close old file so we can overwrite it
 
+        print(f"Starting ipyparallel")
         os.environ["IPYTHONDIR"] = os.path.join(os.path.abspath(os.getcwd()), ".ipython")
         os.environ["IPYTHON_PROFILE"] = "default"
         # os.system("ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&")
@@ -179,27 +180,50 @@ class TestProject(unittest.TestCase):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
-        time.sleep(15)
 
-        # Run place, detect and prune in parallel by passing rc
         from ipyparallel import Client
         u_file = os.path.join(".ipython", "profile_default", "security", "ipcontroller-client.json")
+
+        time.sleep(3)
+
+        # Wait for connection file to exist
+        for _ in range(30):
+            if os.path.exists(u_file):
+                break
+            time.sleep(1)
+            print(".")
+        else:
+            raise RuntimeError("ipcontroller connection file not created")
+
+        print(f"Found {u_file}, proceeding.")
+
         rc = Client(url_file=u_file, timeout=120, debug=False)
+
+        try:
+            rc.wait_for_engines(n=4, timeout=60)
+        except Exception as e:
+            raise RuntimeError(f"Engines did not start within 60 seconds: {e}")
+
         d_view = rc.direct_view(targets='all')  # rc[:] # Direct view into clients
+
+        print(f"Ipyparallel up and running...")
 
         from snudda.detect.detect import SnuddaDetect
         sd = SnuddaDetect(network_path=self.network_path, hyper_voxel_size=100, rc=rc, verbose=True)
         sd.detect()
+        sd.close_log_file()
 
         from snudda.detect.project import SnuddaProject
         # TODO: Currently SnuddaProject only runs in serial
         sp = SnuddaProject(network_path=self.network_path)
         sp.project()
 
+
         from snudda.detect.prune import SnuddaPrune
         # Prune has different methods for serial and parallel execution, important to test it!
         sp = SnuddaPrune(network_path=self.network_path, rc=rc, verbose=True)
         sp.prune()
+        sp.close_log_file()
 
         with self.subTest(stage="check-parallel-identical"):
             sl2 = SnuddaLoad(network_file)
@@ -211,12 +235,22 @@ class TestProject(unittest.TestCase):
             # All synapses should be identical regardless of serial or parallel execution path
             self.assertTrue((serial_synapses == parallel_synapses).all())
 
-        # os.system("ipcluster stop")
-        self.cluster_process.terminate()  # sends SIGTERM
-        try:
-            self.cluster_process.wait(timeout=10)
-        except subprocess.TimeoutExpired:
-            self.cluster_process.kill()
+            sl2.close()
+
+        if self.cluster_process.stdout:
+            self.cluster_process.stdout.close()
+        if self.cluster_process.stderr:
+            self.cluster_process.stderr.close()
+
+        rc.shutdown(hub=True)
+        rc.close()
+
+#        # os.system("ipcluster stop")
+#        self.cluster_process.terminate()  # sends SIGTERM
+#        try:
+#            self.cluster_process.wait(timeout=10)
+#        except subprocess.TimeoutExpired:
+#            self.cluster_process.kill()
 
 
 if __name__ == '__main__':
