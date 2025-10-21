@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "snudda"
-version = "2.2.6"
+version = "2.2.6.1"
 description = "Create realistic networks of neurons, synapses placed using touch detection between axons and dendrites."
 authors = [{ name = "Johannes Hjorth", email = "hjorth@kth.se" }]
 readme = { file = "README.md", content-type = "text/markdown" }
