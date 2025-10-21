@@ -181,10 +181,10 @@ class TestProject(unittest.TestCase):
             stderr=subprocess.PIPE
         )
 
-
-        # Run place, detect and prune in parallel by passing rc
         from ipyparallel import Client
         u_file = os.path.join(".ipython", "profile_default", "security", "ipcontroller-client.json")
+
+        time.sleep(3)
 
         # Wait for connection file to exist
         for _ in range(30):
@@ -236,6 +236,11 @@ class TestProject(unittest.TestCase):
             self.assertTrue((serial_synapses == parallel_synapses).all())
 
             sl2.close()
+
+        if self.cluster_process.stdout:
+            self.cluster_process.stdout.close()
+        if self.cluster_process.stderr:
+            self.cluster_process.stderr.close()
 
         rc.shutdown(hub=True)
         rc.close()
