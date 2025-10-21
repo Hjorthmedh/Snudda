@@ -76,8 +76,32 @@ class TestCLI(unittest.TestCase):
                 stderr=subprocess.PIPE
             )
 
+            time.sleep(3)
+
+            from ipyparallel import Client
+            u_file = os.path.join(".ipython", "profile_default", "security", "ipcontroller-client.json")
+
+            # Wait for connection file to exist
+            for _ in range(30):
+                if os.path.exists(u_file):
+                    break
+                time.sleep(1)
+                print(".")
+            else:
+                raise RuntimeError("ipcontroller connection file not created")
+
+            print(f"Found {u_file}, proceeding.")
+
+            rc = Client(url_file=u_file, timeout=120, debug=False)
+
+            try:
+                rc.wait_for_engines(n=4, timeout=60)
+            except Exception as e:
+                raise RuntimeError(f"Engines did not start within 60 seconds: {e}")
+
+
             # os.system("ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&")
-            time.sleep(15)
+            # time.sleep(15)
 
         # with self.subTest(stage="init-parallel-BIG"):
         #     run_cli_command("init tiny_parallel --size 1000000 --overwrite")
@@ -122,11 +146,20 @@ class TestCLI(unittest.TestCase):
         #    run_cli_command("place large_parallel --parallel")
 
         with self.subTest(stage="parallel-stop"):
-            self.cluster_process.terminate()  # sends SIGTERM
-            try:
-                self.cluster_process.wait(timeout=10)
-            except subprocess.TimeoutExpired:
-                self.cluster_process.kill()            # os.system("ipcluster stop")
+
+            if self.cluster_process.stdout:
+                self.cluster_process.stdout.close()
+            if self.cluster_process.stderr:
+                self.cluster_process.stderr.close()
+
+            rc.shutdown(hub=True)
+            rc.close()
+
+            # self.cluster_process.terminate()  # sends SIGTERM
+            # try:
+            #     self.cluster_process.wait(timeout=10)
+            # except subprocess.TimeoutExpired:
+            #     self.cluster_process.kill()            # os.system("ipcluster stop")
 
         #  Only serial tests below this line, we stopped ipcluster.
 
