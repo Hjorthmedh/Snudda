@@ -1,0 +1,362 @@
+{
+    
+    "dspn": {
+
+	"cortical": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json",
+	    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"
+
+	},
+	
+	"cortical_contralateral": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/M1LH_Analysis_191001.h5-parameters-MS.json",
+	    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"
+	},
+
+	"cortical_background": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json",
+	    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"	    
+	},
+	
+	"thalamic": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json",
+	    "synapse_density": "0.05*exp(-d/200e-6)",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"	    
+	},
+
+	"thalamic_background": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json",
+	    "synapse_density": "0.05*exp(-d/200e-6)",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"	    
+	}
+
+    },
+
+    "ispn": {
+
+	"cortical": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json",
+	    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"	    
+	},
+	
+	"cortical_contralateral": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/M1LH_Analysis_191001.h5-parameters-MS.json",
+	    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"
+	},
+
+	"cortical_background": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json",
+	    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"	    
+	},
+	
+	"thalamic": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json",
+	    "synapse_density": "0.05*exp(-d/200e-6)",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"	    
+	},
+
+	"thalamic_background": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-MS.json",
+	    "synapse_density": "0.05*exp(-d/200e-6)",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"	    
+	}
+
+    },
+
+    "fs": {
+	"cortical": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-FS.json",
+	    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"
+	},
+
+	"cortical_contralateral": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/M1LH_Analysis_191001.h5-parameters-FS.json",
+	    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"
+	},
+	
+	"cortical_background": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-FS.json",
+	    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"
+	},
+
+	"thalamic": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-FS.json",
+	    "synapse_density": "0.05*exp(-d/200e-6)",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"
+	},
+	
+	"thalamic_background": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-FS.json",
+	    "synapse_density": "0.05*exp(-d/200e-6)",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"
+	}	
+	
+    },
+
+    "lts": {
+	"cortical": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-LTS.json",
+	    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"
+	},
+
+	"cortical_contralateral": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/M1LH_Analysis_191001.h5-parameters-LTS.json",
+	    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"
+	},
+
+	"cortical_background": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-LTS.json",
+	    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"
+	}
+    },
+
+    "chin": {
+	"cortical": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-CHAT.json",
+	    "synapse_density":  "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"
+	},
+
+	"cortical_background": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-CHAT.json",
+	    "synapse_density":  "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"
+	},
+
+	"thalamic": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-CHAT.json",
+	    "synapse_density": "0.05*exp(-d/200e-6)",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"	    
+	},
+
+	"thalamic_background": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/TH_Analysis_191001.h5-parameters-CHAT.json",
+	    "synapse_density": "0.05*exp(-d/200e-6)",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"	    
+	}
+	
+    },
+
+    "ngf": {
+
+	"cortical": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/Cortex_parameters-NGF.json",
+	    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"
+	},
+
+	"cortical_background": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/Cortex_parameters-NGF.json",
+	    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"
+	},
+
+	"thalamic": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/TH_parameters-NGF.json",
+	    "synapse_density": "0.05*exp(-d/200e-6)",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"
+	},
+
+	"thalamic_background": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/TH_parameters-NGF.json",
+	    "synapse_density": "0.05*exp(-d/200e-6)",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"
+	}	
+		
+    },
+
+    "th": {
+
+	"cortical": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/Cortex_parameters-THIN.json",
+	    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"
+	},
+
+	"cortical_background": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/Cortex_parameters-THIN.json",
+	    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"
+	},
+
+	"thalamic": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/TH_parameters-THIN.json",
+	    "synapse_density": "0.05*exp(-d/200e-6)",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"
+	},
+
+	"thalamic_background": {
+	    "synapse_parameter_file": "$DATA/synapses/striatum/TH_parameters-THIN.json",
+	    "synapse_density": "0.05*exp(-d/200e-6)",
+	    "cluster_size": null,
+	    "cluster_spread": null,
+	    "conductance": 0.5e-9,
+	    "correlation": 0.0,
+	    "type": "AMPA_NMDA",
+	    "mod_file": "tmGlut"
+	}
+	
+    }
+    
+    
+ 
+
+    
+}

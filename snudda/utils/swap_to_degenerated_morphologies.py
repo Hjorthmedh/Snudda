@@ -498,40 +498,6 @@ class SwapToDegeneratedMorphologies:
 
         return new_param_key, new_morph_key, new_neuron_path, new_morph_name, parameter_id, morphology_id
 
-    def get_sec_location(self, coords, neuron_path, snudda_data,
-                         parameter_key, morphology_key, max_dist=5.41e-6):
-
-        raise DeprecationWarning("This function is no longer used. It is based on old NeuronMorphology -- REMOVE?")
-        assert False, "Do not run this!"
-
-        morph = self.get_morphology(neuron_path=neuron_path,
-                                    parameter_key=parameter_key,
-                                    morphology_key=morphology_key,
-                                    snudda_data=snudda_data)
-
-        dend = self.get_kd_tree(morph, "dend")
-        sec_id = np.zeros((dend.shape[0],), dtype=int)
-        sec_x = np.zeros((dend.shape[0],))
-
-        coord_to_sec_id_x = dict()
-        for link, sec_id, sec_x in zip(morph.dend_links, morph.dend_sec_id, morph.dend_sec_x):
-            coord = morph.dend[link[1], :]
-
-            coord_to_sec_id_x[coord] = (sec_id, sec_x[1])
-
-        for idx, coord in enumerate(coords):
-            closest_dist, closest_point = dend.query(coord)
-
-            if closest_dist <= max_dist:
-                syn_sec_id, syn_sec_x = coord_to_sec_id_x[morph.dend[closest_point, :3]]
-                sec_id[idx] = syn_sec_id
-                sec_x[idx] = syn_sec_x
-            else:
-                sec_id[idx] = np.nan
-                sec_x[idx] = np.nan
-
-        return sec_id, sec_x
-
     def write_new_input_file(self, remap_removed_input=False, remapped_fraction=1.0):
 
         if self.original_input_file is None:
