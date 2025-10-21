@@ -2105,7 +2105,13 @@ class SnuddaInput(object):
 
         xyz, sec_id, sec_x, dist_to_soma = input_loc
 
-        soma_xyz = np.atleast_2d(soma_pos).repeat(repeats=n_soma_synapses, axis=0)
+        # soma_xyz = np.atleast_2d(soma_pos).repeat(repeats=n_soma_synapses, axis=0)
+
+        # Synapse coordinates are not written to file, so let's stay with SWC file coordinates
+        # Scott helped point out that we were already using that for dendrites, since the neurons are
+        # not positioned or rotated before input synapse placement (and we do not save the xyz in the input file)
+        soma_xyz = np.atleast_2d([0,0,0]).repeat(repeats=n_soma_synapses, axis=0)
+
         soma_sec_id = np.full((n_soma_synapses, ), -1)
         soma_sec_x = np.full((n_soma_synapses, ), 0.5)
         soma_dist_to_soma = np.zeros((n_soma_synapses, ))
