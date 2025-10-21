@@ -76,6 +76,8 @@ class TestCLI(unittest.TestCase):
                 stderr=subprocess.PIPE
             )
 
+            time.sleep(3)
+
             from ipyparallel import Client
             u_file = os.path.join(".ipython", "profile_default", "security", "ipcontroller-client.json")
 
