@@ -17,6 +17,8 @@ class VirtualInput:
 
     def write_data(self):
 
+        sim_dt = 0.025e-3
+
         data = []
         mapping = []
 
@@ -28,7 +30,7 @@ class VirtualInput:
 
         with open(self.spike_file, "wt") as f:
             for row in data:
-                filtered_row = np.unique(np.round(row, 6))
+                filtered_row = np.unique(np.round(row/sim_dt)*sim_dt)
                 s = " ".join([f"{x:.6f}" for x in filtered_row])
                 f.write(f"{s}\n")
 
