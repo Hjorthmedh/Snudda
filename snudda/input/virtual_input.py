@@ -28,7 +28,8 @@ class VirtualInput:
 
         with open(self.spike_file, "wt") as f:
             for row in data:
-                s = " ".join([f"{x:.6f}" for x in row])
+                # s = " ".join([f"{x:.6f}" for x in row])
+                s = " ".join([f"{x}" for x in row])
                 f.write(f"{s}\n")
 
     def poisson_spikes(self, frequency, max_time, rng=None):
