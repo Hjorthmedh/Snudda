@@ -15,7 +15,6 @@
 ############################################################################
 
 import copy
-import gc
 import json
 import os
 import re
@@ -3071,7 +3070,11 @@ class SnuddaSimulate(object):
 
         self.sim = None
 
-        gc.collect()
+        try:
+            import gc
+            gc.collect()
+        except:
+            pass
 
 ############################################################################
 
