@@ -1165,12 +1165,20 @@ class SnuddaInput(object):
             # self.write_log(f"No population spikes specified for neuron type {neuron_type}")
             input["population_unit_spikes"] = None
 
-            if "correlation" in input and input["correlation"] is not None:
-                if (isinstance(input["correlation"], (int, float)) and input["correlation"] > 0) \
-                    or (isinstance(input["correlation"], (list, np.ndarray)) and np.any(np.asarray(input["correlation"]) > 0)):
+            if "correlation" in input and input["correlation"] is not None\
+                    and "population_unit_id" in input and input["population_unit_id"] != 0:
+                
+                # Check if there are any NON-ZERO correlation values
+                has_nonzero_correlation = False
 
-                    raise ValueError(f"If input correlation > 0, then you need to specify the generator and frequency "
-                                     f"otherwise no population spikes can be prepared. {input =}")
+                if isinstance(input["correlation"], (int, float)):
+                    has_nonzero_correlation = (input["correlation"] != 0)
+                elif isinstance(input["correlation"], (list, np.ndarray)):
+                    has_nonzero_correlation = np.any(np.asarray(input["correlation"]) != 0)
+
+                if has_nonzero_correlation:
+                    raise ValueError(f"If input correlation has non-zero values, then population spikes must have been "
+                                     f"pre-generated. No population spikes found. {input =}")
 
         return input
 
