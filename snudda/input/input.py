@@ -1170,7 +1170,7 @@ class SnuddaInput(object):
                     or (isinstance(input["correlation"], (list, np.ndarray)) and np.any(np.asarray(input["correlation"]) > 0)):
 
                     raise ValueError(f"If input correlation > 0, then you need to specify the generator and frequency "
-                                     f"otherwise no population spikes can be prepared")
+                                     f"otherwise no population spikes can be prepared. {input =}")
 
         return input
 
