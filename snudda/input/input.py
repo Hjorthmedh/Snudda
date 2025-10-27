@@ -625,6 +625,18 @@ class SnuddaInput(object):
                     # No population unit spike trains needed for virtual neurons, reads input from file
                     pass
 
+                elif "generator" not in self.input_info[cell_type][input_type]:
+
+                    if "correlation" in self.input_info[cell_type][input_type] \
+                        and self.input_info[cell_type][input_type]["correlation"] is not None \
+                        and self.input_info[cell_type][input_type]["correlation"] > 0:
+
+                        self.write_log(f"Error: Input {input_type} to {cell_type}. If a non-zero correlation is specified, you need to also specify generator.", is_error=True)
+                        raise ValueError(f"Error: Input {input_type} to {cell_type}. If a non-zero correlation is specified, you need to also specify generator.")
+
+                    # No population unit spikes, since correlation is zero!
+                    self.population_unit_spikes[cell_type][input_type] = dict([])
+
                 # Handle Poisson input
                 elif self.input_info[cell_type][input_type]["generator"] == "poisson":
 
@@ -1152,6 +1164,10 @@ class SnuddaInput(object):
         else:
             # self.write_log(f"No population spikes specified for neuron type {neuron_type}")
             input["population_unit_spikes"] = None
+
+            if "correlation" in input and input["correlation"] is not None and input["correlation"] > 0:
+                raise ValueError[(f"If input correlation > 0, then you need to specify the generator and frequency "
+                                  f"otherwise no population spikes can be prepared")]
 
         return input
 
