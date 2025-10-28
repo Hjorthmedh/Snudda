@@ -290,7 +290,7 @@ class Snudda(object):
 
     def create_network_wrapper(self, args):
 
-        self.create_network()
+        self.create_network(input_config=args.input, verbose=args.verbose)
 
     ############################################################################
 

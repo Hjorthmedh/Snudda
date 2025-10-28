@@ -764,8 +764,12 @@ class SnuddaSimulate(object):
 
                 if "channel_parameters" in info_dict and info_dict["channel_parameters"] is not None:
                     channel_param_dict = copy.deepcopy(info_dict["channel_parameters"])
-                    mod_file = channel_param_dict["mod_file"]
 
+                    if "mod_file" not in channel_param_dict:
+                        raise ValueError(f"Missing mod_file for {syn_type} between {pre_type} and {post_type}")
+
+                    mod_file = channel_param_dict["mod_file"]
+                    
                     # TODO: Sanity check on the mod_file string
                     if mod_file:
                         eval_str = f"self.sim.neuron.h.{mod_file}"

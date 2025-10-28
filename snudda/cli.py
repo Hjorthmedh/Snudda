@@ -28,6 +28,7 @@ def snudda_cli():
 
     create_parser = sub_parsers.add_parser("create")
     create_parser.add_argument("path", help="Location of network")
+    create_parser.add_argument("-input", "--input", help="Input config")
     create_parser.add_argument("-overwrite", "--overwrite", help="Allow overwriting of old directory", action="store_true")
     create_parser.add_argument("-parallel", "--parallel", action="store_true", default=False)
     create_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
