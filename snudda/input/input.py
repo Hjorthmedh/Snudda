@@ -1167,7 +1167,7 @@ class SnuddaInput(object):
 
             if "correlation" in input and input["correlation"] is not None\
                     and "population_unit_id" in input and input["population_unit_id"] != 0:
-                
+
                 # Check if there are any NON-ZERO correlation values
                 has_nonzero_correlation = False
 

@@ -440,6 +440,7 @@ class OptimisePruning:
 
         con_data[connection_type]["pruning"] = self.get_parameters(res=res, optimisation_info=self.optimisation_info,
                                                                    truncate_decimals=truncate_decimals)
+
         if "pruning_other" in con_data[connection_type]:
             del con_data[connection_type]["pruning_other"]
 
