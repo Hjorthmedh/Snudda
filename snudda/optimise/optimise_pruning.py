@@ -443,7 +443,7 @@ class OptimisePruning:
 
         if "pruning_other" in con_data[connection_type]:
             del con_data[connection_type]["pruning_other"]
-            
+
         config_data["connectivity"][f"{pre_type},{post_type}"] = con_data
 
         with open(file_name, "w") as f:
