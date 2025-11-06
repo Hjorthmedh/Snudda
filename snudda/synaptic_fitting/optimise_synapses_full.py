@@ -1411,7 +1411,7 @@ if __name__ == "__main__":
     parser.add_argument("--compile", action="store_true", help="Compile NEURON modules")
 
     parser.add_argument("--data", help="Snudda data directory")
-    parser.add_argument("--nTrials", help="Number of trials", default=2)
+    parser.add_argument("--nTrials", help="Number of trials", default=2, type=int)
 
     args = parser.parse_args()
 
