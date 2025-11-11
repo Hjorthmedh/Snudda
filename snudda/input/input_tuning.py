@@ -152,8 +152,8 @@ class InputTuning(object):
         self.input_duration = input_duration
         self.max_time = self.input_duration * len(self.frequency_range)
 
-        input_info_file = snudda_parse_path(os.path.join("$SNUDDA_DATA", "input_config", "input_info.json",
-                                                         self.snudda_data))
+        input_info_file = snudda_parse_path(os.path.join("$SNUDDA_DATA", "input_config", "input_info.json"),
+                                                         self.snudda_data)
         with open(input_info_file, "r") as f:
             input_info = json.load(f)
 
