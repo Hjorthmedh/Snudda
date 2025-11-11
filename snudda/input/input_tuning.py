@@ -137,7 +137,8 @@ class InputTuning(object):
                     input_duration=10,
                     input_frequency_range=None,
                     input_correlation=None,
-                    use_meta_input=True, generate=True, clear_old_input=True):
+                    use_meta_input=True, generate=True, clear_old_input=True,
+                    extra_fixed_input=None):
 
         if clear_old_input:
             self.input_info = None
@@ -164,7 +165,8 @@ class InputTuning(object):
                                  n_input_min=num_input_min,
                                  n_input_max=num_input_max,
                                  num_input_steps=num_input_steps,
-                                 input_duration=self.input_duration)
+                                 input_duration=self.input_duration,
+                                 extra_fixed_input=extra_fixed_input)
 
         if generate:
             self.generate_input_helper(use_meta_input=use_meta_input)
@@ -198,6 +200,7 @@ class InputTuning(object):
                                input_fraction=[0.5, 0.5],
                                num_input_min=10, num_input_max=500,
                                input_frequency=[1, 1], input_duration=10,
+                               extra_fixed_input=None,
                                generate_input=True):
 
         """ Tries to find the maximum number of synapses that will not make the neuron spike. """
@@ -230,7 +233,8 @@ class InputTuning(object):
                              input_frequency_range=[frequency],
                              use_meta_input=False,
                              generate=gf,
-                             clear_old_input=cf)
+                             clear_old_input=cf,
+                             extra_fixed_input=extra_fixed_input)
 
     def setup_input_verification(self, input_type="cortical", neuron_type="dSPN",
                                  input_frequency_range=None,
@@ -1600,7 +1604,8 @@ class InputTuning(object):
                             input_type,
                             n_input_min, n_input_max, num_input_steps,
                             input_frequency,
-                            input_duration=10.0):
+                            input_duration=10.0,
+                            extra_fixed_input=None):
 
         # assert n_input_min > 0, "No point using n_input_min=0, please instead use input_frequency 0."
 
@@ -1662,6 +1667,11 @@ class InputTuning(object):
                                cluster_spread=cluster_spread,
                                mod_file=mod_file,
                                synapse_type=synapse_type)
+
+                if extra_fixed_input is not None:
+                    for inp_name, inp_data in extra_fixed_input.items():
+                        print(f"Adding {inp_name} to neuron {neuron_id}")
+                        self.input_info[str(neuron_id)][inp_name] = inp_data
 
         with open(input_config_file, "w") as f:
             json.dump(self.input_info, f, indent=4, cls=NumpyEncoder)
