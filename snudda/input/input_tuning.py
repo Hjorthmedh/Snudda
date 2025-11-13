@@ -616,8 +616,11 @@ class InputTuning(object):
                         else:
                             new_config[input_name]["frequency"] = new_config[input_name]["frequency"][0]
 
-                    del new_config[input_name]["start"]
-                    del new_config[input_name]["end"]
+                    if "start" in new_config[input_name]:
+                        del new_config[input_name]["start"]
+
+                    if "end" in new_config[input_name]:
+                        del new_config[input_name]["end"]
 
                     # If parameter_file and parameter-ist both are given, only keep the latter
                     if "parameter_file" in new_config[input_name] and "parameter_list" in new_config[input_name]:
