@@ -611,7 +611,10 @@ class InputTuning(object):
                         new_config[input_name]["frequency"] = set_frequency
                     else:
                         # Use the frequency from the input tuning
-                        new_config[input_name]["frequency"] = new_config[input_name]["frequency"][0]
+                        if isinstance(new_config[input_name]["frequency"], float):
+                            new_config[input_name]["frequency"] = new_config[input_name]["frequency"]
+                        else:
+                            new_config[input_name]["frequency"] = new_config[input_name]["frequency"][0]
 
                     del new_config[input_name]["start"]
                     del new_config[input_name]["end"]
