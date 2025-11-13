@@ -175,7 +175,7 @@ class OptimiseSynapsesFull(object):
         with open(data_file, "r") as f:
             self.data = json.load(f, object_pairs_hook=OrderedDict)
 
-            self.volt = np.array(self.data["data"]["mean_norm_trace"])
+            self.volt = np.array(self.data["data"]["mean_norm_trace"]).flatten()
             self.sample_freq = self.data["meta_data"]["sample_frequency"]
 
             if "holding_voltage" in self.data["meta_data"]:
@@ -198,7 +198,7 @@ class OptimiseSynapsesFull(object):
             self.write_log("No servants are allowed to write output to json, ignoring call.")
             return
 
-        print(f"Saving data to {self.parameter_data_file_name}")
+        self.write_log(f"Saving data to {self.parameter_data_file_name}")
         self.synapse_parameter_data.save(self.parameter_data_file_name)
 
     def load_parameter_data(self):
@@ -265,10 +265,14 @@ class OptimiseSynapsesFull(object):
         plt.figure()
         t_idx = np.where(skip_time <= self.time)[0]
 
-        plt.plot(self.time[t_idx] * 1e3, self.volt[t_idx] * 1e3, 'r-')
+        plt.plot(self.time[t_idx] * 1e3, self.volt[t_idx], 'r-')
         if v_plot is not None:
+
+            # Normalise plot
+            v_plot = (v_plot - np.min(v_plot))/(np.max(v_plot) - np.min(v_plot))
+
             t2_idx = np.where(skip_time <= t_plot)[0]
-            plt.plot(t_plot[t2_idx] * 1e3, v_plot[t2_idx] * 1e3, 'k-')
+            plt.plot(t_plot[t2_idx] * 1e3, v_plot[t2_idx], 'k-')
 
         if not pretty_plot:
             title_str = self.cell_type
@@ -284,26 +288,28 @@ class OptimiseSynapsesFull(object):
             v_scale_x = 1200
             # vMax = np.max(vPlot[np.where(tPlot > 0.050)[0]])
             v_base = v_plot[-1]
-            y_scale_bar = v_base * 1e3 + float(np.diff(plt.ylim())) / 4
+            # y_scale_bar = v_base * 1e3 + float(np.diff(plt.ylim())) / 4
+            y_scale_bar = v_base + float(np.diff(plt.ylim())) / 4
+
             v_scale_y1 = y_scale_bar + 1
             v_scale_y2 = y_scale_bar
             t_scale_y = y_scale_bar
             t_scale_x1 = v_scale_x
             t_scale_x2 = v_scale_x + 100
 
-            plt.plot([v_scale_x, v_scale_x], [v_scale_y1, v_scale_y2], color="black")
+            # plt.plot([v_scale_x, v_scale_x], [v_scale_y1, v_scale_y2], color="black")
             plt.plot([t_scale_x1, t_scale_x2], [t_scale_y, t_scale_y], color="black")
 
-            plt.text(v_scale_x - 100, v_scale_y2 + 0.20 * float(np.diff(plt.ylim())),
-                     ("%.0f" % (v_scale_y1 - v_scale_y2)) + " mV",
-                     rotation=90)
+            # plt.text(v_scale_x - 100, v_scale_y2 + 0.20 * float(np.diff(plt.ylim())),
+            #          ("%.0f" % (v_scale_y1 - v_scale_y2)) + " mV",
+            #          rotation=90)
             plt.text(v_scale_x, v_scale_y2 - float(np.diff(plt.ylim())) / 10,
                      ("%.0f" % (t_scale_x2 - t_scale_x1) + " ms"))
 
             # Mark optogenetical stimulation
             y_height = float(np.diff(plt.ylim())) / 13
 
-            t_stim = self.stim_time
+            t_stim = self.stim_time * 1e3
             y_stim_marker1 = v_plot[-1] * 1e3 - 1.5 * y_height
             y_stim_marker2 = v_plot[-1] * 1e3 - 2.5 * y_height
             for ts in t_stim:
@@ -312,7 +318,9 @@ class OptimiseSynapsesFull(object):
             plt.axis("off")
 
         plt.xlabel("Time (ms)")
-        plt.ylabel("Volt (mV)")
+        # plt.ylabel("Volt (mV)")
+        plt.ylabel("Normalised volt")
+
 
         if not os.path.exists("figures/"):
             os.makedirs("figures/")
@@ -384,6 +392,12 @@ class OptimiseSynapsesFull(object):
             t_end = pt + pw
 
             t_idx = np.where(np.logical_and(t_start <= time, time <= t_end))[0]
+
+            if len(t_idx) == 0:
+                print(f"No time points within {t_start} and {t_end}")
+                import pdb
+                pdb.set_trace()
+
             assert len(t_idx) > 0, f"No time points within {t_start} and {t_end}"
 
             if self.synapse_type == "glut":
@@ -1112,13 +1126,16 @@ class OptimiseSynapsesFull(object):
                             smooth_exp_trace8=self.smooth_exp_volt8,
                             smooth_exp_trace9=self.smooth_exp_volt9)
 
+            self.save_parameter_data()
+
+
         self.write_log(f"Sobol search done. Best parameter {self.synapse_parameter_data.get_best_parameterset()}")
 
         if post_opt:
             # This updates parameters and saves new parameter cache
             self.get_refined_parameters()
 
-        self.save_parameter_data()
+            self.save_parameter_data()
 
         end_time = timeit.default_timer()
 
@@ -1486,3 +1503,6 @@ if __name__ == "__main__":
         sys.exit(0)
 
     ly.parallel_optimise_single_cell(n_trials=args.nTrials)
+
+    if d_view is not None:
+        d_view.client.close()
