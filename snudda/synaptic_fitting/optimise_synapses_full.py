@@ -23,6 +23,12 @@ from snudda.synaptic_fitting.parameter_bookkeeper import ParameterBookkeeper
 # TODO: 2021-05-11 -- Set self.synapse_parameters
 # TODO: 2021-05-28 -- Holdign voltage currently set in neuronSet.json file, we should allow it to be overriden by trace data json file
 
+# TODO: 2025-11-13 -- Check that serial and parallel version are doing the same thing
+#                     check how the error is computed, do a pdb, plot and verify...
+#                     double check the normalisation, and peak calculation
+#                     when continuing an optimsation, do we use the old best value as
+#                     starting point, or are we randomly picking start points...    
+
 #
 #
 # python3 optimise_synapses_full.py DATA/Yvonne2020/M1RH-ipsi_MSN_D1_20Hz_depressing.json --synapseParameters ../data/synapses/v3/M1RH-ipsi_D1-MSN.json --st glut
