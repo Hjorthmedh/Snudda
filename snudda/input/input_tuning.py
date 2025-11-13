@@ -502,7 +502,10 @@ class InputTuning(object):
         for ctr, nid in enumerate(neuron_id):
             # Get total input.
             for input_conf in input_config[str(nid)].values():
-                n_inputs_total[ctr] += input_conf["num_inputs"]
+                if "num_inputs" in input_config:
+                    # Some neurons might be specified with density (for extra background, ignore those)
+                    n_inputs_total[ctr] += input_conf["num_inputs"]
+
 
         best_idx = np.where(neuron_id == best_neuron_id)[0]
 
@@ -525,6 +528,8 @@ class InputTuning(object):
         if show_plot:
             plt.ion()
             plt.show()
+        else:
+            plt.close()
 
     def plot_signal_info(self, neuron_id, neuron_info, best_config, spike_count, input_config,
                          max_time, requested_frequency, skip_time=0,
