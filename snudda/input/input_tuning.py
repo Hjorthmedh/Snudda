@@ -502,10 +502,9 @@ class InputTuning(object):
         for ctr, nid in enumerate(neuron_id):
             # Get total input.
             for input_conf in input_config[str(nid)].values():
-                if "num_inputs" in input_config:
+                if "num_inputs" in input_conf:
                     # Some neurons might be specified with density (for extra background, ignore those)
                     n_inputs_total[ctr] += input_conf["num_inputs"]
-
 
         best_idx = np.where(neuron_id == best_neuron_id)[0]
 
