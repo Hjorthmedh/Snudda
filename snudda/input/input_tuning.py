@@ -196,7 +196,7 @@ class InputTuning(object):
                 si.generate()
 
     def setup_background_input(self, input_types=["cortical_background", "thalamic_background"],
-                               input_density=["1.15*0.05/(1+exp(-(d-30e-6)/5e-6))", "0.05*exp(-d/200e-6)"],
+                               input_density=["1.15*0.05/(1+exp(-(d-30e-6)/5e-6))", "1"],
                                input_fraction=[0.5, 0.5],
                                num_input_min=10, num_input_max=500,
                                input_frequency=[1, 1], input_duration=10,
@@ -1974,7 +1974,7 @@ if __name__ == "__main__":
         print(f"Setting up background input, will do cortical and thalamic background 50-50 at {input_frequency}")
 
         input_scaling.setup_background_input(input_types=["cortical_background", "thalamic_background"],
-                                             input_density=["1.15*0.05/(1+exp(-(d-30e-6)/5e-6))", "0.05*exp(-d/200e-6)"],
+                                             input_density=["1.15*0.05/(1+exp(-(d-30e-6)/5e-6))", "1"],
                                              input_fraction=[0.5, 0.5],
                                              num_input_min=args.numInputMin,
                                              num_input_max=args.numInputMax,
