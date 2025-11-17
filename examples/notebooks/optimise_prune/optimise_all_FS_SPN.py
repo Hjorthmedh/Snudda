@@ -14,6 +14,8 @@ con_types = [('FS', 'FS', 4),
              ('iSPN', 'iSPN', 3)]
 
 
+param_names = ["f1", "softMax", "mu2", "a3"]
+
 n_neurons = 150
 con_type = "GABA"
 
@@ -84,6 +86,7 @@ for ct in con_types:
             # The parameters here does not matter, they will be set during optimisation
             si.add_neuron_target(neuron_name=pre_type,
                                  target_name=post_type,
+                                 region_name="Cube",
                                  connection_type=con_type,
                                  dist_pruning=None,
                                  f1=None, soft_max=None, mu2=None,
@@ -105,31 +108,23 @@ for ct in con_types:
 
             print(f"connectivity_distributions = {op.prune.connectivity_distributions}")
             print(f"type_id_lookup = {op.prune.type_id_lookup}")
-            print(f"From hist_file: {op.prune.hist_file['meta/connectivityDistributions'][()]}")
+            print(f"From hist_file: {op.prune.hist_file['meta/connectivity_distributions'][()]}")
 
             res = op.optimize(pre_type=pre_type, post_type=post_type, con_type=con_type,
                               experimental_data=experimental_data,
                               avg_num_synapses_per_pair=avg_num_synapses_per_pair,
                               extra_pruning_parameters=extra_pruning_parameters,
-                              workers=8, maxiter=1000, tol=0.00001, num_params=num_params)
+                              workers=8, maxiter=1000, tol=0.00001,
+                              param_names=param_names, param_bounds="default")
 
-            if num_params == 1:
-                param_str = f"f1 = %f" % (res.x[0])
-            elif num_params == 2:
-                param_str = f"f1 = %f, mu2 = %f" % (res.x[0], res.x[1])
-            elif num_params == 3:
-                param_str = f"f1 = %f, mu2 = %f, a3 = %f" % (res.x[0], res.x[1], res.x[2])
-            elif num_params == 4:
-                param_str = f"f1 = %f, softMax = %f, mu2 = %f, a3 = %f" % (res.x[0], res.x[1], res.x[2], res.x[3])
-            else:
-                param_str = res.x
+            param_str = []
+            for p_name, p_val in zip(param_names, res.x):
+                param_str.append(f"{p_name} = {p_val}")
 
-            if "distPruning" in extra_pruning_parameters:
-                param_str += f" ({extra_pruning_parameters['distPruning']})"
-
+            param_str = ", ".join(param_str)
+                
             print(param_str)
-            print(res)
-
+            
             # Get the last file
             # list_of_files = glob.glob(os.path.join(network_path, "temp", "network-synapses-*hdf5"))
             # network_file = max(list_of_files, key=os.path.getctime)
