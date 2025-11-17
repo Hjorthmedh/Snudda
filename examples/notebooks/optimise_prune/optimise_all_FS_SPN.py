@@ -35,7 +35,7 @@ for ct in con_types:
     OptimisePruning.op = None
 
     for dist_dep in [True, False]:
-        for num_params in [1, 2, 3, 4]:
+        # for num_params in [1, 2, 3, 4]:
 
             pre_type = ct[0]
             post_type = ct[1]
@@ -55,7 +55,7 @@ for ct in con_types:
                     distance_dependent_pruning = False
 
             dd_str = "_dd" if distance_dependent_pruning else ""
-            network_path = os.path.join("networks", f"{pre_type}_to_{post_type}_np{num_params}{dd_str}")
+            network_path = os.path.join("networks", f"{pre_type}_to_{post_type}")
 
             experimental_data = all_experimental_data[pre_type, post_type]
 
