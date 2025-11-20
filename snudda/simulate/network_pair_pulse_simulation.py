@@ -237,7 +237,7 @@ class SnuddaNetworkPairPulseSimulation:
 
         print(f"Setting GABA reversal potential to {v_rev_cl * 1e3} mV")
 
-        for s in self.snudda_sim.synapse_list:
+        for s in self.snudda_sim.synapse_dict.values():
             assert s.e == -65, "It should be GABA synapses only that we modify!"
             s.e = v_rev_cl * 1e3
 
