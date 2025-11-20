@@ -22,7 +22,7 @@ class OptimisePruning:
     """ Optimises pruning parameters. First it creates a relatively small network and does touch detection on it.
         After that it does multiple pruning attempts (while keeping the files original detection files). """
 
-    def __init__(self, network_path, pop_size=10, epochs=10):
+    def __init__(self, network_path, pop_size=10, epochs=10, verbose=False):
 
         self.network_path = network_path
         self.pop_size = pop_size
@@ -40,6 +40,7 @@ class OptimisePruning:
         self.optimisation_info = dict()
 
         self.log_file = None
+        self.verbose = verbose
 
     def merge_putative_synapses(self, force_merge=False):
 
@@ -167,7 +168,7 @@ class OptimisePruning:
         out_file.close()
 
     def evaluate_fitness(self, pre_type, post_type, output_file, experimental_data,
-                         avg_num_synapses_per_pair=None, con_type="synapses"):
+                         avg_num_synapses_per_pair=None, con_type="synapses", min_z=None, max_z=None):
 
         """
 
@@ -184,7 +185,7 @@ class OptimisePruning:
         snudda_load = SnuddaLoad(network_file=output_file)
         snudda_data = snudda_load.data
 
-        connection_matrix = np.zeros((snudda_data["num_neurons"], snudda_data["num_neurons"]))
+        connection_matrix = np.zeros((snudda_data["num_neurons"], snudda_data["num_neurons"]), dtype=int)
 
         pre_id = snudda_load.get_neuron_id_of_type(neuron_type=pre_type)
         post_id = snudda_load.get_neuron_id_of_type(neuron_type=post_type)
@@ -197,10 +198,36 @@ class OptimisePruning:
 
         # print(f"snudda_data.keys = {snudda_data.keys()}")
 
-        for row in snudda_data[con_type]:
-            if pre_mask[row[0]] and post_mask[row[1]]:
-                # Only include connections between the right pre and post types
-                connection_matrix[row[0], row[1]] += 1
+        n_synapses_cut_off = 0
+
+        if con_type == "synapses":
+
+            for row, coord in zip(snudda_data["synapses"], snudda_data["synapse_coords"]):
+                if pre_mask[row[0]] and post_mask[row[1]]:
+                    # TODO: Ignore synapses outside of cut-plane
+
+                    if (min_z is not None and coord[2] < min_z) \
+                        or (max_z is not None and coord[2] > max_z):
+
+                        n_synapses_cut_off += 1
+                        continue
+
+                    # Only include connections between the right pre and post types
+                    connection_matrix[row[0], row[1]] += 1
+
+            n_kept = np.sum(connection_matrix)
+            if self.verbose:
+                print(f"{n_kept} synapses kept ({100.0*n_kept/(n_kept + n_synapses_cut_off):.2f} %), {n_synapses_cut_off} removed (outside slice)")
+
+        else:
+            assert min_z is None and max_z is None, "min_z and max_z is only currently supported for synapses, not gap junctions"
+
+            for row in snudda_data[con_type]:
+                if pre_mask[row[0]] and post_mask[row[1]]:
+                    # TODO: Ignore synapses outside of cut-plane
+
+                    # Only include connections between the right pre and post types
+                    connection_matrix[row[0], row[1]] += 1
 
         pos = snudda_data["neuron_positions"]
         # We need to extract the parts relevant
@@ -279,6 +306,10 @@ class OptimisePruning:
             output_file = os.path.join(optimisation_info["network_path"], "temp", f"network-synapses-{uuid.uuid4()}.hdf5")
         # print(f"Output file {output_file}")
 
+        # Only include synapses between min_z and max_z
+        min_z = optimisation_info.get("min_z", None)
+        max_z = optimisation_info.get("max_z", None)
+
         # This trick allows us to reuse the same OptimisePruning object, will be faster
         op = OptimisePruning.get_op(optimisation_info)
 
@@ -298,7 +329,8 @@ class OptimisePruning:
                                       output_file=output_file,
                                       experimental_data=optimisation_info["exp_data"],
                                       avg_num_synapses_per_pair=optimisation_info["avg_num_synapses_per_pair"],
-                                      con_type=con_type)
+                                      con_type=con_type,
+                                      min_z=min_z, max_z=max_z)
 
         # print(f"Evaluating f1 = {x[0]}, fitness: {fitness}\n{output_file}\n")
         # print(f"Fitness: {fitness}")
@@ -342,7 +374,8 @@ class OptimisePruning:
                  experimental_data,
                  param_names, param_bounds,
                  extra_pruning_parameters, avg_num_synapses_per_pair=None,
-                 workers=1, maxiter=50, tol=0.001, pop_size=None):
+                 workers=1, maxiter=50, tol=0.001, pop_size=None,
+                 min_z=None, max_z=None):
 
         start = timeit.default_timer()
 
@@ -375,6 +408,8 @@ class OptimisePruning:
         self.optimisation_info["network_path"] = self.network_path
         self.optimisation_info["param_names"] = param_names
         self.optimisation_info["param_bounds"] = param_bounds
+        self.optimisation_info["min_z"] = min_z
+        self.optimisation_info["max_z"] = max_z
 
         optimisation_info = self.optimisation_info
 
