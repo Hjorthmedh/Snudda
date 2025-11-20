@@ -257,7 +257,7 @@ class SnuddaNetworkPairPulseSimulation:
             print(f"Using user defined pre_id: {pre_id}")
             self.pre_id = pre_id
         else:
-            self.pre_id = [x["neuronID"] for x in self.snudda_sim.network_info["neurons"] if x["type"] == self.pre_type]
+            self.pre_id = [x["neuron_id"] for x in self.snudda_sim.network_info["neurons"] if x["type"] == self.pre_type]
 
         # inj_info contains (pre_id, inj_start_time)
         self.inj_info = list(zip(self.pre_id, self.inj_spacing + self.inj_spacing * np.arange(0, len(self.pre_id))))
@@ -332,7 +332,7 @@ class SnuddaNetworkPairPulseSimulation:
                   f"This must match what was used for simulation! BE CAREFUL!")
             self.pre_id = pre_id
         else:
-            self.pre_id = [x["neuronID"] for x in self.data["neurons"] if x["type"] == self.pre_type]
+            self.pre_id = [x["neuron_id"] for x in self.data["neurons"] if x["type"] == self.pre_type]
 
         if post_type is None:
             post_type = self.post_type
@@ -343,7 +343,7 @@ class SnuddaNetworkPairPulseSimulation:
             f"You can only analyse post_type data that you recorded (e.g. {self.post_type}), " \
             f"to record data from all neuron types use post_type=ALL"
 
-        self.possible_post_id = [x["neuronID"] for x in self.data["neurons"] if x["type"] == post_type]
+        self.possible_post_id = [x["neuron_id"] for x in self.data["neurons"] if x["type"] == post_type]
 
         # injInfo contains (preID,injStartTime)
         self.inj_info = zip(self.pre_id, self.inj_spacing + self.inj_spacing * np.arange(0, len(self.pre_id)))
@@ -359,12 +359,12 @@ class SnuddaNetworkPairPulseSimulation:
             synapses, coords = self.snudda_load.find_synapses(pre_id=pre_id)
 
             post_id_set = set(synapses[:, 1]).intersection(self.possible_post_id)
-            pre_pos = self.snudda_load.data["neuronPositions"][pre_id, :]
+            pre_pos = self.snudda_load.data["neuron_positions"][pre_id, :]
 
             for post_id in post_id_set:
 
                 if max_dist is not None:
-                    post_pos = self.snudda_load.data["neuronPositions"][post_id, :]
+                    post_pos = self.snudda_load.data["neuron_positions"][post_id, :]
                     if np.linalg.norm(pre_pos - post_pos) > max_dist:
                         too_far_away += 1
                         continue
