@@ -111,7 +111,7 @@ class SnuddaNetworkPairPulseSimulation:
         if log_file:
             self.log_file = log_file
         else:
-            self.log_file = os.path.join(network_path, "log", "pair-pulse.log")
+            self.log_file = os.path.join(self.network_path, "log", "pair-pulse.log")
 
         print(f"Using log file {self.log_file}")
 
@@ -170,10 +170,8 @@ class SnuddaNetworkPairPulseSimulation:
 
         cnc.write_json(config_name)
 
-        print(f"\n\nsnudda place {self.network_path}")
-        print(f"snudda detect {self.network_path}")
-        print(f"snudda prune {self.network_path}")
-        print(f"python3 snudda/utils/cut.py {self.network_path}/network-synapses.hdf5 abs(z)<100e-6")
+        print(f"\n\nsnudda create {self.network_path}")
+        print(f'python3 snudda/utils/cut.py {self.network_path}/network-synapses.hdf5 "abs(z)<100e-6"')
 
         print("\nThe last command will pop up a figure and enter debug mode,"
               " press ctrl+D in the terminal window after inspecting the plot to continue")
@@ -181,7 +179,7 @@ class SnuddaNetworkPairPulseSimulation:
         print("\n!!! Remember to compile the mod files: nrnivmodl data/neurons/mechanisms")
 
         print("\nTo run for example dSPN -> iSPN (and dSPN->dSPN) calibration:")
-        print(f"mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_network_pair_pulse_simulation.py "
+        print(f"mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 network_pair_pulse_simulation.py "
               f"run {self.exp_type} {self.network_path}/network-cut-slice.hdf5 dSPN iSPN")
 
         print(f"\npython3 snudda/simulate/network_pair_pulse_simulation.py analyse {self.exp_type} "
@@ -580,8 +578,7 @@ if __name__ == "__main__":
                                            hold_voltage=hold_v)
 
     if args.task == "setup":
-        pps.setup(args.networkFile,
-                  n_dSPN=n_dSPN, n_iSPN=n_iSPN,
+        pps.setup(n_dSPN=n_dSPN, n_iSPN=n_iSPN,
                   n_FS=n_FS, n_LTS=n_LTS, n_ChIN=n_ChIN)
 
     elif args.task == "run":
