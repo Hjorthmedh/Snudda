@@ -1927,6 +1927,7 @@ if __name__ == "__main__":
     parser.add_argument("--meta_input", action="store_true", default=False)
     parser.add_argument("--seed_list", type=str, default=None)
     parser.add_argument("--no_downsampling", action="store_true")
+    parser.add_argument("--input_info", type=str, default=None)
 
     args = parser.parse_args()
 
@@ -1954,7 +1955,8 @@ if __name__ == "__main__":
                                   num_replicas=args.numInputSteps,
                                   input_duration=args.inputDuration,
                                   input_frequency_range=input_frequency,
-                                  use_meta_input=args.no_meta_input)
+                                  use_meta_input=args.no_meta_input,
+                                  input_info_file=args.input_info)
 
         print(f"Tip, to run in parallel on your local machine use: "
               f"mpiexec -n 4 python3 tuning{os.path.sep}input_tuning.py simulate <yournetworkhere>")
