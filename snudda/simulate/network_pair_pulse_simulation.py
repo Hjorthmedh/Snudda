@@ -111,7 +111,7 @@ class SnuddaNetworkPairPulseSimulation:
         if log_file:
             self.log_file = log_file
         else:
-            self.log_file = os.path.join(network_path, "log", "pair-pulse.log")
+            self.log_file = os.path.join(self.network_path, "log", "pair-pulse.log")
 
         print(f"Using log file {self.log_file}")
 
@@ -170,10 +170,8 @@ class SnuddaNetworkPairPulseSimulation:
 
         cnc.write_json(config_name)
 
-        print(f"\n\nsnudda place {self.network_path}")
-        print(f"snudda detect {self.network_path}")
-        print(f"snudda prune {self.network_path}")
-        print(f"python3 snudda/utils/cut.py {self.network_path}/network-synapses.hdf5 abs(z)<100e-6")
+        print(f"\n\nsnudda create {self.network_path}")
+        print(f'python3 snudda/utils/cut.py {self.network_path}/network-synapses.hdf5 "abs(z)<100e-6"')
 
         print("\nThe last command will pop up a figure and enter debug mode,"
               " press ctrl+D in the terminal window after inspecting the plot to continue")
@@ -181,7 +179,7 @@ class SnuddaNetworkPairPulseSimulation:
         print("\n!!! Remember to compile the mod files: nrnivmodl data/neurons/mechanisms")
 
         print("\nTo run for example dSPN -> iSPN (and dSPN->dSPN) calibration:")
-        print(f"mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 snudda_network_pair_pulse_simulation.py "
+        print(f"mpiexec -n 12 -map-by socket:OVERSUBSCRIBE python3 network_pair_pulse_simulation.py "
               f"run {self.exp_type} {self.network_path}/network-cut-slice.hdf5 dSPN iSPN")
 
         print(f"\npython3 snudda/simulate/network_pair_pulse_simulation.py analyse {self.exp_type} "
@@ -239,9 +237,10 @@ class SnuddaNetworkPairPulseSimulation:
 
         print(f"Setting GABA reversal potential to {v_rev_cl * 1e3} mV")
 
-        for s in self.snudda_sim.synapse_list:
-            assert s.e == -65, "It should be GABA synapses only that we modify!"
-            s.e = v_rev_cl * 1e3
+        for s_list in self.snudda_sim.synapse_dict.values():
+            for s, _, _, _ in s_list:
+                assert s.e == -65, "It should be GABA synapses only that we modify!"
+                s.e = v_rev_cl * 1e3
 
     ############################################################################
 
@@ -259,7 +258,7 @@ class SnuddaNetworkPairPulseSimulation:
             print(f"Using user defined pre_id: {pre_id}")
             self.pre_id = pre_id
         else:
-            self.pre_id = [x["neuronID"] for x in self.snudda_sim.network_info["neurons"] if x["type"] == self.pre_type]
+            self.pre_id = [x["neuron_id"] for x in self.snudda_sim.network_info["neurons"] if x["type"] == self.pre_type]
 
         # inj_info contains (pre_id, inj_start_time)
         self.inj_info = list(zip(self.pre_id, self.inj_spacing + self.inj_spacing * np.arange(0, len(self.pre_id))))
@@ -334,7 +333,7 @@ class SnuddaNetworkPairPulseSimulation:
                   f"This must match what was used for simulation! BE CAREFUL!")
             self.pre_id = pre_id
         else:
-            self.pre_id = [x["neuronID"] for x in self.data["neurons"] if x["type"] == self.pre_type]
+            self.pre_id = [x["neuron_id"] for x in self.data["neurons"] if x["type"] == self.pre_type]
 
         if post_type is None:
             post_type = self.post_type
@@ -345,7 +344,7 @@ class SnuddaNetworkPairPulseSimulation:
             f"You can only analyse post_type data that you recorded (e.g. {self.post_type}), " \
             f"to record data from all neuron types use post_type=ALL"
 
-        self.possible_post_id = [x["neuronID"] for x in self.data["neurons"] if x["type"] == post_type]
+        self.possible_post_id = [x["neuron_id"] for x in self.data["neurons"] if x["type"] == post_type]
 
         # injInfo contains (preID,injStartTime)
         self.inj_info = zip(self.pre_id, self.inj_spacing + self.inj_spacing * np.arange(0, len(self.pre_id)))
@@ -361,12 +360,12 @@ class SnuddaNetworkPairPulseSimulation:
             synapses, coords = self.snudda_load.find_synapses(pre_id=pre_id)
 
             post_id_set = set(synapses[:, 1]).intersection(self.possible_post_id)
-            pre_pos = self.snudda_load.data["neuronPositions"][pre_id, :]
+            pre_pos = self.snudda_load.data["neuron_positions"][pre_id, :]
 
             for post_id in post_id_set:
 
                 if max_dist is not None:
-                    post_pos = self.snudda_load.data["neuronPositions"][post_id, :]
+                    post_pos = self.snudda_load.data["neuron_positions"][post_id, :]
                     if np.linalg.norm(pre_pos - post_pos) > max_dist:
                         too_far_away += 1
                         continue
@@ -580,8 +579,7 @@ if __name__ == "__main__":
                                            hold_voltage=hold_v)
 
     if args.task == "setup":
-        pps.setup(args.networkFile,
-                  n_dSPN=n_dSPN, n_iSPN=n_iSPN,
+        pps.setup(n_dSPN=n_dSPN, n_iSPN=n_iSPN,
                   n_FS=n_FS, n_LTS=n_LTS, n_ChIN=n_ChIN)
 
     elif args.task == "run":
