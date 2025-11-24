@@ -17,13 +17,16 @@ class PlotReactionDiffusion:
     def list_neuron_info(self, neuron_id):
         return self.sls.list_data_types(neuron_id=neuron_id)
 
-    def plot(self, neuron_id, species=None, ylabel="Concentration (mM)",
+    def plot(self, neuron_id, species=None, species_label=None,
+             ylabel="Concentration (mM)",
              compartment_id = 0,
              fig_name=None, fig_path="figures", title=None):
 
         """ compartment_id is based on the order the compartments are added, ie. 0 is first one added, usually soma"""
 
-        pio.renderers.default = "iframe"  # Do not save plots in the notebook, they can get BIG
+        # pio.renderers.default = "iframe"  # Do not save plots in the notebook, they can get BIG
+        pio.renderers.default = "plotly_mimetype"
+
         fig = go.Figure()
 
         if species is None:
@@ -32,14 +35,19 @@ class PlotReactionDiffusion:
         time = self.sls.get_time()
         all_data = self.sls.get_all_data(neuron_id=neuron_id, exclude=["spikes", "voltage"])
 
-        for s in species:
+        for i, s in enumerate(species):
             idx = time >= 0.0
 
             data = all_data[s]
 
+            if species_label is None:
+                s_label = s
+            else:
+                s_label = species_label[i]
+
             try:
                 # data variable contains 'data', 'sec_id_x', 'syninfo'
-                fig.add_trace(go.Scatter(x=time[idx], y=data[0][neuron_id].T[compartment_id][idx], name=s, line={"width":4}))
+                fig.add_trace(go.Scatter(x=time[idx], y=data[0][neuron_id].T[compartment_id][idx], name=s_label, line={"width":4}))
             except Exception as e:
                 import traceback
                 print(traceback.format_exc())
@@ -49,18 +57,20 @@ class PlotReactionDiffusion:
 
         fig.update_layout(xaxis_title="Time (s)", yaxis_title=ylabel, width=1000, height=800,
                           font={"size": 18},  # General font size for all elements
-                          title={"text": title, "font": {"size": 70}, "x": 0.5, "xanchor": "center"},
+                          title={"text": title, "font": {"size": 60}, "x": 0.5, "xanchor": "center", "y": 0.9},
                           legend={"font": {"size": 50}},  # Specific font size for legend
                           xaxis={"title": {"font": {"size": 40}}, "tickfont": {"size": 30}},
                           yaxis={"title": {"font": {"size": 40}},
-                                 "tickfont": {"size": 30}})  # Y-axis title and tick labels
+                                 "tickfont": {"size": 30}}, # Y-axis title and tick labels
+                          margin=dict(l=100, r=100, t=220, b=100)) # Margin
+
 
         if fig_name is not None:
             if fig_path is not None:
                 os.makedirs(fig_path, exist_ok=True)
                 fig_name = os.path.join(fig_path, fig_name)
 
-            fig.write_image(fig_name, width=1000, height=800)
+            fig.write_image(fig_name, width=1200, height=1000)
 
         fig.show()
 
