@@ -2765,6 +2765,7 @@ class SnuddaSimulate(object):
         """
 
         if isinstance(self.log_file, str):
+            os.makedirs(os.path.dirname(self.log_file), exist_ok=True)
             self.log_file = open(self.log_file, "w")
 
         if self.log_file is not None:
