@@ -239,7 +239,7 @@ class SnuddaNetworkPairPulseSimulation:
 
         for s_list in self.snudda_sim.synapse_dict.values():
             for s, _, _, _ in s_list:
-                assert s.e == -65, "It should be GABA synapses only that we modify!"
+                assert s.e == -60, "It should be GABA synapses only that we modify!"
                 s.e = v_rev_cl * 1e3
 
     ############################################################################
