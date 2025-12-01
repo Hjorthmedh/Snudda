@@ -219,9 +219,12 @@ class SwapToDegeneratedMorphologies:
         self.new_hdf5["network"].create_dataset("num_gap_junctions", data=gj_ctr, dtype=np.uint64)
 
         try:
-            print(f"Keeping {self.new_hdf5['network/num_gap_junctions'][()]} "
-                  f"out of {self.old_hdf5['network/num_gap_junctions'][()][0]} gap junctions "
-                  f"({self.new_hdf5['network/num_gap_junctions'][()] / max(1, self.old_hdf5['network/num_gap_junctions'][()][0])*100:.3f} %)")
+            n_gj = self.old_hdf5['network/num_gap_junctions'][()][0] \
+                if hasattr(self.old_hdf5['network/num_gap_junctions'][()], "__len__") \
+                else self.old_hdf5['network/num_gap_junctions'][()]
+            print(f"Keeping {n_gj} "
+                  f"out of {[0]} gap junctions "
+                  f"({n_gj / max(1, n_gj)*100:.3f} %)")
         except:
             import traceback
             print(traceback.format_exc())
