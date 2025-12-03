@@ -1,6 +1,8 @@
 import os
 import plotly.graph_objects as go
+import plotly.express as px
 import plotly.io as pio
+import numpy as np
 
 from snudda.utils import SnuddaLoadSimulation
 
@@ -18,14 +20,24 @@ class PlotReactionDiffusion:
         return self.sls.list_data_types(neuron_id=neuron_id)
 
     def plot(self, neuron_id, species=None, species_label=None,
-             ylabel="Concentration (mM)",
+             ylabel=None,
              compartment_id = 0,
-             fig_name=None, fig_path="figures", title=None):
+             normalise=False,
+             fig_name=None, fig_path="figures", title=None,
+             width=800, height=700):
 
         """ compartment_id is based on the order the compartments are added, ie. 0 is first one added, usually soma"""
 
+        if ylabel is None:
+            if normalise:
+                ylabel = "Concentration (normalised)"
+            else:
+                ylabel = "Concentration (mM)"
+
         # pio.renderers.default = "iframe"  # Do not save plots in the notebook, they can get BIG
         pio.renderers.default = "plotly_mimetype"
+
+        palette = px.colors.qualitative.Set2
 
         fig = go.Figure()
 
@@ -40,6 +52,8 @@ class PlotReactionDiffusion:
 
             data = all_data[s]
 
+            color = palette[i % len(palette)]
+
             if species_label is None:
                 s_label = s
             else:
@@ -47,7 +61,13 @@ class PlotReactionDiffusion:
 
             try:
                 # data variable contains 'data', 'sec_id_x', 'syninfo'
-                fig.add_trace(go.Scatter(x=time[idx], y=data[0][neuron_id].T[compartment_id][idx], name=s_label, line={"width":4}))
+                if normalise:
+                    fig.add_trace(go.Scatter(x=time[idx],
+                                             y=data[0][neuron_id].T[compartment_id][idx]/np.max(data[0][neuron_id].T[compartment_id][idx]),
+                                             name=s_label, line={"width": 4, "color": color}))
+                else:
+                    fig.add_trace(go.Scatter(x=time[idx], y=data[0][neuron_id].T[compartment_id][idx],
+                                             name=s_label, line={"width": 4, "color": color}))
             except Exception as e:
                 import traceback
                 print(traceback.format_exc())
@@ -58,11 +78,11 @@ class PlotReactionDiffusion:
         fig.update_layout(xaxis_title="Time (s)", yaxis_title=ylabel, width=1000, height=800,
                           font={"size": 18},  # General font size for all elements
                           title={"text": title, "font": {"size": 60}, "x": 0.5, "xanchor": "center", "y": 0.9},
-                          legend={"font": {"size": 50}},  # Specific font size for legend
+                          legend={"font": {"size": 40}},  # Specific font size for legend
                           xaxis={"title": {"font": {"size": 40}}, "tickfont": {"size": 30}},
                           yaxis={"title": {"font": {"size": 40}},
-                                 "tickfont": {"size": 30}}, # Y-axis title and tick labels
-                          margin=dict(l=100, r=100, t=220, b=100)) # Margin
+                                 "tickfont": {"size": 40}}, # Y-axis title and tick labels
+                          margin=dict(l=100, r=100, t=160, b=100)) # Margin
 
 
         if fig_name is not None:
@@ -70,7 +90,7 @@ class PlotReactionDiffusion:
                 os.makedirs(fig_path, exist_ok=True)
                 fig_name = os.path.join(fig_path, fig_name)
 
-            fig.write_image(fig_name, width=1200, height=1000)
+            fig.write_image(fig_name, width=width, height=height)
 
         fig.show()
 
