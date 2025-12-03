@@ -76,6 +76,7 @@ class PlotReactionDiffusion:
                 pdb.set_trace()
 
         fig.update_layout(xaxis_title="Time (s)", yaxis_title=ylabel, width=1000, height=800,
+                          paper_bgcolor="white", plot_bgcolor="white",
                           font={"size": 18},  # General font size for all elements
                           title={"text": title, "font": {"size": 60}, "x": 0.5, "xanchor": "center", "y": 0.9},
                           legend={"font": {"size": 40}},  # Specific font size for legend
