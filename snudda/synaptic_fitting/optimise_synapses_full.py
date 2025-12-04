@@ -787,10 +787,10 @@ class OptimiseSynapsesFull(object):
         h_error = np.sum(h_diff) / len(h_diff)
 
         decay_error8 = np.sum((smooth_exp_trace8[idx_max8:] - sim_trace8[idx_max8:]) ** 2) \
-                        / (self.num_smoothing - idx_max8 + 1) * 10000
+                        / (self.num_smoothing - idx_max8 + 1) * 10000 / 10
 
         decay_error9 = np.sum((smooth_exp_trace9[idx_max9:] - sim_trace9[idx_max9:]) ** 2) \
-                        / (self.num_smoothing - idx_max9 + 1) * 10000
+                        / (self.num_smoothing - idx_max9 + 1) * 10000 / 10
 
         fit_error = h_error + decay_error8 + decay_error9 + spike_penalty
 
@@ -1437,6 +1437,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--data", help="Snudda data directory")
     parser.add_argument("--nTrials", help="Number of trials", default=2, type=int)
+    parser.add_argument("--seed", help="Optimisation seed", type=int, default=None)
 
     args = parser.parse_args()
 
@@ -1511,7 +1512,7 @@ if __name__ == "__main__":
 
         sys.exit(0)
 
-    ly.parallel_optimise_single_cell(n_trials=args.nTrials, seed=42)
+    ly.parallel_optimise_single_cell(n_trials=args.nTrials, seed=args.seed)
 
     if d_view is not None:
         d_view.client.shutdown(hub=True)
