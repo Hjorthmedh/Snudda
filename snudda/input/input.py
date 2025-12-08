@@ -977,7 +977,15 @@ class SnuddaInput(object):
                             par_data_dict = OrderedDict()
                             for key, value in par_data_dict_orig.items():
                                 par_data_dict[key] = OrderedDict()
-                                par_data_dict[key]["synapse"] = par_data_dict_orig[key]["synapse"]
+                                try:
+                                    par_data_dict[key]["synapse"] = par_data_dict_orig[key]["synapse"]
+                                except Exception as e:
+                                    import traceback
+                                    self.write_log(f"Problems while reading 'synapse' data from {par_file}")
+                                    self.write_log(traceback.format_exc(), is_error=True)
+                                    self.write_log(f"{e}", is_error=True)
+                                    self.write_log(f"{par_data_dict_orig[key] = }")
+                                    raise e
 
                             if "parameter_list" in meta_inp_data:
                                 for pd in par_data_dict:

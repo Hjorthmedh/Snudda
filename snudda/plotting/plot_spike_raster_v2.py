@@ -536,7 +536,9 @@ class SnuddaPlotSpikeRaster2:
         return ax
 
     def plot_spike_raster(self, type_order=None, skip_time=0, end_time=None, fig_size=None, fig_file=None,
-                          time_range=None, title=None):
+                          time_range=None, title=None, sort_direction=None):
+
+        # You can use sort_direction = "x", "y" or "z" to sort within the neuron type if you want to show the in x-direction
 
         self.make_figures_directory()
 
@@ -565,7 +567,13 @@ class SnuddaPlotSpikeRaster2:
         # For each neuron, associate the number of the type it is
         neuron_type_idx = np.array([neuron_type_map[x] for x in neuron_type_list])
         # neuron_order = np.argsort(neuron_type_idx)
-        neuron_order = np.lexsort((neuron_population_unit_list, neuron_type_idx))
+        if sort_direction is None:
+            neuron_order = np.lexsort((neuron_population_unit_list, neuron_type_idx))
+        else:
+            neuron_positions = np.vstack([x["position"] for x in self.snudda_load.data["neurons"]])
+
+            pos_order = neuron_positions[:, {"x": 0, "y": 1, "z": 2}[sort_direction]]
+            neuron_order = np.lexsort((neuron_population_unit_list, pos_order, neuron_type_idx))
 
         neuron_order_lookup = np.zeros(neuron_order.shape)
 

@@ -2765,9 +2765,14 @@ class SnuddaSimulate(object):
         """
 
         if isinstance(self.log_file, str):
+            log_dir = os.path.dirname(self.log_file)
+
+            if len(log_dir) > 0:
+                os.makedirs(log_dir, exist_ok=True)
+
             self.log_file = open(self.log_file, "w")
 
-        if self.log_file is not None:
+        if self.log_file is not None and self.log_file:
             self.log_file.write(f"{text}\n")
             if flush:
                 self.log_file.flush()

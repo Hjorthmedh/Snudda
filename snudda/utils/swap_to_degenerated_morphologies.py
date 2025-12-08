@@ -194,8 +194,8 @@ class SwapToDegeneratedMorphologies:
 
         try:
             print(f"Keeping {self.new_hdf5['network/num_synapses'][()]} "
-                  f"out of {self.old_hdf5['network/num_synapses'][()]} synapses "
-                  f"({self.new_hdf5['network/num_synapses'][()] / max(1,self.old_hdf5['network/num_synapses'][()])*100:.3f} %)")
+                  f"out of {self.old_hdf5['network/num_synapses'][()][0]} synapses "
+                  f"({self.new_hdf5['network/num_synapses'][()] / max(1,self.old_hdf5['network/num_synapses'][()][0])*100:.3f} %)")
         except:
             import traceback
             print(traceback.format_exc())
@@ -219,9 +219,12 @@ class SwapToDegeneratedMorphologies:
         self.new_hdf5["network"].create_dataset("num_gap_junctions", data=gj_ctr, dtype=np.uint64)
 
         try:
-            print(f"Keeping {self.new_hdf5['network/num_gap_junctions'][()]} "
-                  f"out of {self.old_hdf5['network/num_gap_junctions'][()]} gap junctions "
-                  f"({self.new_hdf5['network/num_gap_junctions'][()] / max(1, self.old_hdf5['network/num_gap_junctions'][()])*100:.3f} %)")
+            n_gj = self.old_hdf5['network/num_gap_junctions'][()][0] \
+                if hasattr(self.old_hdf5['network/num_gap_junctions'][()], "__len__") \
+                else self.old_hdf5['network/num_gap_junctions'][()]
+            print(f"Keeping {n_gj} "
+                  f"out of {[0]} gap junctions "
+                  f"({n_gj / max(1, n_gj)*100:.3f} %)")
         except:
             import traceback
             print(traceback.format_exc())
@@ -300,6 +303,7 @@ class SwapToDegeneratedMorphologies:
             = self.remap_sections_helper(neuron_id=post_id, old_sec_id=old_sec_id, old_sec_x=old_sec_x/1000.0)
 
         edited_synapses = synapses.copy()
+
 
         edited_synapses[:, 9] = new_sec_id
         edited_synapses[:, 10] = new_sec_x * 1000
@@ -521,6 +525,12 @@ class SwapToDegeneratedMorphologies:
             old_n = 0
             new_n = 0
             remap_n = 0
+
+            if "activity" in old_input["input"][neuron]:
+                # Virtual neuron
+                old_input.copy(f"input/{neuron}/activity", neuron_group)
+                print(f"Copying virtual activity for neuron {neuron}")
+                continue
 
             for input_type in old_input["input"][neuron].keys():
                 # Note: This code assumes these are real neuron and not just virtual neurons.
