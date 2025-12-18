@@ -29,6 +29,9 @@ from snudda.synaptic_fitting.parameter_bookkeeper import ParameterBookkeeper
 #                     when continuing an optimisation, do we use the old best value as
 #                     starting point, or are we randomly picking start points...    
 
+# TODO: 2025-12-18 -- we are using sobol sequence (deterministic), and the bookkeeper tracks
+#                     how far in the sobol sequence we are, so additional runs do not start from 0.
+#                     NEXT: Check and think about how to compute the error! -- -can we improve on it?
 #
 #
 # python3 optimise_synapses_full.py DATA/Yvonne2020/M1RH-ipsi_MSN_D1_20Hz_depressing.json --synapseParameters ../data/synapses/v3/M1RH-ipsi_D1-MSN.json --st glut
@@ -209,7 +212,7 @@ class OptimiseSynapsesFull(object):
 
     def load_parameter_data(self):
 
-        self.synapse_parameter_data = ParameterBookkeeper(old_book_file=self.parameter_data_file_name, n_max=20)
+        self.synapse_parameter_data = ParameterBookkeeper(old_book_file=self.parameter_data_file_name, n_max=100)
         self.synapse_parameter_data.check_integrity()
 
         best_dataset = self.synapse_parameter_data.get_best_dataset()
@@ -595,6 +598,7 @@ class OptimiseSynapsesFull(object):
         elif "baseline_voltage" in c_prop:
             trace_holding_voltage = c_prop["baseline_voltage"]
         else:
+            trace_holding_voltage = None
             assert f"You need to specify either a trace_holding_voltage in {self.data_file}" \
                    f"or specify baselineVoltage in neuronSet.json for the neuron type in question."
 
@@ -625,53 +629,6 @@ class OptimiseSynapsesFull(object):
 
     ############################################################################
 
-    def neuron_synapse_swarm_helper(self, pars, t_spikes, peak_height, smooth_exp_trace):
-
-        assert False, "Is this still used?"
-
-        if self.debug_pars_flag:
-            self.debug_pars.append(pars)
-
-        res = np.zeros((pars.shape[0]))
-
-        for idx, p in enumerate(pars):
-            peak_h, t_sim, v_sim = self._neuron_synapse_swarm_helper(p, t_spikes)
-
-            # Calculating error in peak height
-            h_diff = np.abs(peak_h - peak_height)
-            h_diff[0] *= 3
-            h_diff[-1] *= 3
-            h_error = np.sum(h_diff) / len(h_diff)
-
-            # Calculate error in decay fit
-            sim_trace, sim_time = self.smoothing_trace(v_sim, self.num_smoothing,
-                                                       time=t_sim,
-                                                       start_time=self.decayStartFit,
-                                                       end_time=self.decayEndFit)
-
-            # We only want to use the bit of the trace after max
-            idx_max = np.argmax(smooth_exp_trace)
-
-            # We divide by number of points in vector, to get the average deviation
-            # then we multiply by 10000 to get an error comparable to the others
-            decay_error = np.sum((smooth_exp_trace[idx_max:] - sim_trace[idx_max:]) ** 2) \
-                / (self.num_smoothing - idx_max + 1) * 2000
-
-            if False:
-                plt.figure()
-                plt.plot(smooth_exp_trace[idx_max:])
-                plt.plot(sim_trace[idx_max:])
-                plt.ion()
-                plt.show()
-                import pdb
-                pdb.set_trace()
-
-            res[idx] = h_error + decay_error
-
-        return res
-
-    ############################################################################
-
     def smoothing_trace(self, original_trace, num_parts, time=None, start_time=None, end_time=None):
 
         if time is not None:
@@ -697,25 +654,6 @@ class OptimiseSynapsesFull(object):
         idx = np.linspace(0, len(smooth_trace) - 1, num=num_parts, dtype=int)
 
         return smooth_trace[idx], t[idx]
-
-    ############################################################################
-
-    def _neuron_synapse_swarm_helper(self,
-                                     pars,
-                                     t_spikes):
-
-        assert False, "Remove this function?"
-
-        u, tau_r, tau_f, tau_ratio, cond = pars
-        tau = tau_r * tau_ratio
-
-        # TODO: Check where parms come from, is it a dictionary?
-        peak_heights, t_sim, v_sim = self.run_model(t_spikes, u,
-                                                    tau_r, tau_f, cond, tau,
-                                                    params=params,
-                                                    return_trace=True)
-
-        return peak_heights, t_sim, v_sim
 
     ############################################################################
 
@@ -782,7 +720,7 @@ class OptimiseSynapsesFull(object):
         h_diff[-1] *= 3
 
         # This is to prevent the model spiking
-        spike_penalty = np.sum(peak_h > 0.03) * 1
+        spike_penalty = np.sum(peak_h > 0.03) * 20
 
         h_error = np.sum(h_diff) / len(h_diff)
 
@@ -893,7 +831,7 @@ class OptimiseSynapsesFull(object):
 
             if parameter_sets is None:
                 self.write_log(f"sobol_scan n_trials = {n_trials}")
-                parameter_sets = self.setup_parameter_set(model_bounds, n_trials, seed=seed)
+                parameter_sets = self.setup_parameter_set(model_bounds, n_trials)
             elif type(parameter_sets) == list and len(parameter_sets) == 0:
                 self.write_log("Empty parameter_set provided, returning.")
                 return self.synapse_parameter_data.book
@@ -937,7 +875,7 @@ class OptimiseSynapsesFull(object):
                     in zip(u_sobol, tau_r_sobol, tau_f_sobol, tau_ratio_sobol, cond_sobol):
 
                 idx += 1
-                if idx % 50 == 0:
+                if idx % 10 == 0:
                     self.write_log("%d / %d : minError = %g" % (idx, len(u_sobol), min_error))
 
                 error, peaks, t, v = self.neuron_synapse_helper_glut(t_stim, u, tau_r, tau_f, tau_ratio, cond,
@@ -1029,7 +967,7 @@ class OptimiseSynapsesFull(object):
 
     ############################################################################
 
-    def parallel_optimise_single_cell(self, n_trials=10000, post_opt=False, seed=None):
+    def parallel_optimise_single_cell(self, n_trials=10000, post_opt=False):
 
         start_time = timeit.default_timer()
 
@@ -1067,9 +1005,12 @@ class OptimiseSynapsesFull(object):
                 plt.plot(decay_fits[idx][0], decay_fits[idx][1], color="red")
             plt.show()
 
+        skip_sets = self.synapse_parameter_data.old_iter
+        print(f"Starting sobol sequence at position {skip_sets}")
+
         # 2b. Create list of all parameter points to investigate
         model_bounds = self.get_model_bounds()
-        parameter_points = self.setup_parameter_set(model_bounds, n_trials, seed=seed)
+        parameter_points = self.setup_parameter_set(model_bounds, n_trials, skip_sets=skip_sets)
 
         # 3. Send synapse positions to all workers, and split parameter points
         #    between workers
@@ -1239,7 +1180,6 @@ class OptimiseSynapsesFull(object):
 
         self.write_log(f"sobol_worker_setup: synapse_position_override = {synapse_position_override}")
 
-        # TODO: These variables should be defined as None in init
         self.synapse_model = self.setup_model(params=params,
                                               synapse_position_override=synapse_position_override)
 
@@ -1512,7 +1452,7 @@ if __name__ == "__main__":
 
         sys.exit(0)
 
-    ly.parallel_optimise_single_cell(n_trials=args.nTrials, seed=args.seed)
+    ly.parallel_optimise_single_cell(n_trials=args.nTrials)
 
     if d_view is not None:
         d_view.client.shutdown(hub=True)

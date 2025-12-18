@@ -447,6 +447,10 @@ class SnuddaSaveNetworkRecordings:
             converted_time = np.array(self.time) * self.get_conversion("time")
             dt = converted_time[1] - converted_time[0]
             sample_step = int(np.round(self.sample_dt / dt))
+
+            if sample_step == 0:
+                raise ValueError(f"sample_step can not be zero. {self.sample_dt = } should be equal or larger than {dt = }")
+
             return sample_step
 
     def write(self):
