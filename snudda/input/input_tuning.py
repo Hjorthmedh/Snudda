@@ -1561,7 +1561,7 @@ class InputTuning(object):
                 neuron_def[neuron_key]["reaction_diffusion"] = reaction_diffusion_file
 
         # Just generate a set of points
-        region_def[vol_name]["volume"]["n_putative_points"] = max(len(neuron_def.keys())*5, 10000)
+        region_def[vol_name]["volume"]["num_putative_points"] = max(len(neuron_def.keys())*num_replicas*2, 10000)
 
         fake_axon_density = ["r", "1", 10e-6]
 
