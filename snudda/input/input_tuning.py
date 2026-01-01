@@ -60,7 +60,7 @@ class InputTuning(object):
         self.rc = rc
 
         if not os.path.isdir(self.network_path):
-            os.makedirs(self.network_path)
+            os.makedirs(self.network_path, exist_ok=True)
 
         self.network_config_file_name = os.path.join(self.network_path, "network-config.json")
         self.network_file = os.path.join(self.network_path, "network-synapses.hdf5")
@@ -546,7 +546,7 @@ class InputTuning(object):
             fig_dir = os.path.join(fig_dir, "_BAD")
 
         if not os.path.isdir(fig_dir):
-            os.makedirs(fig_dir)
+            os.makedirs(fig_dir, exist_ok=True)
 
         fig_name = os.path.join(fig_dir, f"{neuron_info['morphology_key']}-{neuron_info['parameter_key']}-{neuron_info['name']}-{label}.png")
 
@@ -866,7 +866,7 @@ class InputTuning(object):
                                     f"{full_morph_key}-{full_param_key}-{neuron_type}-BAD-trace.png")
 
             if not os.path.exists(os.path.dirname(fig_path)):
-                os.makedirs(os.path.dirname(fig_path))
+                os.makedirs(os.path.dirname(fig_path), exist_ok=True)
 
             plt.savefig(fig_path, dpi=300)
 
