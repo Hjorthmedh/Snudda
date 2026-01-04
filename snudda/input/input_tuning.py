@@ -585,6 +585,8 @@ class InputTuning(object):
         if show_plot:
             plt.ion()
             plt.show()
+        else:
+            plt.close()
 
     def update_meta(self, input_config_info, overwrite=True, set_frequency=None):
 
