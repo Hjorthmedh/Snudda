@@ -19,7 +19,7 @@ class SwapToDegeneratedMorphologies:
                  original_snudda_data_dir, new_snudda_data_dir,
                  original_input_file=None, new_input_file=None,
                  filter_axon=False, forced_param_key=None,
-                 vergose=False):
+                 verbose=False):
 
         """ This code replaces the neuron morphologies in the original network with user provided degenerated copies
             of the neurons. The synapses that are on removed dendritic will also be removed.
