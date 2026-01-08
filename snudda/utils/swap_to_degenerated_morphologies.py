@@ -18,7 +18,8 @@ class SwapToDegeneratedMorphologies:
     def __init__(self, original_network_file, new_network_file,
                  original_snudda_data_dir, new_snudda_data_dir,
                  original_input_file=None, new_input_file=None,
-                 filter_axon=False, forced_param_key=None):
+                 filter_axon=False, forced_param_key=None,
+                 vergose=False):
 
         """ This code replaces the neuron morphologies in the original network with user provided degenerated copies
             of the neurons. The synapses that are on removed dendritic will also be removed.
@@ -34,6 +35,7 @@ class SwapToDegeneratedMorphologies:
         self.original_network_file = original_network_file
         self.new_network_file = new_network_file
         self.new_hdf5 = None
+        self.verbose = verbose
 
         self.original_snudda_data_dir = original_snudda_data_dir
         self.new_snudda_data_dir = new_snudda_data_dir
@@ -459,11 +461,13 @@ class SwapToDegeneratedMorphologies:
         for param_key, param_data in new_meta_info.items():
             for morph_key, morph_data in param_data.items():
                 morph_name = morph_data["morphology"]
-                print(f"-- Comparing {orig_morph_name} {morph_name}")
+                if self.verbose:
+                    print(f"-- Comparing {orig_morph_name} {morph_name}")
 
                 if orig_morph_name == morph_name:
                     possible_keys.append((param_key, morph_key, morph_name))
-                    print(f"Matching {orig_morph_name} with {morph_name}")
+                    if self.verbose:
+                        print(f"Matching {orig_morph_name} with {morph_name}")
 
                 # We also need to be able to handle Treem adding tags to the new filename
                 elif os.path.splitext(os.path.basename(orig_morph_name))[0] in morph_name:
@@ -477,14 +481,16 @@ class SwapToDegeneratedMorphologies:
                         continue
 
                     possible_keys.append((param_key, morph_key, morph_name))
-                    print(f"Matching (close) {orig_morph_name} with {morph_name}")
+                    if self.verbose:
+                        print(f"Matching (close) {orig_morph_name} with {morph_name}")
 
                 elif "var0" in os.path.splitext(os.path.basename(orig_morph_name))[0]:
                     # Also need to check if var0 has a corresponding morphology without var0 in name
                     new_candidate = orig_morph_name.replace("-var0", "")
                     if new_candidate == morph_name:
                         possible_keys.append((param_key, morph_key, morph_name))
-                        print(f"Matching (close2) {orig_morph_name} with {morph_name}")
+                        if self.verbose:
+                            print(f"Matching (close2) {orig_morph_name} with {morph_name}")
 
         if len(possible_keys) == 0:
             raise ValueError(f"No morphology matching for {orig_morph_name}, "
@@ -529,7 +535,8 @@ class SwapToDegeneratedMorphologies:
             if "activity" in old_input["input"][neuron]:
                 # Virtual neuron
                 old_input.copy(f"input/{neuron}/activity", neuron_group)
-                print(f"Copying virtual activity for neuron {neuron}")
+                if self.verbose:
+                    print(f"Copying virtual activity for neuron {neuron}")
                 continue
 
             for input_type in old_input["input"][neuron].keys():
