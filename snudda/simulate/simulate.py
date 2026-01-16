@@ -202,6 +202,10 @@ class SnuddaSimulate(object):
                 self.write_log(f"Using log file {self.log_file}")
 
             elif isinstance(self.log_file, str):
+
+                if self.total_nodes > 1:
+                    self.log_file = f"{self.log_file}-{self.node_id}"
+
                 self.log_file = open(self.log_file, "w")
 
             if "network_file" in self.sim_info:
