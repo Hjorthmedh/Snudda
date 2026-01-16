@@ -26,10 +26,11 @@ import warnings
 from collections import OrderedDict
 
 import h5py
-import neuron
+
 import numpy as np
 
 from mpi4py import MPI  # This must be imported before neuron, to run parallel
+import neuron
 from neuron import h  # , gui
 
 import snudda.utils.memory
@@ -3168,6 +3169,8 @@ if __name__ == "__main__":
         print("!!! WE HAVE DISABLED SYNAPSES !!!")
 
     pc = h.ParallelContext()
+    print("MPI ranks seen by NEURON:", int(pc.nhost()))
+    print("This rank:", int(pc.id()))
 
     if args.output_file:
         output_file = args.output_file
