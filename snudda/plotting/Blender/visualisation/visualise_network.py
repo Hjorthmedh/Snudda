@@ -437,8 +437,6 @@ class VisualiseNetwork(object):
         mat.node_tree.nodes["Principled BSDF"].inputs['Alpha'].default_value = alpha
         mat.node_tree.nodes["Principled BSDF"].inputs['Base Color'].default_value = (colour[0], colour[1], colour[2], alpha)
 
-        #structure_object = bpy.ops.import_scene.obj(filepath=mesh_file, axis_up="Z", axis_forward="Y")
-        # Import OBJ: Blender 4.x/5.x uses wm.obj_import; older versions use import_scene.obj
         # --- Import OBJ (Blender 5.0) ---
         bpy.ops.wm.obj_import(
             filepath=mesh_file,
@@ -454,10 +452,6 @@ class VisualiseNetwork(object):
         o.active_material = mat
         self.struct_coll.objects.link(o)
     def add_all_meshes(self):
-        #print(self.sl.config.keys()) dict_keys(['snudda_data', 'network_path', 'random_seed', 'regions'])
-        # for name, structure in self.sl.config["volume"].items():
-        #     self.add_mesh_structure(mesh_file=snudda_parse_path(structure["meshFile"], self.snudda_data), colour=(0.1, 0.1, 0.1),
-        #                             alpha=0.1)
         # Iterate over all regions in the config
         for region_name, region_cfg in self.sl.config["regions"].items():
 
@@ -491,7 +485,6 @@ class VisualiseNetwork(object):
     @staticmethod
     def clean_scene():
         # add robust scene cleaning
-        # Robust across Blender versions; avoids bpy.ops context issues.
         print("Cleaning the scene.")
 
         scene = bpy.context.scene
@@ -500,7 +493,6 @@ class VisualiseNetwork(object):
         for obj in list(scene.objects):
             bpy.data.objects.remove(obj, do_unlink=True)
 
-        # Optional: clear orphan meshes/materials if you're rerunning in the same session
         for mesh in list(bpy.data.meshes):
             if mesh.users == 0:
                 bpy.data.meshes.remove(mesh)
