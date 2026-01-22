@@ -293,16 +293,16 @@ class SnuddaPlotSpikeRaster2:
 
         return vs
 
-    def plot_spike_histogram_type(self, neuron_type, time_range=None, bin_size=50e-3, fig_size=None,
+    def plot_spike_histogram_type(self, neuron_type, time_range=None, bin_size=50e-3, fig_size=(4.5, 3.5),
                                   fig_file=None, label_text=None, show_figure=True, n_core=None,
                                   linestyle="-", line_colours=None, linewidth=3,
                                   legend_loc="best", bbox_anchor=None, ax=None):
 
         self.make_figures_directory()
 
-        plt.rcParams.update({'font.size': 24,
-                             'xtick.labelsize': 20,
-                             'ytick.labelsize': 20})
+        plt.rcParams.update({'font.size': 12,
+                             'xtick.labelsize': 12,
+                             'ytick.labelsize': 12})
 
         assert type(neuron_type) == list, "neuron_type should be a list of neuron types"
 
@@ -345,8 +345,8 @@ class SnuddaPlotSpikeRaster2:
                 histtype="step", color=line_colours,
                 label=all_labels)
 
-        plt.xlabel("Time (s)", fontsize=20)
-        plt.ylabel("Frequency (Hz)", fontsize=20)
+        plt.xlabel("Time (s)", fontsize=12)
+        plt.ylabel("Frequency (Hz)", fontsize=12)
         ax.legend(loc=legend_loc, bbox_to_anchor=bbox_anchor)
 
         plt.tight_layout()
@@ -365,7 +365,7 @@ class SnuddaPlotSpikeRaster2:
         return ax
 
     def plot_spike_histogram(self, population_id=None, neuron_type=None,
-                             skip_time=0, end_time=None, fig_size=None, bin_size=50e-3,
+                             skip_time=0, end_time=None, fig_size=(4.5, 3.5), bin_size=50e-3,
                              fig_file=None, ax=None, label_text=None, show_figure=True, save_figure=True, colour=None,
                              linestyle="-", legend_loc="best", title=None, bbox_anchor=None):
 
@@ -387,9 +387,9 @@ class SnuddaPlotSpikeRaster2:
 
         self.make_figures_directory()
 
-        plt.rcParams.update({'font.size': 24,
-                             'xtick.labelsize': 20,
-                             'ytick.labelsize': 20},
+        plt.rcParams.update({'font.size': 12,
+                             'xtick.labelsize': 12,
+                             'ytick.labelsize': 12},
                             )
 
         if ax is None:
@@ -440,8 +440,8 @@ class SnuddaPlotSpikeRaster2:
             for patch, col in zip(patches, colour):
                 patch[0].set_facecolor(col)
 
-        plt.xlabel("Time (s)", fontsize=20)
-        plt.ylabel("Frequency (Hz)", fontsize=20)
+        plt.xlabel("Time (s)", fontsize=12)
+        plt.ylabel("Frequency (Hz)", fontsize=12)
         ax.legend(loc=legend_loc, bbox_to_anchor=bbox_anchor)
 
         if title:
@@ -535,16 +535,16 @@ class SnuddaPlotSpikeRaster2:
 
         return ax
 
-    def plot_spike_raster(self, type_order=None, skip_time=0, end_time=None, fig_size=None, fig_file=None,
+    def plot_spike_raster(self, type_order=None, skip_time=0, end_time=None, fig_size=(4.5, 3.5), fig_file=None,
                           time_range=None, title=None, sort_direction=None):
 
         # You can use sort_direction = "x", "y" or "z" to sort within the neuron type if you want to show the in x-direction
 
         self.make_figures_directory()
 
-        plt.rcParams.update({'font.size': 24,
-                             'xtick.labelsize': 20,
-                             'ytick.labelsize': 20,
+        plt.rcParams.update({'font.size': 12,
+                             'xtick.labelsize': 12,
+                             'ytick.labelsize': 12,
                              'legend.loc': 'best'})
         
         fig = plt.figure(figsize=fig_size)
@@ -609,9 +609,9 @@ class SnuddaPlotSpikeRaster2:
             y_tick.append(np.mean(neuron_order_lookup[np.where([x == nt for x in neuron_type_list])[0]]))
 
         ax.invert_yaxis()
-        ax.set_xlabel('Time (s)', fontsize=20)
+        ax.set_xlabel('Time (s)', fontsize=12)
         ax.set_yticks(y_tick)
-        ax.set_yticklabels(y_tick_label, fontsize=20)
+        ax.set_yticklabels(y_tick_label, fontsize=10)
 
         if skip_time or end_time:
             x_lim = ax.get_xlim()

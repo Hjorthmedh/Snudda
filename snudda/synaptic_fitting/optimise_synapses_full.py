@@ -72,10 +72,12 @@ class OptimiseSynapsesFull(object):
                  model_bounds="model_bounds.json",
                  neuron_set_file="neuron_set.json",
                  synapse_parameter_file=None,
+                 seed=None,
                  normalise_trace=True):
 
         # Parallel execution role, "master" or "servant"
         self.role = role
+        self.seed = seed
         self.snudda_data = get_snudda_data(snudda_data=snudda_data)
 
         self.parallel_setup_flag = False  # Set to True when servants are done setup
@@ -605,6 +607,8 @@ class OptimiseSynapsesFull(object):
         # Temporarily force regeneration of holding current
         holding_current = None
 
+        print(f"Using random seed {self.seed}")
+
         self.rsr_synapse_model = \
             RunSynapseRun(neuron_path=snudda_parse_path(c_prop["neuron_path"], self.snudda_data),
                           neuron_morphology_key=neuron_morphology_key,
@@ -620,6 +624,7 @@ class OptimiseSynapsesFull(object):
                           log_file=self.log_file,
                           synapse_section_id=synapse_section_id,
                           synapse_section_x=synapse_section_x,
+                          random_seed=self.seed,
                           verbose=True)
 
         if self.rsr_synapse_model.holding_current != holding_current:
@@ -724,13 +729,12 @@ class OptimiseSynapsesFull(object):
 
         h_error = np.sum(h_diff) / len(h_diff)
 
-        decay_error8 = np.sum((smooth_exp_trace8[idx_max8:] - sim_trace8[idx_max8:]) ** 2) \
-                        / (self.num_smoothing - idx_max8 + 1) * 10000 / 10
-
-        decay_error9 = np.sum((smooth_exp_trace9[idx_max9:] - sim_trace9[idx_max9:]) ** 2) \
-                        / (self.num_smoothing - idx_max9 + 1) * 10000 / 10
+        decay_error8 = np.mean((smooth_exp_trace8[idx_max8:] - sim_trace8[idx_max8:]) ** 2)
+        decay_error9 = np.mean((smooth_exp_trace9[idx_max9:] - sim_trace9[idx_max9:]) ** 2)
 
         fit_error = h_error + decay_error8 + decay_error9 + spike_penalty
+
+        print(f"{fit_error = }")
 
         if spike_penalty > 0:
             self.write_log("Action potential detected in trace. Penalising!")
@@ -836,7 +840,7 @@ class OptimiseSynapsesFull(object):
                 self.write_log("Empty parameter_set provided, returning.")
                 return self.synapse_parameter_data.book
 
-            self.write_log(f"parameter_sets={parameter_sets}")
+            # self.write_log(f"parameter_sets={parameter_sets}")
 
             u_sobol = [p[0] for p in parameter_sets]
             tau_r_sobol = [p[1] for p in parameter_sets]
@@ -1378,6 +1382,7 @@ if __name__ == "__main__":
     parser.add_argument("--data", help="Snudda data directory")
     parser.add_argument("--nTrials", help="Number of trials", default=2, type=int)
     parser.add_argument("--seed", help="Optimisation seed", type=int, default=None)
+    parser.add_argument("--post_opt", help="Post-optimization flag", action="store_true")
 
     args = parser.parse_args()
 
@@ -1439,6 +1444,7 @@ if __name__ == "__main__":
                               synapse_type=args.st, d_view=d_view,
                               role="master",
                               log_file_name=log_file_name, opt_method=opt_method,
+                              seed=args.seed,
                               verbose=True)
 
     if args.plot or args.prettyplot:
@@ -1452,7 +1458,7 @@ if __name__ == "__main__":
 
         sys.exit(0)
 
-    ly.parallel_optimise_single_cell(n_trials=args.nTrials)
+    ly.parallel_optimise_single_cell(n_trials=args.nTrials, post_opt=args.post_opt)
 
     if d_view is not None:
         d_view.client.shutdown(hub=True)
