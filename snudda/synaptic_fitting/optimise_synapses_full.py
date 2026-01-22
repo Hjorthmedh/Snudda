@@ -33,7 +33,11 @@ from snudda.synaptic_fitting.parameter_bookkeeper import ParameterBookkeeper
 #                     how far in the sobol sequence we are, so additional runs do not start from 0.
 #                     NEXT: Check and think about how to compute the error! -- -can we improve on it?
 #
-#
+# TODO: 2026-01-22 -- We verified that the serial and parallel execution matches for the sobol part
+#                     we are now correctly using seeds for synapse placement. Ilaria has little faith. :)
+#                     Cleaned up error function, now decays are less important than heights.
+#                     We are now checking the final optimisation step (Which runs in serial --- can we parallelise it?)
+
 # python3 optimise_synapses_full.py DATA/Yvonne2020/M1RH-ipsi_MSN_D1_20Hz_depressing.json --synapseParameters ../data/synapses/v3/M1RH-ipsi_D1-MSN.json --st glut
 #
 
