@@ -323,7 +323,7 @@ class SnuddaPlotSpikeRaster2:
             neurons_of_type[nt] = neuron_id
             all_spikes[nt] = self.snudda_simulation_load.merge_spikes(spikes)[:, 0]
 
-        bins = np.arange(time_range[0], time_range[1]+bin_size/2, bin_size)
+        bins = np.arange(time_range[0], time_range[1], bin_size)
         weights = [np.full(y.shape, 1/(len(x)*bin_size)) for x, y in zip(neurons_of_type.values(), all_spikes.values())]
 
         if label_text is None:
@@ -335,19 +335,49 @@ class SnuddaPlotSpikeRaster2:
 
         if len(all_spikes.keys()) > 1:
             all_labels = [f"{label_text}{x}" for x in all_spikes.keys()]
-        else:
+        elif label_text is not None:
             all_labels = [label_text]
+        else:
+            all_labels = None
 
         if line_colours is None:
             line_colours = [self.get_colours(x) for x in all_spikes.keys()]
 
-        ax.hist(x=all_spikes.values(), bins=bins, weights=weights, linewidth=linewidth, linestyle=linestyle,
-                histtype="step", color=line_colours,
-                label=all_labels)
+        for (nt, spikes), w, col in zip(all_spikes.items(), weights, line_colours):
+            counts, edges = np.histogram(
+                spikes,
+                bins=bins,
+                weights=w
+            )
+
+            ax.step(
+                edges[:-1],
+                counts,
+                where="post",
+                linewidth=linewidth,
+                linestyle=linestyle,
+                color=col,
+                label=f"{label_text}{nt}" if label_text else nt
+            )
+
+#        ax.hist(x=all_spikes.values(), bins=bins, weights=weights, linewidth=linewidth, linestyle=linestyle,
+#                histtype="step", color=line_colours,
+#                label=all_labels)
+
+        ax.set_xlim(time_range)
 
         plt.xlabel("Time (s)", fontsize=12)
         plt.ylabel("Frequency (Hz)", fontsize=12)
-        ax.legend(loc=legend_loc, bbox_to_anchor=bbox_anchor)
+
+        handles, labels = ax.get_legend_handles_labels()
+        if handles:
+            ax.legend(loc=legend_loc, bbox_to_anchor=bbox_anchor)
+
+
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['left'].set_linewidth(0.8)
+        ax.spines['bottom'].set_linewidth(0.8)
 
         plt.tight_layout()
 
@@ -432,9 +462,14 @@ class SnuddaPlotSpikeRaster2:
         if label_text is None:
             label_text = ""
 
+        if len(pop_spikes.keys()) > 1:
+            label = [f"{label_text}{x}" for x in pop_spikes.keys()]
+        else:
+            label = None
+
         N, bins, patches = ax.hist(x=pop_spikes.values(), bins=bins, weights=weights, linewidth=3, linestyle=linestyle,
                                    histtype="step", color=colour,
-                                   label=[f"{label_text}{x}" for x in pop_spikes.keys()])
+                                   label=label)
 
         if type(colour) == list:
             for patch, col in zip(patches, colour):
@@ -443,6 +478,11 @@ class SnuddaPlotSpikeRaster2:
         plt.xlabel("Time (s)", fontsize=12)
         plt.ylabel("Frequency (Hz)", fontsize=12)
         ax.legend(loc=legend_loc, bbox_to_anchor=bbox_anchor)
+
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['left'].set_linewidth(0.8)
+        ax.spines['bottom'].set_linewidth(0.8)
 
         if title:
             plt.title(title)
@@ -453,9 +493,10 @@ class SnuddaPlotSpikeRaster2:
         else:
             fig_file = os.path.join(self.figure_path, fig_file)
 
+        plt.tight_layout()
+
         if save_figure:
             print(f"Saving figure {fig_file}")
-            plt.tight_layout()
             self.make_figures_directory()
 
             plt.savefig(fig_file, dpi=300)
@@ -474,9 +515,9 @@ class SnuddaPlotSpikeRaster2:
 
         self.make_figures_directory()
 
-        plt.rcParams.update({'font.size': 24,
-                             'xtick.labelsize': 20,
-                             'ytick.labelsize': 20,
+        plt.rcParams.update({'font.size': 12,
+                             'xtick.labelsize': 12,
+                             'ytick.labelsize': 12,
                              'legend.loc': legend_loc})
 
         if ax is None:
@@ -492,9 +533,6 @@ class SnuddaPlotSpikeRaster2:
         bins = np.arange(skip_time, end_time + bin_size / 2, bin_size)
         weights = 1 / (len(neuron_id) * bin_size)
 
-        if label_text is None:
-            label_text = ""
-
         try:
             N, bins, patches = ax.hist(x=spikes, bins=bins, weights=np.full(spikes.shape, weights), linewidth=3, linestyle=linestyle,
                                        histtype="step", color=colour,
@@ -509,9 +547,16 @@ class SnuddaPlotSpikeRaster2:
             for patch, col in zip(patches, colour):
                 patch[0].set_facecolor(col)
 
-        plt.xlabel("Time (s)", fontsize=20)
-        plt.ylabel("Frequency (Hz)", fontsize=20)
-        ax.legend()
+        plt.xlabel("Time (s)", fontsize=12)
+        plt.ylabel("Frequency (Hz)", fontsize=12)
+
+        if label_text is not None:
+            ax.legend()
+
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['left'].set_linewidth(0.8)
+        ax.spines['bottom'].set_linewidth(0.8)
 
         if title:
             plt.title(title)
@@ -522,11 +567,12 @@ class SnuddaPlotSpikeRaster2:
         else:
             fig_file = os.path.join(self.figure_path, fig_file)
 
+        plt.tight_layout()
+
         if save_figure:
             self.make_figures_directory()
 
             print(f"Saving figure {fig_file}")
-            plt.tight_layout()
             plt.savefig(fig_file, dpi=300)
 
         if show_figure:
@@ -536,7 +582,7 @@ class SnuddaPlotSpikeRaster2:
         return ax
 
     def plot_spike_raster(self, type_order=None, skip_time=0, end_time=None, fig_size=(4.5, 3.5), fig_file=None,
-                          time_range=None, title=None, sort_direction=None):
+                          time_range=None, title=None, sort_direction=None, marker_size=1.0):
 
         # You can use sort_direction = "x", "y" or "z" to sort within the neuron type if you want to show the in x-direction
 
@@ -595,7 +641,8 @@ class SnuddaPlotSpikeRaster2:
         for i in range(0, 3):
             sc[:, i] = np.take(colour_lookup[:, i], self.spike_neuron_id)
 
-        ax.scatter(self.spike_time - skip_time, spike_y, color=sc, s=5, linewidths=0.1)
+        ax.scatter(self.spike_time - skip_time, spike_y, color=sc, s=marker_size, linewidths=0.1,
+                   rasterized=True, alpha=0.8)
 
         # Optionally we should also show the virtual neuron spikes...
 
@@ -612,6 +659,11 @@ class SnuddaPlotSpikeRaster2:
         ax.set_xlabel('Time (s)', fontsize=12)
         ax.set_yticks(y_tick)
         ax.set_yticklabels(y_tick_label, fontsize=10)
+
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['left'].set_linewidth(0.8)
+        ax.spines['bottom'].set_linewidth(0.8)
 
         if skip_time or end_time:
             x_lim = ax.get_xlim()
