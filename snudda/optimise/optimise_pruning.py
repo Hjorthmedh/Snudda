@@ -168,7 +168,8 @@ class OptimisePruning:
         out_file.close()
 
     def evaluate_fitness(self, pre_type, post_type, output_file, experimental_data,
-                         avg_num_synapses_per_pair=None, con_type="synapses", min_z=None, max_z=None):
+                         mean_num_synapses_per_pair=None, std_num_synapses_per_pair=None,
+                         con_type="synapses", min_z=None, max_z=None):
 
         """
 
@@ -177,7 +178,7 @@ class OptimisePruning:
                 post_type
                 output_file: path to output file from prune
                 experiment_data: [(bin start, bin end, P)]
-                avg_num_synapses_per_pair: avg_num
+                mean_num_synapses_per_pair: avg_num
 
         """
 
@@ -268,17 +269,26 @@ class OptimisePruning:
             # p_hyp[idx] = test.pvalue  # gave 0 when p values are too far apart, not informative
             p_hyp[idx] = abs(n_con/n_tot - p_exp) * 100
 
-        if avg_num_synapses_per_pair is not None:
+        error = np.sum(p_hyp)
+
+        per_pair_error = None
+        std_pair_error = None
+
+        if mean_num_synapses_per_pair is not None:
             if n_pairs > 0:
-                #per_pair_error = np.sum(abs(avg_num_synapses_per_pair - n_syn_list))/n_pairs
-                per_pair_error = 5*np.sum(np.square(avg_num_synapses_per_pair - n_syn_list))/n_pairs
-
+                #per_pair_error = np.sum(abs(mean_num_synapses_per_pair - n_syn_list))/n_pairs
+                per_pair_error = np.sum(np.square(mean_num_synapses_per_pair - n_syn_list)) / n_pairs
             else:
-                per_pair_error = 5*abs(avg_num_synapses_per_pair)
+                per_pair_error = abs(mean_num_synapses_per_pair)
 
-            error = np.sum(p_hyp) + per_pair_error
-        else:
-            error = np.sum(p_hyp)
+            error +=  per_pair_error
+
+        if std_num_synapses_per_pair is not None and n_pairs > 0:
+            std_pair_error = 50 * np.abs(np.std(n_syn_list) - std_num_synapses_per_pair)
+
+            error += std_pair_error
+
+        # print(f"Errors in P: {np.sum(p_hyp)}, error in num con: {per_pair_error}, std_pair_error: {std_pair_error}")
 
         return error
 
@@ -328,7 +338,8 @@ class OptimisePruning:
                                       post_type=optimisation_info["post_type"],
                                       output_file=output_file,
                                       experimental_data=optimisation_info["exp_data"],
-                                      avg_num_synapses_per_pair=optimisation_info["avg_num_synapses_per_pair"],
+                                      mean_num_synapses_per_pair=optimisation_info["mean_num_synapses_per_pair"],
+                                      std_num_synapses_per_pair=optimisation_info["std_num_synapses_per_pair"],
                                       con_type=con_type,
                                       min_z=min_z, max_z=max_z)
 
@@ -373,7 +384,10 @@ class OptimisePruning:
     def optimize(self, pre_type, post_type, con_type,
                  experimental_data,
                  param_names, param_bounds,
-                 extra_pruning_parameters, avg_num_synapses_per_pair=None,
+                 extra_pruning_parameters,
+                 avg_num_synapses_per_pair=None,
+                 mean_num_synapses_per_pair=None,
+                 std_num_synapses_per_pair=None,
                  workers=1, maxiter=50, tol=0.001, pop_size=None,
                  min_z=None, max_z=None):
 
@@ -387,10 +401,13 @@ class OptimisePruning:
         if param_bounds == "default":
             param_bounds = []
             for p_name in param_names:
+                if p_name == "softMax":
+                    raise ValueError("Please change softMax to soft_max")
+
                 if p_name == "f1":
                     param_bounds.append((0, 1))
-                elif p_name == "softMax":
-                    param_bounds.append((0, 20))
+                elif p_name == "soft_max":
+                    param_bounds.append((0, 10))
                 elif p_name == "mu2":
                     param_bounds.append((0, 5))
                 elif p_name == "a3":
@@ -398,11 +415,17 @@ class OptimisePruning:
                 else:
                     raise ValueError(f"No default parameter bounds for {p_name} (f1, softMax, mu2, a3)")
 
+        # Let's warn user for a bit, this will change in future to mean_num_synapser_per_pair
+        if avg_num_synapses_per_pair and mean_num_synapses_per_pair is None:
+            print(f"OptimizePruning.optimize: avg_num_synapses_per_pair renamed to mean_num_synapses_per_pair, please change.")
+            mean_num_synapses_per_pair = avg_num_synapses_per_pair
+
         self.optimisation_info["pre_type"] = pre_type
         self.optimisation_info["post_type"] = post_type
         self.optimisation_info["con_type"] = con_type
         self.optimisation_info["exp_data"] = experimental_data
-        self.optimisation_info["avg_num_synapses_per_pair"] = avg_num_synapses_per_pair
+        self.optimisation_info["mean_num_synapses_per_pair"] = mean_num_synapses_per_pair
+        self.optimisation_info["std_num_synapses_per_pair"] = std_num_synapses_per_pair
         self.optimisation_info["extra_pruning_parameters"] = extra_pruning_parameters
         self.optimisation_info["ctr"] = 0
         self.optimisation_info["network_path"] = self.network_path
