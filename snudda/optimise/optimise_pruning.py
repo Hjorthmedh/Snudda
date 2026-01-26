@@ -169,6 +169,7 @@ class OptimisePruning:
 
     def evaluate_fitness(self, pre_type, post_type, output_file, experimental_data,
                          mean_num_synapses_per_pair=None, std_num_synapses_per_pair=None,
+                         percentile20_pair=None,
                          con_type="synapses", min_z=None, max_z=None):
 
         """
@@ -267,28 +268,32 @@ class OptimisePruning:
         for idx, (n_con, n_tot, p_exp) in enumerate(zip(n_connected, n_total, [x[2] for x in experimental_data])):
             # test = binomtest(n_con, n_tot, p_exp)
             # p_hyp[idx] = test.pvalue  # gave 0 when p values are too far apart, not informative
-            p_hyp[idx] = abs(n_con/n_tot - p_exp) * 100
+            p_hyp[idx] = abs(n_con/n_tot - p_exp) / (0.10 * p_exp)
 
-        error = np.sum(p_hyp)
+        error = np.mean(p_hyp)
 
         per_pair_error = None
         std_pair_error = None
+        percentile_error = None
 
         if mean_num_synapses_per_pair is not None:
             if n_pairs > 0:
-                #per_pair_error = np.sum(abs(mean_num_synapses_per_pair - n_syn_list))/n_pairs
-                per_pair_error = np.sum(np.square(mean_num_synapses_per_pair - n_syn_list)) / n_pairs
+                per_pair_error = np.abs(mean_num_synapses_per_pair - np.mean(n_syn_list)) / 2.0
             else:
                 per_pair_error = abs(mean_num_synapses_per_pair)
 
             error +=  per_pair_error
 
         if std_num_synapses_per_pair is not None and n_pairs > 0:
-            std_pair_error = 50 * np.abs(np.std(n_syn_list) - std_num_synapses_per_pair)
+            std_pair_error = np.abs(np.std(n_syn_list) - std_num_synapses_per_pair) / 0.5
 
             error += std_pair_error
 
-        # print(f"Errors in P: {np.sum(p_hyp)}, error in num con: {per_pair_error}, std_pair_error: {std_pair_error}")
+        if percentile20_pair is not None and n_pairs > 0:
+            percentile_error = np.abs(np.percentile(n_syn_list, 20) - percentile20_pair) / 0.1
+            error += percentile_error
+
+        print(f"Errors in P: {np.mean(p_hyp)}, error in num con: {per_pair_error}, std_pair_error: {std_pair_error}, percentile20_error: {percentile_error}")
 
         return error
 
@@ -340,6 +345,7 @@ class OptimisePruning:
                                       experimental_data=optimisation_info["exp_data"],
                                       mean_num_synapses_per_pair=optimisation_info["mean_num_synapses_per_pair"],
                                       std_num_synapses_per_pair=optimisation_info["std_num_synapses_per_pair"],
+                                      percentile20_pair=optimisation_info["percentile20_pair"],
                                       con_type=con_type,
                                       min_z=min_z, max_z=max_z)
 
@@ -388,6 +394,7 @@ class OptimisePruning:
                  avg_num_synapses_per_pair=None,
                  mean_num_synapses_per_pair=None,
                  std_num_synapses_per_pair=None,
+                 percentile20_pair=None,
                  workers=1, maxiter=50, tol=0.001, pop_size=None,
                  min_z=None, max_z=None):
 
@@ -426,6 +433,7 @@ class OptimisePruning:
         self.optimisation_info["exp_data"] = experimental_data
         self.optimisation_info["mean_num_synapses_per_pair"] = mean_num_synapses_per_pair
         self.optimisation_info["std_num_synapses_per_pair"] = std_num_synapses_per_pair
+        self.optimisation_info["percentile20_pair"] = percentile20_pair
         self.optimisation_info["extra_pruning_parameters"] = extra_pruning_parameters
         self.optimisation_info["ctr"] = 0
         self.optimisation_info["network_path"] = self.network_path
