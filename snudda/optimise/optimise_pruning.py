@@ -293,7 +293,8 @@ class OptimisePruning:
             percentile_error = np.abs(np.percentile(n_syn_list, 20) - percentile20_pair) / 0.1
             error += percentile_error
 
-        print(f"Errors in P: {np.mean(p_hyp)}, error in num con: {per_pair_error}, std_pair_error: {std_pair_error}, percentile20_error: {percentile_error}")
+        if self.verbose:
+            print(f"Errors in P: {np.mean(p_hyp)}, error in num con: {per_pair_error}, std_pair_error: {std_pair_error}, percentile20_error: {percentile_error}")
 
         return error
 
