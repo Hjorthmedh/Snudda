@@ -2384,6 +2384,14 @@ class SnuddaInput(object):
 
             num_inputs = input_loc[0].shape[0]
 
+            # We need to pick which parameter set to use for the input also
+            synapse_parameter_id = rng.integers(1e6, size=num_inputs)
+
+            if "spikes" in input_info:
+                # Spikes are already pre-generated, use them.
+                freq = -1    # We do not know
+                return input_info["neuron_id"], input_info["input_type"], input_info["spikes"], freq, input_loc, synapse_parameter_id
+
             if num_inputs > 0:
                 # Rudolph, Michael, and Alain Destexhe. Do neocortical pyramidal neurons display stochastic resonance?.
                 # Journal of computational neuroscience 11.1(2001): 19 - 42.
@@ -2420,8 +2428,6 @@ class SnuddaInput(object):
                                                  input_generator=input_generator,
                                                  std_freq=std_freq)
 
-            # We need to pick which parameter set to use for the input also
-            synapse_parameter_id = rng.integers(1e6, size=num_inputs)
 
         # We need to keep track of the neuron_id, since it will all be jumbled
         # when doing asynchronous parallelisation
