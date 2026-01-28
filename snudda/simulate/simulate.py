@@ -150,6 +150,9 @@ class SnuddaSimulate(object):
         self.use_cvode = False
 
         self.pc = h.ParallelContext()
+        self.pc.timeout(600)
+        self.write_log(f"NEURON MPI timeout is set to 600", force_print=True)
+
 
         self.print_error_once = dict()
 
@@ -3173,8 +3176,10 @@ if __name__ == "__main__":
         print("!!! WE HAVE DISABLED SYNAPSES !!!")
 
     pc = h.ParallelContext()
+    pc.timeout(600)
     print("MPI ranks seen by NEURON:", int(pc.nhost()))
     print("This rank:", int(pc.id()))
+    print(f"Timeout: {pc.timeout()}")
 
     if args.output_file:
         output_file = args.output_file

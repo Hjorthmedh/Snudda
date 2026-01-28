@@ -80,7 +80,7 @@ class PlotReactionDiffusion:
                           font={"size": 18},  # General font size for all elements
                           title={"text": title, "font": {"size": 60}, "x": 0.5, "xanchor": "center", "y": 0.9},
                           legend={"font": {"size": 40}},  # Specific font size for legend
-                          xaxis={"title": {"font": {"size": 40}}, "tickfont": {"size": 30}},
+                          xaxis={"title": {"font": {"size": 40}}, "tickfont": {"size": 40}},
                           yaxis={"title": {"font": {"size": 40}},
                                  "tickfont": {"size": 40}}, # Y-axis title and tick labels
                           margin=dict(l=100, r=100, t=160, b=100)) # Margin
