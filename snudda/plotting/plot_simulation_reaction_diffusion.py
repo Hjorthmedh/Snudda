@@ -35,7 +35,8 @@ class PlotReactionDiffusion:
                 ylabel = "Concentration (mM)"
 
         # pio.renderers.default = "iframe"  # Do not save plots in the notebook, they can get BIG
-        pio.renderers.default = "plotly_mimetype"
+        # pio.renderers.default = "plotly_mimetype"
+        pio.renderers.default = "png"
 
         palette = px.colors.qualitative.Set2
 

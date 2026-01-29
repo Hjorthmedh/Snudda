@@ -134,7 +134,38 @@ class SnuddaNetworkPairPulseSimulation:
 
     ############################################################################
 
-    def setup(self, n_dSPN=120, n_iSPN=120, n_FS=20, n_LTS=0, n_ChIN=0,
+    def setup(self, neuron_paths, neuron_names, number_of_neurons,
+              connection_config=None, cut_outside=True,
+              random_seed=None, density=80500, d_min=15e-6):
+
+        if random_seed:
+            self.random_seed = random_seed
+        else:
+            random_seed = self.random_seed
+
+        from snudda import Snudda
+        snd = Snudda(network_path=self.network_path)
+        snd.init_tiny(neuron_paths=neuron_paths,
+                      neuron_names=neuron_names,
+                      number_of_neurons=number_of_neurons,
+                      snudda_data=self.snudda_data,
+                      connection_config=connection_config,
+                      random_seed=random_seed,
+                      density=density,
+                      d_min=d_min)
+
+        snd.create_network()
+
+        if cut_outside:
+            from snudda.utils.cut import SnuddaCut
+            cut = SnuddaCut(network_file=self.network_file,
+                            cut_equation="(-75e-6 < z) & (z < 75e-6)",
+                            show_plot=True)
+
+            self.network_file = cut.out_file_name
+
+
+    def setup_OLD(self, n_dSPN=120, n_iSPN=120, n_FS=20, n_LTS=0, n_ChIN=0,
               volume_type=None,
               neuron_density=80500,
               side_len=200e-6,

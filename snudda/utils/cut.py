@@ -309,7 +309,7 @@ class SnuddaCut(object):
         destination_id = self.in_file[data_str][:, 1]
 
         for idx, (src_id, dest_id) in enumerate(zip(source_id, destination_id)):
-            keep_flag[idx] = neuron_keep_flag[src_id] and neuron_keep_flag[dest_id]
+            keep_flag[idx] = neuron_keep_flag[src_id] and neuron_keep_flag[dest_id] and keep_flag[idx]
 
         print(f"filtering of {data_type} done")
         return keep_flag
@@ -405,6 +405,11 @@ class SnuddaCut(object):
             ax.scatter(in_gj[:, 0], in_gj[:, 1], in_gj[:, 2], c='blue', s=6, alpha=a_val2)
             if self.out_file is not None:
                 ax.scatter(out_gj[:, 0], out_gj[:, 1], out_gj[:, 2], c='green', s=3, alpha=a_val)
+
+        ax.set_axis_on()
+        ax.set_xlabel("x (m)")
+        ax.set_ylabel("y (m)")
+        ax.set_zlabel("z (m)")
 
         ax.view_init(elev=-3, azim=-95)
 
