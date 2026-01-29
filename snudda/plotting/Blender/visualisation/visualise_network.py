@@ -431,6 +431,8 @@ class VisualiseNetwork(object):
 
     def add_mesh_structure(self, mesh_file, colour, alpha):
 
+        print("Importing mesh:", mesh_file)
+
         mat = bpy.data.materials.new("PKHG")
         mat.diffuse_color = (colour[0], colour[1], colour[2], alpha)
         mat.use_nodes = True

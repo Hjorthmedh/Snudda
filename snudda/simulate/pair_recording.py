@@ -563,9 +563,13 @@ class PairRecording(SnuddaSimulate):
 
         print(f"Setting {channel_name} reversal potential to {v_rev * 1e3} mV")
 
-        for syn in self.synapse_dict.values():
-            if channel_name == syn.hname().split("[")[0]:
-                syn.e = v_rev * 1e3
+        for syn_list in self.synapse_dict.values():
+            for syn_ind in syn_list:
+                syn = syn_ind[0]
+                if channel_name == syn.hname().split("[")[0]:
+                    syn.e = v_rev * 1e3
+
+
 
 
 if __name__ == "__main__":
