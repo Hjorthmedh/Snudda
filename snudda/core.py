@@ -202,7 +202,7 @@ class Snudda(object):
                 side_len = (n_total/density)**(1/3)*1e-3
             else:
                 # When placing one neuron in a really small volume, sometimes it is too small
-                side_len = (2/density)**(1/3)*1e-3
+                side_len = (5/density)**(1/3)*1e-3
 
             si.define_structure(struct_name="Cube",
                                 struct_mesh="cube",
