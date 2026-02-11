@@ -118,12 +118,6 @@ class NeuronPrototype:
 
         par_path = self.parameter_path
 
-        if par_path is None or not os.path.exists(par_path):
-            if self.verbose:
-                print(f"Missing parameters.json : {par_path}")
-    
-            self.parameter_info = None
-            return
 
         if self.meta_path and os.path.exists(self.meta_path):
             try:
@@ -134,6 +128,13 @@ class NeuronPrototype:
                 import traceback
                 print(traceback.format_exc())
                 raise e
+
+        if par_path is None or not os.path.exists(par_path):
+            if self.verbose:
+                print(f"Missing parameters.json : {par_path}")
+
+            self.parameter_info = None
+            return
 
         with open(par_path, "r") as f:
             self.parameter_info = json.load(f)
