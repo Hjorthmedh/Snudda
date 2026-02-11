@@ -278,7 +278,7 @@ class SnuddaNetworkPairPulseSimulation:
 
     ############################################################################
 
-    def run_sim(self, gaba_rev, pre_id=None, disable_gap_junctions=False,clamp_mode=None):
+    def run_sim(self, gaba_rev, pre_id=None, disable_gap_junctions=False, clamp_mode=None):
 
         self.snudda_sim = SnuddaSimulate(network_file=self.network_file,
                                          input_file=None,
@@ -320,8 +320,12 @@ class SnuddaNetworkPairPulseSimulation:
         # record voltage from all neurons
 
         if clamp_mode == "voltage":
-            post_id = self.snudda_sim.snudda_loader.get_neuron_id_of_type(self.post_type)
-            self.snudda_sim.add_voltage_clamp(cell_id=post_id,hold_v=self.hold_v,duration=2*sim_end,save_i_flag=True)
+            if self.post_type == "ALL":
+                post_id = list(set(self.snudda_sim.snudda_loader.get_neuron_id()) - set(self.pre_id))
+                self.snudda_sim.add_voltage_clamp(cell_id=post_id, voltage=self.hold_v, duration=2*sim_end, save_i_flag=True)
+            else:
+                post_id = self.snudda_sim.snudda_loader.get_neuron_id_of_type(self.post_type)
+                self.snudda_sim.add_voltage_clamp(cell_id=post_id, voltage=self.hold_v, duration=2*sim_end, save_i_flag=True)
             self.snudda_sim.add_volt_recording_soma()
         elif clamp_mode == "current":
             # Set the holding voltage
