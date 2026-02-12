@@ -457,18 +457,18 @@ class OptimiseSynapsesFull(object):
 
             if peak_height[0] > 0:
                 if idx_b < len(peak_idx) - 1:
-                    p0d = [0.06, 0.05, -0.074]
+                    p0d = [0.06, 0.05, self.trace_holding_voltage]
                 else:
-                    p0d = [1e-5, 100, -0.074]
+                    p0d = [1e-5, 100, self.trace_holding_voltage] 
 
                     if self.synapse_type == "gaba":
-                        p0d = [1e-8, 10000, -0.0798]
+                        p0d = [1e-8, 10000, self.trace_holding_voltage]
             else:
                 # In some cases for GABA we had really fast decay back
                 if idx_b < len(peak_idx) - 1:
-                    p0d = [-0.06, 0.05, -0.0798]
+                    p0d = [-0.06, 0.05, self.trace_holding_voltage]
                 else:
-                    p0d = [-1e-5, 1e5, -0.0798]
+                    p0d = [-1e-5, 1e5, self.trace_holding_voltage]
 
             peak_idx_a = peak_idx[idx_b - 1]  # Prior peak
             peak_idx_b = peak_idx[idx_b]  # Next peak
@@ -515,6 +515,26 @@ class OptimiseSynapsesFull(object):
                     import traceback
                     tstr = traceback.format_exc()
                     self.write_log(tstr)
+
+                    ### DEBUGGING START
+                    import pickle
+                    from datetime import datetime
+
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    filename = f"curve_fit_args_{timestamp}.pkl"
+
+                    dump_data = {
+                        "t_ab_fit": t_ab_fit,
+                        "v_ab_fit": v_ab_fit,
+                        "p0d": p0d,
+                    }
+
+                    with open(filename, "wb") as f:
+                        pickle.dump(dump_data, f)
+
+                    print(f"Saved to {filename}")
+
+                    ### DEBIGGING END
 
                     self.write_log("!!! Failed to converge, trying with smaller decay constant")
                     p0d[1] *= 0.01
@@ -603,6 +623,7 @@ class OptimiseSynapsesFull(object):
             trace_holding_voltage = self.trace_holding_voltage
         elif "baseline_voltage" in c_prop:
             trace_holding_voltage = c_prop["baseline_voltage"]
+            self.trace_holding_voltage = trace_holding_voltage
         else:
             trace_holding_voltage = None
             assert f"You need to specify either a trace_holding_voltage in {self.data_file}" \
@@ -1151,7 +1172,8 @@ class OptimiseSynapsesFull(object):
 
         res = scipy.optimize.minimize(func,
                                       x0=start_par,
-                                      bounds=m_bounds)
+                                      bounds=m_bounds,
+                                      options={'maxiter': 5})
 
         fit_params = res.x
         min_error = res.fun
