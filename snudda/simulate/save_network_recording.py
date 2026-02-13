@@ -81,6 +81,10 @@ class NeuronRecordings:
         if data_type not in self.data:
             self.data[data_type] = CompartmentData(neuron_id=self.neuron_id, data_type=data_type)
 
+        if self.data[data_type].exist(sec_id=sec_id, sec_x=sec_x):
+            print(f"{data_type} already recorded for neuron_id = {self.neuron_id}, {sec_id=}, {sec_x=}, skipping.")
+            return
+
         self.data[data_type].append(data=data, sec_id=sec_id, sec_x=sec_x)
 
     def register_synapse_data(self, data, data_type, synapse_type, presynaptic_id, sec_id, sec_x, cond):
@@ -146,6 +150,9 @@ class CompartmentData:
         self.data = []
         self.sec_id = []
         self.sec_x = []
+
+    def exist(self, sec_id, sec_x):
+        return any(sec_id == s_id and sec_x == s_x for s_id, s_x in zip(self.sec_id, self.sec_x))
 
     def append(self, data, sec_id, sec_x):
         # !!! Issue (?): The same compartment can hold several recordings now.

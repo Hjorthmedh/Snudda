@@ -223,6 +223,56 @@ class SnuddaNetworkPairPulseSimulation:
 
     ############################################################################
 
+    def write_simulation_config(self, gaba_rev, pre_id=None, clamp_mode=None):
+
+        assert clamp_mode == "current", "Currently only support current clamp, TODO: Fix config for voltage clamp also"
+
+        network_file = os.path.join(self.network_path, "network-synapses.hdf5")
+        snudda_loader = SnuddaLoad(network_file=network_file)
+        network_info = snudda_loader.data
+
+        self.simulation_config_file = os.path.join(self.network_path, "simulation-config.json")
+
+        if pre_id:
+            print(f"Using user defined pre_id: {pre_id}")
+            self.pre_id = pre_id
+        else:
+            self.pre_id = [x["neuron_id"] for x in network_info["neurons"] if x["type"] == self.pre_type]
+            if self.n_stimulated_neurons is not None:
+                self.pre_id = self.pre_id[:self.n_stimulated_neurons]
+
+        # inj_info contains (pre_id, inj_start_time)
+        self.inj_info = list(zip(self.pre_id, self.inj_spacing + self.inj_spacing * np.arange(0, len(self.pre_id))))
+        sim_end = self.inj_info[-1][1] + self.inj_spacing
+
+        current_injection_info = dict()
+
+        for pre_id, start_time in zip(self.pre_id, self.inj_spacing + self.inj_spacing * np.arange(0, len(self.pre_id))):
+            current_injection_info[str(pre_id)] = { "time": [0, start_time, start_time + 1e-6,
+                                                             start_time + self.inj_duration,
+                                                             start_time + self.inj_duration + 1e-6,
+                                                             sim_end],
+                                                    "current": [0, 0, self.cur_inj, self.cur_inj, 0, 0] }
+
+        sim_config = { "network_path": self.network_path,
+                       "snudda_data": self.snudda_data,
+                       "time": sim_end,
+                       "log_file": "$network_path/log/output-log.txt",
+                       "record_all_soma": True,
+                       "current_injection_info": current_injection_info,
+                       "reversal_potential_override": {"ALL": {"tmGabaA": gaba_rev}}
+                       }
+
+        snudda_loader.close()
+
+        print(f"Writing simulation config: {self.simulation_config_file}")
+        with open(self.simulation_config_file, "w") as f:
+            json.dump(sim_config, f, indent=4)
+
+        print(f"Run:\nmpirun snudda simulate {self.network_path} --simulation_config {self.simulation_config_file}")
+
+    ############################################################################
+
     def setup_holding_volt(self, hold_v=None, sim_end=None):
 
         assert sim_end is not None, "setup_holding_volt: Please set sim_end, for holding current"
@@ -275,6 +325,7 @@ class SnuddaNetworkPairPulseSimulation:
             for s, _, _, _ in s_list:
                 assert s.e == -60, "It should be GABA synapses only that we modify!"
                 s.e = v_rev_cl * 1e3
+
 
     ############################################################################
 
@@ -446,6 +497,11 @@ class SnuddaNetworkPairPulseSimulation:
                     continue
 
                 t_idx = np.where(np.logical_and(t <= time, time <= t + check_width))[0]
+
+                if post_id not in recorded_data:
+                    print(f"Missing key {post_id}")
+                    import pdb
+                    pdb.set_trace()
 
                 synapse_data.append((time[t_idx], recorded_data[post_id][t_idx], pre_id, post_id))
                 

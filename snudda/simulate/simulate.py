@@ -270,6 +270,9 @@ class SnuddaSimulate(object):
             if "post_init_modifications" in self.sim_info:
                 self.post_init_mods = self.sim_info["post_init_modifications"]
 
+            # The rest of the configuration file is parsed in setup_parse_sim_info() further down.
+
+
         if self.log_file is None:
             self.log_file = os.path.join(self.network_path, "log", "simulation-log.txt")
 
@@ -599,10 +602,12 @@ class SnuddaSimulate(object):
                                                   interpolate=interpolate_bath)
 
                 else:
-                    #import pdb
-                    #pdb.set_trace()
                     raise ValueError(f"Unable to parse bath_application: {self.sim_info['bath_application']}")
 
+            if "reversal_potential_override" in self.sim_info:
+                # Format: {"ALL: {"tmGabaA": -60e-3}}, use "ALL" for all, "dSPN" if dspn only.
+                self.reversal_potential_override = self.sim_info["reversal_potential_override"]
+                self.update_reversal_potentials()  # Allow user to override reversal potential of channels
 
             # Add any current injections that are specified
             self.parse_current_injection_info()
@@ -1663,6 +1668,39 @@ class SnuddaSimulate(object):
         self.pc.source_var(section(section_dist)._ref_v, gid_source_gj, sec=section)
 
         gj.g = g_gap_junction
+
+    ############################################################################
+
+    def update_reversal_potentials(self):
+
+        if self.reversal_potential_override is None:
+            return
+
+        for neuron_type, type_data in self.reversal_potential_override.items():
+            if neuron_type.lower() == "all":
+                neuron_type = None
+
+            for synapse_name, v_rev in type_data.items():
+                self.set_reversal_potential(neuron_type=neuron_type,
+                                            synapse_name=synapse_name,
+                                            v_rev=v_rev)
+
+    def set_reversal_potential(self, neuron_type=None, synapse_name="tmGabaA", v_rev=-60e-3):
+        # Convert to mV for NEURON (assuming input is in Volts)
+        v_rev_mv = v_rev * 1e3
+        print(f"Setting {synapse_name} reversal potential to {v_rev_mv} mV "
+              f"in {'all' if neuron_type is None else neuron_type} neurons ")
+
+        for (s_id, d_id), s_list in self.synapse_dict.items():
+            if neuron_type is None or self.network_info["neurons"][d_id]["type"] == neuron_type:
+                for s, _, _, _ in s_list:
+                    # TODO: Check if it should be 'in' or '==' here
+
+                    if synapse_name == s.hname().split("[")[0]:
+                        if hasattr(s, 'e'):
+                            s.e = v_rev_mv
+                    else:
+                        continue
 
     ############################################################################
 
