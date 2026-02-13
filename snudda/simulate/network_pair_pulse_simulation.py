@@ -223,7 +223,7 @@ class SnuddaNetworkPairPulseSimulation:
 
     ############################################################################
 
-    def write_simulation_config(self, gaba_rev, pre_id=None, clamp_mode=None):
+    def write_simulation_config(self, gaba_rev, pre_id=None, clamp_mode=None, return_run_str=False):
 
         assert clamp_mode == "current", "Currently only support current clamp, TODO: Fix config for voltage clamp also"
 
@@ -269,7 +269,10 @@ class SnuddaNetworkPairPulseSimulation:
         with open(self.simulation_config_file, "w") as f:
             json.dump(sim_config, f, indent=4)
 
-        print(f"Run:\nmpirun snudda simulate {self.network_path} --simulation_config {self.simulation_config_file}")
+        run_cmd = f"mpirun snudda simulate {self.network_path} --simulation_config {self.simulation_config_file}"
+
+        if return_run_str:
+            return run_cmd
 
     ############################################################################
 
