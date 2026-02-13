@@ -355,7 +355,7 @@ class SnuddaNetworkPairPulseSimulation:
 
     # This extracts all the voltage deflections, to see how strong they are
 
-    def analyse(self, max_dist=None, n_max_show=10, pre_id=None, post_type=None, clamp_mode=None):
+    def analyse(self, max_dist=None, n_max_show=10, pre_id=None, post_type=None, clamp_mode=None, exp_data_file=None):
 
         import matplotlib
         import matplotlib.pyplot as plt
@@ -373,7 +373,7 @@ class SnuddaNetworkPairPulseSimulation:
         else:
             raise ValueError(f"Unknown clamp_mode = {clamp_mode}, should be 'voltage' or 'current'")
         
-        self.setup_exp_data()
+        self.setup_exp_data(data_file=exp_data_file)
 
         if max_dist is None:
             max_dist = self.max_dist
@@ -522,7 +522,7 @@ class SnuddaNetworkPairPulseSimulation:
             axes = plt.gca()
             ay = axes.get_ylim()
             # Plot SD or 1.96 SD?
-            plt.errorbar(t_end, exp_mean, exp_std, ecolor="red",
+            plt.errorbar(t_end, exp_mean * plot_conversion, exp_std * plot_conversion, ecolor="red",
                          marker='o', color="red")
             
             model_mean = np.mean(amp) * plot_conversion
