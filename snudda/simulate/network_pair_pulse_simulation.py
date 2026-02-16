@@ -414,6 +414,9 @@ class SnuddaNetworkPairPulseSimulation:
         import matplotlib
         import matplotlib.pyplot as plt
 
+        model_mean = None
+        model_std = None
+
         if clamp_mode == "voltage":
             data_unit = "current"
             plot_conversion = 1e9

@@ -459,7 +459,7 @@ class OptimiseSynapsesFull(object):
                 if idx_b < len(peak_idx) - 1:
                     p0d = [0.06, 0.05, self.trace_holding_voltage]
                 else:
-                    p0d = [1e-5, 100, self.trace_holding_voltage] 
+                    p0d = [1e-5, 100, self.trace_holding_voltage]
 
                     if self.synapse_type == "gaba":
                         p0d = [1e-8, 10000, self.trace_holding_voltage]
