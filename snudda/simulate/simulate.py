@@ -3056,7 +3056,7 @@ class SnuddaSimulate(object):
 
             # Save to list with all current injections
             self.i_stim.append(ic)
-            print(f"setup_holding_currents: Adding {cur} nA current injection to {s}")
+            print(f"setup_holding_currents: Adding {cur:.3f} nA current injection to {s}")
 
         # Remove old vClamps
         soma_v_clamp = None
