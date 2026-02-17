@@ -472,9 +472,7 @@ class SnuddaNetworkPairPulseSimulation:
             f"to record data from all neuron types use post_type=ALL"
 
         self.possible_post_id = [x["neuron_id"] for x in self.data["neurons"] if x["type"] == post_type]
-        if clamp_mode == "voltage":
-            # In voltage clamp we cannot record from the presynaptic neurons
-            self.possible_post_id = list(set(self.possible_post_id)-set(self.pre_id))
+        self.possible_post_id = list(set(self.possible_post_id)-set(self.pre_id))
 
         recorded_data = ssd.get_data(data_unit, self.possible_post_id)[0]
 
