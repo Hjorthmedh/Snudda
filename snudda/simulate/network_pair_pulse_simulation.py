@@ -241,6 +241,8 @@ class SnuddaNetworkPairPulseSimulation:
             if self.n_stimulated_neurons is not None:
                 self.pre_id = self.pre_id[:self.n_stimulated_neurons]
 
+        post_id = list(set([x["neuron_id"] for x in network_info["neurons"]]) - set(self.pre_id))
+
         # inj_info contains (pre_id, inj_start_time)
         self.inj_info = list(zip(self.pre_id, self.inj_spacing + self.inj_spacing * np.arange(0, len(self.pre_id))))
         sim_end = self.inj_info[-1][1] + self.inj_spacing
@@ -253,6 +255,9 @@ class SnuddaNetworkPairPulseSimulation:
                                                              start_time + self.inj_duration + 1e-6,
                                                              sim_end],
                                                     "current": [0, 0, self.cur_inj, self.cur_inj, 0, 0] }
+
+        for p_id in post_id:
+            current_injection_info[str(p_id)] = { "voltage": self.hold_v }
 
         sim_config = { "network_path": self.network_path,
                        "snudda_data": self.snudda_data,
@@ -277,6 +282,8 @@ class SnuddaNetworkPairPulseSimulation:
     ############################################################################
 
     def setup_holding_volt(self, hold_v=None, sim_end=None):
+
+        print("Starting setup_holding_volt...")
 
         assert sim_end is not None, "setup_holding_volt: Please set sim_end, for holding current"
 

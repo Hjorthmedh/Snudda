@@ -161,6 +161,7 @@ class SnuddaSimulate(object):
 
         self.current_injection_info = dict()
         self.current_clamps = dict()
+        self.current_injection_voltage = dict()
 
         self.node_id = int(self.pc.id())
         self.total_nodes = int(self.pc.nhost())
@@ -611,6 +612,9 @@ class SnuddaSimulate(object):
 
             # Add any current injections that are specified
             self.parse_current_injection_info()
+
+            # This will run simulation for 0.1 seconds, to calculate the current needed
+            self.setup_holding_currents()
 
         # Do we need blocking call here, to make sure all neurons are setup
         # before we try and connect them
@@ -2858,6 +2862,14 @@ class SnuddaSimulate(object):
                 # Neuron not on this worker.
                 continue
 
+            if "voltage" in cur_info:
+                self.current_injection_voltage[int(neuron_id)] = cur_info["voltage"]
+
+                if "current" in cur_info:
+                    raise ValueError(f"current_injection info for neuron_id={neuron_id} contains both current and voltage, pick one!")
+
+                continue
+
             time = np.array(cur_info["time"])
             cur_amp = np.array(cur_info["current"])
             neuron_id = int(neuron_id)
@@ -3002,6 +3014,57 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
+    def setup_holding_currents(self):
+
+        if self.current_injection_voltage is None or len(self.current_injection_voltage) == 0:
+            return
+
+        print("Running setup_holding_currents")
+
+        soma_v_clamp = []
+
+        for neuron_id, hold_voltage in self.current_injection_voltage.items():
+
+            if neuron_id not in self.neurons:
+                continue
+
+            soma = self.neurons[neuron_id].icell.soma[0]
+            vc = neuron.h.SEClamp(soma(0.5))
+            vc.rs = 1e-9
+            vc.amp1 = hold_voltage * 1e3
+            vc.dur1 = 100
+
+            soma_v_clamp.append((soma, vc))
+
+            for seg in soma:
+                seg.v = hold_voltage
+
+            for sec in self.neurons[neuron_id].icell.dend:
+                for seg in sec:
+                    seg.v = hold_voltage
+
+        neuron.h.fcurrent()
+        neuron.h.tstop = 100
+        neuron.h.run()
+
+        # Setup iClamps
+        for s, vc in soma_v_clamp:
+            cur = float(vc.i)
+            ic = neuron.h.IClamp(s(0.5))
+            ic.amp = cur
+            ic.dur = 2 * self.sim_info.get("time",10000) * 1e3
+
+            # Save to list with all current injections
+            self.i_stim.append(ic)
+            print(f"setup_holding_currents: Adding {cur} nA current injection to {s}")
+
+        # Remove old vClamps
+        soma_v_clamp = None
+        v_clamps = None
+        vc = None
+
+    ############################################################################
+
     def convert_to_natural_units(self, param_name, param_value):
 
         # TODO, move conversion list to separate file
@@ -3110,6 +3173,7 @@ class SnuddaSimulate(object):
 
         self.i_stim = []
         self.v_clamp_list = []
+        self.current_injection_voltage = None
         self.gap_junction_dict = dict()
         self.external_stim = dict([])
         self.check_id_recordings = []
