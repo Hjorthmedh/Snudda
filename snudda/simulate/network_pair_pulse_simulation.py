@@ -266,7 +266,8 @@ class SnuddaNetworkPairPulseSimulation:
                        "log_file": "$network_path/log/output-log.txt",
                        "record_all_soma": True,
                        "current_injection_info": current_injection_info,
-                       "reversal_potential_override": {"ALL": {"tmGabaA": gaba_rev}}
+                       "reversal_potential_override": {"ALL": {"tmGabaA": gaba_rev}},
+                       "hold_voltage": self.hold_v
                        }
 
         if clamp_mode == "voltage":
@@ -637,7 +638,7 @@ class SnuddaNetworkPairPulseSimulation:
         plt.savefig(hist_fig, dpi=300)
         plt.show()
 
-        plt.pause(10)
+        plt.pause(5)
 
         return model_mean, model_std, trace_fig, hist_fig
 
