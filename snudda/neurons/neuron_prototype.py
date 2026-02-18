@@ -184,6 +184,11 @@ class NeuronPrototype:
         if self.parameter_info:
             par_key_list = sorted(list(self.parameter_info.keys()))
             par_key = par_key_list[parameter_id % len(par_key_list)]
+        elif self.meta_info:
+            if self.verbose:
+                print(f"Missing parameter file for {self.parameter_path}, using meta.json for parameter key list.")
+            par_key_list = sorted(list(self.meta_info.keys()))
+            par_key = par_key_list[parameter_id % len(par_key_list)]
         else:
             par_key = None
 
