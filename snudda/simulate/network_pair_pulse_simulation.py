@@ -255,9 +255,9 @@ class SnuddaNetworkPairPulseSimulation:
                                                              start_time + self.inj_duration + 1e-6,
                                                              sim_end],
                                                     "current": [0, 0, self.cur_inj, self.cur_inj, 0, 0] }
-
-        for p_id in post_id:
-            current_injection_info[str(p_id)] = { "voltage": self.hold_v }
+        if clamp_mode == "current":
+            for p_id in post_id:
+                current_injection_info[str(p_id)] = { "voltage": self.hold_v }
 
         sim_config = { "network_path": self.network_path,
                        "snudda_data": self.snudda_data,
