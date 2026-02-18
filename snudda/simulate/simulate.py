@@ -616,6 +616,16 @@ class SnuddaSimulate(object):
             # This will run simulation for 0.1 seconds, to calculate the current needed
             self.setup_holding_currents()
 
+            if "voltage_clamp" in self.sim_info:
+                for neuron_id, clamp_info in self.sim_info["voltage_clamp"].items():
+                    neuron_id = int(neuron_id)
+                    if neuron_id in self.neurons:
+                        voltage = clamp_info["voltage"]
+                        duration = clamp_info.get("duration", self.sim_info["time"])
+                        save_current = clamp_info.get("save_current", False)
+                        self.add_voltage_clamp(cell_id=neuron_id, voltage=voltage,
+                                               duration=duration, save_i_flag=save_current)
+
         # Do we need blocking call here, to make sure all neurons are setup
         # before we try and connect them
 

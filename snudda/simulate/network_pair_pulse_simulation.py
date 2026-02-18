@@ -225,7 +225,8 @@ class SnuddaNetworkPairPulseSimulation:
 
     def write_simulation_config(self, gaba_rev, pre_id=None, clamp_mode=None, return_run_str=False):
 
-        assert clamp_mode == "current", "Currently only support current clamp, TODO: Fix config for voltage clamp also"
+        if clamp_mode not in ("current", "voltage"):
+            raise ValueError(f"Clamp mode {clamp_mode} is not supported. (use 'voltage' or 'current')")
 
         network_file = os.path.join(self.network_path, "network-synapses.hdf5")
         snudda_loader = SnuddaLoad(network_file=network_file)
@@ -267,6 +268,16 @@ class SnuddaNetworkPairPulseSimulation:
                        "current_injection_info": current_injection_info,
                        "reversal_potential_override": {"ALL": {"tmGabaA": gaba_rev}}
                        }
+
+        if clamp_mode == "voltage":
+            volt_clamp_info = dict()
+
+            for p_id in post_id:
+                volt_clamp_info[str(p_id)] = {"voltage": self.hold_v,
+                                              "duration": sim_end,
+                                              "save_current": True}
+
+            sim_config["voltage_clamp"] = volt_clamp_info
 
         snudda_loader.close()
 
