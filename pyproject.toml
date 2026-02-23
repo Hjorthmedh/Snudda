@@ -43,6 +43,7 @@ snudda_ablate_network = "snudda.utils.ablate_network:snudda_ablate_network_cli"
 snudda_plot_network = "snudda.plotting.plot_network:snudda_plot_network_cli"
 snudda_plot_trace = "snudda.plotting.plot_traces:snudda_plot_traces_cli"
 snudda_create_cube_mesh = "snudda.place.create_cube_mesh:cube_cli"
+snudda_plot_rxd = "snudda.plotting.plot_simulation_reaction_diffusion:plot_cli"
 
 [tool.setuptools]
 include-package-data = true

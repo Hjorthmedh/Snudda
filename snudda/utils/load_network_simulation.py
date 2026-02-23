@@ -155,8 +155,13 @@ class SnuddaLoadSimulation:
 
         return freq_table
 
-    def list_data_types(self, neuron_id):
-        return list(self.network_simulation_file["neurons"][str(neuron_id)].keys())
+    def list_data_types(self, neuron_id, exclude=None):
+        all_data_types = list(self.network_simulation_file["neurons"][str(neuron_id)].keys())
+
+        if exclude:
+            all_data_types = [x for x in all_data_types if x not in exclude]
+
+        return all_data_types
 
     def get_all_data(self, neuron_id, exclude=None, include_time=False):
 

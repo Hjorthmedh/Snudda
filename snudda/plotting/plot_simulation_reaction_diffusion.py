@@ -45,7 +45,7 @@ class PlotReactionDiffusion:
         fig = go.Figure()
 
         if species is None:
-            species = self.sls.list_data_types(neuron_id=neuron_id)
+            species = self.sls.list_data_types(neuron_id=neuron_id, exclude=["spikes", "voltage"])
 
         time = self.sls.get_time()
         all_data = self.sls.get_all_data(neuron_id=neuron_id, exclude=["spikes", "voltage"])
@@ -80,12 +80,12 @@ class PlotReactionDiffusion:
 
         fig.update_layout(xaxis_title="Time (s)", yaxis_title=ylabel, width=1000, height=800,
                           paper_bgcolor="white", plot_bgcolor="white",
-                          font={"size": 18},  # General font size for all elements
-                          title={"text": title, "font": {"size": 60}, "x": 0.5, "xanchor": "center", "y": 0.9},
-                          legend={"font": {"size": 40}},  # Specific font size for legend
-                          xaxis={"title": {"font": {"size": 40}}, "tickfont": {"size": 40}},
-                          yaxis={"title": {"font": {"size": 40}},
-                                 "tickfont": {"size": 40}}, # Y-axis title and tick labels
+                          font={"size": 15},  # General font size for all elements
+                          title={"text": title, "font": {"size": 20}, "x": 0.5, "xanchor": "center", "y": 0.9},
+                          legend={"font": {"size": 15}},  # Specific font size for legend
+                          xaxis={"title": {"font": {"size": 15}}, "tickfont": {"size": 15}},
+                          yaxis={"title": {"font": {"size": 15}},
+                                 "tickfont": {"size": 15}}, # Y-axis title and tick labels
                           margin=dict(l=100, r=100, t=160, b=100)) # Margin
 
 
@@ -94,13 +94,16 @@ class PlotReactionDiffusion:
                 os.makedirs(fig_path, exist_ok=True)
                 fig_name = os.path.join(fig_path, fig_name)
 
-            fig.write_image(fig_name, width=width, height=height)
+            if ".html" in fig_name:
+                fig.write_html(fig_name)
+            else:
+                fig.write_image(fig_name, width=width, height=height)
 
         fig.show()
 
         return fig
 
-if __name__ == "__main__":
+def plot_cli():
     import argparse
 
     parser = argparse.ArgumentParser(description="Plot reaction diffusion data from Snudda simulation")
@@ -126,6 +129,11 @@ if __name__ == "__main__":
         simulation_file=args.simulation_file
     )
 
+    if args.fig_name is None:
+        fig_name = f"plot-{args.neuron_id}.html"
+    else:
+        fig_name = args.fig_name
+
     plotter.plot(
         neuron_id=args.neuron_id,
         species=args.species,
@@ -133,9 +141,12 @@ if __name__ == "__main__":
         ylabel=args.ylabel,
         compartment_id=args.compartment_id,
         normalise=args.normalise,
-        fig_name=args.fig_name,
+        fig_name=fig_name,
         fig_path=args.fig_path,
         title=args.title,
         width=args.width,
         height=args.height
-)
+    )
+
+if __name__ == "__main__":
+    plot_cli()
