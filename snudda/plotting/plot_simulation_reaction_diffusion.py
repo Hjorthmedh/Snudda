@@ -97,3 +97,43 @@ class PlotReactionDiffusion:
         fig.show()
 
         return fig
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Plot reaction diffusion data from Snudda simulation")
+    parser.add_argument("network_path", type=str, help="Path to the network directory")
+    parser.add_argument("simulation_file", type=str, help="Path to the simulation output file")
+    parser.add_argument("--neuron_id", type=int, required=True, help="Neuron ID to plot")
+    parser.add_argument("--species", type=str, nargs="+", default=None, help="Species to plot")
+    parser.add_argument("--species_label", type=str, nargs="+", default=None, help="Labels for species")
+    parser.add_argument("--ylabel", type=str, default=None, help="Y-axis label")
+    parser.add_argument("--compartment_id", type=int, default=0, help="Compartment ID (default: 0, soma)")
+    parser.add_argument("--normalise", action="store_true", help="Normalise the concentration data")
+    parser.add_argument("--fig_name", type=str, default=None, help="Output figure filename")
+    parser.add_argument("--fig_path", type=str, default="figures",
+                        help="Output figure directory (default: figures)")
+    parser.add_argument("--title", type=str, default=None, help="Plot title")
+    parser.add_argument("--width", type=int, default=800, help="Figure width in pixels (default: 800)")
+    parser.add_argument("--height", type=int, default=700, help="Figure height in pixels (default: 700)")
+
+    args = parser.parse_args()
+
+    plotter = PlotReactionDiffusion(
+        network_path=args.network_path,
+        simulation_file=args.simulation_file
+    )
+
+    plotter.plot(
+        neuron_id=args.neuron_id,
+        species=args.species,
+        species_label=args.species_label,
+        ylabel=args.ylabel,
+        compartment_id=args.compartment_id,
+        normalise=args.normalise,
+        fig_name=args.fig_name,
+        fig_path=args.fig_path,
+        title=args.title,
+        width=args.width,
+        height=args.height
+)
