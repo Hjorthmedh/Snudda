@@ -563,6 +563,10 @@ class SnuddaSimulate(object):
 
                     for species_name, bath_info in self.sim_info["bath_application"].items():
 
+                        if species_name[0] == "!":
+                            # Skipping disabled species
+                            continue
+
                         bath_time = np.array(bath_info["time"])
                         bath_conc = np.array(bath_info["concentration"])
                         neuron_id = bath_info.get("neuron_id", None)
