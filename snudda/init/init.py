@@ -749,6 +749,8 @@ class SnuddaInit(object):
                           number_of_synapses,
                           dendrite_synapse_density,
                           connection_type,
+                          projection_density=None,
+                          local_projection=False,
                           dist_pruning=None,
                           f1=None,
                           soft_max=None,
@@ -789,7 +791,14 @@ class SnuddaInit(object):
         nt_key = f"{neuron_name},{target_name}"
         con_info = self.network_data["regions"][source_volume]["connectivity"][nt_key][connection_type]
 
-        con_info["projection_file"] = projection_file
+        if local_projection:
+            con_info["projection_type"] = "local"
+            con_info["disable_touch_detection"] = True
+            assert projection_file is None, f"'local' projections do not have a projection_file specified"
+            # Here 'local' means that each projection is centred around the neuron itself.
+        else:
+            con_info["projection_file"] = projection_file
+
         con_info["projection_name"] = projection_name
         con_info["source"] = source_volume
         con_info["destination"] = dest_volume
@@ -797,6 +806,7 @@ class SnuddaInit(object):
         con_info["number_of_targets"] = number_of_targets
         con_info["number_of_synapses"] = number_of_synapses
         con_info["dendrite_synapse_density"] = dendrite_synapse_density
+        con_info["projection_density"] = projection_density
 
     ############################################################################
 

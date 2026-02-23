@@ -86,19 +86,41 @@ class TestProject(unittest.TestCase):
                                                         "tau2": (12.4e-3, 1e3),
                                                         "failRate": MSD1GABAfailRate})
 
-        cnc.add_neuron_target(neuron_name="iSPN",
+        # Make the ispn -> ispn projection use distance dependence instead of touch detection
+        # (Scott uses this method for SNr connectivity, make sure in this unit test that it works)
+
+        cnc.neuron_projection(neuron_name="iSPN",
                               target_name="iSPN",
-                              region_name="VolumeB",
+                              projection_name="ExampleLocalProjection",
+                              local_projection=True,
+                              projection_file=None,
+                              source_volume="VolumeB",
+                              dest_volume="VolumeB",
+                              projection_radius=300e-6,
+                              projection_density="exp(-d/100.0)",
+                              number_of_targets=[10, 5],
+                              number_of_synapses=[10, 5],
+                              dendrite_synapse_density="1",
                               connection_type="GABA",
-                              dist_pruning=SPN2SPNdistDepPruning,
-                              f1=0.55, soft_max=4, mu2=2.4,
-                              a3=1.0,
-                              conductance=MSD2gGABA,
-                              parameter_file=pfiSPNiSPN,
-                              mod_file="tmGabaA",
-                              channel_param_dictionary={"tau1": (1.3e-3, 1e3),
-                                                        "tau2": (12.4e-3, 1e3),
-                                                        "failRate": MSD2GABAfailRate})
+                              dist_pruning=None,
+                              f1=0.9,
+                              soft_max=None,
+                              mu2=None,
+                              a3=None)
+
+#        cnc.add_neuron_target(neuron_name="iSPN",
+#                              target_name="iSPN",
+#                              region_name="VolumeB",
+#                              connection_type="GABA",
+#                              dist_pruning=SPN2SPNdistDepPruning,
+#                              f1=0.55, soft_max=4, mu2=2.4,
+#                              a3=1.0,
+#                              conductance=MSD2gGABA,
+#                              parameter_file=pfiSPNiSPN,
+#                              mod_file="tmGabaA",
+#                              channel_param_dictionary={"tau1": (1.3e-3, 1e3),
+#                                                        "tau2": (12.4e-3, 1e3),
+#                                                        "failRate": MSD2GABAfailRate})
 
         cnc.write_json()
 

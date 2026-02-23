@@ -510,7 +510,7 @@ class SnuddaSimulate(object):
                                                              sec_id=sid, sec_x=sex,
                                                              density_mechanism=density_mechanism_name,
                                                              variable=variable_name)
-                        
+
             if "record_membrane" in self.sim_info:
 
                 self.record.include_geometry(simulation=self)
