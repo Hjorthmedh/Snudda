@@ -1,8 +1,10 @@
-import os
+import plotly
 import plotly.graph_objects as go
 import plotly.express as px
 import plotly.io as pio
 import numpy as np
+import os
+
 
 from snudda.utils import SnuddaLoadSimulation
 
