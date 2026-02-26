@@ -2857,7 +2857,7 @@ class SnuddaSimulate(object):
         if int(self.pc.id()) == 0:
             if not os.path.isdir(dir_name):
                 self.write_log(f"Creating {dir_name} (on master node 0)")
-                os.makedirs(dir_name)
+                os.makedirs(dir_name, exist_ok=True)
         else:
             while not os.path.isdir(dir_name):
                 self.write_log(f"Waiting 1 second for master node to create {dir_name}")
