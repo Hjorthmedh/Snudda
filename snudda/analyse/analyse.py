@@ -993,16 +993,26 @@ class SnuddaAnalyse:
             cnt = 0
             cnt_all = 0
 
-            for (d, c, ca) in zip(dist, count_con, count_all):
+            for (d, c, ca) in zip(dist, count_con.flatten(), count_all.flatten()):
                 if d <= d_limit:
                     cnt += c
                     cnt_all += ca
 
-            # Hack to avoid divide by zero
-            cnt_all[cnt_all == 0] = 1
+            try:
 
-            p_model = float(cnt) / float(cnt_all)
-            model_probs[d_limit] = p_model
+                # Hack to avoid divide by zero
+                if cnt_all == 0:
+                    cnt_all = 1
+
+                p_model = float(cnt) / float(cnt_all)
+                model_probs[d_limit] = p_model
+            except Exception as e:
+                import traceback
+                print(traceback.format_exc())
+                print(e)
+
+                import pdb
+                pdb.set_trace()
 
             print(f"P(d<{d_limit}) = {p_model}")
             # ax = fig.get_axes()
@@ -1440,7 +1450,11 @@ class SnuddaAnalyse:
             if self.debug:
                 print(f"{xi + 1}/{len(pre_id)} {t_b - t_a} s")
 
-        p_con = np.divide(count_con, count_all)
+        # fix for divide by zero
+        count_all_copy = count_all.copy()
+        count_all_copy[count_all_copy == 0] = 1
+
+        p_con = np.divide(count_con, count_all_copy)
 
         print(f"Requested: {num_points} calculated {sum(count_all)}")
         print(f"Num pairs outside plot range {idx_outside}")
@@ -1451,7 +1465,7 @@ class SnuddaAnalyse:
         # import pdb
         # pdb.set_trace()
 
-        return dist, p_con, count_con, count_all
+        return dist.flatten(), p_con.flatten(), count_con.flatten(), count_all.flatten()
 
     ############################################################################
 
