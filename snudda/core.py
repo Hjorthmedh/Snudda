@@ -177,7 +177,9 @@ class Snudda(object):
                   morphology_key=None, parameter_key=None,
                   connection_config=None, random_seed=None,
                   density=80500, d_min=15e-6,
-                  volume_mesh="cube"):
+                  volume_mesh="cube",
+                  side_len=None,
+                  slice_depth=None):
 
         """
             network_path : Network path
@@ -198,11 +200,13 @@ class Snudda(object):
 
         if volume_mesh == "cube":
             volume_name = "Cube"
-            if n_total > 1:
-                side_len = (n_total/density)**(1/3)*1e-3
-            else:
-                # When placing one neuron in a really small volume, sometimes it is too small
-                side_len = (5/density)**(1/3)*1e-3
+
+            if side_len is None:
+                if n_total > 1:
+                    side_len = (n_total/density)**(1/3)*1e-3
+                else:
+                    # When placing one neuron in a really small volume, sometimes it is too small
+                    side_len = (5/density)**(1/3)*1e-3
 
             si.define_structure(struct_name="Cube",
                                 struct_mesh="cube",
@@ -218,6 +222,8 @@ class Snudda(object):
             si.define_structure(struct_name="Slice",
                                 struct_mesh="slice",
                                 d_min=d_min,
+                                side_len=side_len,
+                                slice_depth=slice_depth,
                                 struct_centre=(0.0, 0.0, 0.0),
                                 num_neurons=n_total,
                                 n_putative_points=n_total*5)

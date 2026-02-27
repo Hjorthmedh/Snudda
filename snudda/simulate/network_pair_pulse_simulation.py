@@ -139,12 +139,20 @@ class SnuddaNetworkPairPulseSimulation:
 
     def setup(self, neuron_paths, neuron_names, number_of_neurons,
               connection_config=None, cut_outside=True,
+              volume_type="slice",
               random_seed=None, density=80500, d_min=15e-6):
 
         if random_seed:
             self.random_seed = random_seed
         else:
             random_seed = self.random_seed
+
+        if volume_type == "slice":
+            side_len = 500e-6
+            slice_depth = 150e-6
+        else:
+            side_len = None
+            slice_depth = None
 
         from snudda import Snudda
         snd = Snudda(network_path=self.network_path)
@@ -154,6 +162,9 @@ class SnuddaNetworkPairPulseSimulation:
                       snudda_data=self.snudda_data,
                       connection_config=connection_config,
                       random_seed=random_seed,
+                      volume_mesh=volume_type,
+                      side_len=side_len,
+                      slice_depth=slice_depth,
                       density=density,
                       d_min=d_min)
 
@@ -223,7 +234,13 @@ class SnuddaNetworkPairPulseSimulation:
 
     ############################################################################
 
-    def write_simulation_config(self, gaba_rev, pre_id=None, clamp_mode=None, return_run_str=False):
+    def write_simulation_config(self,
+                                gaba_rev=None,
+                                reversal_potential=None,
+                                pre_id=None,
+                                clamp_mode=None,
+                                stim_all_at_once=False,
+                                return_run_str=False):
 
         if clamp_mode not in ("current", "voltage"):
             raise ValueError(f"Clamp mode {clamp_mode} is not supported. (use 'voltage' or 'current')")
@@ -250,15 +267,45 @@ class SnuddaNetworkPairPulseSimulation:
 
         current_injection_info = dict()
 
-        for pre_id, start_time in zip(self.pre_id, self.inj_spacing + self.inj_spacing * np.arange(0, len(self.pre_id))):
-            current_injection_info[str(pre_id)] = { "time": [0, start_time, start_time + 1e-6,
-                                                             start_time + self.inj_duration,
-                                                             start_time + self.inj_duration + 1e-6,
-                                                             sim_end],
-                                                    "current": [0, 0, self.cur_inj, self.cur_inj, 0, 0] }
+
+        if not stim_all_at_once:
+            # Sequential stimulation
+            for pre_id, start_time in zip(self.pre_id, self.inj_spacing + self.inj_spacing * np.arange(0, len(self.pre_id))):
+                current_injection_info[str(pre_id)] = { "time": [0, start_time, start_time + 1e-6,
+                                                                 start_time + self.inj_duration,
+                                                                 start_time + self.inj_duration + 1e-6,
+                                                                 sim_end],
+                                                        "current": [0, 0, self.cur_inj, self.cur_inj, 0, 0] }
+
+        else:
+            # All at once stimulation
+            sim_end = 2 * self.inj_spacing
+
+            self.inj_info = [(self.pre_id, self.inj_spacing)]  # All presynaptic neurons are stimulated at t=self.inj_spacing
+
+            for pre_id in self.pre_id:
+                current_injection_info[str(pre_id)] = { "time": [0, self.inj_spacing, self.inj_spacing + 1e-6,
+                                                                 self.inj_spacing + self.inj_duration,
+                                                                 self.inj_spacing + self.inj_duration + 1e-6,
+                                                                 sim_end],
+                                                        "current": [0, 0, self.cur_inj, self.cur_inj, 0, 0] }
+
         if clamp_mode == "current":
             for p_id in post_id:
                 current_injection_info[str(p_id)] = { "voltage": self.hold_v }
+
+        if reversal_potential is None:
+            reversal_potential = {}
+
+        if gaba_rev is not None:
+            if "ALL" not in reversal_potential:
+                reversal_potential["ALL"] = dict()
+
+            if "tmGabaA" in reversal_potential["ALL"]:
+                raise ValueError("Reversal potential for tmGabaA already defined in 'reversal_potential'")
+
+            reversal_potential["ALL"]["tmGabaA"] = gaba_rev
+
 
         sim_config = { "network_path": self.network_path,
                        "snudda_data": self.snudda_data,
@@ -266,7 +313,7 @@ class SnuddaNetworkPairPulseSimulation:
                        "log_file": "$network_path/log/output-log.txt",
                        "record_all_soma": True,
                        "current_injection_info": current_injection_info,
-                       "reversal_potential_override": {"ALL": {"tmGabaA": gaba_rev}},
+                       "reversal_potential_override": reversal_potential,  # {"ALL": {"tmGabaA": gaba_rev}},
                        "hold_voltage": self.hold_v
                        }
 
@@ -526,7 +573,7 @@ class SnuddaNetworkPairPulseSimulation:
                     import pdb
                     pdb.set_trace()
 
-                synapse_data.append((time[t_idx], recorded_data[post_id][t_idx], pre_id, post_id))
+                synapse_data.append((time[t_idx], recorded_data[post_id][t_idx].flatten(), pre_id, post_id))
                 
                 assert len(t_idx) > 0, f"Internal error, no time points recorded between {t} and {t+check_width} " \
                                        f"for synapse pre_id={pre_id}, post_id={post_id}"
