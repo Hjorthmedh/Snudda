@@ -110,6 +110,7 @@ class SnuddaNetworkPairPulseSimulation:
 
         self.cur_inj = current_injection
         self.hold_v = hold_voltage
+        self.stim_all_at_once = False
 
         if log_file:
             self.log_file = log_file
@@ -267,8 +268,10 @@ class SnuddaNetworkPairPulseSimulation:
 
         current_injection_info = dict()
 
+        self.stim_all_at_once = stim_all_at_once
 
         if not stim_all_at_once:
+            print(f"Sequential stimulation")
             # Sequential stimulation
             for pre_id, start_time in zip(self.pre_id, self.inj_spacing + self.inj_spacing * np.arange(0, len(self.pre_id))):
                 current_injection_info[str(pre_id)] = { "time": [0, start_time, start_time + 1e-6,
@@ -278,6 +281,7 @@ class SnuddaNetworkPairPulseSimulation:
                                                         "current": [0, 0, self.cur_inj, self.cur_inj, 0, 0] }
 
         else:
+            print("Stimulate all presynaptic neurons at once")
             # All at once stimulation
             sim_end = 2 * self.inj_spacing
 
@@ -536,7 +540,10 @@ class SnuddaNetworkPairPulseSimulation:
         recorded_data = ssd.get_data(data_unit, self.possible_post_id)[0]
 
         # injInfo contains (preID,injStartTime)
-        self.inj_info = zip(self.pre_id, self.inj_spacing + self.inj_spacing * np.arange(0, len(self.pre_id)))
+        if self.stim_all_at_once:
+            self.inj_info = [(self.pre_id, self.inj_spacing)]
+        else:
+            self.inj_info = zip(self.pre_id, self.inj_spacing + self.inj_spacing * np.arange(0, len(self.pre_id)))
 
         # For each pre synaptic neuron, find the voltage deflection in each
         # of its post synaptic neurons
@@ -546,10 +553,22 @@ class SnuddaNetworkPairPulseSimulation:
 
         for (pre_id, t) in self.inj_info:
             # Post synaptic neuron to preID
-            synapses, coords = self.snudda_load.find_synapses(pre_id=pre_id)
+
+            if isinstance(pre_id, list):
+                syn_list = []
+                for p_id in pre_id:
+                    synapses, coords = self.snudda_load.find_synapses(pre_id=p_id)
+                    syn_list.append(synapses)
+
+                synapses = np.vstack(syn_list)
+
+            else:
+                synapses, coords = self.snudda_load.find_synapses(pre_id=pre_id)
 
             post_id_set = set(synapses[:, 1]).intersection(self.possible_post_id)
             pre_pos = self.snudda_load.data["neuron_positions"][pre_id, :]
+
+
 
             for post_id in post_id_set:
 
