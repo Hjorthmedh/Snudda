@@ -75,6 +75,16 @@ class SnuddaAblateNetwork:
     def only_keep_neuron_id(self, neuron_id):
         self.keep_neuron_id = set(neuron_id)
 
+    def keep_only_neurons_and_targets(self, neuron_id):
+
+        keep_neurons = set(neuron_id)
+
+        for n_id in neuron_id:
+            synapses, _ = self.snudda_load.find_synapses(pre_id=n_id)
+            keep_neurons |= set(synapses[:,1])
+
+        self.keep_neuron_id = keep_neurons
+
     def make_virtual(self, neuron_id):
 
         if type(neuron_id) == list:

@@ -59,6 +59,8 @@ from snudda.utils.load import SnuddaLoad
 from snudda.utils import snudda_parse_path
 from snudda.utils.snudda_path import get_snudda_data
 
+from snudda.utils.ablate_network import SnuddaAblateNetwork
+
 # We want to match Taverna 2008 data:
 
 # The slices were 300 μm thick.  MSNs sampled were 25–100 μm from the
@@ -179,6 +181,24 @@ class SnuddaNetworkPairPulseSimulation:
 
             self.network_file = cut.out_file_name
 
+    def ablate_post(self, pre_id=None):
+
+        # This ablates neurons that are not connected to the pre synaptic neurons
+        sa = SnuddaAblateNetwork(network_file=self.network_file)
+
+        if pre_id is not None:
+            self.pre_id = pre_id
+        else:
+            self.pre_id = [x["neuron_id"] for x in sa.snudda_load.data["neurons"] if x["type"] == self.pre_type]
+            if self.n_stimulated_neurons is not None:
+                self.pre_id = self.pre_id[:self.n_stimulated_neurons]
+
+        sa.keep_only_neurons_and_targets(neuron_id=self.pre_id)
+
+        new_network_file = self.network_file.replace(".hdf5", "") + "ablated.hdf5"
+
+        sa.write_network(out_file_name=new_network_file)
+        self.network_file = new_network_file
 
     def setup_OLD(self, n_dSPN=120, n_iSPN=120, n_FS=20, n_LTS=0, n_ChIN=0,
               volume_type=None,
@@ -246,8 +266,7 @@ class SnuddaNetworkPairPulseSimulation:
         if clamp_mode not in ("current", "voltage"):
             raise ValueError(f"Clamp mode {clamp_mode} is not supported. (use 'voltage' or 'current')")
 
-        network_file = os.path.join(self.network_path, "network-synapses.hdf5")
-        snudda_loader = SnuddaLoad(network_file=network_file)
+        snudda_loader = SnuddaLoad(network_file=self.network_file)
         network_info = snudda_loader.data
 
         self.simulation_config_file = os.path.join(self.network_path, "simulation-config.json")
@@ -255,6 +274,8 @@ class SnuddaNetworkPairPulseSimulation:
         if pre_id:
             print(f"Using user defined pre_id: {pre_id}")
             self.pre_id = pre_id
+        elif self.pre_id:
+            print(f"Using user defined pre_id: {self.pre_id}")
         else:
             self.pre_id = [x["neuron_id"] for x in network_info["neurons"] if x["type"] == self.pre_type]
             if self.n_stimulated_neurons is not None:
@@ -312,6 +333,7 @@ class SnuddaNetworkPairPulseSimulation:
 
 
         sim_config = { "network_path": self.network_path,
+                       "network_file": self.network_file,
                        "snudda_data": self.snudda_data,
                        "time": sim_end,
                        "log_file": "$network_path/log/output-log.txt",
