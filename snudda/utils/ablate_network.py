@@ -224,6 +224,14 @@ class SnuddaAblateNetwork:
             for new_id, old_id in enumerate(sorted(list(self.keep_neuron_id))):
                 f.write(f"{old_id}, {new_id}\n")
 
+    def get_remap_dictionary(self):
+        remap_dictionary = {}
+
+        for new_id, old_id in enumerate(sorted(list(self.keep_neuron_id))):
+            remap_dictionary[old_id] = new_id
+
+        return remap_dictionary
+
     def write_network(self, out_file_name=None, print_remapping=False):
 
         """ Write network to hdf5 file: output_file_name """
