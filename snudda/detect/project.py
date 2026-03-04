@@ -262,6 +262,7 @@ class SnuddaProject(object):
                         d_idx = self.rng.choice(len(P_all), p=P_all, size=min(n_targets, len(P_all)), replace=False)
                     except Exception as e:
                         print(e)
+                        print(f"{n_targets = }, {P_all =}, {len(P_all) =}")
                         import traceback
                         print(traceback.format_exc())
                         import pdb
