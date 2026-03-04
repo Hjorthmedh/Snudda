@@ -259,7 +259,7 @@ class SnuddaProject(object):
                     P_all /= np.sum(P_all)
 
                     try:
-                        d_idx = self.rng.choice(len(P_all), p=P_all, size=np.min(n_targets, len(P_all)), replace=False)
+                        d_idx = self.rng.choice(len(P_all), p=P_all, size=min(n_targets, len(P_all)), replace=False)
                     except Exception as e:
                         print(e)
                         import traceback
