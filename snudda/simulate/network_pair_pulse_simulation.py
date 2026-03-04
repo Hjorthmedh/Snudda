@@ -186,8 +186,11 @@ class SnuddaNetworkPairPulseSimulation:
         # This ablates neurons that are not connected to the pre synaptic neurons
         sa = SnuddaAblateNetwork(network_file=self.network_file)
 
-        if pre_id is not None:
+        if pre_id:
             self.pre_id = pre_id
+
+        elif self.pre_id:
+            print(f"Using pre_id = {self.pre_id} (already defined)")
         else:
             self.pre_id = [x["neuron_id"] for x in sa.snudda_load.data["neurons"] if x["type"] == self.pre_type]
             if self.n_stimulated_neurons is not None:
