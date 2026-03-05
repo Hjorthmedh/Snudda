@@ -42,21 +42,24 @@ from run_synapse_run import RunSynapseRun
 class SynapseOptimiser:
 
     def __init__(self, data_file,
-                 seed=1234567,
+                 entropy=1023456734529028340264793840,
                  synapse_type="glut",
                  load_parameters=True,
                  snudda_data=None,
-                 model_bounds="model_bounds.json",
                  neuron_set_file="neuron_set.json",
                  synapse_parameter_file=None,
                  verbose=True):
 
         self.log_file = None
         self.verbose = verbose
+        self.rng = None
+
 
         self.data_file = data_file
         self.neuron_set_file = neuron_set_file
-        self.seed = seed
+        self.seed = None
+        self.entropy=entropy
+
         self.snudda_data = get_snudda_data(snudda_data=snudda_data)
 
         self.rsr_synapse_model = None
@@ -76,12 +79,10 @@ class SynapseOptimiser:
 
         self.cell_properties = None
 
-        with open(model_bounds, 'r') as f:
-            self.write_log(f"Loading model bounds from {model_bounds}")
-            self.model_bounds = json.load(f)
+        self.load_trace_data()
 
-        if load_parameters:
-            self.load_parameter_data()
+        # if load_parameters:
+        #     self.load_parameter_data()
 
         self.synapse_parameter_file = synapse_parameter_file
 
@@ -97,7 +98,7 @@ class SynapseOptimiser:
 
 
         self.pc = h.ParallelContext()
-
+        self.n_workers = self.pc.nhost()
 
         print(f"I am {self.pc.id()}/{self.pc.nhost()}")
         if self.pc.id() == 0:
@@ -111,6 +112,74 @@ class SynapseOptimiser:
 
         self.pc.barrier()
         print(f"Done {self.pc.id()} {self.param.T = }")
+
+    def setup_rng(self):
+
+        if self.rng is not None:
+            print(f"setup_rng: rng already setup, skipping.")
+            return
+
+        seeds = []
+
+        if self.pc.id() == 0:
+            # Setup and distribute random seeds to all workers
+            seed_sequence = np.random.SeedSequence(entropy=self.entropy)
+            seeds=seed_sequence.generate_state(self.n_workers)
+
+        self.seed = self.pc.py_scatter(seeds)
+        self.rng = np.random.default_rng(seed=self.seed)
+
+        self.pc.barrier()
+
+
+    def prepare_models(self):
+
+        if self.pc.id() == 0:
+            # Setup the model on master node, this sets self.synapse_section_id (and _x)
+
+            self.synapse_model = self.setup_model(synapse_density_override=None,
+                                                  n_synapses_override=None,
+                                                  synapse_position_override=None)
+
+
+
+
+        self.pc.barrier()
+        # Distribute section id, section x that was picked by master, and any other needed parameters
+        self.synapse_section_id, self.synapse_section_x \
+            = self.pc.broadcast((self.synapse_section_id, self.synapse_section_x))
+
+        if self.pc.id() != 0:
+            # Setup models on all other nodes (but not master)
+            synapse_position_override = (self.synapse_section_id, self.synapse_section_x)
+
+            self.synapse_model = self.setup_model(synapse_position_override=synapse_position_override)
+
+        self.pc.barrier()
+
+    def run_models(self, model_parameter_list):
+
+        model_parameters = self.pc.py_scatter(model_parameter_list)
+
+
+
+        # we need model parameters, and position of synapses (section_id, section_x)
+
+        self.run_model()
+
+        # TODO: 2026-03-05 WE ARE HERE, WORKING ON THIS FUNCTION!! SciLifeLab rulez!
+
+
+    def optimise(self):
+
+        self.setup_rng()
+
+        # synapse_density_override
+        # n_synapess_override
+        # synapse_position_override
+
+
+
 
 
     def write_log(self, text, flush=True):  # Change flush to False in future, debug
@@ -159,6 +228,8 @@ class SynapseOptimiser:
         self.synapse_parameter_data.save(self.parameter_data_file_name)
 
     def load_parameter_data(self):
+
+        # TODO: How should this be done with new architecture?
 
         self.synapse_parameter_data = ParameterBookkeeper(old_book_file=self.parameter_data_file_name, n_max=100)
         self.synapse_parameter_data.check_integrity()
