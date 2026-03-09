@@ -994,6 +994,20 @@ class SnuddaInput(object):
                                             f"Overriding {par_key} with value {par_d} for {neuron_id}:{meta_inp_name}")
                                         par_data_dict[pd]["synapse"][par_key] = par_d
 
+
+
+                            if meta_inp_name in input_info \
+                                    and "parameter_list" in input_info[meta_inp_name] \
+                                    and input_info[meta_inp_name]["parameter_list"] is not None\
+                                    and "synapse" in input_info[meta_inp_name]["parameter_list"][0]:
+                                for pd in par_data_dict:
+                                    for par_key, par_d in input_info[meta_inp_name]["parameter_list"][0]["synapse"].items():
+                                        print(
+                                            f"Overriding {par_key} with value {par_d} for {neuron_id}:{meta_inp_name} (from main input config file)")
+                                        par_data_dict[pd]["synapse"][par_key] = par_d
+
+
+
                             meta_inp_data_copy["parameter_list"] = list(par_data_dict.values())
 
                     # The next bit is a little tricky...

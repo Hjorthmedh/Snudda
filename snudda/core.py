@@ -919,7 +919,7 @@ class Snudda(object):
                              use_rxd_neuromodulation=use_rxd_neuromodulation,
                              verbose=verbose)
         sim.setup()
-        sim.add_external_input()
+        # sim.add_external_input() # -- now done in setup
 
         sim.check_memory_status()
 

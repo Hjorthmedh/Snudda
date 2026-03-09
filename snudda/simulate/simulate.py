@@ -370,7 +370,7 @@ class SnuddaSimulate(object):
     #         for k, v in n.__dict__.items():
     #            del v
 
-    def setup(self):
+    def setup(self, input_file=None):
 
         """ Setup simulation """
         self.check_memory_status()
@@ -390,6 +390,9 @@ class SnuddaSimulate(object):
         self.connect_network()
         self.check_memory_status()
         self.pc.barrier()
+
+        if input_file is not None or self.input_file is not None:
+            self.add_external_input(input_file=input_file)
 
         self.setup_parse_sim_info()
 
@@ -457,6 +460,19 @@ class SnuddaSimulate(object):
                             self.add_synapse_recording(source_id=pre_id, dest_id=post_id,
                                                        synapse_type=synapse_type, variable=var,
                                                        data_type=f"{synapse_type}.{var}")
+
+            if "record_external_synapse" in self.sim_info:
+
+                record_external_info = self.sim_info["record_external_synapse"]
+                for input_type, record_info in record_external_info.items():
+                    neuron_id_list = record_info["neuron_id"]
+                    variables = record_info["variable"]
+
+                    for neuron_id in neuron_id_list:
+                        for var in variables:
+                            self.add_external_synapse_recording(neuron_id=neuron_id,
+                                                                input_type=input_type,
+                                                                variable=var)
 
             if "record_rxd_species_concentration_all_compartments" in self.sim_info and self.use_rxd_neuromodulation:
 
@@ -2328,6 +2344,41 @@ class SnuddaSimulate(object):
 
         return syn_ctr
 
+    def add_external_synapse_recording(self, neuron_id, input_type, variable):
+
+        try:
+            external_synapes_list = self.external_stim[neuron_id, input_type]
+        except Exception as e:
+            import traceback
+            print(traceback.format_exc())
+            print(e)
+            import pdb
+            pdb.set_trace()
+
+        syn_ctr = 0
+
+        for _, _, nc, syn, _, section_id, section_x in external_synapes_list:
+
+            # print(f"add_external_synapse_recording {input_type = }, {neuron_id =}, {syn = }, {variable =}")
+
+            data = self.sim.neuron.h.Vector()
+            data.record(getattr(syn, f"_ref_{variable}"))
+            seg = syn.get_segment()
+
+            synapse_type = str(syn.hname().split("[")[0])
+
+            self.record.register_synapse_data(neuron_id=neuron_id,
+                                              data_type=f"synapse_{variable}",
+                                              data=data,
+                                              synapse_type=-1,  # We need to get this from input config
+                                              presynaptic_id=-1,
+                                              sec_id=section_id,
+                                              sec_x=seg.x,
+                                              cond=nc.weight[0])
+            syn_ctr += 1
+
+        return syn_ctr
+
     def add_synapse_recording(self, source_id, dest_id, synapse_type=None, variable="i", data_type="synaptic_current"):
 
         if self.verbose:
@@ -3324,7 +3375,7 @@ if __name__ == "__main__":
                          simulation_config=args.simulation_config,
                          verbose=args.verbose)
     sim.setup()
-    sim.add_external_input()
+    # sim.add_external_input()  # --now done in setup()
     sim.check_memory_status()
 
     if args.record_volt:

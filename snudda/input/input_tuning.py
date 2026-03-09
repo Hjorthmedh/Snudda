@@ -1838,7 +1838,7 @@ class InputTuning(object):
                              output_file=output_file,
                              sample_dt=sample_dt)
         sim.setup()
-        sim.add_external_input()
+        # sim.add_external_input()  # -- now done in setup()
         sim.check_memory_status()
 
         # sim.add_volt_recording()

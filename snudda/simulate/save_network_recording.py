@@ -530,9 +530,15 @@ class SnuddaSaveNetworkRecordings:
                         data_set.attrs["sec_x"] = np.array(m.sec_x)
 
                         if isinstance(m, SynapseData):
-                            data_set.attrs["synapse_type"] = np.array(m.synapse_type)
-                            data_set.attrs["presynaptic_id"] = np.array(m.presynaptic_id)
-                            data_set.attrs["cond"] = np.array(m.cond)
+                            try:
+                                data_set.attrs["synapse_type"] = np.array(m.synapse_type)
+                                data_set.attrs["presynaptic_id"] = np.array(m.presynaptic_id)
+                                data_set.attrs["cond"] = np.array(m.cond)
+                            except Exception as e:
+                                import traceback
+                                print(traceback.format_exc())
+                                import pdb
+                                pdb.set_trace()
 
                 if int(self.pc.id()) == 0:
                     # RxD computes extracellular diffusion INDEPENDENTLY on ALL nodes (sigh!)
