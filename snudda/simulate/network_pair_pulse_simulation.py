@@ -801,7 +801,7 @@ class SnuddaNetworkPairPulseSimulation:
 
             total_ctr += 1
 
-        print(f"{above_threshold_ctr} out of {total_ctr} respond at between {time} and {time + time_window}s, {above_threshold_ctr/float(total_ctr)*100} %")
+        print(f"{above_threshold_ctr} out of {total_ctr} respond at between {time} and {time + time_window}s, {above_threshold_ctr/float(total_ctr)*100:.2f} %")
 
 
 
