@@ -469,6 +469,10 @@ class SnuddaSimulate(object):
                     variables = record_info["variable"]
 
                     for neuron_id in neuron_id_list:
+                        if neuron_id not in self.neurons:
+                            # neuron id not on this worker
+                            continue
+
                         for var in variables:
                             self.add_external_synapse_recording(neuron_id=neuron_id,
                                                                 input_type=input_type,
