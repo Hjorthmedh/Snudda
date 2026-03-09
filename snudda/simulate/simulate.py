@@ -2346,14 +2346,11 @@ class SnuddaSimulate(object):
 
     def add_external_synapse_recording(self, neuron_id, input_type, variable):
 
-        try:
-            external_synapes_list = self.external_stim[neuron_id, input_type]
-        except Exception as e:
-            import traceback
-            print(traceback.format_exc())
-            print(e)
-            import pdb
-            pdb.set_trace()
+        if neuron_id not in self.neurons:
+            # Neuron on a different worker.
+            return 0
+
+        external_synapes_list = self.external_stim[neuron_id, input_type]
 
         syn_ctr = 0
 
