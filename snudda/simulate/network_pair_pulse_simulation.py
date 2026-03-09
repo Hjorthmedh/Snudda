@@ -83,6 +83,7 @@ class SnuddaNetworkPairPulseSimulation:
                  pre_type, post_type=None,
                  exp_type=None,
                  current_injection=10e-9,
+                 current_injection_duration=1e-3,
                  n_stimulated_neurons=None, 
                  hold_voltage=-80e-3,
                  max_dist=50e-6,
@@ -126,7 +127,7 @@ class SnuddaNetworkPairPulseSimulation:
         print(f"Checking depolarisation/hyperpolarisation of {pre_type} to {post_type} synapses")
 
         self.inj_spacing = 0.5  # Tried with 0.2 before, too close
-        self.inj_duration = 1e-3
+        self.inj_duration = current_injection_duration
 
         self.snudda_sim = None  # Defined in run_sim
         self.snudda_load = None  # Defined in analyse
@@ -143,6 +144,8 @@ class SnuddaNetworkPairPulseSimulation:
     def setup(self, neuron_paths, neuron_names, number_of_neurons,
               connection_config=None, cut_outside=True,
               volume_type="slice",
+              slice_depth = 150e-6,
+              slice_side_len = 500e-6,
               random_seed=None, density=80500, d_min=15e-6):
 
         if random_seed:
@@ -151,8 +154,8 @@ class SnuddaNetworkPairPulseSimulation:
             random_seed = self.random_seed
 
         if volume_type == "slice":
-            side_len = 500e-6
-            slice_depth = 150e-6
+            side_len = slice_side_len
+            # slice_depth = 150e-6  # now an inparameter
         else:
             side_len = None
             slice_depth = None
@@ -276,7 +279,8 @@ class SnuddaNetworkPairPulseSimulation:
                                 pre_id=None,
                                 clamp_mode=None,
                                 stim_all_at_once=False,
-                                return_run_str=False):
+                                return_run_str=False,
+                                holding_current_init_time=0.1):
 
         if clamp_mode not in ("current", "voltage"):
             raise ValueError(f"Clamp mode {clamp_mode} is not supported. (use 'voltage' or 'current')")
@@ -298,9 +302,19 @@ class SnuddaNetworkPairPulseSimulation:
 
         post_id = list(set([x["neuron_id"] for x in network_info["neurons"]]) - set(self.pre_id))
 
+        self.inj_spacing = float(max(self.inj_spacing, holding_current_init_time))
+
         # inj_info contains (pre_id, inj_start_time)
         self.inj_info = list(zip(self.pre_id, self.inj_spacing + self.inj_spacing * np.arange(0, len(self.pre_id))))
-        sim_end = self.inj_info[-1][1] + self.inj_spacing
+
+        try:
+            sim_end = self.inj_info[-1][1] + self.inj_spacing
+        except Exception as e:
+            import traceback
+            print(traceback.format_exc())
+            print(e)
+            import pdb
+            pdb.set_trace()
 
         current_injection_info = dict()
 
@@ -310,6 +324,7 @@ class SnuddaNetworkPairPulseSimulation:
             print(f"Sequential stimulation")
             # Sequential stimulation
             for pre_id, start_time in zip(self.pre_id, self.inj_spacing + self.inj_spacing * np.arange(0, len(self.pre_id))):
+                start_time = float(start_time)
                 current_injection_info[str(pre_id)] = { "time": [0, start_time, start_time + 1e-6,
                                                                  start_time + self.inj_duration,
                                                                  start_time + self.inj_duration + 1e-6,
@@ -355,7 +370,8 @@ class SnuddaNetworkPairPulseSimulation:
                        "record_all_soma": True,
                        "current_injection_info": current_injection_info,
                        "reversal_potential_override": reversal_potential,  # {"ALL": {"tmGabaA": gaba_rev}},
-                       "hold_voltage": self.hold_v
+                       "hold_voltage": self.hold_v,
+                       "holding_current_init_time": holding_current_init_time
                        }
 
         if clamp_mode == "voltage":
@@ -371,8 +387,14 @@ class SnuddaNetworkPairPulseSimulation:
         snudda_loader.close()
 
         print(f"Writing simulation config: {self.simulation_config_file}")
-        with open(self.simulation_config_file, "w") as f:
-            json.dump(sim_config, f, indent=4)
+        try:
+                with open(self.simulation_config_file, "w") as f:
+                    json.dump(sim_config, f, indent=4)
+        except Exception as e:
+            import traceback
+            print(traceback.format_exc())
+            print(e)
+            import pdb; pdb.set_trace()
 
         run_cmd = f"mpirun snudda simulate {self.network_path} --simulation_config {self.simulation_config_file}"
 
@@ -516,7 +538,8 @@ class SnuddaNetworkPairPulseSimulation:
 
     # This extracts all the voltage deflections, to see how strong they are
 
-    def analyse(self, max_dist=None, n_max_show=10, pre_id=None, post_type=None, clamp_mode=None, exp_data_file=None):
+    def analyse(self, max_dist=None, n_max_show=10, pre_id=None, post_type=None, clamp_mode=None, exp_data_file=None,
+                force_post_id=None):
 
         import matplotlib
         import matplotlib.pyplot as plt
@@ -605,7 +628,9 @@ class SnuddaNetworkPairPulseSimulation:
             post_id_set = set(synapses[:, 1]).intersection(self.possible_post_id)
             pre_pos = self.snudda_load.data["neuron_positions"][pre_id, :]
 
-
+            if force_post_id is not None:
+                print(f"Forcing post id {force_post_id}")
+                post_id_set = force_post_id
 
             for post_id in post_id_set:
 
@@ -744,6 +769,41 @@ class SnuddaNetworkPairPulseSimulation:
         plt.pause(5)
 
         return model_mean, model_std, trace_fig, hist_fig
+
+    ############################################################################
+
+    def fraction_of_pop_responding_at_time(self, neuron_type, clamp_mode, time, time_window, min_change):
+
+        if clamp_mode == "voltage":
+            data_unit = "current"
+        elif clamp_mode == "current":
+            data_unit = "voltage"
+        else:
+            raise ValueError(f"Unknown clamp_mode = {clamp_mode}, should be 'voltage' or 'current'")
+
+
+        post_id = self.snudda_load.get_neuron_id_of_type(neuron_type=neuron_type)
+
+        ssd = SnuddaLoadSimulation(network_path=self.network_path)
+        t = ssd.get_time()
+
+        recorded_data = ssd.get_data(data_unit, post_id)[0]
+
+        time_idx = np.where(np.logical_and(time < t, t < time + time_window))
+
+        above_threshold_ctr = 0
+        total_ctr = 0
+
+        for p_id in post_id:
+            data = recorded_data[p_id][time_idx].flatten()
+            if np.abs(np.max(data) - np.min(data)) > min_change:
+                above_threshold_ctr += 1
+
+            total_ctr += 1
+
+        print(f"{above_threshold_ctr} out of {total_ctr} respond at between {time} and {time + time_window}s, {above_threshold_ctr/float(total_ctr)*100} %")
+
+
 
     ############################################################################
 

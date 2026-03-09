@@ -617,8 +617,13 @@ class SnuddaSimulate(object):
             # Add any current injections that are specified
             self.parse_current_injection_info()
 
+            if "holding_current_init_time" in self.sim_info:
+                holding_current_init_time = self.sim_info["holding_current_init_time"]
+            else:
+                holding_current_init_time = 0.1
+
             # This will run simulation for 0.1 seconds, to calculate the current needed
-            self.setup_holding_currents()
+            self.setup_holding_currents(holding_current_init_time=0.1)
 
             if "voltage_clamp" in self.sim_info:
                 for neuron_id, clamp_info in self.sim_info["voltage_clamp"].items():
@@ -3028,7 +3033,9 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
-    def setup_holding_currents(self):
+    def setup_holding_currents(self, holding_current_init_time=0.1):
+
+        # Increase holding_current_init_time of you need longer time for the neuron to settle down
 
         if self.current_injection_voltage is None or len(self.current_injection_voltage) == 0:
             return
@@ -3058,7 +3065,7 @@ class SnuddaSimulate(object):
                     seg.v = hold_voltage
 
         neuron.h.fcurrent()
-        neuron.h.tstop = 100
+        neuron.h.tstop = holding_current_init_time * 1e3
         neuron.h.run()
 
         # Setup iClamps
