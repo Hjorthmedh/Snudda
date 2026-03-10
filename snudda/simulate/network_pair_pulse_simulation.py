@@ -547,7 +547,7 @@ class SnuddaNetworkPairPulseSimulation:
     # This extracts all the voltage deflections, to see how strong they are
 
     def analyse(self, max_dist=None, n_max_show=10, pre_id=None, post_type=None, clamp_mode=None, exp_data_file=None,
-                force_post_id=None):
+                force_post_id=None, window_width = 0.05):
 
         import matplotlib
         import matplotlib.pyplot as plt
@@ -579,8 +579,6 @@ class SnuddaNetworkPairPulseSimulation:
 
         ssd = SnuddaLoadSimulation(network_path=self.network_path)
         time = ssd.get_time()
-
-        check_width = 0.05
 
         # Generate current info structure
         # A current pulse to all pre synaptic neurons, one at a time
@@ -651,11 +649,11 @@ class SnuddaNetworkPairPulseSimulation:
                 # There is a bit of synaptic delay, so we can take voltage
                 # at first timestep as baseline
 
-                if t + check_width > np.max(time):
-                    print(f"Simulation only run to {np.max(time)}s, missing pulses at {t}s (check_width={check_width}s)")
+                if t + window_width > np.max(time):
+                    print(f"Simulation only run to {np.max(time)}s, missing pulses at {t}s (check_width={window_width}s)")
                     continue
 
-                t_idx = np.where(np.logical_and(t <= time, time <= t + check_width))[0]
+                t_idx = np.where(np.logical_and(t <= time, time <= t + window_width))[0]
 
                 if post_id not in recorded_data:
                     print(f"Missing key {post_id}")
@@ -664,7 +662,7 @@ class SnuddaNetworkPairPulseSimulation:
 
                 synapse_data.append((time[t_idx], recorded_data[post_id][t_idx].flatten(), pre_id, post_id))
                 
-                assert len(t_idx) > 0, f"Internal error, no time points recorded between {t} and {t+check_width} " \
+                assert len(t_idx) > 0, f"Internal error, no time points recorded between {t} and {t + window_width} " \
                                        f"for synapse pre_id={pre_id}, post_id={post_id}"
 
         if max_dist is not None:
