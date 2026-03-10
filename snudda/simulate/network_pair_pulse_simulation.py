@@ -278,6 +278,7 @@ class SnuddaNetworkPairPulseSimulation:
                                 reversal_potential=None,
                                 pre_id=None,
                                 clamp_mode=None,
+                                clamp_id=None,  # Override for neurons to clamp
                                 stim_all_at_once=False,
                                 return_run_str=False,
                                 holding_current_init_time=0.1):
@@ -346,7 +347,11 @@ class SnuddaNetworkPairPulseSimulation:
                                                         "current": [0, 0, self.cur_inj, self.cur_inj, 0, 0] }
 
         if clamp_mode == "current":
-            for p_id in post_id:
+
+            if clamp_id is None:
+                clamp_id = post_id
+
+            for p_id in clamp_id:
                 current_injection_info[str(p_id)] = { "voltage": self.hold_v }
 
         if reversal_potential is None:
@@ -377,7 +382,10 @@ class SnuddaNetworkPairPulseSimulation:
         if clamp_mode == "voltage":
             volt_clamp_info = dict()
 
-            for p_id in post_id:
+            if clamp_id is None:
+                clamp_id = post_id
+
+            for p_id in clamp_id:
                 volt_clamp_info[str(p_id)] = {"voltage": self.hold_v,
                                               "duration": sim_end,
                                               "save_current": True}
