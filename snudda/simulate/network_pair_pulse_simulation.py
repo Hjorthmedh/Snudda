@@ -184,7 +184,7 @@ class SnuddaNetworkPairPulseSimulation:
 
             self.network_file = cut.out_file_name
 
-    def ablate_post(self, pre_id=None, post_type=None):
+    def ablate_post(self, pre_id=None, post_type=None, remove_pre_without_targets=False):
 
         # This ablates neurons that are not connected to the pre synaptic neurons
         sa = SnuddaAblateNetwork(network_file=self.network_file)
@@ -199,7 +199,12 @@ class SnuddaNetworkPairPulseSimulation:
             if self.n_stimulated_neurons is not None:
                 self.pre_id = self.pre_id[:self.n_stimulated_neurons]
 
-        sa.keep_only_neurons_and_targets(neuron_id=self.pre_id)
+        sa.keep_only_neurons_and_targets(neuron_id=self.pre_id, post_type=post_type, remove_pre_without_targets=remove_pre_without_targets)
+
+        if remove_pre_without_targets:
+            # We need to reduce the number of neurons stimulated, since we removed some of them
+            self.pre_id = list(set(pre_id).intersection(set(sa.keep_neuron_id)))
+            self.n_stimulated_neurons = len(self.pre_id)
 
         new_network_file = self.network_file.replace(".hdf5", "") + "-ablated.hdf5"
 

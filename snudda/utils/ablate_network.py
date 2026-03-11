@@ -75,7 +75,7 @@ class SnuddaAblateNetwork:
     def only_keep_neuron_id(self, neuron_id):
         self.keep_neuron_id = set(neuron_id)
 
-    def keep_only_neurons_and_targets(self, neuron_id, post_type=None):
+    def keep_only_neurons_and_targets(self, neuron_id, post_type=None, remove_pre_without_targets=False):
 
         keep_neurons = set(neuron_id)
 
@@ -85,12 +85,30 @@ class SnuddaAblateNetwork:
 
         if post_type is not None:
             # Only keep post synaptic neurons of post_type
-            post_id = set(self.snudda_load.get_neuron_id_of_type(post_type=post_type))
+            post_id = set(self.snudda_load.get_neuron_id_of_type(neuron_type=post_type))
 
             keep_neurons = keep_neurons.intersection(post_id)
 
             # We need to add back the presynaptic neurons
-            keep_neurons.union(set(neuron_id))
+            keep_neurons = keep_neurons.union(set(neuron_id))
+
+        if remove_pre_without_targets:
+            # This is useful if we have a dense presynaptic population, but a sparse
+            # postsynaptic population. No point simulating all the presynaptic neurons
+            # that did not connect to the postsynaptic neurons
+
+            con_mat = self.snudda_load.create_connection_matrix(sparse_matrix=False)
+            post_id = list(keep_neurons - set(neuron_id))
+
+            remove_pre = []
+            for p_id in neuron_id:
+                if np.sum(con_mat[p_id, post_id]) == 0:
+                    # No connections for neuron
+                    remove_pre.append(p_id)
+
+            keep_neurons = keep_neurons - set(remove_pre)
+
+            print(f"Removed {len(remove_pre)} presynaptic neurons")
 
         self.keep_neuron_id = keep_neurons
 
