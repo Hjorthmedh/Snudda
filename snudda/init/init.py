@@ -25,6 +25,9 @@ from snudda.utils.snudda_path import snudda_parse_path, snudda_simplify_path
 from snudda.utils.snudda_path import snudda_path_exists
 
 
+# TODO: We need to define axon_density in meta.json file for neurons that need the axon density
+#       Then we need to make sure the code reads this axon density if it exists in meta.json file
+
 class SnuddaInit(object):
     """ Creates network-config.json in network_path. """
 

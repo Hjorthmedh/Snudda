@@ -13,6 +13,10 @@
 #       Then detect can just load that info directly. Simplifies load_neuron
 #       HDF5 filen, ha en matrix med info för axon morph, axon pos, axon rotation, axon parent
 
+# TODO: We need to define axon_density in meta.json file for neurons that need the axon density
+#       Then we need to make sure the code reads this axon density if it exists in meta.json file
+
+
 import json
 import os
 import sys

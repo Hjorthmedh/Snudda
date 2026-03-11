@@ -184,7 +184,7 @@ class SnuddaNetworkPairPulseSimulation:
 
             self.network_file = cut.out_file_name
 
-    def ablate_post(self, pre_id=None):
+    def ablate_post(self, pre_id=None, post_type=None):
 
         # This ablates neurons that are not connected to the pre synaptic neurons
         sa = SnuddaAblateNetwork(network_file=self.network_file)

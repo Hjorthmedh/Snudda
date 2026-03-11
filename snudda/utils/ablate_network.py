@@ -75,13 +75,22 @@ class SnuddaAblateNetwork:
     def only_keep_neuron_id(self, neuron_id):
         self.keep_neuron_id = set(neuron_id)
 
-    def keep_only_neurons_and_targets(self, neuron_id):
+    def keep_only_neurons_and_targets(self, neuron_id, post_type=None):
 
         keep_neurons = set(neuron_id)
 
         for n_id in neuron_id:
             synapses, _ = self.snudda_load.find_synapses(pre_id=n_id)
             keep_neurons |= set(synapses[:,1])
+
+        if post_type is not None:
+            # Only keep post synaptic neurons of post_type
+            post_id = set(self.snudda_load.get_neuron_id_of_type(post_type=post_type))
+
+            keep_neurons = keep_neurons.intersection(post_id)
+
+            # We need to add back the presynaptic neurons
+            keep_neurons.union(set(neuron_id))
 
         self.keep_neuron_id = keep_neurons
 
