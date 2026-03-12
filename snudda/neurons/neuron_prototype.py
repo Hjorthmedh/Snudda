@@ -515,6 +515,7 @@ class NeuronPrototype:
                                                                         virtual_neuron=self.virtual_neuron,
                                                                         verbose=self.verbose)
 
+
         if get_cache_original:
             assert position is None and rotation is None and modulation_id is None, \
                 "If get_cache_original is passed position, rotation and modulation_id must be None"
@@ -537,4 +538,17 @@ class NeuronPrototype:
                                                            parameter_key=parameter_key,
                                                            morphology_key=morphology_key,
                                                            modulation_key=modulation_key)
+
+            if "axon_density" in self.meta_info[parameter_key][morphology_key]:
+                axon_density_type, axon_density, axon_density_bounds = self.meta_info[parameter_key][morphology_key]["axon_density"]
+
+                if axon_density_type == "r":
+                    morph.set_axon_voxel_radial_density(density=axon_density,
+                                                        max_axon_radius=axon_density_bounds)
+                elif axon_density_type == "xyz":
+                    morph.set_axon_voxel_xyz_density(density=axon_density,
+                                                     axon_density_bounds_xyz=axon_density_bounds)
+                else:
+                    raise ValueError(f"Unknown axon_density type {axon_density_type}, {self.neuron_path =}")
+
         return morph

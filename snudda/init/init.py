@@ -935,6 +935,10 @@ class SnuddaInit(object):
 
     # mesh_file can be used to override default mesh file
 
+    # (Ibáñez-Sandoval et al. 2010)
+    # there are about 2700 TH-positive neurons in the mouse striatum (bac-TH+ mouse line)
+    # Ünal et al 2011 -- 2756 +- 192.4 TH per hemisphere
+
     def define_striatum(self,
                         num_neurons=None,
                         f_dSPN=0.475,
@@ -943,12 +947,14 @@ class SnuddaInit(object):
                         f_ChIN=0.011,
                         f_LTS=0.007,
                         f_NGF=0.0019,
+                        f_TH=0.0050,  # TODO: Need to add neurons in init!! (ref above)
                         num_dSPN=None,
                         num_iSPN=None,
                         num_FS=None,
                         num_ChIN=None,
                         num_LTS=None,
                         num_NGF=None,
+                        num_TH=None,
                         volume_type=None,
                         side_len=None,
                         slice_depth=None,

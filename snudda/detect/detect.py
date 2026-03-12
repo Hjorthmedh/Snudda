@@ -2360,7 +2360,7 @@ class SnuddaDetect(object):
                                                   neuron_info["axon_density_bounds_xyz"])
 
             else:
-                raise ValueError(f"Unknown axon density: {neuron_info['axon_density_type']}")
+                raise ValueError(f"Unknown axon density: {neuron_info['axon_density_type']}\n{neuron_info = }")
 
         if "extra_axons" in neuron_info:
             for axon_name, axon_info in neuron_info["extra_axons"].items():

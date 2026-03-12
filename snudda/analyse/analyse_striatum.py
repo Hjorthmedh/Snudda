@@ -123,14 +123,7 @@ class SnuddaAnalyseStriatum(SnuddaAnalyse):
     ############################################################################
 
 
-if __name__ == "__main__":
-
-    if len(sys.argv) > 1:
-        sim_dir = sys.argv[1]
-        print(f"Reading network from {sim_dir}")
-    else:
-        print("Please specify which directory the striatum network files is in")
-        sys.exit(-1)
+def cli(sim_dir):
 
     nas = SnuddaAnalyseStriatum(sim_dir, volume_type="cube")
 
@@ -149,7 +142,12 @@ if __name__ == "__main__":
     # import pdb
     # pdb.set_trace()
 
-    dump_connection_data_to_file = os.path.join(sim_dir, "connection_data.json")
+    if os.path.isfile(sim_dir):
+        network_path = os.path.dirname(sim_dir)
+    else:
+        network_path = sim_dir
+
+    dump_connection_data_to_file = os.path.join(network_path, "connection_data.json")
 
     nas.plot_synapse_cum_dist_summary(pair_list=[("dSPN", "ChIN"),
                                                  ("iSPN", "ChIN"),
@@ -441,3 +439,13 @@ if __name__ == "__main__":
         nas.plot_incoming_connections(neuron_type="ChIN", pre_type="iSPN")
 
     # nas.plot_synapse_dist(density_flag=True)
+
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        sim_dir = sys.argv[1]
+        print(f"Reading network from {sim_dir}")
+    else:
+        print("Please specify which directory the striatum network files is in")
+        sys.exit(-1)
+
+    cli(sim_dir)
