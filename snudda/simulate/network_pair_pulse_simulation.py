@@ -146,7 +146,9 @@ class SnuddaNetworkPairPulseSimulation:
               volume_type="slice",
               slice_depth = 150e-6,
               slice_side_len = 500e-6,
-              random_seed=None, density=80500, d_min=15e-6):
+              random_seed=None, density=80500, d_min=15e-6,
+              parallel=False,
+              ipython_profile=None):
 
         if random_seed:
             self.random_seed = random_seed
@@ -161,7 +163,8 @@ class SnuddaNetworkPairPulseSimulation:
             slice_depth = None
 
         from snudda import Snudda
-        snd = Snudda(network_path=self.network_path)
+        snd = Snudda(network_path=self.network_path, parallel=parallel, ipython_profile=ipython_profile)
+
         snd.init_tiny(neuron_paths=neuron_paths,
                       neuron_names=neuron_names,
                       number_of_neurons=number_of_neurons,

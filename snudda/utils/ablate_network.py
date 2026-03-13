@@ -85,7 +85,12 @@ class SnuddaAblateNetwork:
 
         if post_type is not None:
             # Only keep post synaptic neurons of post_type
-            post_id = set(self.snudda_load.get_neuron_id_of_type(neuron_type=post_type))
+            if isinstance(post_type, list):
+                post_id = set()
+                for pt in post_type:
+                    post_id = post_id.union(set(self.snudda_load.get_neuron_id_of_type(neuron_type=pt)))
+            else:
+                post_id = set(self.snudda_load.get_neuron_id_of_type(neuron_type=post_type))
 
             keep_neurons = keep_neurons.intersection(post_id)
 
