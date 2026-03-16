@@ -75,7 +75,9 @@ class SnuddaAblateNetwork:
     def only_keep_neuron_id(self, neuron_id):
         self.keep_neuron_id = set(neuron_id)
 
-    def keep_only_neurons_and_targets(self, neuron_id, post_type=None, remove_pre_without_targets=False):
+    def keep_only_neurons_and_targets(self, neuron_id, post_type=None,
+                                      remove_pre_without_targets=False,
+                                      include_gap_junctions=False):
 
         keep_neurons = set(neuron_id)
 
@@ -103,6 +105,11 @@ class SnuddaAblateNetwork:
             # that did not connect to the postsynaptic neurons
 
             con_mat = self.snudda_load.create_connection_matrix(sparse_matrix=False)
+
+            if include_gap_junctions:
+                con_mat_gj = self.snudda_load.create_connection_matrix(sparse_matrix=False, connection_type="gap_junctions")
+                con_mat = np.abs(con_mat) + np.abs(con_mat_gj)
+
             post_id = list(keep_neurons - set(neuron_id))
 
             remove_pre = []

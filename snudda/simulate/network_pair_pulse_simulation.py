@@ -187,7 +187,7 @@ class SnuddaNetworkPairPulseSimulation:
 
             self.network_file = cut.out_file_name
 
-    def ablate_post(self, pre_id=None, post_type=None, remove_pre_without_targets=False):
+    def ablate_post(self, pre_id=None, post_type=None, remove_pre_without_targets=False, include_gap_junctions=False):
 
         # This ablates neurons that are not connected to the pre synaptic neurons
         sa = SnuddaAblateNetwork(network_file=self.network_file)
@@ -202,12 +202,19 @@ class SnuddaNetworkPairPulseSimulation:
             if self.n_stimulated_neurons is not None:
                 self.pre_id = self.pre_id[:self.n_stimulated_neurons]
 
-        sa.keep_only_neurons_and_targets(neuron_id=self.pre_id, post_type=post_type, remove_pre_without_targets=remove_pre_without_targets)
+        sa.keep_only_neurons_and_targets(neuron_id=self.pre_id, post_type=post_type,
+                                         remove_pre_without_targets=remove_pre_without_targets,
+                                         include_gap_junctions=include_gap_junctions)
 
         if remove_pre_without_targets:
             # We need to reduce the number of neurons stimulated, since we removed some of them
             self.pre_id = list(set(pre_id).intersection(set(sa.keep_neuron_id)))
             self.n_stimulated_neurons = len(self.pre_id)
+
+            # Rerun filtering, this will also make sure we remove the pre neurons not stimulated
+            sa.keep_only_neurons_and_targets(neuron_id=self.pre_id, post_type=post_type,
+                                             remove_pre_without_targets=remove_pre_without_targets,
+                                             include_gap_junctions=include_gap_junctions)
 
         new_network_file = self.network_file.replace(".hdf5", "") + "-ablated.hdf5"
 
@@ -555,7 +562,7 @@ class SnuddaNetworkPairPulseSimulation:
     # This extracts all the voltage deflections, to see how strong they are
 
     def analyse(self, max_dist=None, n_max_show=10, pre_id=None, post_type=None, clamp_mode=None, exp_data_file=None,
-                force_post_id=None, window_width = 0.05):
+                force_post_id=None, window_width = 0.05, include_gap_junctions=False):
 
         import matplotlib
         import matplotlib.pyplot as plt
@@ -625,21 +632,21 @@ class SnuddaNetworkPairPulseSimulation:
         synapse_data = []
         too_far_away = 0
 
+        con_mat = self.snudda_load.create_connection_matrix(sparse_matrix=False)
+
+        if include_gap_junctions:
+            con_mat_gj = self.snudda_load.create_connection_matrix(sparse_matrix=False, connection_type="gap_junctions")
+            con_mat = np.abs(con_mat) + np.abs(con_mat_gj)
+
         for (pre_id, t) in self.inj_info:
             # Post synaptic neuron to preID
-
             if isinstance(pre_id, list):
-                syn_list = []
-                for p_id in pre_id:
-                    synapses, coords = self.snudda_load.find_synapses(pre_id=p_id)
-                    syn_list.append(synapses)
-
-                synapses = np.vstack(syn_list)
-
+                post_id_set = set(np.where(np.sum(con_mat[pre_id, :], axis=1))[0])
             else:
-                synapses, coords = self.snudda_load.find_synapses(pre_id=pre_id)
+                post_id_set = set(np.where(con_mat[pre_id,:])[0])
 
-            post_id_set = set(synapses[:, 1]).intersection(self.possible_post_id)
+            post_id_set = post_id_set.intersection(self.possible_post_id)
+
             pre_pos = self.snudda_load.data["neuron_positions"][pre_id, :]
 
             if force_post_id is not None:
@@ -668,10 +675,17 @@ class SnuddaNetworkPairPulseSimulation:
                     import pdb
                     pdb.set_trace()
 
-                synapse_data.append((time[t_idx], recorded_data[post_id][t_idx].flatten(), pre_id, post_id))
-                
-                assert len(t_idx) > 0, f"Internal error, no time points recorded between {t} and {t + window_width} " \
-                                       f"for synapse pre_id={pre_id}, post_id={post_id}"
+                try:
+                    synapse_data.append((time[t_idx], recorded_data[post_id][t_idx].flatten(), pre_id, post_id))
+
+                    assert len(t_idx) > 0, f"Internal error, no time points recorded between {t} and {t + window_width} " \
+                                           f"for synapse pre_id={pre_id}, post_id={post_id}"
+                except:
+                    import traceback
+                    print(traceback.format_exc())
+                    import pdb
+                    pdb.set_trace()
+
 
         if max_dist is not None:
             print(f"Number of pairs excluded, distance > {max_dist * 1e6} mum : {too_far_away}")
