@@ -73,6 +73,8 @@ from snudda.utils.ablate_network import SnuddaAblateNetwork
 # Assume loss of 100 micrometer in depth, at KI they start with 250 micrometers
 # and get 150 micrometers after.
 
+# TODO: Write code to check pair pulse ration
+
 
 class SnuddaNetworkPairPulseSimulation:
 
