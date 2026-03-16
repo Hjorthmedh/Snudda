@@ -539,7 +539,7 @@ class NeuronPrototype:
                                                            morphology_key=morphology_key,
                                                            modulation_key=modulation_key)
 
-            if "axon_density" in self.meta_info[parameter_key][morphology_key]:
+            if self.meta_info is not None and "axon_density" in self.meta_info.get(parameter_key, {}).get(morphology_key, {}):
                 axon_density_type, axon_density, axon_density_bounds = self.meta_info[parameter_key][morphology_key]["axon_density"]
 
                 if axon_density_type == "r":
