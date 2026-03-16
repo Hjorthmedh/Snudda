@@ -1029,6 +1029,10 @@ class SnuddaLoad(object):
         for syn_row in self.data[connection_type]:
             connection_matrix[syn_row[0], syn_row[1]] += 1
 
+            if connection_type == "gap_junctions":
+                # Gap junctions are symmetric, so mark other side also
+                connection_matrix[syn_row[1], syn_row[0]] += 1
+
         return connection_matrix
 
     def find_neighbours(self, neuron_id, connection_matrix=None, exclude_parent=True):
