@@ -564,7 +564,7 @@ class SnuddaNetworkPairPulseSimulation:
     # This extracts all the voltage deflections, to see how strong they are
 
     def analyse(self, max_dist=None, n_max_show=10, pre_id=None, post_type=None, clamp_mode=None, exp_data_file=None,
-                force_post_id=None, window_width = 0.05, include_gap_junctions=False):
+                force_post_id=None, time_window = 0.05, include_gap_junctions=False):
 
         import matplotlib
         import matplotlib.pyplot as plt
@@ -666,11 +666,11 @@ class SnuddaNetworkPairPulseSimulation:
                 # There is a bit of synaptic delay, so we can take voltage
                 # at first timestep as baseline
 
-                if t + window_width > np.max(time):
-                    print(f"Simulation only run to {np.max(time)}s, missing pulses at {t}s (check_width={window_width}s)")
+                if t + time_window > np.max(time):
+                    print(f"Simulation only run to {np.max(time)}s, missing pulses at {t}s (check_width={time_window}s)")
                     continue
 
-                t_idx = np.where(np.logical_and(t <= time, time <= t + window_width))[0]
+                t_idx = np.where(np.logical_and(t <= time, time <= t + time_window))[0]
 
                 if post_id not in recorded_data:
                     print(f"Missing key {post_id}")
@@ -680,7 +680,7 @@ class SnuddaNetworkPairPulseSimulation:
                 try:
                     synapse_data.append((time[t_idx], recorded_data[post_id][t_idx].flatten(), pre_id, post_id))
 
-                    assert len(t_idx) > 0, f"Internal error, no time points recorded between {t} and {t + window_width} " \
+                    assert len(t_idx) > 0, f"Internal error, no time points recorded between {t} and {t + time_window} " \
                                            f"for synapse pre_id={pre_id}, post_id={post_id}"
                 except:
                     import traceback
@@ -833,8 +833,6 @@ class SnuddaNetworkPairPulseSimulation:
 
         print(f"{above_threshold_ctr} out of {total_ctr} respond at between {time} and {time + time_window}s, {above_threshold_ctr/float(total_ctr)*100:.2f} %")
 
-
-
     ############################################################################
 
     def setup_exp_data(self, data_file=None):
@@ -852,6 +850,122 @@ class SnuddaNetworkPairPulseSimulation:
             for pre_neuron in exp_info:
                 for post_neuron in exp_info[pre_neuron]:
                     self.exp_data[exp_name, pre_neuron, post_neuron] = exp_info[pre_neuron][post_neuron]
+
+    ############################################################################
+
+    def analyse_gap_junctions(self, clamp_mode, exp_data_file, pre_id=None, post_type=None,
+                              time_window=0.05, baseline_offset=-0.05):
+
+        import matplotlib
+        import matplotlib.pyplot as plt
+
+        model_mean = None
+        model_std = None
+
+        if clamp_mode == "voltage":
+            data_unit = "current"
+            plot_conversion = 1e9
+            plot_unit = "nA"
+            plot_unit_string = "Current"
+        elif clamp_mode == "current":
+            data_unit = "voltage"
+            plot_conversion = 1e3
+            plot_unit = "mV"
+            plot_unit_string = "Voltage"
+        else:
+            raise ValueError(f"Unknown clamp_mode = {clamp_mode}, should be 'voltage' or 'current'")
+
+        self.setup_exp_data(data_file=exp_data_file)
+
+        # Read the data
+        self.snudda_load = SnuddaLoad(self.network_file)
+        self.data = self.snudda_load.data
+
+        ssd = SnuddaLoadSimulation(network_path=self.network_path)
+        time = ssd.get_time()
+
+        if pre_id:
+            print(f"Using user provided pre_id = {pre_id}\n"
+                  f"This must match what was used for simulation! BE CAREFUL!")
+            self.pre_id = pre_id
+        else:
+            self.pre_id = [x["neuron_id"] for x in self.data["neurons"] if x["type"] == self.pre_type]
+            if self.n_stimulated_neurons is not None:
+                self.pre_id = self.pre_id[:self.n_stimulated_neurons]
+
+        if post_type is None:
+            post_type = self.post_type
+
+        assert post_type != "ALL", "You need to specify a neuron type as post_type, e.g. FS"
+
+        assert self.post_type == post_type or self.post_type == "ALL", \
+            f"You can only analyse post_type data that you recorded (e.g. {self.post_type}), " \
+            f"to record data from all neuron types use post_type=ALL"
+
+        self.possible_post_id = [x["neuron_id"] for x in self.data["neurons"] if x["type"] == post_type]
+        self.possible_post_id = list(set(self.possible_post_id)-set(self.pre_id))
+
+        recorded_data = ssd.get_data(data_unit, self.possible_post_id)[0]
+        recorded_data_pre = ssd.get_data(data_unit, self.pre_id)
+
+        if self.stim_all_at_once:
+            self.inj_info = [(self.pre_id, self.inj_spacing)]
+        else:
+            self.inj_info = zip(self.pre_id, self.inj_spacing + self.inj_spacing * np.arange(0, len(self.pre_id)))
+
+        synapse_data = []
+
+        con_mat_gj = self.snudda_load.create_connection_matrix(sparse_matrix=False, connection_type="gap_junctions")
+
+        coupling_coefficient = []
+
+        for (pre_id, t) in self.inj_info:
+
+            if t + time_window > np.max(time):
+                print(f"Simulation only run to {np.max(time)}s, missing pulses at {t}s (check_width={window_width}s)")
+                continue
+
+            t_idx = np.where(np.logical_and(t <= time, time <= t + time_window))[0]
+
+            baseline_idx = np.where(np.logical_and(t + baseline_offset <= time,
+                                                   time <= t + baseline_offset + time_window))[0]
+
+            pre_base = np.mean(recorded_data_pre[pre_id][baseline_idx].flatten())
+            pre_amplitude = np.max(np.abs(recorded_data_pre[pre_id][t_idx].flatten() - pre_base))
+
+            # Post synaptic neuron to preID
+            if isinstance(pre_id, list):
+                post_id_set = set(np.where(np.sum(con_mat_gj[pre_id, :], axis=1))[0])
+            else:
+                post_id_set = set(np.where(con_mat_gj[pre_id,:])[0])
+
+            post_id_set = post_id_set.intersection(self.possible_post_id)
+
+            for post_id in post_id_set:
+
+                if post_id not in recorded_data:
+                    print(f"Missing key {post_id}")
+                    import pdb
+                    pdb.set_trace()
+
+                try:
+                    synapse_data.append((time[t_idx], recorded_data[post_id][t_idx].flatten(), pre_id, post_id))
+
+                    assert len(t_idx) > 0, f"Internal error, no time points recorded between {t} and {t + time_window} " \
+                                           f"for synapse pre_id={pre_id}, post_id={post_id}"
+                except:
+                    import traceback
+                    print(traceback.format_exc())
+                    import pdb
+                    pdb.set_trace()
+
+                post_base = np.mean(recorded_data_pre[post_id][baseline_idx].flatten())
+                post_amplitude = np.max(np.abs(recorded_data_pre[post_id][t_idx].flatten() - post_base))
+
+                coupling_coefficient.append(post_amplitude / pre_amplitude)
+
+        print(f"Mean coupling coefficient: {np.mean(coupling_coefficient)} +/- {np.std(coupling_coefficient)}")
+        print(coupling_coefficient)
 
     ############################################################################
 
