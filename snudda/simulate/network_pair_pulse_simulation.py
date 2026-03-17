@@ -853,11 +853,11 @@ class SnuddaNetworkPairPulseSimulation:
 
     ############################################################################
 
-    def analyse_gap_junctions(self, clamp_mode, exp_data_file, pre_id=None, post_type=None,
+    def analyse_gap_junctions(self, clamp_mode, exp_data_file=None, pre_id=None, post_type=None,
                               time_window=0.05, baseline_offset=-0.05):
 
-        import matplotlib
         import matplotlib.pyplot as plt
+        import seaborn as sns
 
         model_mean = None
         model_std = None
@@ -879,6 +879,7 @@ class SnuddaNetworkPairPulseSimulation:
 
         # Read the data
         self.snudda_load = SnuddaLoad(self.network_file)
+        print(f"Loading {self.network_file}")
         self.data = self.snudda_load.data
 
         ssd = SnuddaLoadSimulation(network_path=self.network_path)
@@ -905,8 +906,11 @@ class SnuddaNetworkPairPulseSimulation:
         self.possible_post_id = [x["neuron_id"] for x in self.data["neurons"] if x["type"] == post_type]
         self.possible_post_id = list(set(self.possible_post_id)-set(self.pre_id))
 
+        if len(self.possible_post_id) == 0:
+            print(f"No post neurons. Did you pick the wrong {post_type =}")
+
         recorded_data = ssd.get_data(data_unit, self.possible_post_id)[0]
-        recorded_data_pre = ssd.get_data(data_unit, self.pre_id)
+        recorded_data_pre = ssd.get_data(data_unit, self.pre_id)[0]
 
         if self.stim_all_at_once:
             self.inj_info = [(self.pre_id, self.inj_spacing)]
@@ -959,13 +963,25 @@ class SnuddaNetworkPairPulseSimulation:
                     import pdb
                     pdb.set_trace()
 
-                post_base = np.mean(recorded_data_pre[post_id][baseline_idx].flatten())
-                post_amplitude = np.max(np.abs(recorded_data_pre[post_id][t_idx].flatten() - post_base))
+                try:
+                    post_base = np.mean(recorded_data[post_id][baseline_idx].flatten())
+                    post_amplitude = np.max(np.abs(recorded_data[post_id][t_idx].flatten() - post_base))
 
-                coupling_coefficient.append(post_amplitude / pre_amplitude)
+                    coupling_coefficient.append(post_amplitude / pre_amplitude)
+                except Exception as e:
+                    import traceback
+                    print(traceback.format_exc())
+                    print(e)
+                    import pdb
+                    pdb.set_trace()
 
         print(f"Mean coupling coefficient: {np.mean(coupling_coefficient)} +/- {np.std(coupling_coefficient)}")
         print(coupling_coefficient)
+
+        sns.violinplot(y=coupling_coefficient, inner="box")
+
+        plt.ylabel("Coupling coefficient")
+        plt.title("Gap Junction Coupling")
 
     ############################################################################
 
