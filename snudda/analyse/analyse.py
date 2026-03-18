@@ -1387,7 +1387,7 @@ class SnuddaAnalyse:
 
         if connection_type == "synapses":
             con_mat = self.connection_matrix
-        elif connection_type == "gap_junctions" or connection_type == "gapjunctions":
+        elif connection_type in ["gap_junctions", "gapjunctions", "gap_junction"]:
             con_mat = self.connection_matrix_gj
         else:
             assert False, f"Unknown connection_type: {connection_type}"

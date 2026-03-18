@@ -304,7 +304,8 @@ class Snudda(object):
 
     ############################################################################
 
-    def create_network(self, honor_morphology_stay_inside=True, verbose=False, keep_rc_active=False, input_config=None):
+    def create_network(self, honor_morphology_stay_inside=True, verbose=False, keep_rc_active=False,
+                       input_config=None, use_meta_input=True):
 
         # This function uses one remote client, that is used by all processes
 
@@ -314,7 +315,7 @@ class Snudda(object):
         self.prune_synapses(verbose=verbose, keep_rc_active=keep_rc_active or input_config is not None)
 
         if input_config is not None:
-            self.setup_input(input_config=input_config, keep_rc_active=keep_rc_active)
+            self.setup_input(input_config=input_config, keep_rc_active=keep_rc_active, use_meta_input=use_meta_input)
 
     def create_network_wrapper(self, args):
 

@@ -335,7 +335,7 @@ class OptimisePruning:
                           pruning_parameters=pruning_parameters,
                           output_file=output_file)
 
-        if optimisation_info["con_type"].lower() == "gap_junction":
+        if optimisation_info["con_type"].lower() in ("gap_junction", "gap_junctions"):
             con_type = "gap_junctions"
         else:
             con_type = "synapses"
