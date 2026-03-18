@@ -57,8 +57,38 @@ class PlotReactionDiffusion:
 
             color = palette[i % len(palette)]
 
+            if compartment_id is None:
+                comp_ofs = 0
+            else:
+                comp_ofs = np.where(data[1][neuron_id][0] == compartment_id)[0]
+                if len(comp_ofs) == 0:
+                    print(f"Species {s}, not recorded for section_id {compartment_id}")
+                    continue
+                else:
+
+                    if len(comp_ofs) > 1:
+                        print(
+                            f"Warning, species {s} recorded at multiple points in section_id {compartment_id}, using first occurence")
+
+                    comp_ofs = comp_ofs[0]
+
             if species_label is None:
                 s_label = s
+
+                if compartment_id != 0:
+
+                    try:
+                        section_id = data[1][neuron_id][0][comp_ofs]
+                        section_x = data[1][neuron_id][1][comp_ofs]
+                        s_label = f"{s} ({section_id}:{section_x})"
+
+                    except Exception as e:
+                        import traceback
+                        print(traceback.format_exc())
+                        print(e)
+                        import pdb
+                        pdb.set_trace()
+
             else:
                 s_label = species_label[i]
 
@@ -66,10 +96,10 @@ class PlotReactionDiffusion:
                 # data variable contains 'data', 'sec_id_x', 'syninfo'
                 if normalise:
                     fig.add_trace(go.Scatter(x=time[idx],
-                                             y=data[0][neuron_id].T[compartment_id][idx]/np.max(data[0][neuron_id].T[compartment_id][idx]),
+                                             y=data[0][neuron_id].T[comp_ofs][idx]/np.max(data[0][neuron_id].T[comp_ofs][idx]),
                                              name=s_label, line={"width": 4, "color": color}))
                 else:
-                    fig.add_trace(go.Scatter(x=time[idx], y=data[0][neuron_id].T[compartment_id][idx],
+                    fig.add_trace(go.Scatter(x=time[idx], y=data[0][neuron_id].T[comp_ofs][idx],
                                              name=s_label, line={"width": 4, "color": color}))
             except Exception as e:
                 import traceback
