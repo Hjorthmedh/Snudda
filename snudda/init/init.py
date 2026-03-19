@@ -1355,6 +1355,8 @@ class SnuddaInit(object):
         # SPN2ChINDistDepPruning = "1-np.exp(-(0.4*d/60e-6)**2)"
         SPN2ChINDistDepPruning = "1-exp(-(0.4*d/60e-6)**2)"
 
+        # TODO: ALL THESE PRUNING VALUES SHOULD BE READ FROM connectivity.json FILE
+
         # old f1 = 0.15
         self.add_neuron_target(neuron_name="dSPN",
                                target_name="dSPN",
