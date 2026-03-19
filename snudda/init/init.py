@@ -749,6 +749,8 @@ class SnuddaInit(object):
                           number_of_synapses,
                           dendrite_synapse_density,
                           connection_type,
+                          projection_density=None,
+                          local_projection=False,
                           dist_pruning=None,
                           f1=None,
                           soft_max=None,
@@ -789,7 +791,14 @@ class SnuddaInit(object):
         nt_key = f"{neuron_name},{target_name}"
         con_info = self.network_data["regions"][source_volume]["connectivity"][nt_key][connection_type]
 
-        con_info["projection_file"] = projection_file
+        if local_projection:
+            con_info["projection_type"] = "local"
+            con_info["disable_touch_detection"] = True
+            assert projection_file is None, f"'local' projections do not have a projection_file specified"
+            # Here 'local' means that each projection is centred around the neuron itself.
+        else:
+            con_info["projection_file"] = projection_file
+
         con_info["projection_name"] = projection_name
         con_info["source"] = source_volume
         con_info["destination"] = dest_volume
@@ -797,6 +806,7 @@ class SnuddaInit(object):
         con_info["number_of_targets"] = number_of_targets
         con_info["number_of_synapses"] = number_of_synapses
         con_info["dendrite_synapse_density"] = dendrite_synapse_density
+        con_info["projection_density"] = projection_density
 
     ############################################################################
 
@@ -922,6 +932,10 @@ class SnuddaInit(object):
 
     # mesh_file can be used to override default mesh file
 
+    # (Ibáñez-Sandoval et al. 2010)
+    # there are about 2700 TH-positive neurons in the mouse striatum (bac-TH+ mouse line)
+    # Ünal et al 2011 -- 2756 +- 192.4 TH per hemisphere
+
     def define_striatum(self,
                         num_neurons=None,
                         f_dSPN=0.475,
@@ -930,12 +944,14 @@ class SnuddaInit(object):
                         f_ChIN=0.011,
                         f_LTS=0.007,
                         f_NGF=0.0019,
+                        f_TH=0.0050,  # TODO: Need to add neurons in init!! (ref above)
                         num_dSPN=None,
                         num_iSPN=None,
                         num_FS=None,
                         num_ChIN=None,
                         num_LTS=None,
                         num_NGF=None,
+                        num_TH=None,
                         volume_type=None,
                         side_len=None,
                         slice_depth=None,
@@ -1275,8 +1291,8 @@ class SnuddaInit(object):
         ## Define MSD1 targets
 
         # 3e-6 voxel method
-        MSP11 = 1.0  # 0.55
-        MSP12 = 1.0  # 0.20
+        MSP11 = 0.9998
+        MSP12 = 0.4214
 
         # Taverna 2008, fig 3E&F:
         # D1D1 22.6+/-3pS per synapse, 37+/-15 synapses (approx)
@@ -1345,7 +1361,7 @@ class SnuddaInit(object):
                                region_name="Striatum",
                                connection_type="GABA",
                                dist_pruning=SPN2SPNdistDepPruning,
-                               f1=0.38 * 0.75, soft_max=3, mu2=2.4,
+                               f1=0.209, soft_max=None, mu2=1.6864,
                                a3=P11withinUnit,
                                a3_other=P11betweenUnit,
                                conductance=MSD1gGABA,
@@ -1362,7 +1378,7 @@ class SnuddaInit(object):
                                region_name="Striatum",
                                connection_type="GABA",
                                dist_pruning=SPN2SPNdistDepPruning,
-                               f1=0.20 * 0.82, soft_max=3, mu2=2.4,
+                               f1=0.2175, soft_max=None, mu2=1.7053,
                                a3=P12withinUnit,
                                a3_other=P12betweenUnit,
                                conductance=MSD1gGABA,
@@ -1395,8 +1411,8 @@ class SnuddaInit(object):
         ## Define MSD2 targets
 
         # 3e-6 voxel method
-        MSP21 = 1.0  # 0.50
-        MSP22 = 1.0  # 0.95
+        MSP21 = 0.9837
+        MSP22 = 0.999
 
         # OLD: 24pA * 51 receptors = 1.15e-9 -- Taverna 2008, fig3
         # OLD: std ~ +/- 10 receptors [1.24e-9, 0.24e-9]
@@ -1435,7 +1451,7 @@ class SnuddaInit(object):
                                region_name="Striatum",
                                connection_type="GABA",
                                dist_pruning=SPN2SPNdistDepPruning,
-                               f1=0.3 * 0.93, soft_max=4, mu2=2.4,
+                               f1=0.1741, soft_max=None, mu2=1.5767,
                                a3=P21withinUnit,
                                a3_other=P21betweenUnit,
                                conductance=MSD2gGABA,
@@ -1452,7 +1468,7 @@ class SnuddaInit(object):
                                region_name="Striatum",
                                connection_type="GABA",
                                dist_pruning=SPN2SPNdistDepPruning,
-                               f1=0.55, soft_max=4, mu2=2.4,
+                               f1=0.3105, soft_max=None, mu2=1.6518,
                                a3=P22withinUnit,
                                a3_other=P22betweenUnit,
                                conductance=MSD2gGABA,

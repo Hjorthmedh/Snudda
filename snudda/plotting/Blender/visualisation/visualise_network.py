@@ -66,6 +66,21 @@ class VisualiseNetwork(object):
 
         self.neuron_colour_lookup = dict()
 
+    def set_flat_color(self, mat, rgba):
+        '''
+        diffuse_color is not the authoritative source of render color in Blender 5.0. The Principled BSDF Base Color is.
+        only setting diffuse_color will lead to almost no visible color in renders, so we set both.
+        '''
+        # Keep diffuse_color for viewport consistency
+        mat.diffuse_color = rgba
+
+        # Ensure the render uses the same color
+        mat.use_nodes = True
+        bsdf = mat.node_tree.nodes.get("Principled BSDF")
+        if bsdf is not None:
+            bsdf.inputs["Base Color"].default_value = rgba
+            bsdf.inputs["Alpha"].default_value = rgba[3]
+
     def visualise(self,
                   neuron_id=None,
                   blender_output_image=None,
@@ -101,7 +116,7 @@ class VisualiseNetwork(object):
             neurons = [self.data["neurons"][x] for x in neuron_id]
         else:
             neurons = self.data["neurons"]
-            neuron_id = self.data["neuronID"]
+            neuron_id = self.data["neuron_id"]
 
         if blender_output_image:
             self.blender_output_image = blender_output_image
@@ -118,11 +133,12 @@ class VisualiseNetwork(object):
         if synapse_pair_filter is not None:
             synapse_pair_filter = set(synapse_pair_filter)
 
-        origo = self.data["simulationOrigo"]
-        voxel_size = self.data["voxelSize"]
+        origo = self.data["simulation_origo"]
+        voxel_size = self.data["voxel_size"]
 
         # Remove the start cube
         VisualiseNetwork.clean_scene()
+        self.neuron_cache.clear() # had the cache error when rendering the whole network so clearing it here
 
         # Add a light source
         # TODO: Add choice of adding a light source, instead of True here.
@@ -164,15 +180,16 @@ class VisualiseNetwork(object):
         
         # Define materials
         mat_dspn = bpy.data.materials.new("PKHG")
-        mat_dspn.diffuse_color = (77. / 255, 151. / 255, 1.0, 0.5)
+        # set both diffuse_color and Principled BSDF Base Color
+        self.set_flat_color(mat_dspn,(77. / 255, 151. / 255, 1.0, 0.5)) #RGBA
         mat_ispn = bpy.data.materials.new("PKHG")
-        mat_ispn.diffuse_color = (67. / 255, 55. / 255, 181. / 255, 0.5)
+        self.set_flat_color(mat_ispn,(67. / 255, 55. / 255, 181. / 255, 0.5))
         mat_fs = bpy.data.materials.new("PKHG")
-        mat_fs.diffuse_color = (6. / 255, 31. / 255, 85. / 255, 1.0)
+        self.set_flat_color(mat_fs,(6. / 255, 31. / 255, 85. / 255, 1.0))
         mat_chin = bpy.data.materials.new("PKHG")
-        mat_chin.diffuse_color = (252. / 255, 102. / 255, 0.0, 1.0)
+        self.set_flat_color(mat_chin,(252. / 255, 102. / 255, 0.0, 1.0))
         mat_lts = bpy.data.materials.new("PKHG")
-        mat_lts.diffuse_color = (150. / 255, 63. / 255, 212. / 255, 1.0)
+        self.set_flat_color(mat_lts,(150. / 255, 63. / 255, 212. / 255, 1.0))
 
         mat_snr = bpy.data.materials.new("PKHG")
 
@@ -191,7 +208,7 @@ class VisualiseNetwork(object):
         mat_proto.diffuse_color = (0 / 255, 130 / 255, 0 / 255, 1.0)
 
         mat_other = bpy.data.materials.new("PKHG")
-        mat_other.diffuse_color = (0.4, 0.4, 0.4, 1.0)
+        self.set_flat_color(mat_other,(0.4, 0.4, 0.4, 1.0))
         mat_synapse = bpy.data.materials.new("PKHG")
 
         material_lookup = {"dspn": mat_dspn,
@@ -217,11 +234,11 @@ class VisualiseNetwork(object):
             #material_lookup[nid].diffuse_color = self.neuron_colour_lookup[nid]
         
         if synapse_colour is not None:
-            mat_synapse.diffuse_color = synapse_colour
+            self.set_flat_color(mat_synapse,synapse_colour)
         elif white_background:
-            mat_synapse.diffuse_color = (0.8, 0.0, 0.0, 1.0)
+            self.set_flat_color(mat_synapse,(0.8, 0.0, 0.0, 1.0))
         else:
-            mat_synapse.diffuse_color = (1.0, 1.0, 0.9, 1.0)
+            self.set_flat_color(mat_synapse,(1.0, 1.0, 0.9, 1.0))
 
         # matSynapse.use_transparency = True
 
@@ -257,7 +274,7 @@ class VisualiseNetwork(object):
                 obj.animation_data_clear()
 
                 # Will return None if there is no obj named CUBe
-                obj.name = f"{neuron['name']}-{neuron['neuronID']}"
+                obj.name = f"{neuron['name']}-{neuron['neuron_id']}"
                 VisualiseNetwork.link_object(obj)
             else:
                 if type(detail_level) == np.ndarray:
@@ -270,20 +287,20 @@ class VisualiseNetwork(object):
 
                 self.read_swc_data(filepath=snudda_parse_path(neuron["morphology"], self.snudda_data), detail_level=dl)
                 obj = bpy.context.selected_objects[0]
-                obj.name = f"{neuron['name']}-{neuron['neuronID']}"
+                obj.name = f"{neuron['name']}-{neuron['neuron_id']}"
 
                 self.neuron_cache[neuron["name"]] = obj
 
             obj.rotation_euler = e_rot
 
-            print(f"Setting neuron {neuron['neuronID']} ({neuron['name']}) position: {neuron['position']}")
+            print(f"Setting neuron {neuron['neuron_id']} ({neuron['name']}) position: {neuron['position']}")
             obj.location = neuron["position"] * self.scale_f
 
             n_type = neuron["type"].lower()
 
-            if neuron['neuronID'] in material_lookup:
+            if neuron['neuron_id'] in material_lookup:
                 # Custom colour for neuron (priority)
-                mat = material_lookup[neuron['neuronID']]
+                mat = material_lookup[neuron['neuron_id']]
             elif n_type in material_lookup:
                 # Each neuron type has its own colour
                 mat = material_lookup[n_type]
@@ -296,8 +313,8 @@ class VisualiseNetwork(object):
                 mat_spikes = bpy.data.materials.new("PKHG")
                 mat_spikes.diffuse_color = rest_color
                 mat_spikes.keyframe_insert(data_path="diffuse_color", frame=1.0, index=-1)
-                if str(neuron['neuronID']) in self.spike_times.keys():
-                    spikes = self.spike_times[str(neuron['neuronID'])]
+                if str(neuron['neuron_id']) in self.spike_times.keys():
+                    spikes = self.spike_times[str(neuron['neuron_id'])]
 
                     # convert 'time' to Blender frames; factor of ~100 works nicely
                     spike_frames = np.round(100 * np.array(spikes))
@@ -420,7 +437,13 @@ class VisualiseNetwork(object):
         mat.node_tree.nodes["Principled BSDF"].inputs['Alpha'].default_value = alpha
         mat.node_tree.nodes["Principled BSDF"].inputs['Base Color'].default_value = (colour[0], colour[1], colour[2], alpha)
 
-        structure_object = bpy.ops.import_scene.obj(filepath=mesh_file, axis_up="Z", axis_forward="Y")
+        # --- Import OBJ (Blender 5.0) ---
+        bpy.ops.wm.obj_import(
+            filepath=mesh_file,
+            forward_axis='Y',
+            up_axis='Z'
+        )
+
         o = bpy.context.selected_objects[0]
         # scale_f = 1000
         o.scale[0] = 1 / self.scale_f
@@ -429,10 +452,19 @@ class VisualiseNetwork(object):
         o.active_material = mat
         self.struct_coll.objects.link(o)
     def add_all_meshes(self):
+        # Iterate over all regions in the config
+        for region_name, region_cfg in self.sl.config["regions"].items():
 
-        for name, structure in self.sl.config["Volume"].items():
-            self.add_mesh_structure(mesh_file=snudda_parse_path(structure["meshFile"], self.snudda_data), colour=(0.1, 0.1, 0.1),
-                                    alpha=0.1)
+            # Each region is expected to have a "volume" block
+            vol_cfg = region_cfg.get("volume")
+
+            mesh_path = vol_cfg.get("mesh_file")
+
+            self.add_mesh_structure(
+                mesh_file=snudda_parse_path(mesh_path, self.snudda_data),
+                colour=(0.1, 0.1, 0.1),
+                alpha=0.1
+            )
 
     @staticmethod
     def copy_children(parent, parent_copy):
@@ -452,11 +484,23 @@ class VisualiseNetwork(object):
 
     @staticmethod
     def clean_scene():
-        # TODO: This does not seem to remove everything. Had some leftover synapses present still in notebook.
+        # add robust scene cleaning
         print("Cleaning the scene.")
-        del_list = bpy.context.copy()
-        del_list['selected_objects'] = list(bpy.context.scene.objects)
-        bpy.ops.object.delete(del_list)
+
+        scene = bpy.context.scene
+
+        # Remove all objects linked to the current scene
+        for obj in list(scene.objects):
+            bpy.data.objects.remove(obj, do_unlink=True)
+
+        for mesh in list(bpy.data.meshes):
+            if mesh.users == 0:
+                bpy.data.meshes.remove(mesh)
+
+        for mat in list(bpy.data.materials):
+            if mat.users == 0:
+                bpy.data.materials.remove(mat)
+
 
     def read_swc_data(self, filepath, detail_level=1):
 

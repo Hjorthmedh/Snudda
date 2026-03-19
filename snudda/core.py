@@ -175,7 +175,11 @@ class Snudda(object):
     def init_tiny(self, neuron_paths, neuron_names, number_of_neurons,
                   snudda_data=None,
                   morphology_key=None, parameter_key=None,
-                  connection_config=None, random_seed=None, density=80500, d_min=15e-6):
+                  connection_config=None, random_seed=None,
+                  density=80500, d_min=15e-6,
+                  volume_mesh="cube",
+                  side_len=None,
+                  slice_depth=None):
 
         """
             network_path : Network path
@@ -194,19 +198,43 @@ class Snudda(object):
                         snudda_data=snudda_data,
                         random_seed=random_seed)
 
-        if n_total > 1:
-            side_len = (n_total/density)**(1/3)*1e-3
-        else:
-            # When placing one neuron in a really small volume, sometimes it is too small
-            side_len = (2/density)**(1/3)*1e-3
+        if volume_mesh == "cube":
+            volume_name = "Cube"
 
-        si.define_structure(struct_name="Cube",
-                            struct_mesh="cube",
-                            d_min=d_min,
-                            struct_centre=(0.0, 0.0, 0.0),
-                            side_len=side_len,
-                            num_neurons=n_total,
-                            n_putative_points=n_total*5)
+            if side_len is None:
+                if n_total > 1:
+                    side_len = (n_total/density)**(1/3)*1e-3
+                else:
+                    # When placing one neuron in a really small volume, sometimes it is too small
+                    side_len = (5/density)**(1/3)*1e-3
+
+            si.define_structure(struct_name="Cube",
+                                struct_mesh="cube",
+                                d_min=d_min,
+                                struct_centre=(0.0, 0.0, 0.0),
+                                side_len=side_len,
+                                num_neurons=n_total,
+                                n_putative_points=n_total*5)
+
+        elif volume_mesh == "slice":
+            volume_name = "Slice"
+
+            si.define_structure(struct_name="Slice",
+                                struct_mesh="slice",
+                                d_min=d_min,
+                                side_len=side_len,
+                                slice_depth=slice_depth,
+                                struct_centre=(0.0, 0.0, 0.0),
+                                num_neurons=n_total,
+                                n_putative_points=n_total*5)
+        else:
+            volume_name = "Custom"
+
+            si.define_structure(struct_name=volume_name,
+                                struct_mesh=volume_mesh,
+                                d_min=d_min,
+                                num_neurons=n_total,
+                                n_putative_points=n_total*5)
 
         if connection_config is not None:
             if isinstance(connection_config, dict):
@@ -233,14 +261,14 @@ class Snudda(object):
             len(morphology_key) == len(parameter_key) == len(neuron_paths)
 
         for idx, (path, name, cnt) in enumerate(zip(neuron_paths, neuron_names, number_of_neurons)):
-            if name in si.network_data["regions"]["Cube"]["neurons"]:
+            if name in si.network_data["regions"][volume_name]["neurons"]:
                 raise ValueError(f"neuron name {name} defined more than once")
 
-            si.add_neurons(name=name, neuron_dir=path, region_name="Cube", num_neurons=cnt)
+            si.add_neurons(name=name, neuron_dir=path, region_name=volume_name, num_neurons=cnt)
 
             if morphology_key is not None:
-                si.network_data["regions"]["Cube"]["neurons"][name]["parameter_key"] = parameter_key[idx]
-                si.network_data["regions"]["Cube"]["neurons"][name]["morphology_key"] = morphology_key[idx]
+                si.network_data["regions"][volume_name]["neurons"][name]["parameter_key"] = parameter_key[idx]
+                si.network_data["regions"][volume_name]["neurons"][name]["morphology_key"] = morphology_key[idx]
 
         si.write_json()
 
@@ -276,7 +304,8 @@ class Snudda(object):
 
     ############################################################################
 
-    def create_network(self, honor_morphology_stay_inside=True, verbose=False, keep_rc_active=False, input_config=None):
+    def create_network(self, honor_morphology_stay_inside=True, verbose=False, keep_rc_active=False,
+                       input_config=None, use_meta_input=True):
 
         # This function uses one remote client, that is used by all processes
 
@@ -286,7 +315,7 @@ class Snudda(object):
         self.prune_synapses(verbose=verbose, keep_rc_active=keep_rc_active or input_config is not None)
 
         if input_config is not None:
-            self.setup_input(input_config=input_config, keep_rc_active=keep_rc_active)
+            self.setup_input(input_config=input_config, keep_rc_active=keep_rc_active, use_meta_input=use_meta_input)
 
     def create_network_wrapper(self, args):
 
@@ -891,7 +920,7 @@ class Snudda(object):
                              use_rxd_neuromodulation=use_rxd_neuromodulation,
                              verbose=verbose)
         sim.setup()
-        sim.add_external_input()
+        # sim.add_external_input() # -- now done in setup
 
         sim.check_memory_status()
 

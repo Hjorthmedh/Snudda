@@ -75,6 +75,55 @@ class SnuddaAblateNetwork:
     def only_keep_neuron_id(self, neuron_id):
         self.keep_neuron_id = set(neuron_id)
 
+    def keep_only_neurons_and_targets(self, neuron_id, post_type=None,
+                                      remove_pre_without_targets=False,
+                                      include_gap_junctions=False):
+
+        keep_neurons = set(neuron_id)
+
+        con_mat = self.snudda_load.create_connection_matrix(sparse_matrix=False)
+
+        if include_gap_junctions:
+            con_mat_gj = self.snudda_load.create_connection_matrix(sparse_matrix=False, connection_type="gap_junctions")
+            con_mat = np.abs(con_mat) + np.abs(con_mat_gj)
+
+        if post_type is not None:
+            if isinstance(post_type, list):
+                post_id = set()
+                for pt in post_type:
+                    post_id = post_id.union(set(self.snudda_load.get_neuron_id_of_type(neuron_type=pt)))
+            else:
+                post_id = set(self.snudda_load.get_neuron_id_of_type(neuron_type=post_type))
+
+            post_id = list(post_id)
+            keep_post_id = post_id[np.sum(con_mat[neuron_id, :][:, post_id], axis=0) > 0]
+        else:
+            keep_post_id = np.where(np.sum(con_mat[neuron_id, :], axis=0) > 0)[0]
+
+        keep_neurons = keep_neurons.union(keep_post_id)
+
+        if remove_pre_without_targets:
+            # This is useful if we have a dense presynaptic population, but a sparse
+            # postsynaptic population. No point simulating all the presynaptic neurons
+            # that did not connect to the postsynaptic neurons
+
+            post_id = list(keep_neurons - set(neuron_id))
+
+            if len(post_id) == 0:
+                print(f"Warning -- pre synaptic neurons only target themselves, no other neurons targeted.")
+
+            remove_pre = []
+            for p_id in neuron_id:
+                if np.sum(con_mat[p_id, post_id]) == 0:
+                    # No connections for neuron
+                    remove_pre.append(p_id)
+
+            keep_neurons = keep_neurons - set(remove_pre)
+
+            print(f"Removed {len(remove_pre)} presynaptic neurons")
+
+        self.keep_neuron_id = keep_neurons
+
     def make_virtual(self, neuron_id):
 
         if type(neuron_id) == list:
@@ -213,6 +262,14 @@ class SnuddaAblateNetwork:
         with open(remap_file_name, "w") as f:
             for new_id, old_id in enumerate(sorted(list(self.keep_neuron_id))):
                 f.write(f"{old_id}, {new_id}\n")
+
+    def get_remap_dictionary(self):
+        remap_dictionary = {}
+
+        for new_id, old_id in enumerate(sorted(list(self.keep_neuron_id))):
+            remap_dictionary[old_id] = new_id
+
+        return remap_dictionary
 
     def write_network(self, out_file_name=None, print_remapping=False):
 

@@ -8,6 +8,7 @@ import traceback
 from collections import OrderedDict
 
 import h5py
+import numexpr
 import numpy as np
 from scipy.interpolate import griddata
 
@@ -150,38 +151,49 @@ class SnuddaProject(object):
 
         for connection_type, con_info in connection_info.items():
 
-            if "projection_file" not in con_info or "projection_name" not in con_info:
-                # Not a projection, skipping
+            if "projection_name" not in con_info:
+                # No projection
                 continue
 
-            projection_file = con_info["projection_file"]
-            with open(projection_file, "r") as f:
-                projection_data = json.load(f, object_pairs_hook=OrderedDict)
-
-            if "projection_name" in con_info:
-                proj_name = con_info["projection_name"]
-                projection_source = np.array(projection_data[proj_name]["source"]) * 1e-6
-                projection_destination = np.array(projection_data[proj_name]["destination"]) * 1e-6
+            if "projection_type" in con_info and "local" == con_info["projection_type"]:
+                # Local projection, we centre all projections on source neurons
+                projection_source = None
+                projection_destination = None
             else:
-                projection_source = np.array(projection_data["source"]) * 1e-6
-                projection_destination = np.array(projection_data["destination"]) * 1e-6
+                if "projection_file" not in con_info:
+                    # Not a projection, skipping
+                    continue
+
+                projection_file = con_info["projection_file"]
+                with open(projection_file, "r") as f:
+                    projection_data = json.load(f, object_pairs_hook=OrderedDict)
+
+                proj_name = con_info["projection_name"]
+
+                if proj_name in projection_data:
+                    projection_source = np.array(projection_data[proj_name]["source"]) * 1e-6
+                    projection_destination = np.array(projection_data[proj_name]["destination"]) * 1e-6
+                else:
+                    projection_source = np.array(projection_data["source"]) * 1e-6
+                    projection_destination = np.array(projection_data["destination"]) * 1e-6
 
             if "projection_radius" in con_info:
                 projection_radius = con_info["projection_radius"]
             else:
                 projection_radius = None  # Find the closest neurons
 
-            # TODO: Add projection_density later
-            # if "projection_density" in con_info:
-            #     projection_density = con_info["projection_density"]
-            # else:
-            #    projection_density = None  # All neurons within projection radius equally likely
+            if "projection_density" in con_info:
+                projection_density = con_info["projection_density"]
+            else:
+                projection_density = None  # All neurons within projection radius equally likely
 
             if "number_of_targets" in con_info:
                 if type(con_info["number_of_targets"]) == list:
                     number_of_targets = np.array(con_info["number_of_targets"])  # mean, std
                 else:
                     number_of_targets = np.array([con_info["number_of_targets"], 0])
+            else:
+                raise KeyError(f"'number_of_targets' is not defined for {connection_type} in {connection_info}")
 
             if "number_of_synapses" in con_info:
                 if type(con_info["number_of_synapses"]) == list:
@@ -213,13 +225,23 @@ class SnuddaProject(object):
 
             # For each presynaptic neuron, find their target regions.
             # -- if you want two distinct target regions, you have to create two separate maps
-            target_centres = griddata(points=projection_source,
-                                      values=projection_destination,
-                                      xi=pre_positions, method="linear")
+            if projection_source is not None and projection_destination is not None:
+                target_centres = griddata(points=projection_source,
+                                          values=projection_destination,
+                                          xi=pre_positions, method="linear")
+            else:
+                # If projection_source and projection_destination are missing, use points themselves
+                target_centres = pre_positions
 
-            num_targets = self.rng.normal(number_of_targets[0],
-                                          number_of_targets[1],
-                                          len(pre_id_list)).astype(int)
+            n_targets_mean = number_of_targets[0]
+            n_targets_std = number_of_targets[1]
+
+            n_targets_mu = np.log(n_targets_mean ** 2 / np.sqrt(n_targets_mean ** 2 + n_targets_std ** 2))
+            n_targets_sigma = np.sqrt(np.log(1 + n_targets_std ** 2 / n_targets_mean ** 2))
+
+            num_targets = self.rng.lognormal(n_targets_mu,
+                                             n_targets_sigma,
+                                             len(pre_id_list)).astype(int)
 
             # For each presynaptic neuron, using the supplied map, find the potential post synaptic targets
             for pre_id, centre_pos, n_targets in zip(pre_id_list, target_centres, num_targets):
@@ -227,21 +249,44 @@ class SnuddaProject(object):
                 d = np.linalg.norm(centre_pos - post_positions, axis=1)  # !! Double check right axis
                 d_idx = np.argsort(d)
 
-                if projection_radius:
-                    d_idx = d_idx[np.where(d[d_idx] <= projection_radius)[0]]
-                    if len(d_idx) > n_targets:
-                        d_idx = self.rng.permutation(d_idx)[:n_targets]
+                if projection_density:
+                    # We need to calculate density for all positions
+                    P_all = numexpr.evaluate(projection_density, local_dict={"d": d})
 
-                elif len(d_idx) > n_targets:
-                    d_idx = d_idx[:n_targets]
+                    if projection_radius:
+                        P_all[d > projection_radius] = 0
+
+                    P_all /= np.sum(P_all)
+
+                    try:
+                        d_idx = self.rng.choice(len(P_all), p=P_all, size=min(n_targets, np.sum(P_all > 0)), replace=False)
+                    except Exception as e:
+                        print(e)
+                        print(f"{n_targets = }, {P_all =}, {len(P_all) =}")
+                        import traceback
+                        print(traceback.format_exc())
+                        import pdb
+                        pdb.set_trace()
+
+
+                else:
+                    # No density, same probability for all neurons
+
+                    if projection_radius:
+                        d_idx = d_idx[np.where(d[d_idx] <= projection_radius)[0]]
+                        if len(d_idx) > n_targets:
+                            d_idx = self.rng.permutation(d_idx)[:n_targets]
+
+                    elif len(d_idx) > n_targets:
+                        d_idx = d_idx[:n_targets]
 
                 target_id = [post_id_list[x] for x in d_idx]
                 target_name = [post_name_list[x] for x in d_idx]
                 axon_dist = d[d_idx]
 
                 n_synapses = np.maximum(0, self.rng.normal(number_of_synapses[0],
-                                                           number_of_synapses[1],
-                                                           len(target_id))).astype(int)
+                                                               number_of_synapses[1],
+                                                               len(target_id))).astype(int)
 
 
                 for t_id, t_name, n_syn, ax_dist in zip(target_id, target_name, n_synapses, axon_dist):

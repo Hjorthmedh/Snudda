@@ -13,6 +13,10 @@
 #       Then detect can just load that info directly. Simplifies load_neuron
 #       HDF5 filen, ha en matrix med info för axon morph, axon pos, axon rotation, axon parent
 
+# TODO: We need to define axon_density in meta.json file for neurons that need the axon density
+#       Then we need to make sure the code reads this axon density if it exists in meta.json file
+
+
 import json
 import os
 import sys
@@ -301,7 +305,11 @@ class SnuddaPlace(object):
             n.neuron_id = len(self.neurons)
             n.volume_id = volume_id
 
-            n.axon_density = axon_density
+            if axon_density:
+                n.axon_density_type = axon_density[0]
+                n.axon_density = axon_density[1]
+                n.max_axon_radius = axon_density[2]
+                n.axon_density_bounds_xyz = axon_density[2]
 
             if axon_info is not None and len(axon_info) > 0:
                 for axon_name, axon_position, axon_rotation, axon_swc in axon_info:
@@ -1115,8 +1123,8 @@ class SnuddaPlace(object):
         neuron_group.create_dataset("population_unit_id", data=self.population_unit, dtype=int)
 
         # Variable for axon density "r", "xyz" or "" (No axon density)
-        axon_density_type = [n.axon_density[0].encode("ascii", "ignore")
-                             if n.axon_density is not None
+        axon_density_type = [n.axon_density_type.encode("ascii", "ignore")
+                             if n.axon_density_type is not None
                              else b""
                              for n in self.neurons]
 
@@ -1126,7 +1134,7 @@ class SnuddaPlace(object):
                                     ad_str_type2, data=axon_density_type,
                                     compression="gzip")
 
-        axon_density = [n.axon_density[1].encode("ascii", "ignore")
+        axon_density = [n.axon_density.encode("ascii", "ignore")
                         if n.axon_density is not None
                         else b""
                         for n in self.neurons]
@@ -1136,8 +1144,8 @@ class SnuddaPlace(object):
         neuron_group.create_dataset("axon_density", (len(axon_density),),
                                     ad_str_type, data=axon_density, compression="gzip")
 
-        axon_density_radius = [n.axon_density[2]
-                               if n.axon_density is not None and n.axon_density[0] == "r"
+        axon_density_radius = [n.max_axon_radius
+                               if n.max_axon_radius is not None and n.axon_density_type == "r"
                                else np.nan for n in self.neurons]
 
         neuron_group.create_dataset("axon_density_radius", data=axon_density_radius)
@@ -1153,10 +1161,10 @@ class SnuddaPlace(object):
                 # No axon density specified, skip
                 continue
 
-            if n.axon_density[0] == "xyz":
+            if n.axon_density_type == "xyz":
 
                 try:
-                    axon_density_bounds_xyz[ni, :] = np.array(n.axon_density[2])
+                    axon_density_bounds_xyz[ni, :] = np.array(n.axon_density_bounds_xyz)
                 except:
                     import traceback
                     tstr = traceback.format_exc()

@@ -42,12 +42,17 @@ class RunSynapseRun(object):
                  params={},
                  time=2,
                  random_seed=None,
+                 rng=None,
                  log_file=None,
                  verbose=True):
 
         self.log_file = log_file  # File pointer
         self.verbose = verbose
-        self.rng = np.random.default_rng(random_seed)
+
+        if rng is None:
+            self.rng = np.random.default_rng(random_seed)
+        else:
+            self.rng = rng
 
         self.write_log(f"Holding voltage: {holding_voltage} V")
         self.write_log(f"Stim times: {stim_times} s")
@@ -268,6 +273,7 @@ class RunSynapseRun(object):
             input_coords, section_id, section_x, density_function, dist_syn_soma = \
                 self.morphology.dendrite_input_locations(synapse_density_str=synapse_density,
                                                          num_locations=num_synapses,
+                                                         rng=self.rng,
                                                          return_density=True)
 
             self.synapse_locations = input_coords
@@ -349,7 +355,7 @@ class RunSynapseRun(object):
             val = self.si_to_natural_units(p, params[p])
 
             setattr(syn, p, val)
-            self.write_log(f"Setting parameters: {p} = {val} (neuron natural units)")
+            # self.write_log(f"Setting parameters: {p} = {val} (neuron natural units)")
 
     ############################################################################
 

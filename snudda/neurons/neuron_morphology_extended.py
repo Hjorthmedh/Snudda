@@ -60,7 +60,6 @@ class NeuronMorphologyExtended:
 
         self.morphology_data = dict()
 
-        # Can we remove these:
         self.axon_density_type = None
         # self.dend_density = None
         self.axon_density = None

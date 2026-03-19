@@ -977,7 +977,15 @@ class SnuddaInput(object):
                             par_data_dict = OrderedDict()
                             for key, value in par_data_dict_orig.items():
                                 par_data_dict[key] = OrderedDict()
-                                par_data_dict[key]["synapse"] = par_data_dict_orig[key]["synapse"]
+                                try:
+                                    par_data_dict[key]["synapse"] = par_data_dict_orig[key]["synapse"]
+                                except Exception as e:
+                                    import traceback
+                                    self.write_log(f"Problems while reading 'synapse' data from {par_file}")
+                                    self.write_log(traceback.format_exc(), is_error=True)
+                                    self.write_log(f"{e}", is_error=True)
+                                    self.write_log(f"{par_data_dict_orig[key] = }")
+                                    raise e
 
                             if "parameter_list" in meta_inp_data:
                                 for pd in par_data_dict:
@@ -985,6 +993,20 @@ class SnuddaInput(object):
                                         print(
                                             f"Overriding {par_key} with value {par_d} for {neuron_id}:{meta_inp_name}")
                                         par_data_dict[pd]["synapse"][par_key] = par_d
+
+
+
+                            if meta_inp_name in input_info \
+                                    and "parameter_list" in input_info[meta_inp_name] \
+                                    and input_info[meta_inp_name]["parameter_list"] is not None\
+                                    and "synapse" in input_info[meta_inp_name]["parameter_list"][0]:
+                                for pd in par_data_dict:
+                                    for par_key, par_d in input_info[meta_inp_name]["parameter_list"][0]["synapse"].items():
+                                        print(
+                                            f"Overriding {par_key} with value {par_d} for {neuron_id}:{meta_inp_name} (from main input config file)")
+                                        par_data_dict[pd]["synapse"][par_key] = par_d
+
+
 
                             meta_inp_data_copy["parameter_list"] = list(par_data_dict.values())
 
@@ -1167,7 +1189,7 @@ class SnuddaInput(object):
 
             if "correlation" in input and input["correlation"] is not None\
                     and "population_unit_id" in input and input["population_unit_id"] != 0:
-                
+
                 # Check if there are any NON-ZERO correlation values
                 has_nonzero_correlation = False
 
@@ -2376,6 +2398,14 @@ class SnuddaInput(object):
 
             num_inputs = input_loc[0].shape[0]
 
+            # We need to pick which parameter set to use for the input also
+            synapse_parameter_id = rng.integers(1e6, size=num_inputs)
+
+            if "spikes" in input_info:
+                # Spikes are already pre-generated, use them.
+                freq = -1    # We do not know
+                return input_info["neuron_id"], input_info["input_type"], input_info["spikes"], freq, input_loc, synapse_parameter_id
+
             if num_inputs > 0:
                 # Rudolph, Michael, and Alain Destexhe. Do neocortical pyramidal neurons display stochastic resonance?.
                 # Journal of computational neuroscience 11.1(2001): 19 - 42.
@@ -2412,8 +2442,6 @@ class SnuddaInput(object):
                                                  input_generator=input_generator,
                                                  std_freq=std_freq)
 
-            # We need to pick which parameter set to use for the input also
-            synapse_parameter_id = rng.integers(1e6, size=num_inputs)
 
         # We need to keep track of the neuron_id, since it will all be jumbled
         # when doing asynchronous parallelisation

@@ -49,7 +49,8 @@
                             10,
                             5
                         ],
-                        "dendrite_synapse_density": "1"
+                        "dendrite_synapse_density": "1",
+                        "projection_density": null
                     }
                 },
                 "dSPN,dSPN": {
@@ -109,32 +110,36 @@
                 "iSPN,iSPN": {
                     "GABA": {
                         "conductance": [
-                            2.4e-10,
-                            1e-10
+                            1e-09,
+                            0
                         ],
-                        "channel_parameters": {
-                            "tau1": [
-                                0.0013,
-                                1000.0
-                            ],
-                            "tau2": [
-                                0.0124,
-                                1000.0
-                            ],
-                            "failRate": 0.4,
-                            "parameter_file": "$DATA/synapses/striatum/PlanertFitting-II-tmgaba-fit.json",
-                            "mod_file": "tmGabaA"
-                        },
+                        "channel_parameters": null,
                         "cluster_size": 1,
                         "cluster_spread": null,
                         "pruning": {
-                            "f1": 0.55,
-                            "soft_max": 4,
-                            "mu2": 2.4,
-                            "a3": 1.0,
-                            "dist_pruning": "1-exp(-(0.4*d/60e-6)**2)",
+                            "f1": 0.9,
+                            "soft_max": null,
+                            "mu2": null,
+                            "a3": null,
+                            "dist_pruning": null,
                             "cluster_pruning": false
-                        }
+                        },
+                        "projection_type": "local",
+                        "disable_touch_detection": true,
+                        "projection_name": "ExampleLocalProjection",
+                        "source": "VolumeB",
+                        "destination": "VolumeB",
+                        "projection_radius": 0.0003,
+                        "number_of_targets": [
+                            10,
+                            5
+                        ],
+                        "number_of_synapses": [
+                            10,
+                            5
+                        ],
+                        "dendrite_synapse_density": "1",
+                        "projection_density": "exp(-d/100.0)"
                     }
                 }
             },

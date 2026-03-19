@@ -118,12 +118,6 @@ class NeuronPrototype:
 
         par_path = self.parameter_path
 
-        if par_path is None or not os.path.exists(par_path):
-            if self.verbose:
-                print(f"Missing parameters.json : {par_path}")
-    
-            self.parameter_info = None
-            return
 
         if self.meta_path and os.path.exists(self.meta_path):
             try:
@@ -134,6 +128,13 @@ class NeuronPrototype:
                 import traceback
                 print(traceback.format_exc())
                 raise e
+
+        if par_path is None or not os.path.exists(par_path):
+            if self.verbose:
+                print(f"Missing parameters.json : {par_path}")
+
+            self.parameter_info = None
+            return
 
         with open(par_path, "r") as f:
             self.parameter_info = json.load(f)
@@ -182,6 +183,11 @@ class NeuronPrototype:
 
         if self.parameter_info:
             par_key_list = sorted(list(self.parameter_info.keys()))
+            par_key = par_key_list[parameter_id % len(par_key_list)]
+        elif self.meta_info:
+            if self.verbose:
+                print(f"Missing parameter file for {self.parameter_path}, using meta.json for parameter key list.")
+            par_key_list = sorted(list(self.meta_info.keys()))
             par_key = par_key_list[parameter_id % len(par_key_list)]
         else:
             par_key = None
@@ -509,6 +515,7 @@ class NeuronPrototype:
                                                                         virtual_neuron=self.virtual_neuron,
                                                                         verbose=self.verbose)
 
+
         if get_cache_original:
             assert position is None and rotation is None and modulation_id is None, \
                 "If get_cache_original is passed position, rotation and modulation_id must be None"
@@ -531,4 +538,17 @@ class NeuronPrototype:
                                                            parameter_key=parameter_key,
                                                            morphology_key=morphology_key,
                                                            modulation_key=modulation_key)
+
+            if self.meta_info is not None and "axon_density" in self.meta_info.get(parameter_key, {}).get(morphology_key, {}):
+                axon_density_type, axon_density, axon_density_bounds = self.meta_info[parameter_key][morphology_key]["axon_density"]
+
+                if axon_density_type == "r":
+                    morph.set_axon_voxel_radial_density(density=axon_density,
+                                                        max_axon_radius=axon_density_bounds)
+                elif axon_density_type == "xyz":
+                    morph.set_axon_voxel_xyz_density(density=axon_density,
+                                                     axon_density_bounds_xyz=axon_density_bounds)
+                else:
+                    raise ValueError(f"Unknown axon_density type {axon_density_type}, {self.neuron_path =}")
+
         return morph

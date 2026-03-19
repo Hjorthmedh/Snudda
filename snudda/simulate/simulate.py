@@ -26,10 +26,11 @@ import warnings
 from collections import OrderedDict
 
 import h5py
-import neuron
+
 import numpy as np
 
 from mpi4py import MPI  # This must be imported before neuron, to run parallel
+import neuron
 from neuron import h  # , gui
 
 import snudda.utils.memory
@@ -149,6 +150,9 @@ class SnuddaSimulate(object):
         self.use_cvode = False
 
         self.pc = h.ParallelContext()
+        self.pc.timeout(600)
+        self.write_log(f"NEURON MPI timeout is set to 600", force_print=True)
+
 
         self.print_error_once = dict()
 
@@ -157,6 +161,7 @@ class SnuddaSimulate(object):
 
         self.current_injection_info = dict()
         self.current_clamps = dict()
+        self.current_injection_voltage = dict()
 
         self.node_id = int(self.pc.id())
         self.total_nodes = int(self.pc.nhost())
@@ -201,6 +206,10 @@ class SnuddaSimulate(object):
                 self.write_log(f"Using log file {self.log_file}")
 
             elif isinstance(self.log_file, str):
+
+                if self.total_nodes > 1:
+                    self.log_file = f"{self.log_file}-{self.node_id}"
+
                 self.log_file = open(self.log_file, "w")
 
             if "network_file" in self.sim_info:
@@ -261,6 +270,9 @@ class SnuddaSimulate(object):
 
             if "post_init_modifications" in self.sim_info:
                 self.post_init_mods = self.sim_info["post_init_modifications"]
+
+            # The rest of the configuration file is parsed in setup_parse_sim_info() further down.
+
 
         if self.log_file is None:
             self.log_file = os.path.join(self.network_path, "log", "simulation-log.txt")
@@ -349,6 +361,7 @@ class SnuddaSimulate(object):
         self.record.add_unit(data_type="spikes", target_unit="s", conversion_factor=1e-3)
         self.record.add_unit(data_type="time", target_unit="s", conversion_factor=1e-3)
         self.record.add_unit(data_type="membrane.i_membrane_", target_unit="A", conversion_factor=1e-9)
+        self.record.add_unit(data_type="current", target_unit="A", conversion_factor=1e-9)
         # TODO: Add more units as needed https://www.neuron.yale.edu/neuron/static/docs/units/unitchart.html
 
     # def __del__(self):
@@ -357,7 +370,7 @@ class SnuddaSimulate(object):
     #         for k, v in n.__dict__.items():
     #            del v
 
-    def setup(self):
+    def setup(self, input_file=None):
 
         """ Setup simulation """
         self.check_memory_status()
@@ -377,6 +390,9 @@ class SnuddaSimulate(object):
         self.connect_network()
         self.check_memory_status()
         self.pc.barrier()
+
+        if input_file is not None or self.input_file is not None:
+            self.add_external_input(input_file=input_file)
 
         self.setup_parse_sim_info()
 
@@ -445,6 +461,23 @@ class SnuddaSimulate(object):
                                                        synapse_type=synapse_type, variable=var,
                                                        data_type=f"{synapse_type}.{var}")
 
+            if "record_external_synapse" in self.sim_info:
+
+                record_external_info = self.sim_info["record_external_synapse"]
+                for input_type, record_info in record_external_info.items():
+                    neuron_id_list = record_info["neuron_id"]
+                    variables = record_info["variable"]
+
+                    for neuron_id in neuron_id_list:
+                        if neuron_id not in self.neurons:
+                            # neuron id not on this worker
+                            continue
+
+                        for var in variables:
+                            self.add_external_synapse_recording(neuron_id=neuron_id,
+                                                                input_type=input_type,
+                                                                variable=var)
+
             if "record_rxd_species_concentration_all_compartments" in self.sim_info and self.use_rxd_neuromodulation:
 
                 rec_info = self.sim_info["record_rxd_species_concentration_all_compartments"]
@@ -497,7 +530,7 @@ class SnuddaSimulate(object):
                                                              sec_id=sid, sec_x=sex,
                                                              density_mechanism=density_mechanism_name,
                                                              variable=variable_name)
-                        
+
             if "record_membrane" in self.sim_info:
 
                 self.record.include_geometry(simulation=self)
@@ -550,6 +583,10 @@ class SnuddaSimulate(object):
 
                     for species_name, bath_info in self.sim_info["bath_application"].items():
 
+                        if species_name[0] == "!":
+                            # Skipping disabled species
+                            continue
+
                         bath_time = np.array(bath_info["time"])
                         bath_conc = np.array(bath_info["concentration"])
                         neuron_id = bath_info.get("neuron_id", None)
@@ -590,13 +627,33 @@ class SnuddaSimulate(object):
                                                   interpolate=interpolate_bath)
 
                 else:
-                    #import pdb
-                    #pdb.set_trace()
                     raise ValueError(f"Unable to parse bath_application: {self.sim_info['bath_application']}")
 
+            if "reversal_potential_override" in self.sim_info:
+                # Format: {"ALL: {"tmGabaA": -60e-3}}, use "ALL" for all, "dSPN" if dspn only.
+                self.reversal_potential_override = self.sim_info["reversal_potential_override"]
+                self.update_reversal_potentials()  # Allow user to override reversal potential of channels
 
             # Add any current injections that are specified
             self.parse_current_injection_info()
+
+            if "holding_current_init_time" in self.sim_info:
+                holding_current_init_time = self.sim_info["holding_current_init_time"]
+            else:
+                holding_current_init_time = 0.1
+
+            # This will run simulation for 0.1 seconds, to calculate the current needed
+            self.setup_holding_currents(holding_current_init_time=0.1)
+
+            if "voltage_clamp" in self.sim_info:
+                for neuron_id, clamp_info in self.sim_info["voltage_clamp"].items():
+                    neuron_id = int(neuron_id)
+                    if neuron_id in self.neurons:
+                        voltage = clamp_info["voltage"]
+                        duration = clamp_info.get("duration", self.sim_info["time"])
+                        save_current = clamp_info.get("save_current", False)
+                        self.add_voltage_clamp(cell_id=neuron_id, voltage=voltage,
+                                               duration=duration, save_i_flag=save_current)
 
         # Do we need blocking call here, to make sure all neurons are setup
         # before we try and connect them
@@ -1657,6 +1714,39 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
+    def update_reversal_potentials(self):
+
+        if self.reversal_potential_override is None:
+            return
+
+        for neuron_type, type_data in self.reversal_potential_override.items():
+            if neuron_type.lower() == "all":
+                neuron_type = None
+
+            for synapse_name, v_rev in type_data.items():
+                self.set_reversal_potential(neuron_type=neuron_type,
+                                            synapse_name=synapse_name,
+                                            v_rev=v_rev)
+
+    def set_reversal_potential(self, neuron_type=None, synapse_name="tmGabaA", v_rev=-60e-3):
+        # Convert to mV for NEURON (assuming input is in Volts)
+        v_rev_mv = v_rev * 1e3
+        print(f"Setting {synapse_name} reversal potential to {v_rev_mv} mV "
+              f"in {'all' if neuron_type is None else neuron_type} neurons ")
+
+        for (s_id, d_id), s_list in self.synapse_dict.items():
+            if neuron_type is None or self.network_info["neurons"][d_id]["type"] == neuron_type:
+                for s, _, _, _ in s_list:
+                    # TODO: Check if it should be 'in' or '==' here
+
+                    if synapse_name == s.hname().split("[")[0]:
+                        if hasattr(s, 'e'):
+                            s.e = v_rev_mv
+                    else:
+                        continue
+
+    ############################################################################
+
     # Wilson 2007 - GABAergic inhibition in the neostriatum
     # 80% of synapses in Striatum are glutamatergic
     # Estimated 10000 glutamate and 2000 GABA synapses per MS,
@@ -1978,6 +2068,10 @@ class SnuddaSimulate(object):
                 cur.record(vc._ref_i)
                 self.i_save.append(cur)
                 self.i_key.append(cID)
+                self.record.register_compartment_data(neuron_id=cID,
+                                                      data_type="current", data=cur,
+                                                      sec_id=0, sec_x=0.5)
+                print(f"Recording current for voltage clamp on neuron {cID}")
 
     ############################################################################
 
@@ -2250,6 +2344,38 @@ class SnuddaSimulate(object):
                                               sec_id=sec_id,
                                               sec_x=seg.x,
                                               cond=cond)
+            syn_ctr += 1
+
+        return syn_ctr
+
+    def add_external_synapse_recording(self, neuron_id, input_type, variable):
+
+        if neuron_id not in self.neurons:
+            # Neuron on a different worker.
+            return 0
+
+        external_synapes_list = self.external_stim[neuron_id, input_type]
+
+        syn_ctr = 0
+
+        for _, _, nc, syn, _, section_id, section_x in external_synapes_list:
+
+            # print(f"add_external_synapse_recording {input_type = }, {neuron_id =}, {syn = }, {variable =}")
+
+            data = self.sim.neuron.h.Vector()
+            data.record(getattr(syn, f"_ref_{variable}"))
+            seg = syn.get_segment()
+
+            synapse_type = str(syn.hname().split("[")[0])
+
+            self.record.register_synapse_data(neuron_id=neuron_id,
+                                              data_type=f"synapse_{variable}",
+                                              data=data,
+                                              synapse_type=-1,  # We need to get this from input config
+                                              presynaptic_id=-1,
+                                              sec_id=section_id,
+                                              sec_x=seg.x,
+                                              cond=nc.weight[0])
             syn_ctr += 1
 
         return syn_ctr
@@ -2765,9 +2891,14 @@ class SnuddaSimulate(object):
         """
 
         if isinstance(self.log_file, str):
+            log_dir = os.path.dirname(self.log_file)
+
+            if len(log_dir) > 0:
+                os.makedirs(log_dir, exist_ok=True)
+
             self.log_file = open(self.log_file, "w")
 
-        if self.log_file is not None:
+        if self.log_file is not None and self.log_file:
             self.log_file.write(f"{text}\n")
             if flush:
                 self.log_file.flush()
@@ -2783,7 +2914,7 @@ class SnuddaSimulate(object):
         if int(self.pc.id()) == 0:
             if not os.path.isdir(dir_name):
                 self.write_log(f"Creating {dir_name} (on master node 0)")
-                os.makedirs(dir_name)
+                os.makedirs(dir_name, exist_ok=True)
         else:
             while not os.path.isdir(dir_name):
                 self.write_log(f"Waiting 1 second for master node to create {dir_name}")
@@ -2800,6 +2931,14 @@ class SnuddaSimulate(object):
 
             if int(neuron_id) not in self.neurons:
                 # Neuron not on this worker.
+                continue
+
+            if "voltage" in cur_info:
+                self.current_injection_voltage[int(neuron_id)] = cur_info["voltage"]
+
+                if "current" in cur_info:
+                    raise ValueError(f"current_injection info for neuron_id={neuron_id} contains both current and voltage, pick one!")
+
                 continue
 
             time = np.array(cur_info["time"])
@@ -2946,6 +3085,59 @@ class SnuddaSimulate(object):
 
     ############################################################################
 
+    def setup_holding_currents(self, holding_current_init_time=0.1):
+
+        # Increase holding_current_init_time of you need longer time for the neuron to settle down
+
+        if self.current_injection_voltage is None or len(self.current_injection_voltage) == 0:
+            return
+
+        print("Running setup_holding_currents")
+
+        soma_v_clamp = []
+
+        for neuron_id, hold_voltage in self.current_injection_voltage.items():
+
+            if neuron_id not in self.neurons:
+                continue
+
+            soma = self.neurons[neuron_id].icell.soma[0]
+            vc = neuron.h.SEClamp(soma(0.5))
+            vc.rs = 1e-9
+            vc.amp1 = hold_voltage * 1e3
+            vc.dur1 = 100
+
+            soma_v_clamp.append((soma, vc))
+
+            for seg in soma:
+                seg.v = hold_voltage
+
+            for sec in self.neurons[neuron_id].icell.dend:
+                for seg in sec:
+                    seg.v = hold_voltage
+
+        neuron.h.fcurrent()
+        neuron.h.tstop = holding_current_init_time * 1e3
+        neuron.h.run()
+
+        # Setup iClamps
+        for s, vc in soma_v_clamp:
+            cur = float(vc.i)
+            ic = neuron.h.IClamp(s(0.5))
+            ic.amp = cur
+            ic.dur = 2 * self.sim_info.get("time",10000) * 1e3
+
+            # Save to list with all current injections
+            self.i_stim.append(ic)
+            print(f"setup_holding_currents: Adding {cur:.3f} nA current injection to {s}")
+
+        # Remove old vClamps
+        soma_v_clamp = None
+        v_clamps = None
+        vc = None
+
+    ############################################################################
+
     def convert_to_natural_units(self, param_name, param_value):
 
         # TODO, move conversion list to separate file
@@ -3054,6 +3246,7 @@ class SnuddaSimulate(object):
 
         self.i_stim = []
         self.v_clamp_list = []
+        self.current_injection_voltage = None
         self.gap_junction_dict = dict()
         self.external_stim = dict([])
         self.check_id_recordings = []
@@ -3163,6 +3356,10 @@ if __name__ == "__main__":
         print("!!! WE HAVE DISABLED SYNAPSES !!!")
 
     pc = h.ParallelContext()
+    pc.timeout(600)
+    print("MPI ranks seen by NEURON:", int(pc.nhost()))
+    print("This rank:", int(pc.id()))
+    print(f"Timeout: {pc.timeout()}")
 
     if args.output_file:
         output_file = args.output_file
@@ -3179,7 +3376,7 @@ if __name__ == "__main__":
                          simulation_config=args.simulation_config,
                          verbose=args.verbose)
     sim.setup()
-    sim.add_external_input()
+    # sim.add_external_input()  # --now done in setup()
     sim.check_memory_status()
 
     if args.record_volt:

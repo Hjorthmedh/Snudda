@@ -2092,6 +2092,9 @@ class SnuddaPrune(object):
                 soft_max = float(soft_max)
                 p_keep = np.divide(2 * soft_max, (1 + np.exp(-(n_keep - soft_max) / 5)) * n_keep)
 
+                # The 2* and 3* are just so we pick different portions of the random pool of values,
+                # we are making all random values used by this function at the top, to avoid doing
+                # multiple function calls
                 keep_row_flag[next_read_pos:read_end_idx] = \
                     np.logical_and(p_keep > random_pool[2 * n_pair_synapses:3 * n_pair_synapses],
                                    keep_row_flag[next_read_pos:read_end_idx])

@@ -1260,6 +1260,11 @@ class SnuddaDetect(object):
                                 # This part detects only axon-dend synapses, skip gap junctions
                                 continue
 
+                            if "disable_touch_detection" in con_dict[con_type] \
+                                    and con_dict[con_type]["disable_touch_detection"]:
+                                # Touch detecton disabled for this connection (user might have setup a local projection instead)
+                                continue
+
                             synapse_mu, synapse_sigma = con_dict[con_type]["lognormal_mu_sigma"]
                             mean_synapse_cond, std_synapse_cond = con_dict[con_type]["conductance"]
                             channel_model_id = con_dict[con_type]["channel_model_id"]
@@ -2355,7 +2360,7 @@ class SnuddaDetect(object):
                                                   neuron_info["axon_density_bounds_xyz"])
 
             else:
-                raise ValueError(f"Unknown axon density: {neuron_info['axon_density_type']}")
+                raise ValueError(f"Unknown axon density: {neuron_info['axon_density_type']}\n{neuron_info = }")
 
         if "extra_axons" in neuron_info:
             for axon_name, axon_info in neuron_info["extra_axons"].items():

@@ -81,6 +81,10 @@ class NeuronRecordings:
         if data_type not in self.data:
             self.data[data_type] = CompartmentData(neuron_id=self.neuron_id, data_type=data_type)
 
+        if self.data[data_type].exist(sec_id=sec_id, sec_x=sec_x):
+            print(f"{data_type} already recorded for neuron_id = {self.neuron_id}, {sec_id=}, {sec_x=}, skipping.")
+            return
+
         self.data[data_type].append(data=data, sec_id=sec_id, sec_x=sec_x)
 
     def register_synapse_data(self, data, data_type, synapse_type, presynaptic_id, sec_id, sec_x, cond):
@@ -146,6 +150,9 @@ class CompartmentData:
         self.data = []
         self.sec_id = []
         self.sec_x = []
+
+    def exist(self, sec_id, sec_x):
+        return any(sec_id == s_id and sec_x == s_x for s_id, s_x in zip(self.sec_id, self.sec_x))
 
     def append(self, data, sec_id, sec_x):
         # !!! Issue (?): The same compartment can hold several recordings now.
@@ -447,6 +454,10 @@ class SnuddaSaveNetworkRecordings:
             converted_time = np.array(self.time) * self.get_conversion("time")
             dt = converted_time[1] - converted_time[0]
             sample_step = int(np.round(self.sample_dt / dt))
+
+            if sample_step == 0:
+                raise ValueError(f"sample_step can not be zero. {self.sample_dt = } should be equal or larger than {dt = }")
+
             return sample_step
 
     def write(self):
@@ -519,9 +530,15 @@ class SnuddaSaveNetworkRecordings:
                         data_set.attrs["sec_x"] = np.array(m.sec_x)
 
                         if isinstance(m, SynapseData):
-                            data_set.attrs["synapse_type"] = np.array(m.synapse_type)
-                            data_set.attrs["presynaptic_id"] = np.array(m.presynaptic_id)
-                            data_set.attrs["cond"] = np.array(m.cond)
+                            try:
+                                data_set.attrs["synapse_type"] = np.array(m.synapse_type)
+                                data_set.attrs["presynaptic_id"] = np.array(m.presynaptic_id)
+                                data_set.attrs["cond"] = np.array(m.cond)
+                            except Exception as e:
+                                import traceback
+                                print(traceback.format_exc())
+                                import pdb
+                                pdb.set_trace()
 
                 if int(self.pc.id()) == 0:
                     # RxD computes extracellular diffusion INDEPENDENTLY on ALL nodes (sigh!)

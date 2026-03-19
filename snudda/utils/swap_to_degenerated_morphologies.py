@@ -18,7 +18,8 @@ class SwapToDegeneratedMorphologies:
     def __init__(self, original_network_file, new_network_file,
                  original_snudda_data_dir, new_snudda_data_dir,
                  original_input_file=None, new_input_file=None,
-                 filter_axon=False, forced_param_key=None):
+                 filter_axon=False, forced_param_key=None,
+                 verbose=False):
 
         """ This code replaces the neuron morphologies in the original network with user provided degenerated copies
             of the neurons. The synapses that are on removed dendritic will also be removed.
@@ -34,6 +35,7 @@ class SwapToDegeneratedMorphologies:
         self.original_network_file = original_network_file
         self.new_network_file = new_network_file
         self.new_hdf5 = None
+        self.verbose = verbose
 
         self.original_snudda_data_dir = original_snudda_data_dir
         self.new_snudda_data_dir = new_snudda_data_dir
@@ -194,8 +196,8 @@ class SwapToDegeneratedMorphologies:
 
         try:
             print(f"Keeping {self.new_hdf5['network/num_synapses'][()]} "
-                  f"out of {self.old_hdf5['network/num_synapses'][()]} synapses "
-                  f"({self.new_hdf5['network/num_synapses'][()] / max(1,self.old_hdf5['network/num_synapses'][()])*100:.3f} %)")
+                  f"out of {self.old_hdf5['network/num_synapses'][()][0]} synapses "
+                  f"({self.new_hdf5['network/num_synapses'][()] / max(1,self.old_hdf5['network/num_synapses'][()][0])*100:.3f} %)")
         except:
             import traceback
             print(traceback.format_exc())
@@ -219,9 +221,12 @@ class SwapToDegeneratedMorphologies:
         self.new_hdf5["network"].create_dataset("num_gap_junctions", data=gj_ctr, dtype=np.uint64)
 
         try:
-            print(f"Keeping {self.new_hdf5['network/num_gap_junctions'][()]} "
-                  f"out of {self.old_hdf5['network/num_gap_junctions'][()]} gap junctions "
-                  f"({self.new_hdf5['network/num_gap_junctions'][()] / max(1, self.old_hdf5['network/num_gap_junctions'][()])*100:.3f} %)")
+            n_gj = self.old_hdf5['network/num_gap_junctions'][()][0] \
+                if hasattr(self.old_hdf5['network/num_gap_junctions'][()], "__len__") \
+                else self.old_hdf5['network/num_gap_junctions'][()]
+            print(f"Keeping {n_gj} "
+                  f"out of {[0]} gap junctions "
+                  f"({n_gj / max(1, n_gj)*100:.3f} %)")
         except:
             import traceback
             print(traceback.format_exc())
@@ -300,6 +305,7 @@ class SwapToDegeneratedMorphologies:
             = self.remap_sections_helper(neuron_id=post_id, old_sec_id=old_sec_id, old_sec_x=old_sec_x/1000.0)
 
         edited_synapses = synapses.copy()
+
 
         edited_synapses[:, 9] = new_sec_id
         edited_synapses[:, 10] = new_sec_x * 1000
@@ -455,11 +461,13 @@ class SwapToDegeneratedMorphologies:
         for param_key, param_data in new_meta_info.items():
             for morph_key, morph_data in param_data.items():
                 morph_name = morph_data["morphology"]
-                print(f"-- Comparing {orig_morph_name} {morph_name}")
+                if self.verbose:
+                    print(f"-- Comparing {orig_morph_name} {morph_name}")
 
                 if orig_morph_name == morph_name:
                     possible_keys.append((param_key, morph_key, morph_name))
-                    print(f"Matching {orig_morph_name} with {morph_name}")
+                    if self.verbose:
+                        print(f"Matching {orig_morph_name} with {morph_name}")
 
                 # We also need to be able to handle Treem adding tags to the new filename
                 elif os.path.splitext(os.path.basename(orig_morph_name))[0] in morph_name:
@@ -473,14 +481,16 @@ class SwapToDegeneratedMorphologies:
                         continue
 
                     possible_keys.append((param_key, morph_key, morph_name))
-                    print(f"Matching (close) {orig_morph_name} with {morph_name}")
+                    if self.verbose:
+                        print(f"Matching (close) {orig_morph_name} with {morph_name}")
 
                 elif "var0" in os.path.splitext(os.path.basename(orig_morph_name))[0]:
                     # Also need to check if var0 has a corresponding morphology without var0 in name
                     new_candidate = orig_morph_name.replace("-var0", "")
                     if new_candidate == morph_name:
                         possible_keys.append((param_key, morph_key, morph_name))
-                        print(f"Matching (close2) {orig_morph_name} with {morph_name}")
+                        if self.verbose:
+                            print(f"Matching (close2) {orig_morph_name} with {morph_name}")
 
         if len(possible_keys) == 0:
             raise ValueError(f"No morphology matching for {orig_morph_name}, "
@@ -521,6 +531,13 @@ class SwapToDegeneratedMorphologies:
             old_n = 0
             new_n = 0
             remap_n = 0
+
+            if "activity" in old_input["input"][neuron]:
+                # Virtual neuron
+                old_input.copy(f"input/{neuron}/activity", neuron_group)
+                if self.verbose:
+                    print(f"Copying virtual activity for neuron {neuron}")
+                continue
 
             for input_type in old_input["input"][neuron].keys():
                 # Note: This code assumes these are real neuron and not just virtual neurons.

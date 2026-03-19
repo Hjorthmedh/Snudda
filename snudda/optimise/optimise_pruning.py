@@ -22,7 +22,7 @@ class OptimisePruning:
     """ Optimises pruning parameters. First it creates a relatively small network and does touch detection on it.
         After that it does multiple pruning attempts (while keeping the files original detection files). """
 
-    def __init__(self, network_path, pop_size=10, epochs=10):
+    def __init__(self, network_path, pop_size=10, epochs=10, verbose=False):
 
         self.network_path = network_path
         self.pop_size = pop_size
@@ -40,6 +40,7 @@ class OptimisePruning:
         self.optimisation_info = dict()
 
         self.log_file = None
+        self.verbose = verbose
 
     def merge_putative_synapses(self, force_merge=False):
 
@@ -167,7 +168,9 @@ class OptimisePruning:
         out_file.close()
 
     def evaluate_fitness(self, pre_type, post_type, output_file, experimental_data,
-                         avg_num_synapses_per_pair=None, con_type="synapses"):
+                         mean_num_synapses_per_pair=None, std_num_synapses_per_pair=None,
+                         percentile20_pair=None,
+                         con_type="synapses", min_z=None, max_z=None):
 
         """
 
@@ -176,7 +179,7 @@ class OptimisePruning:
                 post_type
                 output_file: path to output file from prune
                 experiment_data: [(bin start, bin end, P)]
-                avg_num_synapses_per_pair: avg_num
+                mean_num_synapses_per_pair: avg_num
 
         """
 
@@ -184,7 +187,7 @@ class OptimisePruning:
         snudda_load = SnuddaLoad(network_file=output_file)
         snudda_data = snudda_load.data
 
-        connection_matrix = np.zeros((snudda_data["num_neurons"], snudda_data["num_neurons"]))
+        connection_matrix = np.zeros((snudda_data["num_neurons"], snudda_data["num_neurons"]), dtype=int)
 
         pre_id = snudda_load.get_neuron_id_of_type(neuron_type=pre_type)
         post_id = snudda_load.get_neuron_id_of_type(neuron_type=post_type)
@@ -197,10 +200,36 @@ class OptimisePruning:
 
         # print(f"snudda_data.keys = {snudda_data.keys()}")
 
-        for row in snudda_data[con_type]:
-            if pre_mask[row[0]] and post_mask[row[1]]:
-                # Only include connections between the right pre and post types
-                connection_matrix[row[0], row[1]] += 1
+        n_synapses_cut_off = 0
+
+        if con_type == "synapses":
+
+            for row, coord in zip(snudda_data["synapses"], snudda_data["synapse_coords"]):
+                if pre_mask[row[0]] and post_mask[row[1]]:
+                    # TODO: Ignore synapses outside of cut-plane
+
+                    if (min_z is not None and coord[2] < min_z) \
+                        or (max_z is not None and coord[2] > max_z):
+
+                        n_synapses_cut_off += 1
+                        continue
+
+                    # Only include connections between the right pre and post types
+                    connection_matrix[row[0], row[1]] += 1
+
+            n_kept = np.sum(connection_matrix)
+            if self.verbose:
+                print(f"{n_kept} synapses kept ({100.0*n_kept/(n_kept + n_synapses_cut_off):.2f} %), {n_synapses_cut_off} removed (outside slice)")
+
+        else:
+            assert min_z is None and max_z is None, "min_z and max_z is only currently supported for synapses, not gap junctions"
+
+            for row in snudda_data[con_type]:
+                if pre_mask[row[0]] and post_mask[row[1]]:
+                    # TODO: Ignore synapses outside of cut-plane
+
+                    # Only include connections between the right pre and post types
+                    connection_matrix[row[0], row[1]] += 1
 
         pos = snudda_data["neuron_positions"]
         # We need to extract the parts relevant
@@ -239,19 +268,33 @@ class OptimisePruning:
         for idx, (n_con, n_tot, p_exp) in enumerate(zip(n_connected, n_total, [x[2] for x in experimental_data])):
             # test = binomtest(n_con, n_tot, p_exp)
             # p_hyp[idx] = test.pvalue  # gave 0 when p values are too far apart, not informative
-            p_hyp[idx] = abs(n_con/n_tot - p_exp) * 100
+            p_hyp[idx] = abs(n_con/n_tot - p_exp) / (0.10 * p_exp)
 
-        if avg_num_synapses_per_pair is not None:
+        error = np.mean(p_hyp)
+
+        per_pair_error = None
+        std_pair_error = None
+        percentile_error = None
+
+        if mean_num_synapses_per_pair is not None:
             if n_pairs > 0:
-                #per_pair_error = np.sum(abs(avg_num_synapses_per_pair - n_syn_list))/n_pairs
-                per_pair_error = 5*np.sum(np.square(avg_num_synapses_per_pair - n_syn_list))/n_pairs
-
+                per_pair_error = np.abs(mean_num_synapses_per_pair - np.mean(n_syn_list)) / 2.0
             else:
-                per_pair_error = 5*abs(avg_num_synapses_per_pair)
+                per_pair_error = abs(mean_num_synapses_per_pair)
 
-            error = np.sum(p_hyp) + per_pair_error
-        else:
-            error = np.sum(p_hyp)
+            error +=  per_pair_error
+
+        if std_num_synapses_per_pair is not None and n_pairs > 0:
+            std_pair_error = np.abs(np.std(n_syn_list) - std_num_synapses_per_pair) / 0.5
+
+            error += std_pair_error
+
+        if percentile20_pair is not None and n_pairs > 0:
+            percentile_error = np.abs(np.percentile(n_syn_list, 20) - percentile20_pair) / 0.1
+            error += percentile_error
+
+        if self.verbose:
+            print(f"Errors in P: {np.mean(p_hyp)}, error in num con: {per_pair_error}, std_pair_error: {std_pair_error}, percentile20_error: {percentile_error}")
 
         return error
 
@@ -279,6 +322,10 @@ class OptimisePruning:
             output_file = os.path.join(optimisation_info["network_path"], "temp", f"network-synapses-{uuid.uuid4()}.hdf5")
         # print(f"Output file {output_file}")
 
+        # Only include synapses between min_z and max_z
+        min_z = optimisation_info.get("min_z", None)
+        max_z = optimisation_info.get("max_z", None)
+
         # This trick allows us to reuse the same OptimisePruning object, will be faster
         op = OptimisePruning.get_op(optimisation_info)
 
@@ -288,7 +335,7 @@ class OptimisePruning:
                           pruning_parameters=pruning_parameters,
                           output_file=output_file)
 
-        if optimisation_info["con_type"].lower() == "gap_junction":
+        if optimisation_info["con_type"].lower() in ("gap_junction", "gap_junctions"):
             con_type = "gap_junctions"
         else:
             con_type = "synapses"
@@ -297,8 +344,11 @@ class OptimisePruning:
                                       post_type=optimisation_info["post_type"],
                                       output_file=output_file,
                                       experimental_data=optimisation_info["exp_data"],
-                                      avg_num_synapses_per_pair=optimisation_info["avg_num_synapses_per_pair"],
-                                      con_type=con_type)
+                                      mean_num_synapses_per_pair=optimisation_info["mean_num_synapses_per_pair"],
+                                      std_num_synapses_per_pair=optimisation_info["std_num_synapses_per_pair"],
+                                      percentile20_pair=optimisation_info["percentile20_pair"],
+                                      con_type=con_type,
+                                      min_z=min_z, max_z=max_z)
 
         # print(f"Evaluating f1 = {x[0]}, fitness: {fitness}\n{output_file}\n")
         # print(f"Fitness: {fitness}")
@@ -341,8 +391,13 @@ class OptimisePruning:
     def optimize(self, pre_type, post_type, con_type,
                  experimental_data,
                  param_names, param_bounds,
-                 extra_pruning_parameters, avg_num_synapses_per_pair=None,
-                 workers=1, maxiter=50, tol=0.001, pop_size=None):
+                 extra_pruning_parameters,
+                 avg_num_synapses_per_pair=None,
+                 mean_num_synapses_per_pair=None,
+                 std_num_synapses_per_pair=None,
+                 percentile20_pair=None,
+                 workers=1, maxiter=50, tol=0.001, pop_size=None,
+                 min_z=None, max_z=None):
 
         start = timeit.default_timer()
 
@@ -354,10 +409,13 @@ class OptimisePruning:
         if param_bounds == "default":
             param_bounds = []
             for p_name in param_names:
+                if p_name == "softMax":
+                    raise ValueError("Please change softMax to soft_max")
+
                 if p_name == "f1":
                     param_bounds.append((0, 1))
-                elif p_name == "softMax":
-                    param_bounds.append((0, 20))
+                elif p_name == "soft_max":
+                    param_bounds.append((0, 10))
                 elif p_name == "mu2":
                     param_bounds.append((0, 5))
                 elif p_name == "a3":
@@ -365,16 +423,25 @@ class OptimisePruning:
                 else:
                     raise ValueError(f"No default parameter bounds for {p_name} (f1, softMax, mu2, a3)")
 
+        # Let's warn user for a bit, this will change in future to mean_num_synapser_per_pair
+        if avg_num_synapses_per_pair and mean_num_synapses_per_pair is None:
+            print(f"OptimizePruning.optimize: avg_num_synapses_per_pair renamed to mean_num_synapses_per_pair, please change.")
+            mean_num_synapses_per_pair = avg_num_synapses_per_pair
+
         self.optimisation_info["pre_type"] = pre_type
         self.optimisation_info["post_type"] = post_type
         self.optimisation_info["con_type"] = con_type
         self.optimisation_info["exp_data"] = experimental_data
-        self.optimisation_info["avg_num_synapses_per_pair"] = avg_num_synapses_per_pair
+        self.optimisation_info["mean_num_synapses_per_pair"] = mean_num_synapses_per_pair
+        self.optimisation_info["std_num_synapses_per_pair"] = std_num_synapses_per_pair
+        self.optimisation_info["percentile20_pair"] = percentile20_pair
         self.optimisation_info["extra_pruning_parameters"] = extra_pruning_parameters
         self.optimisation_info["ctr"] = 0
         self.optimisation_info["network_path"] = self.network_path
         self.optimisation_info["param_names"] = param_names
         self.optimisation_info["param_bounds"] = param_bounds
+        self.optimisation_info["min_z"] = min_z
+        self.optimisation_info["max_z"] = max_z
 
         optimisation_info = self.optimisation_info
 
@@ -440,6 +507,7 @@ class OptimisePruning:
 
         con_data[connection_type]["pruning"] = self.get_parameters(res=res, optimisation_info=self.optimisation_info,
                                                                    truncate_decimals=truncate_decimals)
+
         if "pruning_other" in con_data[connection_type]:
             del con_data[connection_type]["pruning_other"]
 

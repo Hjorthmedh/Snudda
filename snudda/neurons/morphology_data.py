@@ -172,6 +172,8 @@ class SectionMetaData:
     def soma_distance_at(self, section_x):
         return np.interp(section_x, self.section_x, self.soma_distance)
 
+    def radie_at(self, section_x):
+        return np.interp(section_x, self.section_x, self.radie)
 
 class MorphologyData:
 
@@ -201,7 +203,7 @@ class MorphologyData:
 
         self.geometry = None      # x, y, z, r, soma_dist (float)
         self.section_data = None  # section_id, section_x (*1000), section_type (int), parent_point_id (int)
-        self.sections = None      # dictionary section_id --> SectionMetaData
+        self.sections = None      # dictionary section_id --> SectionMetaData, dict where 1 = soma, 2 = axon, 3 = dend
 
         self.point_lookup = dict()    # "dend" --> np.array of point_id for dend points
 

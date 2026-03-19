@@ -7,7 +7,7 @@ from snudda.utils.load import SnuddaLoad
 
 # To get clean plots:
 #
-# import plotly.io as pio
+# import plotly_plots.io as pio
 # pio.templates.default = "simple_white"
 #
 
