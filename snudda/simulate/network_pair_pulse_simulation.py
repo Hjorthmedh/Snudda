@@ -197,7 +197,7 @@ class SnuddaNetworkPairPulseSimulation:
         if pre_id:
             self.pre_id = pre_id
 
-        elif self.pre_id:
+        elif self.pre_id is not None and len(self.pre_id) > 0:
             print(f"Using pre_id = {self.pre_id} (already defined)")
         else:
             self.pre_id = [x["neuron_id"] for x in sa.snudda_load.data["neurons"] if x["type"] == self.pre_type]
@@ -210,7 +210,7 @@ class SnuddaNetworkPairPulseSimulation:
 
         if remove_pre_without_targets:
             # We need to reduce the number of neurons stimulated, since we removed some of them
-            self.pre_id = list(set(pre_id).intersection(set(sa.keep_neuron_id)))
+            self.pre_id = list(set(self.pre_id).intersection(set(sa.keep_neuron_id)))
             self.n_stimulated_neurons = len(self.pre_id)
 
             # Rerun filtering, this will also make sure we remove the pre neurons not stimulated
@@ -298,7 +298,8 @@ class SnuddaNetworkPairPulseSimulation:
                                 clamp_id=None,  # Override for neurons to clamp
                                 stim_all_at_once=False,
                                 return_run_str=False,
-                                holding_current_init_time=0.1):
+                                holding_current_init_time=0.1,
+                                max_workers=None):
 
         if clamp_mode not in ("current", "voltage"):
             raise ValueError(f"Clamp mode {clamp_mode} is not supported. (use 'voltage' or 'current')")
@@ -312,7 +313,7 @@ class SnuddaNetworkPairPulseSimulation:
             print(f"Using user defined pre_id: {pre_id}")
             self.pre_id = pre_id
         elif self.pre_id:
-            print(f"Using user defined pre_id: {self.pre_id}")
+            print(f"Using pre_id: {self.pre_id}")
         else:
             self.pre_id = [x["neuron_id"] for x in network_info["neurons"] if x["type"] == self.pre_type]
             if self.n_stimulated_neurons is not None:
@@ -421,7 +422,12 @@ class SnuddaNetworkPairPulseSimulation:
             print(e)
             import pdb; pdb.set_trace()
 
-        run_cmd = f"mpirun snudda simulate {self.network_path} --simulation_config {self.simulation_config_file}"
+        if max_workers is not None:
+            worker_str = f"-n {max_workers}"
+        else:
+            worker_str = ""
+
+        run_cmd = f"mpirun {worker_str} snudda simulate {self.network_path} --simulation_config {self.simulation_config_file}"
 
         if return_run_str:
             return run_cmd
@@ -483,6 +489,34 @@ class SnuddaNetworkPairPulseSimulation:
                 assert s.e == -60, "It should be GABA synapses only that we modify!"
                 s.e = v_rev_cl * 1e3
 
+    ############################################################################
+
+    def pick_connected_pre_id(self, connection_type="synapses", post_type=None):
+
+        if post_type is None:
+            post_type = self.post_type
+
+        if post_type == "ALL":
+            print(f"pick_connected_pre_id requires post_type to be a specific neuron type. ('ALL' not valid here)")
+
+        try:
+            sl = SnuddaLoad(self.network_path)
+            con_mat = sl.create_connection_matrix(sparse_matrix=False, connection_type=connection_type)
+
+            pre_id = sl.get_neuron_id_of_type(neuron_type=self.pre_type)
+            post_id = sl.get_neuron_id_of_type(neuron_type=post_type)
+
+            n_con = np.sum(con_mat[pre_id, :][:, post_id], axis=1)
+            possible_pre_id = pre_id[n_con > 0]
+            np.random.shuffle(possible_pre_id)
+            self.pre_id = possible_pre_id[:min(self.n_stimulated_neurons, len(possible_pre_id))]
+        except:
+            import traceback
+            print(traceback.format_exc())
+            import pdb
+            pdb.set_trace()
+
+        print(f"Picking pre_id: {self.pre_id}")
 
     ############################################################################
 
@@ -499,7 +533,11 @@ class SnuddaNetworkPairPulseSimulation:
         if pre_id:
             print(f"Using user defined pre_id: {pre_id}")
             self.pre_id = pre_id
+        elif self.pre_id is not None and len(self.pre_id) > 0:
+            # pre_id already defined, good to go
+            pass
         else:
+            # pre_id not defined, set it up
             self.pre_id = [x["neuron_id"] for x in self.snudda_sim.network_info["neurons"] if x["type"] == self.pre_type]
             if self.n_stimulated_neurons is not None:
                 self.pre_id = self.pre_id[:self.n_stimulated_neurons]
@@ -603,6 +641,8 @@ class SnuddaNetworkPairPulseSimulation:
             print(f"Using user provided pre_id = {pre_id}\n"
                   f"This must match what was used for simulation! BE CAREFUL!")
             self.pre_id = pre_id
+        elif self.pre_id is not None:
+            print(f"Using pre_id: {self.pre_id}\n")
         else:
             self.pre_id = [x["neuron_id"] for x in self.data["neurons"] if x["type"] == self.pre_type]
             if self.n_stimulated_neurons is not None:
@@ -889,6 +929,8 @@ class SnuddaNetworkPairPulseSimulation:
             print(f"Using user provided pre_id = {pre_id}\n"
                   f"This must match what was used for simulation! BE CAREFUL!")
             self.pre_id = pre_id
+        elif self.pre_id is not None:
+            print(f"Using pre_id: {self.pre_id}\n")
         else:
             self.pre_id = [x["neuron_id"] for x in self.data["neurons"] if x["type"] == self.pre_type]
             if self.n_stimulated_neurons is not None:
