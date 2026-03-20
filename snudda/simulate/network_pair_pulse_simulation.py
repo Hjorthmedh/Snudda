@@ -299,7 +299,9 @@ class SnuddaNetworkPairPulseSimulation:
                                 stim_all_at_once=False,
                                 return_run_str=False,
                                 holding_current_init_time=0.1,
-                                max_workers=None):
+                                max_workers=None,
+                                inactivate_neuron=None,
+                                inactivate_neuron_channel=None):
 
         if clamp_mode not in ("current", "voltage"):
             raise ValueError(f"Clamp mode {clamp_mode} is not supported. (use 'voltage' or 'current')")
@@ -409,6 +411,13 @@ class SnuddaNetworkPairPulseSimulation:
                                               "save_current": True}
 
             sim_config["voltage_clamp"] = volt_clamp_info
+
+        if inactivate_neuron is not None:
+
+            if inactivate_neuron_channel is None:
+                inactivate_neuron_channel = "na_ch"
+
+            sim_config["post_init_modifications"]: { inactivate_neuron : { inactivate_neuron_channel : 0}}
 
         snudda_loader.close()
 
