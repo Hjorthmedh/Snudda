@@ -2619,7 +2619,11 @@ class SnuddaSimulate(object):
                             for seg in sec:
                                 channel = getattr(seg, ion_channel, None)
                                 if channel is not None:
-                                    setattr(channel, "gbar", getattr(channel, "gbar") * channel_mod_factor)
+                                    if hasattr(channel, "gbar"):
+                                        channel.gbar *= channel_mod_factor
+                                    else:
+                                        print(f"post_initialisation_modifications: Missing attribute gbar in channel {ion_channel}")
+                                    # setattr(channel, "gbar", getattr(channel, "gbar") * channel_mod_factor)
             except:
                 import traceback
                 self.write_log(traceback.format_exc(), is_error=True)
