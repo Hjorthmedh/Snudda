@@ -417,7 +417,7 @@ class SnuddaNetworkPairPulseSimulation:
             if inactivate_neuron_channel is None:
                 inactivate_neuron_channel = "na_ch"
 
-            sim_config["post_init_modifications"]: { inactivate_neuron : { inactivate_neuron_channel : 0}}
+            sim_config["post_init_modifications"] = { inactivate_neuron : { inactivate_neuron_channel : 0}}
 
         snudda_loader.close()
 
