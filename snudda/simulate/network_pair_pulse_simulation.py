@@ -327,7 +327,7 @@ class SnuddaNetworkPairPulseSimulation:
         self.inj_info = list(zip(self.pre_id, self.inj_spacing + self.inj_spacing * np.arange(0, len(self.pre_id))))
 
         try:
-            sim_end = self.inj_info[-1][1] + self.inj_spacing
+            sim_end = self.inj_info[-1][1] + self.inj_spacing + self.inj_duration
         except Exception as e:
             import traceback
             print(traceback.format_exc())
@@ -894,7 +894,11 @@ class SnuddaNetworkPairPulseSimulation:
     ############################################################################
 
     def analyse_gap_junctions(self, clamp_mode, exp_data_file=None, pre_id=None, post_type=None,
-                              time_window=0.05, baseline_offset=-0.05):
+                              time_window=None, baseline_offset=-0.05,
+                              exp_points=None, exp_mean=None, exp_std=None):
+
+        if time_window is None:
+            time_window = self.inj_duration
 
         import matplotlib.pyplot as plt
         import seaborn as sns
@@ -968,7 +972,7 @@ class SnuddaNetworkPairPulseSimulation:
         for (pre_id, t) in self.inj_info:
 
             if t + time_window > np.max(time):
-                print(f"Simulation only run to {np.max(time)}s, missing pulses at {t}s (check_width={window_width}s)")
+                print(f"Simulation only run to {np.max(time)}s, missing pulses at {t}s (check_width={time_window}s)")
                 continue
 
             t_idx = np.where(np.logical_and(t <= time, time <= t + time_window))[0]
@@ -1022,8 +1026,26 @@ class SnuddaNetworkPairPulseSimulation:
 
         sns.violinplot(y=coupling_coefficient, inner="box")
 
+        # Overlay experimental data in red
+        if exp_points is not None:
+            # Scatter individual datapoints (jittered for visibility)
+            x = np.random.normal(loc=0, scale=0.04, size=len(exp_points)) + 0.5
+            plt.scatter(x, exp_points, color="red", alpha=0.7, zorder=3, label="Experimental data")
+
+        if exp_mean is not None and exp_std is not None:
+
+            # Plot mean ± std as error bar
+            plt.errorbar(0.5, exp_mean, yerr=exp_std,
+                         fmt='.', color='red', capsize=5,
+                         label="Experimental mean ± std", zorder=4)
+
         plt.ylabel("Coupling coefficient")
         plt.title("Gap Junction Coupling")
+
+        os.makedirs(os.path.join(self.network_path, "figures"), exist_ok=True)
+
+        plt.savefig(os.path.join(self.network_path, "figures", "gap_junction_coupling.png"),
+                    dpi=300, bbox_inches="tight")
 
     ############################################################################
 
