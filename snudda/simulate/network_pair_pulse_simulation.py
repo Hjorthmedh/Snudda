@@ -1033,9 +1033,13 @@ class SnuddaNetworkPairPulseSimulation:
             plt.scatter(x, exp_points, color="red", alpha=0.7, zorder=3, label="Experimental data")
 
         if exp_mean is not None and exp_std is not None:
+            exp_mean = np.atleast_1d(exp_mean)
+            exp_std = np.atleast_1d(exp_std)
+            
+            x = 0.2 * np.arange(len(exp_mean)) + 0.5
 
             # Plot mean ± std as error bar
-            plt.errorbar(0.5, exp_mean, yerr=exp_std,
+            plt.errorbar(x, exp_mean, yerr=exp_std,
                          fmt='.', color='red', capsize=5,
                          label="Experimental mean ± std", zorder=4)
 
