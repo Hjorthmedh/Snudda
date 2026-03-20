@@ -1040,7 +1040,7 @@ class SnuddaNetworkPairPulseSimulation:
                          label="Experimental mean ± std", zorder=4)
 
         plt.ylabel("Coupling coefficient")
-        plt.title("Gap Junction Coupling")
+        plt.title(f"Gap Junction Coupling {self.pre_type} to {self.post_type}")
 
         os.makedirs(os.path.join(self.network_path, "figures"), exist_ok=True)
 
