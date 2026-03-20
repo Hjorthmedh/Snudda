@@ -129,7 +129,7 @@ class SnuddaNetworkPairPulseSimulation:
         print(f"Checking depolarisation/hyperpolarisation of {pre_type} to {post_type} synapses")
 
         self.inj_duration = current_injection_duration
-        self.inj_spacing = np.max(0.5, self.inj_duration)  # Tried with 0.2 before, too close
+        self.inj_spacing = max(0.5, self.inj_duration)  # Tried with 0.2 before, too close
 
         self.snudda_sim = None  # Defined in run_sim
         self.snudda_load = None  # Defined in analyse
