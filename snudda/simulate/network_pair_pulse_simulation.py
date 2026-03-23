@@ -703,7 +703,7 @@ class SnuddaNetworkPairPulseSimulation:
         for (pre_id, t) in self.inj_info:
             # Post synaptic neuron to preID
             if isinstance(pre_id, list):
-                post_id_set = set(np.where(np.sum(con_mat[pre_id, :], axis=1))[0])
+                post_id_set = set(np.where(np.sum(con_mat[pre_id, :], axis=0))[0])
             else:
                 post_id_set = set(np.where(con_mat[pre_id,:])[0])
 
