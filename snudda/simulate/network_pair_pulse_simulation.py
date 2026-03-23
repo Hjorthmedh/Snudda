@@ -417,7 +417,13 @@ class SnuddaNetworkPairPulseSimulation:
             if inactivate_neuron_channel is None:
                 inactivate_neuron_channel = "na_ch"
 
-            sim_config["post_init_modifications"] = { inactivate_neuron : { inactivate_neuron_channel : 0}}
+            if isinstance(inactivate_neuron_channel, str):
+                sim_config["post_init_modifications"] = { inactivate_neuron : { inactivate_neuron_channel : 0.0}}
+            elif isinstance(inactivate_neuron_channel, list):
+                sim_config["post_init_modifications"] = {inactivate_neuron: dict()}
+
+                for ch in inactivate_neuron_channel:
+                    sim_config["post_init_modifications"][inactivate_neuron][ch] = 0.0
 
         snudda_loader.close()
 
@@ -657,6 +663,10 @@ class SnuddaNetworkPairPulseSimulation:
             if self.n_stimulated_neurons is not None:
                 self.pre_id = self.pre_id[:self.n_stimulated_neurons]
 
+        for pid in self.pre_id:
+            if not self.data["neurons"][pid]["type"] == self.pre_type:
+                raise(f"pre_id is type = {self.data['neurons'][pid]['type']} (expected {self.pre_type})")
+
         if post_type is None:
             post_type = self.post_type
 
@@ -705,6 +715,9 @@ class SnuddaNetworkPairPulseSimulation:
                 post_id_set = force_post_id
 
             for post_id in post_id_set:
+
+                if self.data["neurons"][post_id]["type"] != post_type:
+                    raise ValueError(f"Neuron {post_id} is type = {self.data['neurons'][post_id]['type']} (expected {post_type}")
 
                 if max_dist is not None:
                     post_pos = self.snudda_load.data["neuron_positions"][post_id, :]

@@ -35,22 +35,30 @@ class PlotTraces:
         else:
             self.experiment_name = ""
 
-        if network_file is None and "simulation" in output_file:
-            network_path = os.path.dirname(os.path.dirname(output_file))
-            network_file = os.path.join(network_path, "network-synapses.hdf5")
-            if os.path.exists(network_file):
-                self.network_file = network_file
 
-        if network_file is not None:
-            network_path = os.path.dirname(os.path.dirname(network_file))
-        else:
-            network_path = None
+        self.output_load = SnuddaLoadSimulation(network_simulation_output_file=output_file)
+
+        if self.network_file is None:
+            n_file = self.output_load.network_simulation_file["meta_data"]["network_file"][()].decode()
+            dir_name = os.path.basename(os.path.dirname(n_file))
+            new_prefix = output_file.split(dir_name)[0]
+            postfix = n_file.split(dir_name)[1]
+            net_file = new_prefix + dir_name + postfix
+
+            if os.path.isfile(net_file):
+                print(f"Using network_file = {net_file}")
+                self.network_file = net_file
 
         if self.network_file is not None:
             print(f"Loading network info from {self.network_file}")
             self.network_info = SnuddaLoad(self.network_file)
         else:
             self.network_info = None
+
+        if network_file is not None:
+            network_path = os.path.dirname(os.path.dirname(network_file))
+        else:
+            network_path = None
 
         if self.input_file is not None:
             print(f"Loading input info from {self.input_file}")
@@ -65,8 +73,6 @@ class PlotTraces:
             else:
                 self.input_info = None
 
-        self.output_load = SnuddaLoadSimulation(network_simulation_output_file=output_file,
-                                                network_path=network_path)
 
         self.voltage = self.output_load.get_voltage()
         self.time = self.output_load.get_time()
