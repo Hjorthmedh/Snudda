@@ -1176,6 +1176,10 @@ class SnuddaPrune(object):
             assert (np.array(mat_width_all) == mat_width_all[0]).all(), \
                 "combine_files: Internal error, width does not match"
             mat_width = mat_width_all[0]
+        elif merge_data_type == "synapses":
+            mat_width = 13
+        elif merge_data_type == "gap_junctions":
+            mat_width = 11
         else:
             mat_width = 0
 

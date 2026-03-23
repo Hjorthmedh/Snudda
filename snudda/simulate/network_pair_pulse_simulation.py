@@ -617,7 +617,7 @@ class SnuddaNetworkPairPulseSimulation:
     # This extracts all the voltage deflections, to see how strong they are
 
     def analyse(self, max_dist=None, n_max_show=10, pre_id=None, post_type=None, clamp_mode=None, exp_data_file=None,
-                force_post_id=None, time_window = 0.05, include_gap_junctions=False):
+                force_post_id=None, time_window = 0.05, include_gap_junctions=False, check_pre_type=True):
 
         import matplotlib
         import matplotlib.pyplot as plt
@@ -663,9 +663,10 @@ class SnuddaNetworkPairPulseSimulation:
             if self.n_stimulated_neurons is not None:
                 self.pre_id = self.pre_id[:self.n_stimulated_neurons]
 
-        for pid in self.pre_id:
-            if not self.data["neurons"][pid]["type"] == self.pre_type:
-                raise(f"pre_id is type = {self.data['neurons'][pid]['type']} (expected {self.pre_type})")
+        if check_pre_type:
+            for pid in self.pre_id:
+                if not self.data["neurons"][pid]["type"] == self.pre_type:
+                    raise ValueError(f"pre_id is type = {self.data['neurons'][pid]['type']} (expected {self.pre_type})")
 
         if post_type is None:
             post_type = self.post_type
