@@ -6,6 +6,6 @@
         "synapse_density": "0.05/(1+exp(-(d-150e-6)/5e-6))",
         "num_synapses": 20,
         "baseline_voltage": -0.08,
-        "holding_current": 2.9103830456733704e-10
+        "holding_current": 3.0620128654845757e-10
     }
 }

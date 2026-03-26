@@ -46,7 +46,7 @@ from joblib import Parallel, delayed
 
 class SynapseOptimiser:
 
-    def __init__(self, data_file="../data/synapses/example_data/10_MSN12_GBZ_CC_H20.json",
+    def __init__(self, data_file,
                  entropy=1023456734529028340264793840,
                  synapse_type="glut",
                  load_parameters=True,
@@ -73,11 +73,11 @@ class SynapseOptimiser:
         self.volt = None
         self.time = None
         self.sample_freq = None
+        self.sim_time = 1.5
         self.trace_holding_voltage = None
         self.stim_time = None
         self.exp_peak_height = None
         self.cell_type = None
-        self.neuron_set_file = None
 
         self.synapse_parameter_data = None
         self.synapse_section_id = None
@@ -143,7 +143,7 @@ class SynapseOptimiser:
         self.pc.barrier()
         # Distribute section id, section x that was picked by master, and any other needed parameters
         self.synapse_section_id, self.synapse_section_x \
-            = self.pc.broadcast((self.synapse_section_id, self.synapse_section_x))
+            = self.pc.py_broadcast((self.synapse_section_id, self.synapse_section_x), 0)
 
         if self.pc.id() != 0:
             # Setup models on all other nodes (but not master)
@@ -161,21 +161,29 @@ class SynapseOptimiser:
 
         # prepare_models should already be called, so that synapse position is fixed apriori
 
-        model_parameters = self.pc.py_scatter(model_parameter_list)
+        model_parameters = self.pc.py_scatter(model_parameter_list, 0)
 
         # we need model parameters, and position of synapses (section_id, section_x)
 
-        t_sim, v_sim, i_sim = self.rsr_synapse_model.run2(pars=model_parameters)
+        assert len(model_parameters) == 5
+
+        m_params = { "U": model_parameters[0],
+                     "tauR": model_parameters[1],
+                     "tauF": model_parameters[2],
+                     "tauRatio": model_parameters[3],
+                     "cond": model_parameters[4] }
+
+        t_sim, v_sim, i_sim = self.rsr_synapse_model.run2(pars=m_params)
 
         peak_idx = self.get_peak_idx(time=t_sim, volt=v_sim, stim_time=self.stim_time)
         peak_height, decay_fits, v_base = self.find_trace_heights(t_sim, v_sim, peak_idx)
 
         # We need to take decay into accounts also for error, first version only uses peak heights
-        peak_error = self.error_calculation(peak_height=peak_height,
+        error = self.error_calculation(peak_height=peak_height,
                                             decay_fits=decay_fits,
                                             v_base=v_base)
 
-        error = self.pc.py_gather(peak_error) # Can this be a scalar?
+        error = self.pc.py_gather(error, 0)
 
         return error
 
@@ -190,12 +198,17 @@ class SynapseOptimiser:
 
     def optimise(self, n_iterations=10):
 
-        self.setup_rng()
+        if self.seed is None:
+            self.setup_rng()
+
         self.prepare_models()
 
+        # import pdb
+        # pdb.set_trace()
 
         if self.pc.id() == 0:
             model_bounds = self.get_model_bounds()
+            model_bounds = [x for x in zip(*model_bounds)]
             opt = Optimizer(dimensions=model_bounds, random_state=42)
 
 
@@ -852,8 +865,9 @@ class SynapseOptimiser:
 
 
 if __name__ == "__main__":
-    so = SynapseOptimiser()
-
+    so = SynapseOptimiser(data_file="../data/synapses/example_data/10_MSN12_GBZ_CC_H20.json",
+                          snudda_data="/home/hjorth/HBP/BasalGangliaData/data/")
+    so.optimise()
 
 """
 

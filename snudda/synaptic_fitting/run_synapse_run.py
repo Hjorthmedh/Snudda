@@ -497,15 +497,15 @@ class RunSynapseRun(object):
                        "factor_nmda": 1.0  # Ilaria's file has ms already
                        }
 
-        if var_name not in conv_factor:
-            self.write_log("Missing conversion fractor for " + str(var_name) \
-                           + ". Please update SItoNaturalUnits function.")
-            self.write_log("convFactor = " + str(conv_factor))
-            import pdb
-            pdb.set_trace()
+        # if var_name not in conv_factor:
+        #     self.write_log("Missing conversion fractor for " + str(var_name) \
+        #                    + ". Please update SItoNaturalUnits function.")
+        #     self.write_log("convFactor = " + str(conv_factor))
+        #     import pdb
+        #     pdb.set_trace()
 
         try:
-            return value * conv_factor[var_name]
+            return value * conv_factor.get(var_name, 1)
         except:
             import traceback
             tstr = traceback.format_exc()
