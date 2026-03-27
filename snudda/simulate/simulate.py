@@ -224,6 +224,19 @@ class SnuddaSimulate(object):
                 self.output_file = self.sim_info["output_file"].replace("$network_path", self.network_path)
                 self.write_log(f"Output file: {self.output_file}")
 
+            if "conversion_factor_lookup" in self.sim_info:
+                conversion_factor_lookup = self.sim_info["conversion_factor_lookup"]
+                print(f"Using conversion_factor_lookup: {conversion_factor_lookup}")
+
+                if isinstance(conversion_factor_lookup, dict):
+                    self.conv_factor = conversion_factor_lookup
+
+                elif os.path.isfile(conversion_factor_lookup):
+                    with open(conversion_factor_lookup, "r") as f:
+                        self.conv_factor = json.load(f)
+                else:
+                    raise ValueError(f"simulation config file: {conversion_factor_lookup = } not dictionary or file.")
+
             if "use_cvode" in self.sim_info:
                 self.use_cvode = self.sim_info["use_cvode"]
                 if self.use_cvode:
