@@ -42,6 +42,7 @@ class RunSynapseRun(object):
                  synapse_type='glut',
                  params={},
                  time=2,
+                 sim=None,
                  random_seed=None,
                  rng=None,
                  log_file=None,
@@ -100,7 +101,12 @@ class RunSynapseRun(object):
         # Done in NrnSimulatorParallel
         # neuron.h.load_file('stdrun.hoc')
 
-        self.sim = NrnSimulatorParallel(cvode_active=False)
+        print(f"Setting up parallel sim object")
+        if sim is None:
+            self.sim = NrnSimulatorParallel(cvode_active=False)
+        else:
+            self.sim = sim
+        print(f"sim object done.")
 
         # Should we use weak reference for garbage collection? (weakref package)
 
@@ -213,6 +219,7 @@ class RunSynapseRun(object):
         self.v_clamp.dur1 = self.time * 2 * 1e3
         # self.writeLog("VClamp duration: " + str(self.VClamp.dur1))
 
+        print(f"Calling finitialize")
         neuron.h.finitialize(self.holding_voltage * 1e3)
         # !!! There is a WEIRD neuron bug, that if this tstop here is
         # different from duration of simulation, then the *SECOND* time
@@ -220,8 +227,10 @@ class RunSynapseRun(object):
         # value, and not by the tStop of that simulation --- go figure!
         self.set_resting_voltage(self.holding_voltage * 1e3)
 
+        print(f"Neuron run holding.")
         neuron.h.tstop = self.time * 1e3  # Must set tstop
         neuron.h.run()
+        print(f"Neuron done running.")
 
         if False:
             import matplotlib.pyplot as plt

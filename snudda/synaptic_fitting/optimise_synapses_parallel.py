@@ -35,6 +35,7 @@ import neuron
 from neuron import h  # , gui
 from snudda.utils.snudda_path import snudda_parse_path, get_snudda_data
 from snudda.synaptic_fitting.parameter_bookkeeper import ParameterBookkeeper
+from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
 
 from run_synapse_run import RunSynapseRun
 
@@ -60,7 +61,7 @@ class SynapseOptimiser:
         self.log_file = None
         self.verbose = verbose
         self.rng = None
-
+        self.sim = None
 
         self.data_file = data_file
         self.neuron_set_file = neuron_set_file
@@ -130,6 +131,16 @@ class SynapseOptimiser:
 
 
     def prepare_models(self):
+
+        # 2026-03-27
+        # TODO: The problem is that when running in parallel, we need to make sure
+        #       all workers have same synapses.
+        #       So what we need to do is move out the synapse setup from the init
+        #       and then do it afterwards, so all can get what the master gets.
+
+
+        if self.sim is None:
+            self.sim = NrnSimulatorParallel(cvode_active=False)
 
         if self.pc.id() == 0:
             # Setup the model on master node, this sets self.synapse_section_id (and _x)
@@ -433,6 +444,7 @@ class SynapseOptimiser:
                           log_file=self.log_file,
                           synapse_section_id=synapse_section_id,
                           synapse_section_x=synapse_section_x,
+                          sim=self.sim,
                           random_seed=self.seed,
                           verbose=True)
 
