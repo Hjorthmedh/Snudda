@@ -1,11 +1,11 @@
 {
     "dSPN": {
-        "neuron_path": "$DATA/neurons/striatum/dspn/str-dspn-e150917_c10_D1-mWT-P270-20-v20220620",
-        "neuron_parameter_key": "p2344e733",
-        "neuron_morphology_key": "m5d7d364b",
+        "neuron_path": "$DATA/neurons/striatum/dspn/str-dspn-e150602_c1_D1-mWT-0728MSN01-v20220620",
+        "neuron_parameter_key": "p06ae8d19",
+        "neuron_morphology_key": "mbb8e5b24",
         "synapse_density": "0.05/(1+exp(-(d-150e-6)/5e-6))",
         "num_synapses": 20,
         "baseline_voltage": -0.08,
-        "holding_current": 3.0620128654845757e-10
+        "holding_current": 2.8107649541198043e-10
     }
 }

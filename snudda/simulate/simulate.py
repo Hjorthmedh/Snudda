@@ -163,6 +163,8 @@ class SnuddaSimulate(object):
         self.current_clamps = dict()
         self.current_injection_voltage = dict()
 
+        self.conv_factor = None
+
         self.node_id = int(self.pc.id())
         self.total_nodes = int(self.pc.nhost())
 
@@ -346,12 +348,14 @@ class SnuddaSimulate(object):
         # Make sure the output dir exists, so we don't fail at end because we cant write file
         self.create_dir(os.path.join("save", "traces"))
 
-        conversion_factor_lookup_file = os.path.join(os.path.dirname(__file__), "..", "convert_units.json")
-        if os.path.isfile(conversion_factor_lookup_file):
-            with open(conversion_factor_lookup_file, "r") as f:
-                self.conv_factor = json.load(f)
-        else:
-            self.conv_factor = {}
+
+        if self.conv_factor is None:
+            conversion_factor_lookup_file = os.path.join(os.path.dirname(__file__), "..", "convert_units.json")
+            if os.path.isfile(conversion_factor_lookup_file):
+                with open(conversion_factor_lookup_file, "r") as f:
+                    self.conv_factor = json.load(f)
+            else:
+                self.conv_factor = {}
 
         if self.verbose:
             print(f"Using conversion factor lookup for mod files: {self.conv_factor}")
@@ -3157,7 +3161,6 @@ class SnuddaSimulate(object):
 
     def convert_to_natural_units(self, param_name, param_value):
 
-        # TODO, move conversion list to separate file
         if param_name in self.conv_factor:
             val = param_value * self.conv_factor[param_name]
         else:

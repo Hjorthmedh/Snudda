@@ -1,5 +1,6 @@
 import sys
 import os.path
+import json
 
 import neuron
 import numpy as np
@@ -53,6 +54,13 @@ class RunSynapseRun(object):
             self.rng = np.random.default_rng(random_seed)
         else:
             self.rng = rng
+
+        conversion_factor_lookup_file = os.path.join(os.path.dirname(__file__), "..", "convert_units.json")
+        if os.path.isfile(conversion_factor_lookup_file):
+            with open(conversion_factor_lookup_file, "r") as f:
+                self.conv_factor = json.load(f)
+        else:
+            self.conv_factor = {}
 
         self.write_log(f"Holding voltage: {holding_voltage} V")
         self.write_log(f"Stim times: {stim_times} s")
@@ -329,6 +337,8 @@ class RunSynapseRun(object):
 
         try:
             if synapse_type.lower() == 'glut':
+                syn = neuron.h.tmGlut(section(section_x))
+            elif synapse_type.lower() == 'glut2':
                 syn = neuron.h.tmGlut_double(section(section_x))
             elif synapse_type.lower() == "gaba":
                 syn = neuron.h.tmGabaA(section(section_x))
@@ -470,48 +480,14 @@ class RunSynapseRun(object):
 
     # I wish Neuron would use natural units...
 
-    def si_to_natural_units(self, var_name, value):
+    def si_to_natural_units(self, param_name, param_value):
 
-        conv_factor = {"U": 1.0,
-                       "tauR": 1e3,
-                       "tauF": 1e3,
-                       "cond": 1e6,
-                       "tau": 1e3,
-                       "nmda_ratio": 1.0,
+        if param_name in self.conv_factor:
+            val = param_value * self.conv_factor[param_name]
+        else:
+            val = param_value
 
-                       "tau1_ampa": 1.0,  # Ilaria's file has ms already
-                       "tau2_ampa": 1.0,  # Ilaria's file has ms already
-                       "tau3_ampa": 1.0,  # Ilaria's file has ms already
-                       "tau1_nmda": 1.0,  # Ilaria's file has ms already
-                       "tau2_nmda": 1.0,  # Ilaria's file has ms already
-                       "tau3_nmda": 1.0,  # Ilaria's file has ms already
-                       "tpeak_ampa": 1.0,  # Ilaria's file has ms already
-                       "tpeak_nmda": 1.0,  # Ilaria's file has ms already :/
-                       "ratio_nmda": 1.0,
-
-                       "I2_ampa": 1.0,  # Ilaria's file has ms already
-                       "I3_ampa": 1.0,  # Ilaria's file has ms already
-                       "I2_nmda": 1.0,  # Ilaria's file has ms already
-                       "I3_nmda": 1.0,  # Ilaria's file has ms already
-                       "factor_ampa": 1.0,  # Ilaria's file has ms already
-                       "factor_nmda": 1.0  # Ilaria's file has ms already
-                       }
-
-        # if var_name not in conv_factor:
-        #     self.write_log("Missing conversion fractor for " + str(var_name) \
-        #                    + ". Please update SItoNaturalUnits function.")
-        #     self.write_log("convFactor = " + str(conv_factor))
-        #     import pdb
-        #     pdb.set_trace()
-
-        try:
-            return value * conv_factor.get(var_name, 1)
-        except:
-            import traceback
-            tstr = traceback.format_exc()
-            self.write_log(tstr)
-            import pdb
-            pdb.set_trace()
+        return val
 
     ############################################################################
     def plot(self):
@@ -546,16 +522,29 @@ class RunSynapseRun(object):
         for p in pars:
 
             if p == "cond":
-                cond = self.si_to_natural_units(p, pars[p])
+                cond = pars[p] * 1e6  # self.si_to_natural_units(p, pars[p])
+
+            elif p == "tauRatio":
+                # We deal with this later
+                pass
 
             else:
                 v = self.si_to_natural_units(p, pars[p])
                 for s in self.synapses:
                     setattr(s, p, v)
+                # print(f"Setting {p} to {v}")
+
+        if "tauRatio" in pars:
+
+            # tau = tauRatio * tauR, since tau < tauR is required in tmGlut.mod file
+            for s in self.synapses:
+                setattr(s, "tau", getattr(s, "tauR") * pars["tauRatio"])
+            # print(f"tau set to {getattr(s, 'tau')}")
 
         neuron.h.finitialize(self.holding_voltage * 1e3)
         for ncs in self.nc_syn:
             ncs.weight[0] = cond
+        # print(f"Setting cond to {cond}")
 
         self.set_resting_voltage(self.holding_voltage * 1e3)
 

@@ -42,13 +42,15 @@ from skopt import gp_minimize
 from skopt import Optimizer
 from joblib import Parallel, delayed
 
-
+# TODO: If we want to use tmGlut_double we have to make sure all variables are initialised
+#       currently several of the variables are not declared, and thus 0...
+#       factor_ampa, tau1_ampa, I2_ampa, nmda_ratio, ... etc
 
 class SynapseOptimiser:
 
     def __init__(self, data_file,
                  entropy=1023456734529028340264793840,
-                 synapse_type="glut",
+                 synapse_type="glut",  # Change to "glut2" for tmGlut_double
                  load_parameters=True,
                  snudda_data=None,
                  neuron_set_file="neuron_set.json",
@@ -175,6 +177,19 @@ class SynapseOptimiser:
 
         t_sim, v_sim, i_sim = self.rsr_synapse_model.run2(pars=m_params)
 
+        #####
+
+        if False:
+            import matplotlib.pyplot as plt
+            plt.ion()
+            plt.figure()
+            plt.plot(t_sim, v_sim)
+            plt.figure()
+            plt.plot(t_sim, i_sim[0,:].T)
+
+            import pdb
+            pdb.set_trace()
+
         peak_idx = self.get_peak_idx(time=t_sim, volt=v_sim, stim_time=self.stim_time)
         peak_height, decay_fits, v_base = self.find_trace_heights(t_sim, v_sim, peak_idx)
 
@@ -191,7 +206,14 @@ class SynapseOptimiser:
 
     def error_calculation(self, peak_height, decay_fits, v_base):
 
-        peak_error = np.sum(np.abs(peak_height - self.exp_peak_height))
+        try:
+            peak_error = np.sum(np.abs(peak_height - self.exp_peak_height))
+        except Exception as e:
+            import traceback
+            print(traceback.format_exc())
+            print(e)
+            import pdb
+            pdb.set_trace()
 
         return peak_error
 
@@ -219,6 +241,8 @@ class SynapseOptimiser:
                 model_parameter_list = opt.ask(n_points=self.n_workers)
 
             error = self.run_models(model_parameter_list)
+
+            print(f"Error: {error}")
 
             if self.pc.id() == 0:
                 opt.tell(model_parameter_list, error)
@@ -278,9 +302,9 @@ class SynapseOptimiser:
 
         peak_idx = self.get_peak_idx(time=self.time, volt=self.volt, stim_time=self.stim_time)
 
-        self.exp_peak_height = self.find_trace_heights(time=self.time,
-                                                       volt=self.volt,
-                                                       peak_idx=peak_idx)
+        self.exp_peak_height, _, _ = self.find_trace_heights(time=self.time,
+                                                             volt=self.volt,
+                                                             peak_idx=peak_idx)
 
     def save_parameter_data(self):
 
@@ -392,6 +416,8 @@ class SynapseOptimiser:
 
         print(f"Using random seed {self.seed}")
 
+        print(f"t_stim = {t_stim}")
+
         self.rsr_synapse_model = \
             RunSynapseRun(neuron_path=snudda_parse_path(c_prop["neuron_path"], self.snudda_data),
                           neuron_morphology_key=neuron_morphology_key,
@@ -453,7 +479,7 @@ class SynapseOptimiser:
 
             assert len(t_idx) > 0, f"No time points within {t_start} and {t_end}"
 
-            if self.synapse_type == "glut":
+            if self.synapse_type in ("glut", "glut2"):
                 p_idx = t_idx[np.argmax(volt[t_idx])]
             elif self.synapse_type == "gaba":
                 # We assume that neuron is more depolarised than -65, ie gaba is

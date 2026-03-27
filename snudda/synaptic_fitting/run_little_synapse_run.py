@@ -1,6 +1,8 @@
 import neuron
 import numpy as np
 import sys
+import os
+import json
 
 
 # Plot all sections
@@ -29,6 +31,13 @@ class RunLittleSynapseRun(object):
         print(f"Holding voltage: {holding_voltage} V")
         print(f"Stim times: {stim_times} s")
         print(f"Synapse type: {synapse_type}")
+
+        conversion_factor_lookup_file = os.path.join(os.path.dirname(__file__), "..", "convert_units.json")
+        if os.path.isfile(conversion_factor_lookup_file):
+            with open(conversion_factor_lookup_file, "r") as f:
+                self.conv_factor = json.load(f)
+        else:
+            self.conv_factor = {}
 
         self.time = time
 
@@ -281,30 +290,14 @@ class RunLittleSynapseRun(object):
     ############################################################################
 
     # I wish Neuron would use natural units...
+    def si_to_natural_units(self, param_name, param_value):
 
-    def si_to_natural_units(self, var_name, value):
+        if param_name in self.conv_factor:
+            val = param_value * self.conv_factor[param_name]
+        else:
+            val = param_value
 
-        conv_factor = {"U": 1.0,
-                       "tauR": 1e3,
-                       "tauF": 1e3,
-                       "cond": 1e6,
-                       "tau": 1e3,
-                       "nmda_ratio": 1.0}
-
-        if var_name not in conv_factor:
-            print(f"Missing conversion fractor for {var_name}. Please update SItoNaturalUnits function.")
-            print("convFactor = " + str(conv_factor))
-            import pdb
-            pdb.set_trace()
-
-        try:
-            return value * conv_factor[var_name]
-        except:
-            import traceback
-            tstr = traceback.format_exc()
-            print(tstr)
-            import pdb
-            pdb.set_trace()
+        return val
 
     ############################################################################
 
