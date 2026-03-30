@@ -813,9 +813,23 @@ class SynapseOptimiser:
 
 
 if __name__ == "__main__":
-    so = SynapseOptimiser(data_file="../data/synapses/example_data/10_MSN12_GBZ_CC_H20.json",
-                          snudda_data="/home/hjorth/HBP/BasalGangliaData/data/")
-    so.optimise(n_iterations=3)
+
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Synapse optimisation using MPI parallel workers.")
+    parser.add_argument("data_file", type=str,
+                        help="Path to the data file (JSON) to optimise against.")
+    parser.add_argument("--iterations", type=int, default=100,
+                        help="Number of optimisation iterations to run (default: 100).")
+    parser.add_argument("--snudda_data", type=str, default=None,
+                        help="Path to the Snudda data directory.")
+    args = parser.parse_args()
+
+    so = SynapseOptimiser(data_file=args.data_file,
+                          snudda_data=args.snudda_data)
+    so.optimise(n_iterations=args.iterations)
+
+    # mpirun -n 5 python optimise_synapses_parallel.py ../data/synapses/example_data/10_MSN12_GBZ_CC_H20.json --iterations 50 --snudda_data /home/hjorth/HBP/BasalGangliaData/data/
 
 """
 
