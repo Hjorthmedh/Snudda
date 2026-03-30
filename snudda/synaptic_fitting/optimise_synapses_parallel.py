@@ -285,6 +285,11 @@ class SynapseOptimiser:
                 opt.tell(model_parameter_list, error)
                 print(f"Error: {error}")
 
+                if iter % 100 == 0 and iter > 0:
+                    # Just for safety let's save every 100 iterations...
+                    print(f"Iteration {iter}: Saving state to {self.opt_state_data_file_name}")
+                    self.save_opt_state(opt)
+
         if self.pc.id() == 0:
             best_idx = opt.yi.index(min(opt.yi))
             print("Best value:", opt.yi[best_idx])
