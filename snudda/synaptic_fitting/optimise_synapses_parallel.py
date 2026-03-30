@@ -132,24 +132,19 @@ class SynapseOptimiser:
 
     def prepare_models(self):
 
-        # 2026-03-27
-        # TODO: The problem is that when running in parallel, we need to make sure
-        #       all workers have same synapses.
-        #       So what we need to do is move out the synapse setup from the init
-        #       and then do it afterwards, so all can get what the master gets.
-
-
         if self.sim is None:
             self.sim = NrnSimulatorParallel(cvode_active=False)
 
+
+        # This sets self.rsr_synapse_model
+        print(f"Worker {self.pc.id()} calling setup_model")
+        self.setup_model(synapse_density_override=None,
+                         n_synapses_override=None,
+                         synapse_position_override=None,
+                         init_synapses=self.pc.id() == 0)
+
         if self.pc.id() == 0:
-            # Setup the model on master node, this sets self.synapse_section_id (and _x)
-
-            # This sets self.rsr_synapse_model
-            self.setup_model(synapse_density_override=None,
-                             n_synapses_override=None,
-                             synapse_position_override=None)
-
+            # Get synapse id and x from master node
             self.synapse_section_id = self.rsr_synapse_model.synapse_section_id
             self.synapse_section_x = self.rsr_synapse_model.synapse_section_x
 
@@ -160,10 +155,12 @@ class SynapseOptimiser:
 
         if self.pc.id() != 0:
             # Setup models on all other nodes (but not master)
-            synapse_position_override = (self.synapse_section_id, self.synapse_section_x)
 
-            # This sets self.rsr_synapse_model
-            self.setup_model(synapse_position_override=synapse_position_override)
+            print(f"Worker {self.pc.id()} adding master nodes synapses.")
+            self.rsr_synapse_model.setup_synapses(synapse_type=self.synapse_type,
+                                num_synapses=len(self.synapse_section_id),
+                                synapse_section_id=self.synapse_section_id,
+                                synapse_section_x=self.synapse_section_x)
 
         self.pc.barrier()
 
@@ -250,6 +247,8 @@ class SynapseOptimiser:
             if self.pc.id() == 0:
                 print(f"Iteration {iter}/{n_iterations}")
                 model_parameter_list = opt.ask(n_points=self.n_workers)
+            else:
+                model_parameter_list = []
 
             error = self.run_models(model_parameter_list)
 
@@ -372,7 +371,8 @@ class SynapseOptimiser:
     def setup_model(self,
                     synapse_density_override=None,
                     n_synapses_override=None,
-                    synapse_position_override=None):
+                    synapse_position_override=None,
+                    init_synapses=True):
 
         self.write_log(f"setup_model: synapse_position-override: {synapse_position_override}")
 
@@ -446,7 +446,9 @@ class SynapseOptimiser:
                           synapse_section_x=synapse_section_x,
                           sim=self.sim,
                           random_seed=self.seed,
-                          verbose=True)
+                          init_synapses=init_synapses,
+                          verbose=True,
+                          pc=self.pc)
 
         if self.rsr_synapse_model.holding_current != holding_current:
             self.update_cell_properties(holding_current=self.rsr_synapse_model.holding_current)

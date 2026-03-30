@@ -42,14 +42,22 @@ class RunSynapseRun(object):
                  synapse_type='glut',
                  params={},
                  time=2,
+                 init_synapses=True,
                  sim=None,
                  random_seed=None,
                  rng=None,
                  log_file=None,
-                 verbose=True):
+                 verbose=True,
+                 pc=None):
 
         self.log_file = log_file  # File pointer
         self.verbose = verbose
+        self.pc = pc
+
+        if pc is not None:
+            self.worker_id = self.pc.id()
+        else:
+            self.worker_id = None
 
         if rng is None:
             self.rng = np.random.default_rng(random_seed)
@@ -143,20 +151,19 @@ class RunSynapseRun(object):
         self.params = params
         self.default_cond = 5e-7
 
-        # This returns (section,sectionX) so we can reuse it if needed
-        self.synapse_positions = self.add_synapse_density(synapse_type=synapse_type,
-                                                          synapse_density=synapse_density,
-                                                          num_synapses=num_synapses,
-                                                          section_id=synapse_section_id,
-                                                          section_x=synapse_section_x)
-
+        self.synapse_positions = None
         self.stim_times = np.array(stim_times)
 
-        # Assumes input in seconds (SI units)
-        self.connect_input_to_synapses(self.stim_times)
+        if init_synapses:
+            self.setup_synapses(synapse_type=synapse_type,
+                                synapse_density=synapse_density,
+                                num_synapses=num_synapses,
+                                synapse_section_id=synapse_section_id,
+                                synapse_section_x=synapse_section_x)
+
+
 
         self.soma_record()
-        self.synapse_current_record()
 
         self.holding_current = self.update_holding_current(holding_voltage=holding_voltage,
                                                            holding_current=holding_current)
@@ -165,6 +172,28 @@ class RunSynapseRun(object):
 
         # import pdb
         # pdb.set_trace()
+
+    ############################################################################
+
+    def setup_synapses(self,
+                       synapse_type,
+                       synapse_density=None,
+                       num_synapses=None,
+                       synapse_section_id=None,
+                       synapse_section_x=None):
+
+        # Helper function for init
+        # This returns (section,sectionX) so we can reuse it if needed
+        self.synapse_positions = self.add_synapse_density(synapse_type=synapse_type,
+                                                          synapse_density=synapse_density,
+                                                          num_synapses=num_synapses,
+                                                          section_id=synapse_section_id,
+                                                          section_x=synapse_section_x)
+
+        # Assumes input in seconds (SI units)
+        self.connect_input_to_synapses(self.stim_times)
+        self.synapse_current_record()
+
 
     ############################################################################
 
@@ -219,8 +248,10 @@ class RunSynapseRun(object):
         self.v_clamp.dur1 = self.time * 2 * 1e3
         # self.writeLog("VClamp duration: " + str(self.VClamp.dur1))
 
-        print(f"Calling finitialize")
+        print(f"Worker {self.worker_id} update_holding_current: Calling finitialize")
         neuron.h.finitialize(self.holding_voltage * 1e3)
+        print(f"Worker {self.worker_id} update_holding_current: Done with finitialize")
+
         # !!! There is a WEIRD neuron bug, that if this tstop here is
         # different from duration of simulation, then the *SECOND* time
         # a model is initialised we get the length of tSave set by this
@@ -550,7 +581,10 @@ class RunSynapseRun(object):
                 setattr(s, "tau", getattr(s, "tauR") * pars["tauRatio"])
             # print(f"tau set to {getattr(s, 'tau')}")
 
+        print(f"Worker {self.worker_id} run: Calling finitialize")
         neuron.h.finitialize(self.holding_voltage * 1e3)
+        print(f"Worker {self.worker_id} run: Done with finitialize")
+
         for ncs in self.nc_syn:
             ncs.weight[0] = cond
         # print(f"Setting cond to {cond}")
