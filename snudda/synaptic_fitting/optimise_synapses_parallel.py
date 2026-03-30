@@ -65,6 +65,7 @@ class SynapseOptimiser:
 
         self.data_file = data_file
         self.parameter_data_file_name = f"{self.data_file}-parameters-optimised.json"
+        self.opt_state_data_file_name = f"{self.data_file}-opt-state.json"
 
         self.neuron_set_file = neuron_set_file
         self.seed = None
@@ -94,6 +95,8 @@ class SynapseOptimiser:
         self.n_workers = self.pc.nhost()
 
         self.load_trace_data()
+
+        self.load_parameters = load_parameters
 
         if load_parameters:
             self.load_parameter_data()
@@ -225,8 +228,27 @@ class SynapseOptimiser:
 
         return peak_error
 
+    def load_opt_state(self, opt):
+        if os.path.isfile(self.opt_state_data_file_name):
+            print(f"Loading optmisation state from {self.opt_state_data_file_name}")
+            with open(self.opt_state_data_file_name) as f:
+                state = json.load(f)
 
-    def optimise(self, n_iterations=10):
+            print(f"Found {len(state['yi'])} previous data points.")
+            opt.tell(state["xi"], state["yi"])
+
+    def save_opt_state(self, opt):
+
+        state = { "xi": opt.Xi,
+                  "yi": opt.yi }
+
+        print(f"Saving optmisation state to {self.opt_state_data_file_name}")
+        with open(self.opt_state_data_file_name, "w") as f:
+            json.dump(state, f, indent=4)
+
+
+
+    def optimise(self, n_iterations=10, load_state=True):
 
         if self.seed is None:
             self.setup_rng()
@@ -238,6 +260,8 @@ class SynapseOptimiser:
             model_bounds = [x for x in zip(*model_bounds)]
             opt = Optimizer(dimensions=model_bounds, random_state=42)
 
+            if self.load_parameters:
+                self.load_opt_state(opt)
 
         for iter in range(n_iterations):
 
@@ -255,10 +279,10 @@ class SynapseOptimiser:
 
         if self.pc.id() == 0:
             best_idx = opt.yi.index(min(opt.yi))
-            print("Best value:", min(opt.yi))
+            print("Best value:", opt.yi[best_idx])
             print("Best params:", opt.Xi[best_idx])
             fit_params = opt.Xi[best_idx]
-            min_error = opt.yi
+            min_error = opt.yi[best_idx]
 
             self.synapse_parameter_data.add_parameters(parameter_set=fit_params,
                                                        section_id=self.rsr_synapse_model.synapse_section_id,
@@ -266,6 +290,7 @@ class SynapseOptimiser:
                                                        error=min_error)
 
             self.save_parameter_data()
+            self.save_opt_state(opt)
 
     def write_log(self, text, flush=True):  # Change flush to False in future, debug
         if self.log_file is not None:
@@ -779,7 +804,7 @@ class SynapseOptimiser:
 if __name__ == "__main__":
     so = SynapseOptimiser(data_file="../data/synapses/example_data/10_MSN12_GBZ_CC_H20.json",
                           snudda_data="/home/hjorth/HBP/BasalGangliaData/data/")
-    so.optimise()
+    so.optimise(n_iterations=3)
 
 """
 
