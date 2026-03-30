@@ -64,6 +64,8 @@ class SynapseOptimiser:
         self.sim = None
 
         self.data_file = data_file
+        self.parameter_data_file_name = f"{self.data_file}-parameters-optimised.json"
+
         self.neuron_set_file = neuron_set_file
         self.seed = None
         self.entropy=entropy
@@ -88,11 +90,13 @@ class SynapseOptimiser:
 
         self.cell_properties = None
 
+        self.pc = h.ParallelContext()
+        self.n_workers = self.pc.nhost()
+
         self.load_trace_data()
 
-
-        # if load_parameters:
-        #     self.load_parameter_data()
+        if load_parameters:
+            self.load_parameter_data()
 
         self.synapse_parameter_file = synapse_parameter_file
 
@@ -103,10 +107,6 @@ class SynapseOptimiser:
         else:
             self.synapse_parameters = {}
 
-        self.parameter_data_file_name = f"{self.data_file}-parameters-full.json"
-
-        self.pc = h.ParallelContext()
-        self.n_workers = self.pc.nhost()
         self.setup_rng()
 
     def setup_rng(self):
@@ -140,7 +140,7 @@ class SynapseOptimiser:
         print(f"Worker {self.pc.id()} calling setup_model")
         self.setup_model(synapse_density_override=None,
                          n_synapses_override=None,
-                         synapse_position_override=None,
+                         synapse_position_override=(self.synapse_section_id, self.synapse_section_x),
                          init_synapses=self.pc.id() == 0)
 
         if self.pc.id() == 0:
@@ -233,9 +233,6 @@ class SynapseOptimiser:
 
         self.prepare_models()
 
-        # import pdb
-        # pdb.set_trace()
-
         if self.pc.id() == 0:
             model_bounds = self.get_model_bounds()
             model_bounds = [x for x in zip(*model_bounds)]
@@ -263,10 +260,12 @@ class SynapseOptimiser:
             fit_params = opt.Xi[best_idx]
             min_error = opt.yi
 
+            self.synapse_parameter_data.add_parameters(parameter_set=fit_params,
+                                                       section_id=self.rsr_synapse_model.synapse_section_id,
+                                                       section_x=self.rsr_synapse_model.synapse_section_x,
+                                                       error=min_error)
 
-
-
-
+            self.save_parameter_data()
 
     def write_log(self, text, flush=True):  # Change flush to False in future, debug
         if self.log_file is not None:
@@ -326,7 +325,10 @@ class SynapseOptimiser:
 
     def load_parameter_data(self):
 
-        # TODO: How should this be done with new architecture?
+        if self.pc.id() != 0:
+            return
+
+        print(f"Loading parameters from {self.parameter_data_file_name}")
 
         self.synapse_parameter_data = ParameterBookkeeper(old_book_file=self.parameter_data_file_name, n_max=100)
         self.synapse_parameter_data.check_integrity()
@@ -336,11 +338,6 @@ class SynapseOptimiser:
         if best_dataset is not None:
             self.synapse_section_id = best_dataset["section_id"]
             self.synapse_section_x = best_dataset["section_x"]
-
-        if self.pc.id() != 0:
-            # This is to prevent duplicating entries
-            self.synapse_parameter_data.clear()
-
 
 
     def get_cell_properties(self):
@@ -776,130 +773,6 @@ class SynapseOptimiser:
         upper_bound = [mb[x][1] for x in param_list]
 
         return lower_bound, upper_bound
-
-
-    # TODO: BUtcher this function
-    def parallel_optimise_single_cell(self, n_trials=10000, post_opt=False):
-
-        start_time = timeit.default_timer()
-
-        if self.pc.id() != 0:
-            self.write_log("parallel_optimise_single_cell should only be called on master node")
-            return
-
-        # 1. Setup workers
-        params = self.synapse_parameters
-
-        if self.synapse_section_id is not None:
-            syn_override = self.synapse_section_id, self.synapse_section_x
-        else:
-            syn_override = None
-
-        # 2. Setup one cell to optimise, randomise synapse positions
-        synapse_model = self.setup_model(params=params,
-                                         synapse_position_override=syn_override)
-
-        # (volt,time) = self.getData(dataType,cellID)
-        peak_idx = self.get_peak_idx(stim_time=self.stim_time,
-                                     time=self.time,
-                                     volt=self.volt)
-        t_spikes = self.time[peak_idx]
-
-        sigma = np.ones(len(peak_idx))
-        sigma[-1] = 1. / 3
-
-        peak_height, decay_fits, v_base = self.find_trace_heights(self.time, self.volt, peak_idx)
-
-        if False:
-            plt.figure()
-            plt.plot(self.time, self.volt, color="black")
-            for idx in range(len(decay_fits)):
-                plt.plot(decay_fits[idx][0], decay_fits[idx][1], color="red")
-            plt.show()
-
-        skip_sets = self.synapse_parameter_data.old_iter
-        print(f"Starting sobol sequence at position {skip_sets}")
-
-        # 2b. Create list of all parameter points to investigate
-        model_bounds = self.get_model_bounds()
-        parameter_points = self.setup_parameter_set(model_bounds, n_trials, skip_sets=skip_sets)
-
-        # 3. Send synapse positions to all workers, and split parameter points
-        #    between workers
-
-        if self.d_view is not None:
-            self.setup_parallel(self.d_view)
-
-            self.d_view.scatter("parameter_points", parameter_points, block=True)
-
-            self.d_view.push({"params": params,
-                              "synapse_section_id": synapse_model.synapse_section_id,
-                              "synapse_section_x": synapse_model.synapse_section_x,
-                              "model_bounds": model_bounds,
-                              "stim_time": self.stim_time,
-                              "peak_height": peak_height},
-                             block=True)
-
-            cmd_str_setup = \
-                "ly.sobol_worker_setup(params=params," \
-                + "synapse_position_override=(synapse_section_id,synapse_section_x))"
-
-            self.d_view.execute(f"ly.write_log('TESTING LOG A')", block=True)
-
-            self.write_log("Calling sobol_worker_setup")
-            self.d_view.execute(cmd_str_setup, block=True)
-
-            self.d_view.execute(f"ly.write_log('TESTING LOG B')", block=True)
-
-            cmd_str = ("res = ly.sobol_scan(t_stim = stim_time,"
-                       "                    h_peak = peak_height,"
-                       "                    parameter_sets=parameter_points,"
-                       "                    model_bounds=model_bounds,"
-                       "                    smooth_exp_trace8=ly.smooth_exp_volt8,"
-                       "                    smooth_exp_trace9=ly.smooth_exp_volt9)")
-
-            self.write_log("Executing workers, bang bang")
-            self.d_view.execute(cmd_str, block=True)
-
-            # 5. Gather worker data
-            self.write_log("Gathering results from workers")
-            # res = self.d_view["res"]
-            res = self.d_view.gather("res", block=True)
-            self.write_log("Results gathered.")
-
-            #  for r in res:
-            self.synapse_parameter_data.merge(res)
-
-            self.save_parameter_data()
-
-        else:
-
-            # No dView, run in serial mode...
-            self.sobol_worker_setup(params=params,
-                                    synapse_position_override=(synapse_model.synapse_section_id,
-                                                               synapse_model.synapse_section_x))
-
-            self.sobol_scan(parameter_sets=parameter_points,
-                            t_stim=self.stim_time,
-                            h_peak=peak_height,
-                            model_bounds=model_bounds,
-                            smooth_exp_trace8=self.smooth_exp_volt8,
-                            smooth_exp_trace9=self.smooth_exp_volt9)
-
-            self.save_parameter_data()
-
-
-        self.write_log(f"Sobol search done. Best parameter {self.synapse_parameter_data.get_best_parameterset()}")
-
-        if post_opt:
-            # This updates parameters and saves new parameter cache
-            self.get_refined_parameters()
-
-            self.save_parameter_data()
-
-        end_time = timeit.default_timer()
-
-        self.write_log(f"Optimisation duration: {end_time - start_time}.1f s", flush=True)
 
 
 
