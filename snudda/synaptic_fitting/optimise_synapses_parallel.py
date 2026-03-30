@@ -252,10 +252,9 @@ class SynapseOptimiser:
 
             error = self.run_models(model_parameter_list)
 
-            print(f"Error: {error}")
-
             if self.pc.id() == 0:
                 opt.tell(model_parameter_list, error)
+                print(f"Error: {error}")
 
         if self.pc.id() == 0:
             best_idx = opt.yi.index(min(opt.yi))
