@@ -22,6 +22,7 @@ import os
 import sys
 import shutil
 import timeit
+import lzma
 
 import numpy as np
 import json
@@ -65,7 +66,7 @@ class SynapseOptimiser:
 
         self.data_file = data_file
         self.parameter_data_file_name = f"{self.data_file}-parameters-optimised.json"
-        self.opt_state_data_file_name = f"{self.data_file}-opt-state.json"
+        self.opt_state_data_file_name = f"{self.data_file}-opt-state.json.xz"
 
         self.neuron_set_file = neuron_set_file
         self.seed = None
@@ -229,9 +230,13 @@ class SynapseOptimiser:
         return peak_error
 
     def load_opt_state(self, opt):
+
+        if self.pc.id() != 0:
+            return
+
         if os.path.isfile(self.opt_state_data_file_name):
             print(f"Loading optmisation state from {self.opt_state_data_file_name}")
-            with open(self.opt_state_data_file_name) as f:
+            with lzma.open(self.opt_state_data_file_name, "rt") as f:
                 state = json.load(f)
 
             print(f"Found {len(state['yi'])} previous data points.")
@@ -239,11 +244,14 @@ class SynapseOptimiser:
 
     def save_opt_state(self, opt):
 
+        if self.pc.id() != 0:
+            return
+
         state = { "xi": opt.Xi,
                   "yi": opt.yi }
 
         print(f"Saving optmisation state to {self.opt_state_data_file_name}")
-        with open(self.opt_state_data_file_name, "w") as f:
+        with lzma.open(self.opt_state_data_file_name, "wt") as f:
             json.dump(state, f, indent=4)
 
 
@@ -377,6 +385,9 @@ class SynapseOptimiser:
 
 
     def update_cell_properties(self, holding_current):
+
+        if self.pc.id() != 0:
+            return
 
         cell_type = self.data["meta_data"]["cell_type"]
 
