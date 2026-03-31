@@ -94,6 +94,9 @@ class SynapseOptimiser:
         self.exp_peak_height = None
         self.cell_type = None
 
+        self.last_run_volt = None
+        self.last_run_time = None
+
         self.synapse_parameter_data = None
         self.synapse_section_id = None
         self.synapse_section_x = None
@@ -201,6 +204,8 @@ class SynapseOptimiser:
 
         t_sim, v_sim, i_sim = self.rsr_synapse_model.run2(pars=m_params)
 
+        self.last_run_time = t_sim
+        self.last_run_volt = v_sim
         #####
 
         if False:
@@ -319,6 +324,9 @@ class SynapseOptimiser:
             self.save_parameter_data()
             self.save_opt_state(opt)
 
+        if self.pc.id() == 0:
+            self.plot_last_run()
+
     def write_log(self, text, flush=True):  # Change flush to False in future, debug
         if self.log_file is not None:
             self.log_file.write(text + "\n")
@@ -349,9 +357,13 @@ class SynapseOptimiser:
         self.sample_freq = self.data["meta_data"]["sample_frequency"]
 
         if "holding_voltage" in self.data["meta_data"]:
-            self.trace_holding_voltage = self.data["meta_data"]["trace_holding_voltage"]
+            self.trace_holding_voltage = self.data["meta_data"]["holding_voltage"]
         else:
             self.trace_holding_voltage = np.mean(self.data["data"]["mean_norm_trace"][:10])
+            print(f"Guessing holding voltage: {self.trace_holding_voltage}")
+
+        if self.trace_holding_voltage > 0:
+            raise ValueError(f"Your holding voltage is probably wrong: {self.trace_holding_voltage} V")
 
         dt = 1 / self.sample_freq
         self.exp_time = 0 + dt * np.arange(0, len(self.exp_volt))
@@ -829,6 +841,23 @@ class SynapseOptimiser:
 
         return lower_bound, upper_bound
 
+    def plot_last_run(self, fig_name=None):
+
+        import matplotlib.pyplot as plt
+
+        plt.figure()
+        plt.plot(self.last_run_time, (self.last_run_volt  - np.min(self.last_run_volt))/ (np.max(self.last_run_volt) - np.min(self.last_run_volt)), color='black', label="model")
+        plt.plot(self.exp_time, self.exp_volt , color='red', label="experiment")
+        plt.xlabel("Time (s)")
+        plt.ylabel("Voltage")
+        plt.legend()
+
+        if fig_name is None:
+            fig_name = os.path.join("figures", os.path.basename(self.data_file).split(".")[0] + ".png")
+
+        os.makedirs("figures", exist_ok=True)
+
+        plt.savefig(fig_name)
 
 
 if __name__ == "__main__":
@@ -849,6 +878,9 @@ if __name__ == "__main__":
     so.optimise(n_iterations=args.iterations)
 
     # mpirun -n 5 python optimise_synapses_parallel.py ../data/synapses/example_data/10_MSN12_GBZ_CC_H20.json --iterations 50 --snudda_data /home/hjorth/HBP/BasalGangliaData/data/
+
+    # Stored:  /media/psf/KTH/2025-11-13-Yvonne-data-teanalysing/Yvonne2019/CategorisedSTP/
+    # mpirun -n 5 python optimise_synapses_parallel.py ../data/synapses/example_data/mixed_test_data.json  --iterations 3 --snudda_data /home/hjorth/HBP/BasalGangliaData/data/
 
 """
 
