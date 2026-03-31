@@ -326,8 +326,9 @@ class SynapseOptimiser:
             self.save_parameter_data()
             self.save_opt_state(opt)
 
-        if self.pc.id() == 0:
+            # This reruns the best run, then plots it
             self.run_best_run()
+            self.plot_last_run()
 
     def write_log(self, text, flush=True):  # Change flush to False in future, debug
         if self.log_file is not None:
@@ -845,6 +846,9 @@ class SynapseOptimiser:
 
     def plot_last_run(self, fig_name=None):
 
+        if self.pc.id() != 0:
+            return
+
         import matplotlib.pyplot as plt
 
         plt.figure()
@@ -868,9 +872,8 @@ class SynapseOptimiser:
         # Run
 
         best_param = self.synapse_parameter_data.get_best_parameterset()
-        
+
         self.run_models([best_param for x in range(self.n_workers)])
-        self.plot_last_run()
 
 
 if __name__ == "__main__":
