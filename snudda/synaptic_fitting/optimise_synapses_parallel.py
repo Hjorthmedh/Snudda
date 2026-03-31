@@ -51,9 +51,10 @@ from joblib import Parallel, delayed
 # TODO: 2026-03-31
 #       X 1. Synapse conductance needs to be set to same values -- conductance was set by optimizer
 #       2. Fix error function (weighting and include decay?)
-#       3. Plot results, and verify it looks ok
+#       X 3. Plot results, and verify it looks ok
 #       4. Run on Dardel
-#       5. Celebrate!
+#       5. tmGlutDouble
+#       6. Celebrate!
 #
 
 class SynapseOptimiser:
@@ -295,6 +296,7 @@ class SynapseOptimiser:
             if self.pc.id() == 0:
                 print(f"Iteration {i}/{n_iterations}")
                 model_parameter_list = opt.ask(n_points=self.n_workers)
+                # TODO: Should we round model_parameter_list to N decimals before proceeding?
             else:
                 model_parameter_list = []
 
@@ -325,7 +327,7 @@ class SynapseOptimiser:
             self.save_opt_state(opt)
 
         if self.pc.id() == 0:
-            self.plot_last_run()
+            self.run_best_run()
 
     def write_log(self, text, flush=True):  # Change flush to False in future, debug
         if self.log_file is not None:
@@ -857,7 +859,18 @@ class SynapseOptimiser:
 
         os.makedirs("figures", exist_ok=True)
 
-        plt.savefig(fig_name)
+        plt.savefig(fig_name, dpi=300)
+
+    def run_best_run(self):
+
+        # Get the best parameters
+        # Distribute the best parameters to workers (all will be identical), wasteful (run just one worker)
+        # Run
+
+        best_param = self.synapse_parameter_data.get_best_parameterset()
+        
+        self.run_models([best_param for x in range(self.n_workers)])
+        self.plot_last_run()
 
 
 if __name__ == "__main__":
