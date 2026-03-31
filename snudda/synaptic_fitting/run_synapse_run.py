@@ -235,7 +235,7 @@ class RunSynapseRun(object):
                            f" until {self.i_clamp.dur} ms")
             return holding_current
 
-        self.write_log("Updating holding current, might take a bit of time")
+        self.write_log("Updating holding current, might take a bit of exp_time")
 
         # Disable old iClamp temporarily
         if self.i_clamp is not None:
@@ -253,7 +253,7 @@ class RunSynapseRun(object):
         print(f"Worker {self.worker_id} update_holding_current: Done with finitialize")
 
         # !!! There is a WEIRD neuron bug, that if this tstop here is
-        # different from duration of simulation, then the *SECOND* time
+        # different from duration of simulation, then the *SECOND* exp_time
         # a model is initialised we get the length of tSave set by this
         # value, and not by the tStop of that simulation --- go figure!
         self.set_resting_voltage(self.holding_voltage * 1e3)
@@ -268,8 +268,8 @@ class RunSynapseRun(object):
             plt.figure()
             plt.plot(self.t_save, self.v_save)
             plt.title("Holding voltage should be " + str(self.holding_voltage * 1e3) + "mV")
-            plt.xlabel("time (ms)")
-            plt.ylabel("volt (mV)")
+            plt.xlabel("exp_time (ms)")
+            plt.ylabel("exp_volt (mV)")
             plt.ion()
             plt.show()
 
@@ -452,9 +452,9 @@ class RunSynapseRun(object):
         assert False, "This is the old run method"
 
         if time is None:
-            time = self.time
+            time = self.exp_time
         else:
-            self.time = time
+            self.exp_time = time
 
         if cond is None:
             cond = self.default_cond

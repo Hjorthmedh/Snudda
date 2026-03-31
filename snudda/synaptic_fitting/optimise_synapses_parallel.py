@@ -4,7 +4,7 @@
 #          and performs all the goodie stuff
 #
 #      We got to 'get_refined_parameters' function, probably not needed?
-#      We are going to use mpirun and neuron parallel, to run multiple instances at the same time.
+#      We are going to use mpirun and neuron parallel, to run multiple instances at the same exp_time.
 
 # We want to run synapse optimisation in parallel
 # 1. Start using mpirun (to get multiple instances)
@@ -48,6 +48,14 @@ from joblib import Parallel, delayed
 #       currently several of the variables are not declared, and thus 0...
 #       factor_ampa, tau1_ampa, I2_ampa, nmda_ratio, ... etc
 
+# TODO: 2026-03-31
+#       X 1. Synapse conductance needs to be set to same values -- conductance was set by optimizer
+#       2. Fix error function (weighting and include decay?)
+#       3. Plot results, and verify it looks ok
+#       4. Run on Dardel
+#       5. Celebrate!
+#
+
 class SynapseOptimiser:
 
     def __init__(self, data_file,
@@ -66,7 +74,7 @@ class SynapseOptimiser:
 
         self.data_file = data_file
         self.parameter_data_file_name = f"{self.data_file}-parameters-optimised.json"
-        self.opt_state_data_file_name = f"{self.data_file}-opt-state.json.xz"
+        self.opt_state_data_file_name = f"{self.data_file}-opt-state.json.xz"   # Maybe change format if files get too big...
 
         self.neuron_set_file = neuron_set_file
         self.seed = None
@@ -77,8 +85,8 @@ class SynapseOptimiser:
         self.rsr_synapse_model = None
         self.synapse_type = synapse_type
         self.data = None
-        self.volt = None
-        self.time = None
+        self.exp_volt = None
+        self.exp_time = None
         self.sample_freq = None
         self.sim_time = 1.5
         self.trace_holding_voltage = None
@@ -134,6 +142,8 @@ class SynapseOptimiser:
         self.pc.barrier()
 
 
+    # This function should only be called ones
+
     def prepare_models(self):
 
         if self.sim is None:
@@ -151,6 +161,7 @@ class SynapseOptimiser:
             # Get synapse id and x from master node
             self.synapse_section_id = self.rsr_synapse_model.synapse_section_id
             self.synapse_section_x = self.rsr_synapse_model.synapse_section_x
+            # TODO: Do we need to get the conductances also?!! !!!
 
         self.pc.barrier()
         # Distribute section id, section x that was picked by master, and any other needed parameters
@@ -162,9 +173,9 @@ class SynapseOptimiser:
 
             print(f"Worker {self.pc.id()} adding master nodes synapses.")
             self.rsr_synapse_model.setup_synapses(synapse_type=self.synapse_type,
-                                num_synapses=len(self.synapse_section_id),
-                                synapse_section_id=self.synapse_section_id,
-                                synapse_section_x=self.synapse_section_x)
+                                                  num_synapses=len(self.synapse_section_id),
+                                                  synapse_section_id=self.synapse_section_id,
+                                                  synapse_section_x=self.synapse_section_x)
 
         self.pc.barrier()
 
@@ -179,7 +190,8 @@ class SynapseOptimiser:
 
         # we need model parameters, and position of synapses (section_id, section_x)
 
-        assert len(model_parameters) == 5
+        if len(model_parameters) != 5:
+            raise ValueError(f"There should be five model parameters: {model_parameters}")
 
         m_params = { "U": model_parameters[0],
                      "tauR": model_parameters[1],
@@ -207,8 +219,8 @@ class SynapseOptimiser:
 
         # We need to take decay into accounts also for error, first version only uses peak heights
         error = self.error_calculation(peak_height=peak_height,
-                                            decay_fits=decay_fits,
-                                            v_base=v_base)
+                                       decay_fits=decay_fits,
+                                       v_base=v_base)
 
         error = self.pc.py_gather(error, 0)
 
@@ -240,6 +252,8 @@ class SynapseOptimiser:
                 state = json.load(f)
 
             print(f"Found {len(state['yi'])} previous data points.")
+
+            # Instruct the optimizer about previous evaluations
             opt.tell(state["xi"], state["yi"])
 
     def save_opt_state(self, opt):
@@ -271,10 +285,10 @@ class SynapseOptimiser:
             if self.load_parameters:
                 self.load_opt_state(opt)
 
-        for iter in range(n_iterations):
+        for i in range(n_iterations):
 
             if self.pc.id() == 0:
-                print(f"Iteration {iter}/{n_iterations}")
+                print(f"Iteration {i}/{n_iterations}")
                 model_parameter_list = opt.ask(n_points=self.n_workers)
             else:
                 model_parameter_list = []
@@ -285,9 +299,9 @@ class SynapseOptimiser:
                 opt.tell(model_parameter_list, error)
                 print(f"Error: {error}")
 
-                if iter % 100 == 0 and iter > 0:
+                if i % 100 == 0 and i > 0:
                     # Just for safety let's save every 100 iterations...
-                    print(f"Iteration {iter}: Saving state to {self.opt_state_data_file_name}")
+                    print(f"Iteration {i}: Saving state to {self.opt_state_data_file_name}")
                     self.save_opt_state(opt)
 
         if self.pc.id() == 0:
@@ -331,7 +345,7 @@ class SynapseOptimiser:
         with open(data_file, "r") as f:
             self.data = json.load(f)
 
-        self.volt = np.array(self.data["data"]["mean_norm_trace"]).flatten()
+        self.exp_volt = np.array(self.data["data"]["mean_norm_trace"]).flatten()
         self.sample_freq = self.data["meta_data"]["sample_frequency"]
 
         if "holding_voltage" in self.data["meta_data"]:
@@ -340,16 +354,16 @@ class SynapseOptimiser:
             self.trace_holding_voltage = np.mean(self.data["data"]["mean_norm_trace"][:10])
 
         dt = 1 / self.sample_freq
-        self.time = 0 + dt * np.arange(0, len(self.volt))
+        self.exp_time = 0 + dt * np.arange(0, len(self.exp_volt))
 
         self.stim_time = np.array(self.data["meta_data"]["stim_time"])
 
         self.cell_type = self.data["meta_data"]["cell_type"]
 
-        peak_idx = self.get_peak_idx(time=self.time, volt=self.volt, stim_time=self.stim_time)
+        peak_idx = self.get_peak_idx(time=self.exp_time, volt=self.exp_volt, stim_time=self.stim_time)
 
-        self.exp_peak_height, _, _ = self.find_trace_heights(time=self.time,
-                                                             volt=self.volt,
+        self.exp_peak_height, _, _ = self.find_trace_heights(time=self.exp_time,
+                                                             volt=self.exp_volt,
                                                              peak_idx=peak_idx)
 
     def save_parameter_data(self):
@@ -524,11 +538,11 @@ class SynapseOptimiser:
             t_idx = np.where(np.logical_and(t_start <= time, time <= t_end))[0]
 
             if len(t_idx) == 0:
-                self.write_log(f"No time points within {t_start} and {t_end}", flush=True)
+                self.write_log(f"No exp_time points within {t_start} and {t_end}", flush=True)
                 import pdb
                 pdb.set_trace()
 
-            assert len(t_idx) > 0, f"No time points within {t_start} and {t_end}"
+            assert len(t_idx) > 0, f"No exp_time points within {t_start} and {t_end}"
 
             if self.synapse_type in ("glut", "glut2"):
                 p_idx = t_idx[np.argmax(volt[t_idx])]
@@ -545,7 +559,7 @@ class SynapseOptimiser:
             peak_time.append(time[p_idx])
             peak_volt.append(volt[p_idx])
 
-        # Save to cache -- obs peakVolt is NOT amplitude of peak, just volt
+        # Save to cache -- obs peakVolt is NOT amplitude of peak, just exp_volt
 
         peak_dict = {"peakIdx": np.array(peak_idx),
                     "peakTime": np.array(peak_time),
@@ -672,8 +686,8 @@ class SynapseOptimiser:
                     plt.figure()
                     plt.plot(t_ab, v_ab, 'r')
                     plt.title("Error in findTraceHeights")
-                    plt.xlabel("time")
-                    plt.ylabel("volt")
+                    plt.xlabel("exp_time")
+                    plt.ylabel("exp_volt")
                     # plt.plot(tAB,vFit,'k-')
                     plt.ion()
                     plt.show()
