@@ -326,6 +326,8 @@ class SynapseOptimiser:
 
     def optimise(self, n_iterations=10, load_state=True):
 
+        error_list = []
+
         if self.seed is None:
             self.setup_rng()
 
@@ -349,6 +351,7 @@ class SynapseOptimiser:
                 model_parameter_list = []
 
             error = self.run_models(model_parameter_list)
+            error_list.append(error)
 
             if self.pc.id() == 0:
                 opt.tell(model_parameter_list, error)
@@ -374,9 +377,11 @@ class SynapseOptimiser:
             self.save_parameter_data()
             self.save_opt_state(opt)
 
-            # This reruns the best run, then plots it
-            self.run_best_run()
-            self.plot_last_run()
+        self.pc.barrier()
+
+        # This reruns the best run, then plots it
+        self.run_best_run()
+        self.plot_last_run()
 
     def write_log(self, text, flush=True):  # Change flush to False in future, debug
         if self.log_file is not None:
@@ -760,126 +765,6 @@ class SynapseOptimiser:
 
         return peak_height.copy(), decay_fits, v_base
 
-    def neuron_synapse_helper_glut(self, t_spike,
-                                   u, tau_r, tau_f, tau_ratio, cond,
-                                   smooth_exp_trace8, smooth_exp_trace9, exp_peak_height,
-                                   return_type="peaks"):
-
-        if self.debug_pars_flag:
-            self.debug_pars.append([u, tau_r, tau_f, tau_ratio, cond])
-
-        params = self.synapse_parameters
-        tau = tau_r * tau_ratio
-
-        peak_h, t_sim, v_sim = self.run_model(t_spike, u,
-                                              tau_r, tau_f, cond, tau,
-                                              params=params,
-                                              return_trace=True)
-
-        # Calculate error in decay fit
-        sim_trace8, sim_time8 = self.smoothing_trace(v_sim, self.num_smoothing,
-                                                     time=t_sim,
-                                                     start_time=self.decay_start_fit8,
-                                                     end_time=self.decay_end_fit8)
-
-        sim_trace9, sim_time9 = self.smoothing_trace(v_sim, self.num_smoothing,
-                                                     time=t_sim,
-                                                     start_time=self.decay_start_fit9,
-                                                     end_time=self.decay_end_fit9)
-
-        # We only want to use the bit of the trace after max
-        idx_max8 = np.argmax(smooth_exp_trace8)
-        idx_max9 = np.argmax(smooth_exp_trace9)
-
-        # Calculating error in peak height
-        if self.normalise_trace:
-            h_diff = np.abs(peak_h/peak_h[0] - exp_peak_height/exp_peak_height[0])
-        else:
-            h_diff = np.abs(peak_h - exp_peak_height)
-
-        h_diff[0] *= 3
-        h_diff[-2] *= 2
-        h_diff[-1] *= 3
-
-        # This is to prevent the model spiking
-        spike_penalty = np.sum(peak_h > 0.03) * 20
-
-        h_error = np.sum(h_diff) / len(h_diff)
-
-        decay_error8 = np.mean((smooth_exp_trace8[idx_max8:] - sim_trace8[idx_max8:]) ** 2)
-        decay_error9 = np.mean((smooth_exp_trace9[idx_max9:] - sim_trace9[idx_max9:]) ** 2)
-
-        fit_error = h_error + decay_error8 + decay_error9 + spike_penalty
-
-        print(f"{fit_error = }")
-
-        if spike_penalty > 0:
-            self.write_log("Action potential detected in trace. Penalising!")
-
-        if False:
-            peak_base = v_sim[-1]
-            plt.figure()
-            plt.plot(t_sim, v_sim, 'k-')
-            plt.plot(sim_time8, sim_trace8, 'y--')
-            plt.plot(sim_time8, smooth_exp_trace8, 'r--')
-            plt.plot(sim_time9, sim_trace9, 'y--')
-            plt.plot(sim_time9, smooth_exp_trace9, 'r--')
-
-            for tp, expH, modH in zip(t_spike, exp_peak_height, peak_h):
-                plt.plot([tp, tp], [peak_base, expH + peak_base], 'r-', linewidth=3)
-                plt.plot([tp, tp], [peak_base, modH + peak_base], 'b-')
-            plt.title("hE = %g, dE8 = %g, dE9 = %g" \
-                      % (h_error, decay_error8, decay_error9))
-
-            plt.ion()
-            plt.show()
-
-        if return_type == "peaks":
-            return peak_h
-        elif return_type == "error":
-            return fit_error
-        elif return_type == "full":
-            return fit_error, peak_h, t_sim, v_sim
-        else:
-            assert False, "Unknown return type: " + str(return_type)
-
-    def run_model(self, t_spike, u, tau_r, tau_f, cond, tau,
-                  params=None,
-                  return_trace=False):
-
-        if params is None:
-            params = {}
-
-        # self.writeLog("Running neuron model")
-
-        assert self.rsr_synapse_model is not None, \
-            "!!! Need to call setupModel first"
-
-        # Should we make a copy of params, to not destroy it? ;)
-        params["U"] = u
-        params["tauR"] = tau_r
-        params["tauF"] = tau_f
-        params["cond"] = cond
-        params["tau"] = tau
-
-        # self.writeLog("params=" + str(params))
-
-        self.pc.barrier()
-        (t_sim, v_sim, i_sim) = self.rsr_synapse_model.run2(pars=params)
-
-        if t_sim.shape != v_sim.shape:
-            self.write_log("Shape are different, why?!", flush=True)
-            import pdb
-            pdb.set_trace()
-
-        peak_idx = self.get_peak_idx(time=t_sim, volt=v_sim, stim_time=t_spike)
-        peak_height, decay_fits, v_base = self.find_trace_heights(t_sim, v_sim, peak_idx)
-
-        if return_trace:
-            return peak_height, t_sim, v_sim
-        else:
-            return peak_height
-
     # This should read from a JSON file instead
 
     def get_model_bounds(self):
@@ -919,9 +804,28 @@ class SynapseOptimiser:
         # Distribute the best parameters to workers (all will be identical), wasteful (run just one worker)
         # Run
 
-        best_param = self.synapse_parameter_data.get_best_parameterset()
+        if self.pc.id() == 0:
+            best_param = self.synapse_parameter_data.get_best_parameterset()
+            best_param_list = [best_param for x in range(self.n_workers)]
+        else:
+            best_param_list = []
 
-        self.run_models([best_param for x in range(self.n_workers)])
+        self.run_models(best_param_list)
+
+    def plot_error(self, error_list):
+        if self.pc.id() != 0:
+            return
+
+        import matplotlib.pyplot as plt
+        plt.figure()
+        plt.plot(error_list)
+        plt.ylabel("Error")
+
+        fig_name = os.path.join("figures", os.path.basename(self.data_file).split(".")[0] + "-error.png")
+
+        plt.savefig(fig_name, dpi=300)
+        plt.close()
+
 
 
 if __name__ == "__main__":
