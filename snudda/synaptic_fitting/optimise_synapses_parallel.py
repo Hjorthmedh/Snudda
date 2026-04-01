@@ -208,27 +208,18 @@ class SynapseOptimiser:
 
         self.last_run_time = t_sim
         self.last_run_volt = v_sim
-        #####
 
-        if False:
-            import matplotlib.pyplot as plt
-            plt.ion()
-            plt.figure()
-            plt.plot(t_sim, v_sim)
-            plt.figure()
-            plt.plot(t_sim, i_sim[0,:].T)
+        # We use normalised voltage instead of v_sim
+        v_norm = (v_sim - np.min(v_sim)) / (np.max(v_sim) - np.min(v_sim))
 
-            import pdb
-            pdb.set_trace()
-
-        peak_idx = self.get_peak_idx(time=t_sim, volt=v_sim, stim_time=self.stim_time)
-        peak_height, decay_fits, v_base = self.find_trace_heights(t_sim, v_sim, peak_idx)
+        peak_idx = self.get_peak_idx(time=t_sim, volt=v_norm, stim_time=self.stim_time)
+        peak_height, decay_fits, v_base = self.find_trace_heights(t_sim, v_norm, peak_idx)
 
         # We need to take decay into accounts also for error, first version only uses peak heights
         error = self.error_calculation(peak_height=peak_height,
                                        decay_fits=decay_fits,
                                        time=t_sim,
-                                       volt=v_sim,
+                                       volt=v_norm,
                                        v_base=v_base)
 
         error = self.pc.py_gather(error, 0)
