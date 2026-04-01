@@ -88,6 +88,7 @@ class SynapseOptimiser:
         self.data = None
         self.exp_volt = None
         self.exp_time = None
+        self.exp_volt_interpolated = {}
         self.sample_freq = None
         self.sim_time = 1.5
         self.trace_holding_voltage = None
@@ -226,6 +227,8 @@ class SynapseOptimiser:
         # We need to take decay into accounts also for error, first version only uses peak heights
         error = self.error_calculation(peak_height=peak_height,
                                        decay_fits=decay_fits,
+                                       time=t_sim,
+                                       volt=v_sim,
                                        v_base=v_base)
 
         error = self.pc.py_gather(error, 0)
@@ -234,7 +237,52 @@ class SynapseOptimiser:
 
         # TODO: 2026-03-05 WE ARE HERE, WORKING ON THIS FUNCTION!! SciLifeLab rulez!
 
-    def error_calculation(self, peak_height, decay_fits, v_base):
+
+    def error_calculation(self, peak_height, decay_fits, time, volt, v_base):
+
+        decay_window = [0.01, 0.045]
+
+        try:
+            # Error in peak heights
+            peak_error = np.abs(peak_height - self.exp_peak_height)
+
+            # Weight errors
+            peak_error[0] *= 3
+            peak_error[-2] *= 2
+            peak_error[-1] *= 3
+
+            decay_error = 0
+
+            # Error in decay
+            for st in self.stim_time:
+                start_idx = np.argmin(np.abs(time - (st + decay_window[0])))
+                end_idx = np.argmin(np.abs(time - (st + decay_window[1])))
+
+                if st not in self.exp_volt_interpolated:
+                    self.exp_volt_interpolated[st] = np.interp(time[start_idx:end_idx],
+                                                               self.exp_time,
+                                                               self.exp_volt)
+
+                # TODO, interpolate points to match exp data!!
+
+                decay_error += np.sum(np.abs(volt[start_idx:end_idx] - self.exp_volt_interpolated[st])) / (end_idx - start_idx)
+
+            print(f"Peak error: {np.sum(peak_error)}, decay error: {decay_error}")
+
+            error = np.sum(peak_error) + decay_error
+
+        except Exception as e:
+            import traceback
+            print(traceback.format_exc())
+            print(e)
+            import pdb
+            pdb.set_trace()
+
+        return error
+
+
+
+    def error_calculation_peaks_only(self, peak_height, decay_fits, v_base):
 
         try:
             peak_error = np.sum(np.abs(peak_height - self.exp_peak_height))
