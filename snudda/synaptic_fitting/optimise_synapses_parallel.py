@@ -318,6 +318,7 @@ class SynapseOptimiser:
     def optimise(self, n_iterations=10, load_state=True):
 
         error_list = []
+        start_time = time.perf_counter()
 
         if self.seed is None:
             self.setup_rng()
@@ -342,7 +343,6 @@ class SynapseOptimiser:
                 model_parameter_list = []
 
             error = self.run_models(model_parameter_list)
-            error_list.append(error)
 
             if self.pc.id() == 0:
                 opt.tell(model_parameter_list, error)
@@ -352,6 +352,8 @@ class SynapseOptimiser:
                     # Just for safety let's save every 100 iterations...
                     print(f"Iteration {i}: Saving state to {self.opt_state_data_file_name}")
                     self.save_opt_state(opt)
+
+                error_list.append(np.min(opt.yi))
 
         if self.pc.id() == 0:
             best_idx = opt.yi.index(min(opt.yi))
@@ -374,6 +376,9 @@ class SynapseOptimiser:
         self.run_best_run()
         self.plot_last_run()
         self.plot_error(error_list)
+
+        duration = time.perf_counter() - start_time
+        print(f"Duration: {duration} seconds")
 
     def write_log(self, text, flush=True):  # Change flush to False in future, debug
         if self.log_file is not None:
