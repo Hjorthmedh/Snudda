@@ -470,6 +470,8 @@ class SynapseOptimiser:
 
     def update_cell_properties(self, holding_current):
 
+        self.pc.barrier()
+
         if self.pc.id() != 0:
             return
 
