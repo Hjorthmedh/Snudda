@@ -382,6 +382,7 @@ class SynapseOptimiser:
         # This reruns the best run, then plots it
         self.run_best_run()
         self.plot_last_run()
+        self.plot_error(error_list)
 
     def write_log(self, text, flush=True):  # Change flush to False in future, debug
         if self.log_file is not None:
