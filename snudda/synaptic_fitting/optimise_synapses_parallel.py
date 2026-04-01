@@ -475,9 +475,12 @@ class SynapseOptimiser:
 
         self.cell_properties[cell_type]["holding_current"] = holding_current
 
-        with open(self.neuron_set_file, 'w') as f:
+        tmp_file = self.neuron_set_file + ".tmp"
+
+        with open(tmp_file, 'w') as f:
             json.dump(self.cell_properties, f, indent=4)
 
+        os.replace(tmp_file, self.neuron_set_file)
 
     def setup_model(self,
                     synapse_density_override=None,
