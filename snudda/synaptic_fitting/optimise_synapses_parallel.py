@@ -470,8 +470,6 @@ class SynapseOptimiser:
 
     def update_cell_properties(self, holding_current):
 
-        self.pc.barrier()
-
         if self.pc.id() != 0:
             return
 
@@ -482,12 +480,9 @@ class SynapseOptimiser:
 
         self.cell_properties[cell_type]["holding_current"] = holding_current
 
-        tmp_file = self.neuron_set_file + ".tmp"
-
-        with open(tmp_file, 'w') as f:
+        with open(self.neuron_set_file, 'w') as f:
             json.dump(self.cell_properties, f, indent=4)
 
-        os.replace(tmp_file, self.neuron_set_file)
 
     def setup_model(self,
                     synapse_density_override=None,
@@ -570,6 +565,8 @@ class SynapseOptimiser:
                           init_synapses=init_synapses,
                           verbose=True,
                           pc=self.pc)
+
+        self.pc.barrier()
 
         if self.rsr_synapse_model.holding_current != holding_current:
             self.update_cell_properties(holding_current=self.rsr_synapse_model.holding_current)
