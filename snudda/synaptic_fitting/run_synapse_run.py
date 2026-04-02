@@ -591,6 +591,12 @@ class RunSynapseRun(object):
 
         self.set_resting_voltage(self.holding_voltage * 1e3)
 
+        # Clear the saved vectors, if run more than ones
+        self.t_save.resize(0)
+        self.v_save.resize(0)
+        for i_rec in self.i_save:
+            i_rec.resize(0)
+
         neuron.h.v_init = self.holding_voltage * 1e3
         neuron.h.tstop = time * 1e3
         self.write_log("About to start NEURON... stay safe")

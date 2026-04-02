@@ -328,7 +328,7 @@ class SynapseOptimiser:
         if self.pc.id() == 0:
             model_bounds = self.get_model_bounds()
             model_bounds = [x for x in zip(*model_bounds)]
-            opt = Optimizer(dimensions=model_bounds, random_state=42)
+            opt = Optimizer(dimensions=model_bounds, random_state=42, base_estimator="RF")
 
             if self.load_parameters:
                 self.load_opt_state(opt)
@@ -838,11 +838,28 @@ if __name__ == "__main__":
                         help="Number of optimisation iterations to run (default: 100).")
     parser.add_argument("--snudda_data", type=str, default=None,
                         help="Path to the Snudda data directory.")
+    parser.add_argument("--profile", action="store_true", default=False)
     args = parser.parse_args()
 
     so = SynapseOptimiser(data_file=args.data_file,
                           snudda_data=args.snudda_data)
-    so.optimise(n_iterations=args.iterations)
+
+    if args.profile:
+        import cProfile
+        prof_file = f"profile-synaptic-opt.prof"
+        cProfile.runctx("so.optimise(n_iterations=args.iterations)", globals(), locals(), filename=prof_file)
+
+        if so.pc.id() == 0:
+            # To analyse profile data:
+            import pstats
+            from pstats import SortKey
+            p = pstats.Stats(prof_file)
+            p.strip_dirs().sort_stats(SortKey.CUMULATIVE).print_stats(100)
+
+    else:
+        so.optimise(n_iterations=args.iterations)
+
+
 
     # mpirun -n 5 python optimise_synapses_parallel.py ../data/synapses/example_data/10_MSN12_GBZ_CC_H20.json --iterations 50 --snudda_data /home/hjorth/HBP/BasalGangliaData/data/
 
