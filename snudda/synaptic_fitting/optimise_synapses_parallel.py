@@ -61,7 +61,7 @@ class SynapseOptimiser:
 
     def __init__(self, data_file,
                  entropy=1023456734529028340264793840,
-                 synapse_type="glut",  # Change to "glut2" for tmGlut_double
+                 synapse_type="glut2",  # Change to "glut2" for tmGlut_double
                  load_parameters=True,
                  snudda_data=None,
                  neuron_set_file="neuron_set.json",
@@ -74,8 +74,8 @@ class SynapseOptimiser:
         self.sim = None
 
         self.data_file = data_file
-        self.parameter_data_file_name = f"{self.data_file}-parameters-optimised.json"
-        self.opt_state_data_file_name = f"{self.data_file}-opt-state.json.xz"   # Maybe change format if files get too big...
+        self.parameter_data_file_name = f"{self.data_file}-parameters-optimised-{synapse_type}.json"
+        self.opt_state_data_file_name = f"{self.data_file}-opt-state-{synapse_type}.json.xz"   # Maybe change format if files get too big...
 
         self.neuron_set_file = neuron_set_file
         self.seed = None
