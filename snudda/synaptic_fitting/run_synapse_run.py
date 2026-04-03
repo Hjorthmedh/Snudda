@@ -2,6 +2,7 @@ import sys
 import os.path
 import json
 
+import mpi4py
 import neuron
 import numpy as np
 
@@ -428,6 +429,8 @@ class RunSynapseRun(object):
 
     def soma_record(self):
 
+        print(f"Worker {self.pc.id()} soma_record from {id(self.neuron.icell.soma[0](0.5)._ref_v) = }")
+
         self.t_save = neuron.h.Vector()
         self.t_save.record(neuron.h._ref_t)
 
@@ -552,7 +555,7 @@ class RunSynapseRun(object):
 
     def run2(self, pars, time=None, cond=1e-8):
 
-        self.write_log(f"Running with pars: {pars}")
+        self.write_log(f"Running {self.pc.id()} with pars: {pars}")
 
         if time is None:
             time = self.time
@@ -573,6 +576,8 @@ class RunSynapseRun(object):
                 for s in self.synapses:
                     setattr(s, p, v)
                 # print(f"Setting {p} to {v}")
+
+        print(f"Worker {self.pc.id()} has {self.synapses[0].tauF = } (before)")
 
         if "tauRatio" in pars:
 
@@ -599,9 +604,32 @@ class RunSynapseRun(object):
 
         neuron.h.v_init = self.holding_voltage * 1e3
         neuron.h.tstop = time * 1e3
+
         self.write_log("About to start NEURON... stay safe")
+
+        print(f"Worker {self.worker_id} stim_vector len={self.stim_vector.size()}, "
+              f"stim_vector[0]={self.stim_vector[0] if self.stim_vector.size() > 0 else 'EMPTY'}, "
+              f"n_synapses={len(self.synapses)}, "
+              f"n_netcons={len(self.nc_syn)}, "
+              f"netcon weight={float(self.nc_syn[0].weight[0]) if self.nc_syn else 'NONE'}")
+
+        print(f"Worker {self.worker_id} about to run with "
+              f"tauF={self.synapses[0].tauF:.4f}, "
+              f"U={self.synapses[0].U:.4f}, "
+              f"v_save id={id(self.v_save)}, "
+              f"soma ref id={id(self.neuron.icell.soma[0](0.5)._ref_v)}")
+
         neuron.h.run()
+
+        print(f"Worker {self.worker_id} soma voltage directly: {self.neuron.icell.soma[0](0.5).v:.4f} mV, "
+              f"v_save[-1]={float(self.v_save[-1]):.4f}, "
+              f"v_save len={len(self.v_save)}")
+
         self.write_log("NEURON actually completed?!")
+
+        print(f"Worker {self.pc.id()} has {self.synapses[0].tauF = } (after)")
+        print(f"Worker {self.worker_id} has {np.sum(np.abs(self.v_save)) = } (should not all be same),"
+              f"{id(self.neuron.icell)}")
 
         # Convert results back to SI units
         return (np.array(self.t_save) * 1e-3,

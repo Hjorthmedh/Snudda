@@ -61,7 +61,7 @@ class SynapseOptimiser:
 
     def __init__(self, data_file,
                  entropy=1023456734529028340264793840,
-                 synapse_type="glut2",  # Change to "glut2" for tmGlut_double
+                 synapse_type="glut",  # Change to "glut2" for tmGlut_double
                  load_parameters=True,
                  snudda_data=None,
                  neuron_set_file="neuron_set.json",
@@ -198,6 +198,8 @@ class SynapseOptimiser:
         if len(model_parameters) != 5:
             raise ValueError(f"There should be five model parameters: {model_parameters}")
 
+        print(f"Worker {self.pc.id()} received: {model_parameters}")
+
         m_params = { "U": model_parameters[0],
                      "tauR": model_parameters[1],
                      "tauF": model_parameters[2],
@@ -221,6 +223,9 @@ class SynapseOptimiser:
                                        time=t_sim,
                                        volt=v_norm,
                                        v_base=v_base)
+
+        print(f"Worker {self.pc.id()} error: {error}")
+
 
         error = self.pc.py_gather(error, 0)
 
@@ -306,6 +311,9 @@ class SynapseOptimiser:
         if self.pc.id() != 0:
             return
 
+        print(f"Saving opt state: {len(opt.Xi)} xi points, {len(opt.yi)} yi points")
+        print(f"yi = {opt.yi}")
+
         state = { "xi": opt.Xi,
                   "yi": opt.yi }
 
@@ -339,12 +347,16 @@ class SynapseOptimiser:
                 print(f"Iteration {i}/{n_iterations}")
                 model_parameter_list = opt.ask(n_points=self.n_workers)
                 # TODO: Should we round model_parameter_list to N decimals before proceeding?
+                print(f"ask: {model_parameter_list =}")
             else:
                 model_parameter_list = []
 
             error = self.run_models(model_parameter_list)
 
+            print(f"Worker {self.pc.id()} has neuron = {id(self.rsr_synapse_model.neuron)}")
+
             if self.pc.id() == 0:
+                print(f"tell: {model_parameter_list = }\n{error = }")
                 opt.tell(model_parameter_list, error)
                 print(f"Error: {error}")
 
