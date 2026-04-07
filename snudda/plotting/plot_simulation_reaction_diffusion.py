@@ -22,6 +22,8 @@ class PlotReactionDiffusion:
         return self.sls.list_data_types(neuron_id=neuron_id)
 
     def plot(self, neuron_id, species=None, species_label=None,
+             colour_dict=None,
+             line_style_dict=None,
              ylabel=None,
              compartment_id = 0,
              normalise=False,
@@ -55,7 +57,15 @@ class PlotReactionDiffusion:
 
             data = all_data[s]
 
-            color = palette[i % len(palette)]
+            if colour_dict is None:
+                color = palette[i % len(palette)]
+            else:
+                color = colour_dict.get(s, "#000000")
+
+            if line_style_dict is None:
+                line_style = "-"
+            else:
+                line_style = line_style_dict.get(s, "solid")
 
             if compartment_id is None:
                 comp_ofs = 0
@@ -97,10 +107,10 @@ class PlotReactionDiffusion:
                 if normalise:
                     fig.add_trace(go.Scatter(x=time[idx],
                                              y=data[0][neuron_id].T[comp_ofs][idx]/np.max(data[0][neuron_id].T[comp_ofs][idx]),
-                                             name=s_label, line={"width": 4, "color": color}))
+                                             name=s_label, line={"width": 4, "color": color, "dash": line_style}))
                 else:
                     fig.add_trace(go.Scatter(x=time[idx], y=data[0][neuron_id].T[comp_ofs][idx],
-                                             name=s_label, line={"width": 4, "color": color}))
+                                             name=s_label, line={"width": 4, "color": color, "dash": line_style}))
             except Exception as e:
                 import traceback
                 print(traceback.format_exc())
