@@ -63,7 +63,7 @@ class PlotReactionDiffusion:
                 color = colour_dict.get(s, "#000000")
 
             if line_style_dict is None:
-                line_style = "-"
+                line_style = "solid"
             else:
                 line_style = line_style_dict.get(s, "solid")
 
