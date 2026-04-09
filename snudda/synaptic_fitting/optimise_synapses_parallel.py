@@ -848,7 +848,7 @@ if __name__ == "__main__":
                         help="Number of optimisation iterations to run (default: 100).")
     parser.add_argument("--snudda_data", type=str, default=None,
                         help="Path to the Snudda data directory.")
-    parser.add_argument("synapse_type", default="glut", help="Specify synapse ['glut', 'glut2']")
+    parser.add_argument("--synapse_type", default="glut", help="Specify synapse ['glut', 'glut2']")
     parser.add_argument("--profile", action="store_true", default=False)
     args = parser.parse_args()
 
