@@ -154,11 +154,13 @@ class SynapseOptimiser:
         if self.sim is None:
             self.sim = NrnSimulatorParallel(cvode_active=False)
 
+        print(f"synapse_parameters = {self.synapse_parameters}")
 
         # This sets self.rsr_synapse_model
         print(f"Worker {self.pc.id()} calling setup_model")
         self.setup_model(synapse_density_override=None,
                          n_synapses_override=None,
+                         synapse_params=self.synapse_parameters,
                          synapse_position_override=(self.synapse_section_id, self.synapse_section_x),
                          init_synapses=self.pc.id() == 0)
 
@@ -500,11 +502,13 @@ class SynapseOptimiser:
                     synapse_density_override=None,
                     n_synapses_override=None,
                     synapse_position_override=None,
+                    synapse_params=None,
                     init_synapses=True):
 
         self.write_log(f"setup_model: synapse_position-override: {synapse_position_override}")
 
-        params = {}
+        if synapse_params is None:
+            synapse_params = {}
 
         t_stim = self.stim_time
 
@@ -567,7 +571,7 @@ class SynapseOptimiser:
                           holding_voltage=trace_holding_voltage,
                           holding_current=holding_current,
                           synapse_type=self.synapse_type,
-                          params=params,
+                          params=synapse_params,
                           time=self.sim_time,
                           log_file=self.log_file,
                           synapse_section_id=synapse_section_id,
@@ -849,12 +853,17 @@ if __name__ == "__main__":
     parser.add_argument("--snudda_data", type=str, default=None,
                         help="Path to the Snudda data directory.")
     parser.add_argument("--synapse_type", default="glut", help="Specify synapse ['glut', 'glut2']")
+    parser.add_argument("--synapse_parameter_file", type=str, default=None)
     parser.add_argument("--profile", action="store_true", default=False)
     args = parser.parse_args()
 
+    if args.synapse_type == "glut2" and args.synapse_parameter_file is None:
+        raise Exception("Synapse parameter file is required for glut2 synapse (tmGlut_double).")
+
     so = SynapseOptimiser(data_file=args.data_file,
                           snudda_data=args.snudda_data,
-                          synapse_type=args.synapse_type)
+                          synapse_type=args.synapse_type,
+                          synapse_parameter_file=args.synapse_parameter_file)
 
     if args.profile:
         import cProfile
@@ -878,36 +887,5 @@ if __name__ == "__main__":
     # Stored:  /media/psf/KTH/2025-11-13-Yvonne-data-teanalysing/Yvonne2019/CategorisedSTP/
     # mpirun -n 5 python optimise_synapses_parallel.py ../data/synapses/example_data/mixed_test_data.json  --iterations 3 --snudda_data /home/hjorth/HBP/BasalGangliaData/data/
 
-"""
-
-from skopt import gp_minimize
-from skopt import Optimizer
-from joblib import Parallel, delayed
-
-
-## Parallell optimisation
-
-opt = Optimizer(dimensions=m_bounds, random_state=42)
-
-n_iterations = 10
-batch_size = 8  # tune this to your number of CPU cores
-
-# TODO: This can not handle the self reference, need to make func
-#       self contained.
-
-for i in range(n_iterations):
-    print(f"Iteration {i}/{n_iterations}")
-    x_batch = opt.ask(n_points=batch_size)
-
-    # Here run simulation, get results and put it in y_batch
-
-    # y_batch = Parallel(n_jobs=-1)(delayed(func)(x) for x in x_batch)  # couldnt pickle
-    opt.tell(x_batch, y_batch)
-
-best_idx = opt.yi.index(min(opt.yi))
-print("Best value:", min(opt.yi))
-print("Best params:", opt.Xi[best_idx])
-
-fit_params = opt.Xi[best_idx]
-min_error = opt.yi
-"""
+    #
+    # mpirun -n 5 python optimise_synapses_parallel.py ../data/synapses/example_data/mixed_test_data.json  --iterations 3 --snudda_data /home/hjorth/HBP/BasalGangliaData/data/ --synapse_type glut2 --synapse_parameter_file ../../../BasalGangliaData/data/synapses/striatum/tmGlut_double_config/M1-ipsi_dSPN.json
