@@ -3,6 +3,14 @@
 #      -- we need to write code to run on self.pc.id() == 0 that sets up the optimisation
 #          and performs all the goodie stuff
 #
+# TODO: 2026-04-09: tmglut_double (glut2) is running on Dardel, hopefully the result will look good.
+#       We need to get the data for all the synapses, for optimisation.
+#       Then run and verify.
+#       We need a way to setup the runs for multiple different neurons of the same type.
+#       So we want to be able to specify neuron-set file, and random seed.
+#       * We need to make a valiation step, where we randomly pick neuron (morph and parameter keys) and check
+#       that it looks good.
+#
 #      We got to 'get_refined_parameters' function, probably not needed?
 #      We are going to use mpirun and neuron parallel, to run multiple instances at the same exp_time.
 
