@@ -389,7 +389,10 @@ class SynapseOptimiser:
         # This reruns the best run, then plots it
         self.run_best_run()
         self.plot_last_run()
-        self.plot_error(error_list)
+
+        if self.pc.id() == 0:
+            self.plot_error(error_list)
+            self.plot_error(opt.yi, fig_name_info="-ALL", linestyle="None")
 
         duration = time.perf_counter() - start_time
         print(f"Duration: {duration} seconds")
@@ -825,20 +828,20 @@ class SynapseOptimiser:
 
         self.run_models(best_param_list)
 
-    def plot_error(self, error_list):
+    def plot_error(self, error_list, fig_name_info="", marker=".", linestyle="-"):
+
         if self.pc.id() != 0:
             return
 
         import matplotlib.pyplot as plt
         plt.figure()
-        plt.plot(error_list)
+        plt.plot(error_list, marker=marker, linestyle=linestyle)
         plt.ylabel("Error")
 
-        fig_name = os.path.join("figures", os.path.basename(self.data_file).split(".")[0] + "-error.png")
+        fig_name = os.path.join("figures", os.path.basename(self.data_file).split(".")[0] + fig_name_info + "-error.png")
 
         plt.savefig(fig_name, dpi=300)
         plt.close()
-
 
 
 if __name__ == "__main__":
