@@ -27,6 +27,7 @@ class PlotReactionDiffusion:
              ylabel=None,
              compartment_id = 0,
              normalise=False,
+             normalise_factor_dict=None,
              fig_name=None, fig_path="figures", title=None,
              width=800, height=700):
 
@@ -105,9 +106,16 @@ class PlotReactionDiffusion:
             try:
                 # data variable contains 'data', 'sec_id_x', 'syninfo'
                 if normalise:
-                    fig.add_trace(go.Scatter(x=time[idx],
-                                             y=data[0][neuron_id].T[comp_ofs][idx]/np.max(data[0][neuron_id].T[comp_ofs][idx]),
-                                             name=s_label, line={"width": 4, "color": color, "dash": line_style}))
+
+                    if normalise_factor_dict is None:
+                        fig.add_trace(go.Scatter(x=time[idx],
+                                                 y=data[0][neuron_id].T[comp_ofs][idx]/np.max(data[0][neuron_id].T[comp_ofs][idx]),
+                                                 name=s_label, line={"width": 4, "color": color, "dash": line_style}))
+                    else:
+                        norm_factor = normalise_factor_dict[s]
+                        fig.add_trace(go.Scatter(x=time[idx],
+                                                 y=data[0][neuron_id].T[comp_ofs][idx] / norm_factor,
+                                                 name=s_label, line={"width": 4, "color": color, "dash": line_style}))
                 else:
                     fig.add_trace(go.Scatter(x=time[idx], y=data[0][neuron_id].T[comp_ofs][idx],
                                              name=s_label, line={"width": 4, "color": color, "dash": line_style}))

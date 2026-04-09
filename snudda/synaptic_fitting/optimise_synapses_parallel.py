@@ -638,8 +638,6 @@ class SynapseOptimiser:
             peak_time.append(time[p_idx])
             peak_volt.append(volt[p_idx])
 
-        # Save to cache -- obs peakVolt is NOT amplitude of peak, just exp_volt
-
         peak_dict = {"peakIdx": np.array(peak_idx),
                     "peakTime": np.array(peak_time),
                     "peakVolt": np.array(peak_volt)}  # NOT AMPLITUDE
