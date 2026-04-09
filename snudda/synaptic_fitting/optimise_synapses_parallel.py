@@ -867,6 +867,7 @@ if __name__ == "__main__":
                         help="Path to the Snudda data directory.")
     parser.add_argument("--synapse_type", default="glut", help="Specify synapse ['glut', 'glut2']")
     parser.add_argument("--synapse_parameter_file", type=str, default=None)
+    parser.add_argument("--neuron_set_file", type=str, default="neuron_set.json")
     parser.add_argument("--profile", action="store_true", default=False)
     args = parser.parse_args()
 
@@ -876,7 +877,8 @@ if __name__ == "__main__":
     so = SynapseOptimiser(data_file=args.data_file,
                           snudda_data=args.snudda_data,
                           synapse_type=args.synapse_type,
-                          synapse_parameter_file=args.synapse_parameter_file)
+                          synapse_parameter_file=args.synapse_parameter_file,
+                          neuron_set_file=args.neuron_set_file)
 
     if args.profile:
         import cProfile
