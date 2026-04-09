@@ -1,0 +1,54 @@
+#!/bin/bash -l
+#SBATCH --partition=main
+#SBATCH -o log/optimise-synapse-%j-output.txt
+#SBATCH -e log/optimise-synapse-%j-error.txt
+#SBATCH -t 14:59:00
+#SBATCH --time-min=13:59:00
+#SBATCH -J opt_syn
+#SBATCH -A naiss2025-5-309
+#SBATCH --nodes=1
+#SBATCH --tasks-per-node=128
+#SBATCH --mail-type=ALL
+
+
+# This is needed for NEURON
+unset DISPLAY
+
+ulimit -s unlimited
+
+module load snic-env
+
+module load cray-python
+module swap PrgEnv-cray PrgEnv-gnu
+module load cray-mpich-abi
+module unload cray-libsci
+
+source $HOME/Snudda/snudda_env/bin/activate
+
+SPECIAL_PATH=x86_64/special
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CRAY_LD_LIBRARY_PATH
+
+# Explicitly adding MPI paths (suggested by ChatGTP, why are they not loaded automatically?)
+export LD_LIBRARY_PATH=/opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3/lib:$LD_LIBRARY_PATH
+export MPI_LIB_NRN_PATH=/opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3/lib
+
+# Clear old compilation
+rm -r x86_64
+    
+export CXX=CC
+export CC=cc
+export FC=ftn
+export MPICC=cc
+export MPICXX=CC
+
+CC --version
+
+export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
+srun -n 1 nrnivmodl -incflags "-lltdl=/usr/lib64/libltdl.so.7 -lreadline=/lib64/libreadline.so.7 -lncurses=/lib64/libncurses.so.6.1" -loadflags "-DLTDL_LIBRARY=/usr/lib64/libltdl.so.7 -DREADLINE_LIBRARY=/lib64/libreadline.so.7 -DNCURSES_LIBRARY=/lib64/libncurses.so.6.1" $HOME/BasalGangliaData/data/neurons/mechanisms/
+
+export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
+# srun -n $SLURM_NTASKS python optimise_synapses_parallel.py ../data/synapses/example_data/mixed_test_data.json  --iterations 1000 --snudda_data $HOME/BasalGangliaData/data/
+
+srun -n $SLURM_NTASKS python optimise_synapses_parallel.py ../data/synapses/example_data/mixed_test_data.json  --iterations 1000 --snudda_data /home/hjorth/HBP/BasalGangliaData/data/ --synapse_type glut2 --synapse_parameter_file ../../../BasalGangliaData/data/synapses/striatum/tmGlut_double_config/M1-ipsi_dSPN.json
+
