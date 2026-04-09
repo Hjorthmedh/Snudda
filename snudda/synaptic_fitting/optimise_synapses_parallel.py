@@ -590,6 +590,8 @@ class SynapseOptimiser:
         if self.rsr_synapse_model.holding_current != holding_current:
             self.update_cell_properties(holding_current=self.rsr_synapse_model.holding_current)
 
+        self.pc.barrier()
+
         return self.rsr_synapse_model
 
 
