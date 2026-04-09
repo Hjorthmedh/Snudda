@@ -4,7 +4,7 @@
 #SBATCH -e log/optimise-synapse-%j-error.txt
 #SBATCH -t 14:59:00
 #SBATCH --time-min=13:59:00
-#SBATCH -J opt_syn
+#SBATCH -J opt_syn_glut2
 #SBATCH -A naiss2025-5-309
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=128
