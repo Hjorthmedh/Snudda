@@ -50,5 +50,5 @@ srun -n 1 nrnivmodl -incflags "-lltdl=/usr/lib64/libltdl.so.7 -lreadline=/lib64/
 export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
 # srun -n $SLURM_NTASKS python optimise_synapses_parallel.py ../data/synapses/example_data/mixed_test_data.json  --iterations 1000 --snudda_data $HOME/BasalGangliaData/data/
 
-srun -n $SLURM_NTASKS python optimise_synapses_parallel.py ../data/synapses/example_data/mixed_test_data.json  --iterations 1000 --snudda_data /home/hjorth/HBP/BasalGangliaData/data/ --synapse_type glut2 --synapse_parameter_file ../../../BasalGangliaData/data/synapses/striatum/tmGlut_double_config/M1-ipsi_dSPN.json
+srun -n $SLURM_NTASKS python optimise_synapses_parallel.py ../data/synapses/example_data/mixed_test_data.json  --iterations 1000 --snudda_data $HOME/BasalGangliaData/data/ --synapse_type glut2 --synapse_parameter_file $HOME/BasalGangliaData/data/synapses/striatum/tmGlut_double_config/M1-ipsi_dSPN.json
 
