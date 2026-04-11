@@ -43,7 +43,7 @@ class SnuddaProject(object):
         self.work_history_file = os.path.join(self.network_path, "log", "network-detect-worklog.hdf5")
         self.output_file_name = os.path.join(self.network_path, "network-projection-synapses.hdf5")
 
-        max_synapses = 100000
+        max_synapses = 1000000
         self.synapses = np.zeros((max_synapses, 13), dtype=np.int32)
         self.synapse_ctr = 0
         self.connectivity_distributions = dict()
@@ -252,6 +252,7 @@ class SnuddaProject(object):
                 if projection_density:
                     # We need to calculate density for all positions
                     P_all = numexpr.evaluate(projection_density, local_dict={"d": d})
+                    P_all = np.maximum(P_all, 0)
 
                     if projection_radius:
                         P_all[d > projection_radius] = 0
@@ -284,9 +285,16 @@ class SnuddaProject(object):
                 target_name = [post_name_list[x] for x in d_idx]
                 axon_dist = d[d_idx]
 
-                n_synapses = np.maximum(0, self.rng.normal(number_of_synapses[0],
-                                                               number_of_synapses[1],
-                                                               len(target_id))).astype(int)
+                n_synapses_mean = number_of_synapses[0]
+                n_synapses_std = number_of_synapses[1]
+
+                n_synapses_mu = np.log(n_synapses_mean**2 / np.sqrt(n_synapses_mean**2 + n_synapses_std**2))
+
+                n_synapses_sigma = np.sqrt(np.log(1 + n_synapses_std**2 / n_synapses_mean**2))
+
+                n_synapses = np.maximum(0, self.rng.lognormal(n_synapses_mu,
+                                             n_synapses_sigma,
+                                             len(pre_id_list)).astype(int))
 
 
                 for t_id, t_name, n_syn, ax_dist in zip(target_id, target_name, n_synapses, axon_dist):
