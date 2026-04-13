@@ -139,11 +139,23 @@ class SnuddaProject(object):
                     if "RxD" in con_def[key] and "weight_scale" not in con_def:
                         print(f"Connection {key} uses RxD, but does not specify weight_scale set, will use default scaling 1.")
 
-                if isinstance(post_type, list):
-                    for pt in post_type:
-                        self.connectivity_distributions[pre_type, pt] = con_def
-                else:
+                    # Important, in project.py post_type can be a list,
+                    # but the same code in detect.py (and prune.py) will create two separate entries in
+                    # connection_distributions.
                     self.connectivity_distributions[pre_type, post_type] = con_def
+
+    def export_connectivity_distributions(self):
+
+        new_con_dist = {}
+
+        for pre_type, post_type in self.connectivity_distributions.keys():
+            if isinstance(post_type, list):
+                for pt in post_type:
+                    new_con_dist[pre_type, pt] = self.connectivity_distributions[pre_type, pt]
+            else:
+                new_con_dist[pre_type, post_type] = self.connectivity_distributions[pre_type, post_type]
+
+        return new_con_dist
 
     def project(self, write=True):
 
