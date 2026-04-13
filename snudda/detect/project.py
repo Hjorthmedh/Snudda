@@ -4,6 +4,7 @@
 import copy
 import json
 import os
+import ast
 import traceback
 from collections import OrderedDict
 
@@ -110,7 +111,9 @@ class SnuddaProject(object):
         for region_name, region_data in self.config["regions"].items():
             for name, connection_def in region_data["connectivity"].items():
 
-                pre_type, post_type = name.split(",")
+                pre_type, post_type = name.split(",", 1)
+                if "," in post_type:
+                    post_type = ast.literal_eval(post_type)
 
                 con_def = copy.deepcopy(connection_def)
 
@@ -125,7 +128,22 @@ class SnuddaProject(object):
                     if type(con_def[key]["conductance"]) not in [list, tuple]:
                         con_def[key]["conductance"] = [con_def[key]["conductance"], 0]
 
-                self.connectivity_distributions[pre_type, post_type] = con_def
+                    # Precompute lognormal parameters
+                    # https://en.wikipedia.org/wiki/Log-normal_distribution
+                    mean_cond = con_def[key]["conductance"][0]
+                    std_cond = con_def[key]["conductance"][1]
+                    mu = np.log(mean_cond ** 2 / np.sqrt(mean_cond ** 2 + std_cond ** 2))
+                    sigma = np.sqrt(np.log(1 + std_cond ** 2 / mean_cond ** 2))
+                    con_def[key]["lognormal_mu_sigma"] = [mu, sigma]
+
+                    if "RxD" in con_def[key] and "weight_scale" not in con_def:
+                        print(f"Connection {key} uses RxD, but does not specify weight_scale set, will use default scaling 1.")
+
+                if isinstance(post_type, list):
+                    for pt in post_type:
+                        self.connectivity_distributions[pre_type, pt] = con_def
+                else:
+                    self.connectivity_distributions[pre_type, post_type] = con_def
 
     def project(self, write=True):
 
@@ -219,7 +237,13 @@ class SnuddaProject(object):
             pre_positions = self.network_info.data["neuron_positions"][pre_id_list, :]
 
             # Find all the postsynaptic neurons in the network
-            post_id_list = self.network_info.get_neuron_id_of_type(post_neuron_type)
+            if isinstance(post_neuron_type, (list, tuple)):
+                post_id_list = []
+                for pt in post_neuron_type:
+                    post_id_list += self.network_info.get_neuron_id_of_type(post_neuron_type)
+            else:
+                post_id_list = self.network_info.get_neuron_id_of_type(post_neuron_type)
+
             post_name_list = [self.network_info.data["name"][x] for x in post_id_list]
             post_positions = self.network_info.data["neuron_positions"][post_id_list, :]
 

@@ -726,8 +726,10 @@ class SnuddaPrune(object):
             # For the pruning we merge the original detect connectivity_distribution with the one for prune
             for con_name, connection_data in region_data["connectivity"].items():
 
-                (pre_type, post_type) = con_name.split(",")  # split on "$$" if we had looped over orig_connectivity_distribution
+                (pre_type, post_type) = con_name.split(",",1)  # split on "$$" if we had looped over orig_connectivity_distribution
                 orig_key = f"{pre_type}$${post_type}"
+
+
 
                 # Need to handle if preType or postType don't exist, then skip this
                 if pre_type not in self.type_id_lookup or post_type not in self.type_id_lookup:
