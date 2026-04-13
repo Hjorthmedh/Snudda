@@ -142,7 +142,10 @@ class SnuddaProject(object):
                     # Important, in project.py post_type can be a list,
                     # but the same code in detect.py (and prune.py) will create two separate entries in
                     # connection_distributions.
-                    self.connectivity_distributions[pre_type, post_type] = con_def
+                    if isinstance(post_type, list):
+                        self.connectivity_distributions[pre_type, tuple(post_type)] = con_def
+                    else:
+                        self.connectivity_distributions[pre_type, post_type] = con_def
 
     def export_connectivity_distributions(self):
 
