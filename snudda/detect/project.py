@@ -276,7 +276,6 @@ class SnuddaProject(object):
                 if projection_density:
                     # We need to calculate density for all positions
                     P_all = numexpr.evaluate(projection_density, local_dict={"d": d})
-                    P_all = np.maximum(P_all, 0)
 
                     if projection_radius:
                         P_all[d > projection_radius] = 0
