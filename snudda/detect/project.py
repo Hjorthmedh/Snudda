@@ -317,7 +317,7 @@ class SnuddaProject(object):
 
                 n_synapses = np.maximum(0, self.rng.lognormal(n_synapses_mu,
                                              n_synapses_sigma,
-                                             len(pre_id_list)).astype(int))
+                                             len(target_id)).astype(int))
 
 
                 for t_id, t_name, n_syn, ax_dist in zip(target_id, target_name, n_synapses, axon_dist):
