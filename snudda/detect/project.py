@@ -240,7 +240,7 @@ class SnuddaProject(object):
             if isinstance(post_neuron_type, (list, tuple)):
                 post_id_list = []
                 for pt in post_neuron_type:
-                    post_id_list += self.network_info.get_neuron_id_of_type(post_neuron_type)
+                    post_id_list += self.network_info.get_neuron_id_of_type(pt)
             else:
                 post_id_list = self.network_info.get_neuron_id_of_type(post_neuron_type)
 
