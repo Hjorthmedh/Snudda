@@ -29,7 +29,6 @@ import os
 import sys
 import time
 import timeit
-import ast
 
 import h5py
 import numexpr
@@ -727,39 +726,31 @@ class SnuddaPrune(object):
             # For the pruning we merge the original detect connectivity_distribution with the one for prune
             for con_name, connection_data in region_data["connectivity"].items():
 
-                (pre_type, post_type) = con_name.split(",",1)  # split on "$$" if we had looped over orig_connectivity_distribution
+                (pre_type, post_type) = con_name.split(",")  # split on "$$" if we had looped over orig_connectivity_distribution
+                orig_key = f"{pre_type}$${post_type}"
 
-                # For projections, we also allow the post_type to be a list
-                if "," in post_type:
-                    post_type_list = ast.literal_eval(post_type)
-                else:
-                    post_type_list = [post_type]
+                # Need to handle if preType or postType don't exist, then skip this
+                if pre_type not in self.type_id_lookup or post_type not in self.type_id_lookup:
+                    self.write_log(f"Skipping {pre_type} to {post_type} connection")
+                    continue
 
-                for post_type in post_type_list:
-                    orig_key = f"{pre_type}$${post_type}"
+                pre_type_id = self.type_id_lookup[pre_type]
+                post_type_id = self.type_id_lookup[post_type]
 
-                    # Need to handle if pre_type or post_type don't exist, then skip this
-                    if pre_type not in self.type_id_lookup or post_type not in self.type_id_lookup:
-                        self.write_log(f"Skipping {pre_type} to {post_type} connection")
-                        continue
+                for con_type in connection_data:
+                    con_data = connection_data[con_type]
 
-                    pre_type_id = self.type_id_lookup[pre_type]
-                    post_type_id = self.type_id_lookup[post_type]
+                    pruning = self.complete_pruning_info(con_data["pruning"])
 
-                    for con_type in connection_data:
-                        con_data = connection_data[con_type]
+                    if "pruning_other" in con_data:
+                        pruning_other = self.complete_pruning_info(con_data["pruning_other"])
+                    else:
+                        pruning_other = None
 
-                        pruning = self.complete_pruning_info(con_data["pruning"])
+                    # This data is added by detect, we need to take it from what was used during detection
+                    synapse_type_id = orig_connectivity_distributions[orig_key][con_type]["channel_model_id"]
 
-                        if "pruning_other" in con_data:
-                            pruning_other = self.complete_pruning_info(con_data["pruning_other"])
-                        else:
-                            pruning_other = None
-
-                        # This data is added by detect, we need to take it from what was used during detection
-                        synapse_type_id = orig_connectivity_distributions[orig_key][con_type]["channel_model_id"]
-
-                        self.connectivity_distributions[pre_type_id, post_type_id, synapse_type_id] = (pruning, pruning_other)
+                    self.connectivity_distributions[pre_type_id, post_type_id, synapse_type_id] = (pruning, pruning_other)
 
     ############################################################################
 

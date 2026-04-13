@@ -19,7 +19,6 @@ import sys
 import time
 import timeit
 import gc
-import ast
 
 import h5py
 import numexpr
@@ -2131,11 +2130,7 @@ class SnuddaDetect(object):
                 # This also enriches the self.config by adding channelModelID, lognormal_mu_sigma etc
                 con_def = copy.deepcopy(connection_def)
 
-                pre_type, post_type = name.split(",", 1)
-
-                # For projections, we also allow the post_type to be a list
-                if "," in post_type:
-                    post_type = ast.literal_eval(post_type)
+                pre_type, post_type = name.split(",")
 
                 for key in con_def:
                     if key == "gap_junction":
@@ -2165,11 +2160,7 @@ class SnuddaDetect(object):
                     if "RxD" in con_def[key] and "weight_scale" not in con_def:
                         print(f"Connection {key} uses RxD, but does not specify weight_scale set, will use default scaling 1.")
 
-                if isinstance(post_type, list):
-                    for pt in post_type:
-                        self.connectivity_distributions[pre_type, pt] = con_def
-                else:
-                    self.connectivity_distributions[pre_type, post_type] = con_def
+                self.connectivity_distributions[pre_type, post_type] = con_def
 
     ############################################################################
 
