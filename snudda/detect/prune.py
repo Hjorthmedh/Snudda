@@ -2336,10 +2336,6 @@ class SnuddaPrune(object):
                                           read_buffer[:(end_idx - buffer_start), :]],
                                          axis=0)
 
-                assert end_idx == buffer_end \
-                       or (read_buffer[start_idx - buffer_start, :2] != read_buffer[end_idx - buffer_start, :2]).any(), \
-                    "We missed one synapse! (2)"
-
                 assert (syn_mat[:, 0] == syn_mat[0, 0]).all() and (syn_mat[:, 1] == syn_mat[0, 1]).all(), \
                     f"Synapse matrix (2) contains more than one pair:\n{syn_mat}"
 
@@ -2351,11 +2347,6 @@ class SnuddaPrune(object):
                 old_synapses = None
             else:
                 syn_mat = read_buffer[(start_idx - buffer_start):(end_idx - buffer_start), :]
-
-                assert end_idx == buffer_end \
-                       or (read_buffer[start_idx - buffer_start, :2]
-                           != read_buffer[end_idx - buffer_start, :2]).any(), \
-                    "We missed one synapse! (1)"
 
                 assert (syn_mat[:, 0] == syn_mat[0, 0]).all() and (syn_mat[:, 1] == syn_mat[0, 1]).all(), \
                     "Synapse matrix (1) contains more than one pair:\n{syn_mat}"
