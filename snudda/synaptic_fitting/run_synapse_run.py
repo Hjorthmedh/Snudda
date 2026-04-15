@@ -577,7 +577,7 @@ class RunSynapseRun(object):
                     setattr(s, p, v)
                 # print(f"Setting {p} to {v}")
 
-        print(f"Worker {self.pc.id()} has {self.synapses[0].tauF = } (before)")
+        # print(f"Worker {self.pc.id()} has {self.synapses[0].tauF = } (before)")
 
         if "tauRatio" in pars:
 
@@ -586,9 +586,9 @@ class RunSynapseRun(object):
                 setattr(s, "tau", getattr(s, "tauR") * pars["tauRatio"])
             # print(f"tau set to {getattr(s, 'tau')}")
 
-        print(f"Worker {self.worker_id} run: Calling finitialize")
+        # print(f"Worker {self.worker_id} run: Calling finitialize")
         neuron.h.finitialize(self.holding_voltage * 1e3)
-        print(f"Worker {self.worker_id} run: Done with finitialize")
+        # print(f"Worker {self.worker_id} run: Done with finitialize")
 
         for ncs in self.nc_syn:
             ncs.weight[0] = cond
@@ -607,29 +607,32 @@ class RunSynapseRun(object):
 
         self.write_log("About to start NEURON... stay safe")
 
-        print(f"Worker {self.worker_id} stim_vector len={self.stim_vector.size()}, "
-              f"stim_vector[0]={self.stim_vector[0] if self.stim_vector.size() > 0 else 'EMPTY'}, "
-              f"n_synapses={len(self.synapses)}, "
-              f"n_netcons={len(self.nc_syn)}, "
-              f"netcon weight={float(self.nc_syn[0].weight[0]) if self.nc_syn else 'NONE'}")
+        if False:
+            print(f"Worker {self.worker_id} stim_vector len={self.stim_vector.size()}, "
+                  f"stim_vector[0]={self.stim_vector[0] if self.stim_vector.size() > 0 else 'EMPTY'}, "
+                  f"n_synapses={len(self.synapses)}, "
+                  f"n_netcons={len(self.nc_syn)}, "
+                  f"netcon weight={float(self.nc_syn[0].weight[0]) if self.nc_syn else 'NONE'}")
 
-        print(f"Worker {self.worker_id} about to run with "
-              f"tauF={self.synapses[0].tauF:.4f}, "
-              f"U={self.synapses[0].U:.4f}, "
-              f"v_save id={id(self.v_save)}, "
-              f"soma ref id={id(self.neuron.icell.soma[0](0.5)._ref_v)}")
+            print(f"Worker {self.worker_id} about to run with "
+                  f"tauF={self.synapses[0].tauF:.4f}, "
+                  f"U={self.synapses[0].U:.4f}, "
+                  f"v_save id={id(self.v_save)}, "
+                  f"soma ref id={id(self.neuron.icell.soma[0](0.5)._ref_v)}")
 
         neuron.h.run()
 
-        print(f"Worker {self.worker_id} soma voltage directly: {self.neuron.icell.soma[0](0.5).v:.4f} mV, "
-              f"v_save[-1]={float(self.v_save[-1]):.4f}, "
-              f"v_save len={len(self.v_save)}")
+        if False:
+            print(f"Worker {self.worker_id} soma voltage directly: {self.neuron.icell.soma[0](0.5).v:.4f} mV, "
+                  f"v_save[-1]={float(self.v_save[-1]):.4f}, "
+                  f"v_save len={len(self.v_save)}")
 
         self.write_log("NEURON actually completed?!")
 
-        print(f"Worker {self.pc.id()} has {self.synapses[0].tauF = } (after)")
-        print(f"Worker {self.worker_id} has {np.sum(np.abs(self.v_save)) = } (should not all be same),"
-              f"{id(self.neuron.icell)}")
+        if False:
+            print(f"Worker {self.pc.id()} has {self.synapses[0].tauF = } (after)")
+            print(f"Worker {self.worker_id} has {np.sum(np.abs(self.v_save)) = } (should not all be same),"
+                  f"{id(self.neuron.icell)}")
 
         # Convert results back to SI units
         return (np.array(self.t_save) * 1e-3,

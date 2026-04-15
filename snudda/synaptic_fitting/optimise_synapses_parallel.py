@@ -736,22 +736,23 @@ class SynapseOptimiser:
                     self.write_log(tstr)
 
                     ### DEBUGGING START
-                    import pickle
-                    from datetime import datetime
+                    if False:
+                        import pickle
+                        from datetime import datetime
 
-                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    filename = f"curve_fit_args_{timestamp}.pkl"
+                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                        filename = f"curve_fit_args_{timestamp}.pkl"
 
-                    dump_data = {
-                        "t_ab_fit": t_ab_fit,
-                        "v_ab_fit": v_ab_fit,
-                        "p0d": p0d,
-                    }
+                        dump_data = {
+                            "t_ab_fit": t_ab_fit,
+                            "v_ab_fit": v_ab_fit,
+                            "p0d": p0d,
+                        }
 
-                    with open(filename, "wb") as f:
-                        pickle.dump(dump_data, f)
+                        with open(filename, "wb") as f:
+                            pickle.dump(dump_data, f)
 
-                    print(f"Saved to {filename}")
+                        print(f"Saved to {filename}")
 
                     ### DEBIGGING END
 
@@ -848,7 +849,7 @@ class SynapseOptimiser:
         plt.plot(error_list, marker=marker, linestyle=linestyle)
         plt.ylabel("Error")
 
-        fig_name = os.path.join("figures", os.path.basename(self.data_file).split(".")[0] + fig_name_info + "-error.png")
+        fig_name = os.path.join("figures", os.path.basename(self.data_file).split(".")[0] + fig_name_info + f"{self.synapse_type}-error.png")
 
         plt.savefig(fig_name, dpi=300)
         plt.close()
