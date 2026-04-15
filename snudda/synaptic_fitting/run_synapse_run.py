@@ -72,10 +72,9 @@ class RunSynapseRun(object):
         else:
             self.conv_factor = {}
 
-        if self.verbose:
-            self.write_log(f"Holding voltage: {holding_voltage} V")
-            self.write_log(f"Stim times: {stim_times} s")
-            self.write_log(f"Synapse type: {synapse_type}")
+        self.write_log(f"Holding voltage: {holding_voltage} V")
+        self.write_log(f"Stim times: {stim_times} s")
+        self.write_log(f"Synapse type: {synapse_type}")
 
         self.time = time
         self.synapses = []
@@ -119,8 +118,7 @@ class RunSynapseRun(object):
         # Should we use weak reference for garbage collection? (weakref package)
 
         # We load the neuron morphology object also, used to place synapses
-        if self.verbose:
-            self.write_log(f"Using morphology: {neuron_morphology}")
+        self.write_log(f"Using morphology: {neuron_morphology}")
 
         neuron_prototype = NeuronPrototype(neuron_path=neuron_path,
                                            neuron_name="OptimisationNeuron")
@@ -235,9 +233,8 @@ class RunSynapseRun(object):
 
             self.set_resting_voltage(self.holding_voltage * 1e3)
 
-            if self.verbose:
-                self.write_log(f"Set holding current {holding_current}A and holding voltage {holding_voltage}V,"
-                               f" until {self.i_clamp.dur} ms")
+            self.write_log(f"Set holding current {holding_current}A and holding voltage {holding_voltage}V,"
+                           f" until {self.i_clamp.dur} ms")
 
             return holding_current
 
@@ -293,8 +290,7 @@ class RunSynapseRun(object):
 
         self.set_resting_voltage(self.holding_voltage * 1e3)
 
-        if self.verbose:
-            self.write_log(f"Holding voltage {self.holding_voltage * 1e3} mV, IClamp amp = {cur} nA")
+        self.write_log(f"Holding voltage {self.holding_voltage * 1e3} mV, IClamp amp = {cur} nA")
 
         return cur * 1e-9  # Convert to SI units
 
@@ -563,8 +559,7 @@ class RunSynapseRun(object):
 
     def run2(self, pars, time=None, cond=1e-8):
 
-        if self.verbose:
-            self.write_log(f"Running {self.pc.id()} with pars: {pars}")
+        self.write_log(f"Running {self.pc.id()} with pars: {pars}")
 
         if time is None:
             time = self.time

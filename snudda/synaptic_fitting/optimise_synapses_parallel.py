@@ -870,6 +870,8 @@ if __name__ == "__main__":
     parser.add_argument("--synapse_parameter_file", type=str, default=None)
     parser.add_argument("--neuron_set_file", type=str, default="neuron_set.json")
     parser.add_argument("--profile", action="store_true", default=False)
+    parser.add_argument("--verbose", action="store_true", default=False)
+
     args = parser.parse_args()
 
     if args.synapse_type == "glut2" and args.synapse_parameter_file is None:
@@ -879,7 +881,8 @@ if __name__ == "__main__":
                           snudda_data=args.snudda_data,
                           synapse_type=args.synapse_type,
                           synapse_parameter_file=args.synapse_parameter_file,
-                          neuron_set_file=args.neuron_set_file)
+                          neuron_set_file=args.neuron_set_file,
+                          verbose=args.verbose)
 
     if args.profile:
         import cProfile
