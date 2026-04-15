@@ -819,7 +819,7 @@ class SynapseOptimiser:
         plt.legend()
 
         if fig_name is None:
-            fig_name = os.path.join("figures", os.path.basename(self.data_file).split(".")[0] + ".png")
+            fig_name = os.path.join("figures", os.path.basename(self.data_file).split(".")[0] + f"-{self.synapse_type}.png")
 
         os.makedirs("figures", exist_ok=True)
 
@@ -849,7 +849,7 @@ class SynapseOptimiser:
         plt.plot(error_list, marker=marker, linestyle=linestyle)
         plt.ylabel("Error")
 
-        fig_name = os.path.join("figures", os.path.basename(self.data_file).split(".")[0] + fig_name_info + f"{self.synapse_type}-error.png")
+        fig_name = os.path.join("figures", os.path.basename(self.data_file).split(".")[0] + fig_name_info + f"-{self.synapse_type}-error.png")
 
         plt.savefig(fig_name, dpi=300)
         plt.close()
