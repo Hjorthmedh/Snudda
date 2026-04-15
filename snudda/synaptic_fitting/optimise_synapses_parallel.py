@@ -208,7 +208,7 @@ class SynapseOptimiser:
         if len(model_parameters) != 5:
             raise ValueError(f"There should be five model parameters: {model_parameters}")
 
-        print(f"Worker {self.pc.id()} received: {model_parameters}")
+        # print(f"Worker {self.pc.id()} received: {model_parameters}")
 
         m_params = { "U": model_parameters[0],
                      "tauR": model_parameters[1],
