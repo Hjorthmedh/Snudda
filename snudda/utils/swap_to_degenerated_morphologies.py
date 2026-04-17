@@ -428,6 +428,13 @@ class SwapToDegeneratedMorphologies:
             potential_dir = glob.glob(os.path.join(parent_dir, '*'))
             candidate_dir = [os.path.join(last_dir, x) for x in potential_dir if last_dir in os.path.basename(x)]
 
+            if len(candidate_dir) == 0:
+                # Let's do one last hail mary try
+                partial_last_dir = last_dir.rsplit("-", 1)[0]   # Here we remove everything after last -, and treat that as the stub
+                assert len(partial_last_dir) > 0
+
+                candidate_dir = [os.path.join(last_dir, x) for x in potential_dir if partial_last_dir in os.path.basename(x)]
+
             if len(candidate_dir) != 1:
                 raise ValueError(f"Unable to find {new_neuron_path}, also tried looking for similar folders in {parent_dir}")
 

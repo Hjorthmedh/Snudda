@@ -975,8 +975,9 @@ class SnuddaInit(object):
             self.num_ChIN = get_val(num_ChIN)
             self.num_LTS = get_val(num_LTS)
             self.num_NGF = get_val(num_NGF)
+            self.num_TH = get_val(num_TH)
 
-            self.num_neurons_total += self.num_FS + self.num_dSPN + self.num_iSPN + self.num_ChIN + self.num_LTS + self.num_NGF
+            self.num_neurons_total += self.num_FS + self.num_dSPN + self.num_iSPN + self.num_ChIN + self.num_LTS + self.num_NGF + self.num_TH
             num_neurons = self.num_neurons_total
 
             if self.num_neurons_total <= 0:
@@ -995,8 +996,9 @@ class SnuddaInit(object):
             self.num_ChIN = np.round(f_ChIN * num_neurons / f_tot)
             self.num_LTS = np.round(f_LTS * num_neurons / f_tot)
             self.num_NGF = np.round(f_NGF * num_neurons / f_tot)
+            self.num_TH = np.round(f_TH * num_neurons / f_tot)
 
-            n_neurons = int(self.num_FS + self.num_dSPN + self.num_iSPN + self.num_ChIN + self.num_LTS + self.num_NGF)
+            n_neurons = int(self.num_FS + self.num_dSPN + self.num_iSPN + self.num_ChIN + self.num_LTS + self.num_NGF + self.num_TH)
 
             self.num_neurons_total += n_neurons
             if abs(num_neurons - self.num_neurons_total) > 5:
@@ -1094,6 +1096,7 @@ class SnuddaInit(object):
         ChIN_dir = os.path.join(neurons_dir, "striatum", "chin")
         LTS_dir = os.path.join(neurons_dir, "striatum", "lts")
         NGF_dir = os.path.join(neurons_dir, "striatum", "ngf")
+        TH_dir = os.path.join(neurons_dir, "striatum", "th")
 
 
         # Add the neurons
@@ -1196,6 +1199,15 @@ class SnuddaInit(object):
 
         else:
             print(f"No directory {NGF_dir}, skipping NGF cells.")
+
+        if os.path.isdir(snudda_parse_path(TH_dir, self.snudda_data)):
+            self.add_neurons(name="TH", neuron_dir=TH_dir,
+                             num_neurons=self.num_TH,
+                             volume_id="Striatum")
+
+        else:
+            print(f"No directory {TH_dir}, skipping TH cells.")
+
 
         # Define FS targets
 
@@ -1687,6 +1699,10 @@ class SnuddaInit(object):
                                    f1=0.9208, soft_max=10, mu2=0.3393, a3=1.0,
                                    conductance=0.5e-9,
                                    mod_file="tmGabaA")  # Not correct MOD file
+
+            # TODO: 2026-04-17 We need to also do add_neuron_target for TH, or better still
+            #       replace this old code with reading from striatum-connectivity.json file in the BasalGangliaData
+            #
 
     ############################################################################
 
