@@ -88,6 +88,7 @@ DERIVATIVE states {
 }
 
 INITIAL {
+    modShift = 0
     rates()
     m = minf
     h = hinf
