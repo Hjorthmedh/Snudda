@@ -110,17 +110,16 @@ class RunSynapseRun(object):
         # Done in NrnSimulatorParallel
         # neuron.h.load_file('stdrun.hoc')
 
-        print(f"Setting up parallel sim object")
         if sim is None:
             self.sim = NrnSimulatorParallel(cvode_active=False)
         else:
             self.sim = sim
-        print(f"sim object done.")
 
         # Should we use weak reference for garbage collection? (weakref package)
 
         # We load the neuron morphology object also, used to place synapses
         self.write_log(f"Using morphology: {neuron_morphology}")
+
         neuron_prototype = NeuronPrototype(neuron_path=neuron_path,
                                            neuron_name="OptimisationNeuron")
         self.morphology = neuron_prototype.clone(parameter_key=neuron_parameter_key,
@@ -169,7 +168,8 @@ class RunSynapseRun(object):
         self.holding_current = self.update_holding_current(holding_voltage=holding_voltage,
                                                            holding_current=holding_current)
 
-        self.write_log("RunSynapseRun: Init done.")
+        if self.verbose:
+            self.write_log("RunSynapseRun: Init done.")
 
         # import pdb
         # pdb.set_trace()
@@ -232,11 +232,14 @@ class RunSynapseRun(object):
             self.i_clamp.dur = 2 * self.time * 1e3
 
             self.set_resting_voltage(self.holding_voltage * 1e3)
+
             self.write_log(f"Set holding current {holding_current}A and holding voltage {holding_voltage}V,"
                            f" until {self.i_clamp.dur} ms")
+
             return holding_current
 
-        self.write_log("Updating holding current, might take a bit of exp_time")
+        if self.verbose:
+            self.write_log("Updating holding current, might take a bit of exp_time")
 
         # Disable old iClamp temporarily
         if self.i_clamp is not None:
@@ -249,9 +252,7 @@ class RunSynapseRun(object):
         self.v_clamp.dur1 = self.time * 2 * 1e3
         # self.writeLog("VClamp duration: " + str(self.VClamp.dur1))
 
-        print(f"Worker {self.worker_id} update_holding_current: Calling finitialize")
         neuron.h.finitialize(self.holding_voltage * 1e3)
-        print(f"Worker {self.worker_id} update_holding_current: Done with finitialize")
 
         # !!! There is a WEIRD neuron bug, that if this tstop here is
         # different from duration of simulation, then the *SECOND* exp_time
@@ -259,10 +260,8 @@ class RunSynapseRun(object):
         # value, and not by the tStop of that simulation --- go figure!
         self.set_resting_voltage(self.holding_voltage * 1e3)
 
-        print(f"Neuron run holding.")
         neuron.h.tstop = self.time * 1e3  # Must set tstop
         neuron.h.run()
-        print(f"Neuron done running.")
 
         if False:
             import matplotlib.pyplot as plt
@@ -300,8 +299,9 @@ class RunSynapseRun(object):
     def set_stim_times(self, stim_times):
 
         if len(stim_times) != len(self.stim_times) or (stim_times != self.stim_times).any():
-            print(f"Setting stim times to {stim_times} s")
-            self.write_log(f"Setting stim times to {stim_times} s")
+            if self.verbose:
+                self.write_log(f"Setting stim times to {stim_times} s")
+
             self.stim_vector = neuron.h.Vector(stim_times * 1e3)
             self.stim_times = stim_times * 1e3
 
@@ -412,7 +412,9 @@ class RunSynapseRun(object):
 
     def connect_input_to_synapses(self, stim_times):
 
-        self.write_log(f"Stimulation times (s): {stim_times}")
+        if self.verbose:
+            self.write_log(f"Stimulation times (s): {stim_times}")
+
         self.nc_syn = []
 
         self.stim_vector = neuron.h.Vector(stim_times * 1e3)
@@ -429,7 +431,8 @@ class RunSynapseRun(object):
 
     def soma_record(self):
 
-        print(f"Worker {self.pc.id()} soma_record from {id(self.neuron.icell.soma[0](0.5)._ref_v) = }")
+        if self.verbose:
+            self.write_log(f"Worker {self.pc.id()} soma_record from {id(self.neuron.icell.soma[0](0.5)._ref_v) = }")
 
         self.t_save = neuron.h.Vector()
         self.t_save.record(neuron.h._ref_t)
@@ -507,7 +510,8 @@ class RunSynapseRun(object):
 
     def set_resting_voltage(self, rest_volt):
 
-        self.write_log("Setting resting voltage to %.3f mV" % rest_volt)
+        if self.verbose:
+            self.write_log("Setting resting voltage to %.3f mV" % rest_volt)
 
         soma = [x for x in self.neuron.icell.soma]
         axon = [x for x in self.neuron.icell.axon]
@@ -577,7 +581,7 @@ class RunSynapseRun(object):
                     setattr(s, p, v)
                 # print(f"Setting {p} to {v}")
 
-        print(f"Worker {self.pc.id()} has {self.synapses[0].tauF = } (before)")
+        # print(f"Worker {self.pc.id()} has {self.synapses[0].tauF = } (before)")
 
         if "tauRatio" in pars:
 
@@ -586,9 +590,9 @@ class RunSynapseRun(object):
                 setattr(s, "tau", getattr(s, "tauR") * pars["tauRatio"])
             # print(f"tau set to {getattr(s, 'tau')}")
 
-        print(f"Worker {self.worker_id} run: Calling finitialize")
+        # print(f"Worker {self.worker_id} run: Calling finitialize")
         neuron.h.finitialize(self.holding_voltage * 1e3)
-        print(f"Worker {self.worker_id} run: Done with finitialize")
+        # print(f"Worker {self.worker_id} run: Done with finitialize")
 
         for ncs in self.nc_syn:
             ncs.weight[0] = cond
@@ -605,31 +609,26 @@ class RunSynapseRun(object):
         neuron.h.v_init = self.holding_voltage * 1e3
         neuron.h.tstop = time * 1e3
 
-        self.write_log("About to start NEURON... stay safe")
+        if self.verbose:
+            self.write_log("About to start NEURON... stay safe")
 
-        print(f"Worker {self.worker_id} stim_vector len={self.stim_vector.size()}, "
-              f"stim_vector[0]={self.stim_vector[0] if self.stim_vector.size() > 0 else 'EMPTY'}, "
-              f"n_synapses={len(self.synapses)}, "
-              f"n_netcons={len(self.nc_syn)}, "
-              f"netcon weight={float(self.nc_syn[0].weight[0]) if self.nc_syn else 'NONE'}")
+        if False:
+            print(f"Worker {self.worker_id} stim_vector len={self.stim_vector.size()}, "
+                  f"stim_vector[0]={self.stim_vector[0] if self.stim_vector.size() > 0 else 'EMPTY'}, "
+                  f"n_synapses={len(self.synapses)}, "
+                  f"n_netcons={len(self.nc_syn)}, "
+                  f"netcon weight={float(self.nc_syn[0].weight[0]) if self.nc_syn else 'NONE'}")
 
-        print(f"Worker {self.worker_id} about to run with "
-              f"tauF={self.synapses[0].tauF:.4f}, "
-              f"U={self.synapses[0].U:.4f}, "
-              f"v_save id={id(self.v_save)}, "
-              f"soma ref id={id(self.neuron.icell.soma[0](0.5)._ref_v)}")
+            print(f"Worker {self.worker_id} about to run with "
+                  f"tauF={self.synapses[0].tauF:.4f}, "
+                  f"U={self.synapses[0].U:.4f}, "
+                  f"v_save id={id(self.v_save)}, "
+                  f"soma ref id={id(self.neuron.icell.soma[0](0.5)._ref_v)}")
 
         neuron.h.run()
 
-        print(f"Worker {self.worker_id} soma voltage directly: {self.neuron.icell.soma[0](0.5).v:.4f} mV, "
-              f"v_save[-1]={float(self.v_save[-1]):.4f}, "
-              f"v_save len={len(self.v_save)}")
-
-        self.write_log("NEURON actually completed?!")
-
-        print(f"Worker {self.pc.id()} has {self.synapses[0].tauF = } (after)")
-        print(f"Worker {self.worker_id} has {np.sum(np.abs(self.v_save)) = } (should not all be same),"
-              f"{id(self.neuron.icell)}")
+        if self.verbose:
+            self.write_log("NEURON actually completed?!")
 
         # Convert results back to SI units
         return (np.array(self.t_save) * 1e-3,

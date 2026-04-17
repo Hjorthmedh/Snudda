@@ -208,7 +208,7 @@ class SynapseOptimiser:
         if len(model_parameters) != 5:
             raise ValueError(f"There should be five model parameters: {model_parameters}")
 
-        print(f"Worker {self.pc.id()} received: {model_parameters}")
+        # print(f"Worker {self.pc.id()} received: {model_parameters}")
 
         m_params = { "U": model_parameters[0],
                      "tauR": model_parameters[1],
@@ -736,22 +736,23 @@ class SynapseOptimiser:
                     self.write_log(tstr)
 
                     ### DEBUGGING START
-                    import pickle
-                    from datetime import datetime
+                    if False:
+                        import pickle
+                        from datetime import datetime
 
-                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    filename = f"curve_fit_args_{timestamp}.pkl"
+                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                        filename = f"curve_fit_args_{timestamp}.pkl"
 
-                    dump_data = {
-                        "t_ab_fit": t_ab_fit,
-                        "v_ab_fit": v_ab_fit,
-                        "p0d": p0d,
-                    }
+                        dump_data = {
+                            "t_ab_fit": t_ab_fit,
+                            "v_ab_fit": v_ab_fit,
+                            "p0d": p0d,
+                        }
 
-                    with open(filename, "wb") as f:
-                        pickle.dump(dump_data, f)
+                        with open(filename, "wb") as f:
+                            pickle.dump(dump_data, f)
 
-                    print(f"Saved to {filename}")
+                        print(f"Saved to {filename}")
 
                     ### DEBIGGING END
 
@@ -818,7 +819,7 @@ class SynapseOptimiser:
         plt.legend()
 
         if fig_name is None:
-            fig_name = os.path.join("figures", os.path.basename(self.data_file).split(".")[0] + ".png")
+            fig_name = os.path.join("figures", os.path.basename(self.data_file).split(".")[0] + f"-{self.synapse_type}.png")
 
         os.makedirs("figures", exist_ok=True)
 
@@ -848,7 +849,7 @@ class SynapseOptimiser:
         plt.plot(error_list, marker=marker, linestyle=linestyle)
         plt.ylabel("Error")
 
-        fig_name = os.path.join("figures", os.path.basename(self.data_file).split(".")[0] + fig_name_info + "-error.png")
+        fig_name = os.path.join("figures", os.path.basename(self.data_file).split(".")[0] + fig_name_info + f"-{self.synapse_type}-error.png")
 
         plt.savefig(fig_name, dpi=300)
         plt.close()
@@ -869,6 +870,8 @@ if __name__ == "__main__":
     parser.add_argument("--synapse_parameter_file", type=str, default=None)
     parser.add_argument("--neuron_set_file", type=str, default="neuron_set.json")
     parser.add_argument("--profile", action="store_true", default=False)
+    parser.add_argument("--verbose", action="store_true", default=False)
+
     args = parser.parse_args()
 
     if args.synapse_type == "glut2" and args.synapse_parameter_file is None:
@@ -878,7 +881,8 @@ if __name__ == "__main__":
                           snudda_data=args.snudda_data,
                           synapse_type=args.synapse_type,
                           synapse_parameter_file=args.synapse_parameter_file,
-                          neuron_set_file=args.neuron_set_file)
+                          neuron_set_file=args.neuron_set_file,
+                          verbose=args.verbose)
 
     if args.profile:
         import cProfile
