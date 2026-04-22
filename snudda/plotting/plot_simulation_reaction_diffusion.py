@@ -126,7 +126,7 @@ class PlotReactionDiffusion:
                 import pdb
                 pdb.set_trace()
 
-        fig.update_layout(xaxis_title="Time (s)", yaxis_title=ylabel, width=1000, height=800,
+        fig.update_layout(xaxis_title="Time (s)", yaxis_title=ylabel, width=width, height=height,
                           paper_bgcolor="white", plot_bgcolor="white",
                           font={"size": 15},  # General font size for all elements
                           title={"text": title, "font": {"size": 20}, "x": 0.5, "xanchor": "center", "y": 0.9},
