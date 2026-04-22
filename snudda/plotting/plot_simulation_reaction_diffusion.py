@@ -134,8 +134,12 @@ class PlotReactionDiffusion:
                           xaxis={"title": {"font": {"size": 15}}, "tickfont": {"size": 15}},
                           yaxis={"title": {"font": {"size": 15}},
                                  "tickfont": {"size": 15}}, # Y-axis title and tick labels
-                          margin=dict(l=100, r=100, t=160, b=100)) # Margin
-
+                          margin=dict(
+                              l=int(width * 0.15),
+                              r=int(width * 0.05),
+                              t=int(height * 0.12),
+                              b=int(height * 0.12))
+                          )
 
         if fig_name is not None:
             if fig_path is not None:
