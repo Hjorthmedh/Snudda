@@ -432,7 +432,7 @@ class RunSynapseRun(object):
     def soma_record(self):
 
         if self.verbose:
-            self.write_log(f"Worker {self.pc.id()} soma_record from {id(self.neuron.icell.soma[0](0.5)._ref_v) = }")
+            self.write_log(f"Worker {self.pc.id() if self.pc is not None else "LONELY"} soma_record from {id(self.neuron.icell.soma[0](0.5)._ref_v) = }")
 
         self.t_save = neuron.h.Vector()
         self.t_save.record(neuron.h._ref_t)
@@ -559,7 +559,7 @@ class RunSynapseRun(object):
 
     def run2(self, pars, time=None, cond=1e-8):
 
-        self.write_log(f"Running {self.pc.id()} with pars: {pars}")
+        self.write_log(f"Running {self.pc.id() if self.pc is not None else "LONELY"} with pars: {pars}")
 
         if time is None:
             time = self.time
