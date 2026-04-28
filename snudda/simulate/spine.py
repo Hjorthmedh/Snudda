@@ -56,8 +56,8 @@ class Spine:
         name_sec = self.name + "_neck"
         neck = h.Section(name=name_sec)
         neck.nseg = 1
-        neck.L = length
-        neck.diam = diameter
+        neck.L = length * 1e6  # SI -> Natural units in NEURON
+        neck.diam = diameter * 1e6
         neck.Ra = axial_resistance
         neck.cm = membrane_capacitance
 
@@ -83,8 +83,8 @@ class Spine:
         head = h.Section(name=name_sec)
 
         head.nseg = 1
-        head.L = length
-        head.diam = diameter
+        head.L = length * 1e6
+        head.diam = diameter * 1e6
         head.Ra = axial_resistance
         head.cm = membrane_capacitance
 
