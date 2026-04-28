@@ -42,11 +42,14 @@ from snudda.simulate.save_network_recording import SnuddaSaveNetworkRecordings
 # If simulationConfig is set, those values override other values
 from snudda.utils.load import SnuddaLoad
 from snudda.utils.snudda_path import snudda_parse_path, get_snudda_data
-
+from snudda.simulate.spine import Spine
 
 # !!! Need to gracefully handle the situation where there are more workers than
 # number of neurons, currently we get problem when adding the voltage saving
 ##############################################################################
+
+# TODO: 2026-04-28 - We need to add ability to place synapses between neurons on spines
+#                    This time only adding spines as option for external input
 
 
 class SnuddaSimulate(object):
@@ -1807,8 +1810,18 @@ class SnuddaSimulate(object):
                 self.external_stim[neuron_id, input_type] = []
 
                 neuron_input = self.input_data["input"][str(neuron_id)][input_type]
-                sections = self.neurons[neuron_id].map_id_to_compartment(neuron_input.attrs["section_id"])
+                sections = self.neurons[neuron_id].map_id_to_compartment(neuron_input.attrs["section_id"].copy())
                 mod_file = SnuddaLoad.to_str(neuron_input.attrs["mod_file"])
+
+                # If the input should have a spine, we need to add the spines in the for loop
+                # below for each of the inputs (see spine.py)
+                # we als need to read all the relevant parameters from the input config, and
+                # they should have been stored in the hdf5 file.
+                if "spines" in neuron_input.attrs:
+                    spine_info = json.loads(neuron_input.attrs["spines"])
+                else:
+                    spine_info = None
+
                 if "parameter_list" in neuron_input.attrs:
                     param_list = json.loads(neuron_input.attrs["parameter_list"], object_pairs_hook=OrderedDict)
                 else:
@@ -1854,7 +1867,32 @@ class SnuddaSimulate(object):
                     elif section_x == 1.0:
                         section_x = 0.99
 
-                    syn = self.get_external_input_synapse(channel_module, section, section_x)
+                    # Add input on spine if spine_info was defined
+                    if spine_info is not None:
+
+                        # We need to create a spine
+                        spine = Spine(parent_section=section,
+                                      parent_x=section_x,
+                                      name=f"{input_type}-{neuron_id}-{section_id}-{section_x:.2f}",
+                                      neck_length=spine_info.get("neck_length", 0.5),
+                                      neck_diameter=spine_info.get("neck_diameter", 0.125),
+                                      neck_axial_resistance=spine_info.get("neck_axial_resistance", 1130),
+                                      head_length=spine_info.get("head_length", 0.5),
+                                      head_diameter=spine_info.get("head_diameter", 0.5),
+                                      head_axial_resistance=spine_info.get("head_axial_resistance", 150),
+                                      membrane_capacitance=spine_info.get("membrane_capacitance", 1.0),
+                                      mechanism_list=spine_info.get("mechanism_list", ["pas"]),
+                                      parameter_list_head=spine_info.get("parameter_list_head", []),
+                                      parameter_list_neck=spine_info.get("parameter_list_neck", []),
+                                      )
+
+                        # Create synpase on spine head
+                        syn = self.get_external_input_synapse(channel_module, spine.head, 0.5)
+
+                    else:
+                        # No spine, regular synapse on dendrite
+                        syn = self.get_external_input_synapse(channel_module, section, section_x)
+
                     nc = h.NetCon(vs, syn)
 
                     nc.delay = 0.0

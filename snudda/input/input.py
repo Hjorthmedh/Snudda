@@ -378,6 +378,9 @@ class SnuddaInput(object):
                     if "RxD" in neuron_in:
                         it_group.attrs["RxD"] = json.dumps(neuron_in["RxD"])
 
+                    if "spines" in neuron_in:
+                        it_group.attrs["spines"] = json.dumps(neuron_in["spines"])
+
                 else:
 
                     # Input is activity of a virtual neuron
