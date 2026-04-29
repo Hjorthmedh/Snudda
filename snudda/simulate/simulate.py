@@ -3232,7 +3232,7 @@ class SnuddaSimulate(object):
             except:
                 pass
 
-    def clear_neuron(self):
+    def clear_neuron(self, reset_random123=False):
 
         if self.pc is not None:
             self.pc.gid_clear()
@@ -3264,6 +3264,16 @@ class SnuddaSimulate(object):
         if h is not None:
             for sec in list(h.allsec()):  # Convert to list to avoid modifying during iteration
                 h.delete_section(sec=sec)
+            if reset_random123:
+                h.nrnran123_setglobalindex(0)
+            else:
+                import warnings
+                warnings.warn(
+                    "clear_neuron() called with reset_random123=False. "
+                    "If you plan to run another simulation in the same process, "
+                    "set reset_random123=True to ensure reproducible Random123 streams.",
+                    UserWarning, stacklevel=2
+                )
 
         self.sim = None
 
