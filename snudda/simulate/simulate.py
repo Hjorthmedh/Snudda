@@ -42,11 +42,14 @@ from snudda.simulate.save_network_recording import SnuddaSaveNetworkRecordings
 # If simulationConfig is set, those values override other values
 from snudda.utils.load import SnuddaLoad
 from snudda.utils.snudda_path import snudda_parse_path, get_snudda_data
-
+from snudda.simulate.spine import Spine
 
 # !!! Need to gracefully handle the situation where there are more workers than
 # number of neurons, currently we get problem when adding the voltage saving
 ##############################################################################
+
+# TODO: 2026-04-28 - We need to add ability to place synapses between neurons on spines
+#                    This time only adding spines as option for external input
 
 
 class SnuddaSimulate(object):
@@ -163,6 +166,8 @@ class SnuddaSimulate(object):
         self.current_clamps = dict()
         self.current_injection_voltage = dict()
 
+        self.conv_factor = None
+
         self.node_id = int(self.pc.id())
         self.total_nodes = int(self.pc.nhost())
 
@@ -223,6 +228,19 @@ class SnuddaSimulate(object):
             if "output_file" in self.sim_info:
                 self.output_file = self.sim_info["output_file"].replace("$network_path", self.network_path)
                 self.write_log(f"Output file: {self.output_file}")
+
+            if "conversion_factor_lookup" in self.sim_info:
+                conversion_factor_lookup = self.sim_info["conversion_factor_lookup"]
+                print(f"Using conversion_factor_lookup: {conversion_factor_lookup}")
+
+                if isinstance(conversion_factor_lookup, dict):
+                    self.conv_factor = conversion_factor_lookup
+
+                elif os.path.isfile(conversion_factor_lookup):
+                    with open(conversion_factor_lookup, "r") as f:
+                        self.conv_factor = json.load(f)
+                else:
+                    raise ValueError(f"simulation config file: {conversion_factor_lookup = } not dictionary or file.")
 
             if "use_cvode" in self.sim_info:
                 self.use_cvode = self.sim_info["use_cvode"]
@@ -333,12 +351,14 @@ class SnuddaSimulate(object):
         # Make sure the output dir exists, so we don't fail at end because we cant write file
         self.create_dir(os.path.join("save", "traces"))
 
-        conversion_factor_lookup_file = os.path.join(os.path.dirname(__file__), "..", "convert_units.json")
-        if os.path.isfile(conversion_factor_lookup_file):
-            with open(conversion_factor_lookup_file, "r") as f:
-                self.conv_factor = json.load(f)
-        else:
-            self.conv_factor = {}
+
+        if self.conv_factor is None:
+            conversion_factor_lookup_file = os.path.join(os.path.dirname(__file__), "..", "convert_units.json")
+            if os.path.isfile(conversion_factor_lookup_file):
+                with open(conversion_factor_lookup_file, "r") as f:
+                    self.conv_factor = json.load(f)
+            else:
+                self.conv_factor = {}
 
         if self.verbose:
             print(f"Using conversion factor lookup for mod files: {self.conv_factor}")
@@ -1790,8 +1810,18 @@ class SnuddaSimulate(object):
                 self.external_stim[neuron_id, input_type] = []
 
                 neuron_input = self.input_data["input"][str(neuron_id)][input_type]
-                sections = self.neurons[neuron_id].map_id_to_compartment(neuron_input.attrs["section_id"])
+                sections = self.neurons[neuron_id].map_id_to_compartment(neuron_input.attrs["section_id"].copy())
                 mod_file = SnuddaLoad.to_str(neuron_input.attrs["mod_file"])
+
+                # If the input should have a spine, we need to add the spines in the for loop
+                # below for each of the inputs (see spine.py)
+                # we als need to read all the relevant parameters from the input config, and
+                # they should have been stored in the hdf5 file.
+                if "spines" in neuron_input.attrs:
+                    spine_info = json.loads(neuron_input.attrs["spines"])
+                else:
+                    spine_info = None
+
                 if "parameter_list" in neuron_input.attrs:
                     param_list = json.loads(neuron_input.attrs["parameter_list"], object_pairs_hook=OrderedDict)
                 else:
@@ -1837,7 +1867,34 @@ class SnuddaSimulate(object):
                     elif section_x == 1.0:
                         section_x = 0.99
 
-                    syn = self.get_external_input_synapse(channel_module, section, section_x)
+                    # Add input on spine if spine_info was defined
+                    if spine_info is not None:
+
+                        # We need to create a spine
+                        spine = Spine(parent_section=section,
+                                      parent_x=section_x,
+                                      name=f"{input_type}-{neuron_id}-{section_id}-{section_x:.2f}",
+                                      head_length=spine_info.get("head_length", 0.5e-6),
+                                      head_diameter=spine_info.get("head_diameter", 0.5e-6),
+                                      head_axial_resistance=spine_info.get("head_axial_resistance", 150),
+                                      neck_length=spine_info.get("neck_length", 0.5e-6),
+                                      neck_diameter=spine_info.get("neck_diameter", 0.125e-6),
+                                      neck_axial_resistance=spine_info.get("neck_axial_resistance", 1130),
+                                      membrane_capacitance=spine_info.get("membrane_capacitance", 1.0),
+                                      head_mechanism_list=spine_info.get("head_mechanism_list", ["pas"]),
+                                      neck_mechanism_list=spine_info.get("neck_mechanism_list", ["pas"]),
+                                      parameter_list_head=spine_info.get("parameter_list_head", []),
+                                      parameter_list_neck=spine_info.get("parameter_list_neck", []),
+                                      )
+
+                        # Create synpase on spine head
+                        syn = self.get_external_input_synapse(channel_module, spine.head, 0.5)
+
+                    else:
+                        # No spine, regular synapse on dendrite
+                        syn = self.get_external_input_synapse(channel_module, section, section_x)
+                        spine = None
+
                     nc = h.NetCon(vs, syn)
 
                     nc.delay = 0.0
@@ -1885,7 +1942,7 @@ class SnuddaSimulate(object):
                                                                         flux_variable=rxd_flux_variable)
 
                     # Need to save references, otherwise they will be freed
-                    self.external_stim[neuron_id, input_type].append((v, vs, nc, syn, spikes, section_id, section_x))
+                    self.external_stim[neuron_id, input_type].append((v, vs, nc, syn, spikes, section_id, section_x, spine))
 
     def get_rxd_external_input_parameters(self, neuron_input):
 
@@ -2619,7 +2676,11 @@ class SnuddaSimulate(object):
                             for seg in sec:
                                 channel = getattr(seg, ion_channel, None)
                                 if channel is not None:
-                                    setattr(channel, "gbar", getattr(channel, "gbar") * channel_mod_factor)
+                                    if hasattr(channel, "gbar"):
+                                        channel.gbar *= channel_mod_factor
+                                    else:
+                                        print(f"post_initialisation_modifications: Missing attribute gbar in channel {ion_channel}")
+                                    # setattr(channel, "gbar", getattr(channel, "gbar") * channel_mod_factor)
             except:
                 import traceback
                 self.write_log(traceback.format_exc(), is_error=True)
@@ -2669,7 +2730,7 @@ class SnuddaSimulate(object):
         # Make sure all processes are synchronised
         self.pc.barrier()
 
-        self.write_log(f"Running simulation for {t / 1000} s", force_print=True)
+        self.write_log(f"Running simulation for {t / 1000.0} s", force_print=True)
 
         self.sim.run(t, dt=self.sim_dt)
         self.pc.barrier()
@@ -3140,7 +3201,6 @@ class SnuddaSimulate(object):
 
     def convert_to_natural_units(self, param_name, param_value):
 
-        # TODO, move conversion list to separate file
         if param_name in self.conv_factor:
             val = param_value * self.conv_factor[param_name]
         else:

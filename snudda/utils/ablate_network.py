@@ -95,8 +95,15 @@ class SnuddaAblateNetwork:
             else:
                 post_id = set(self.snudda_load.get_neuron_id_of_type(neuron_type=post_type))
 
-            post_id = list(post_id)
-            keep_post_id = post_id[np.sum(con_mat[neuron_id, :][:, post_id], axis=0) > 0]
+            post_id = np.array(list(post_id))
+            try:
+                keep_post_id = post_id[np.where(np.sum(con_mat[neuron_id, :][:, post_id], axis=0) > 0)[0]]
+            except Exception as e:
+                import traceback
+                print(traceback.format_exc())
+                print(e)
+                import pdb
+                pdb.set_trace()
         else:
             keep_post_id = np.where(np.sum(con_mat[neuron_id, :], axis=0) > 0)[0]
 

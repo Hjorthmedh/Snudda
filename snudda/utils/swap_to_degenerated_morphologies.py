@@ -63,6 +63,7 @@ class SwapToDegeneratedMorphologies:
         self.filter_axon = filter_axon
         self.old_simulation_origo = self.old_hdf5["meta/simulation_origo"][()]
         self.old_voxel_size = self.old_hdf5["meta/voxel_size"][()]
+        self.rng = np.random.default_rng()
 
         self.has_axon_density = np.zeros((self.original_network_loader.data["num_neurons"],), dtype=bool)
         for neuron_id, _ in enumerate(self.original_network_loader.data["neurons"]):
@@ -195,9 +196,11 @@ class SwapToDegeneratedMorphologies:
         self.new_hdf5["network"].create_dataset("num_synapses", data=syn_ctr, dtype=np.uint64)
 
         try:
-            print(f"Keeping {self.new_hdf5['network/num_synapses'][()]} "
-                  f"out of {self.old_hdf5['network/num_synapses'][()][0]} synapses "
-                  f"({self.new_hdf5['network/num_synapses'][()] / max(1,self.old_hdf5['network/num_synapses'][()][0])*100:.3f} %)")
+            old_n = self.old_hdf5['network/num_synapses'][()]
+            if hasattr(old_n, '__len__'):
+                old_n = old_n[0]
+            new_n = self.new_hdf5['network/num_synapses'][()]
+            print(f"Keeping {new_n} out of {old_n} synapses ({new_n / max(1, old_n) * 100:.3f} %)")
         except:
             import traceback
             print(traceback.format_exc())
@@ -221,12 +224,11 @@ class SwapToDegeneratedMorphologies:
         self.new_hdf5["network"].create_dataset("num_gap_junctions", data=gj_ctr, dtype=np.uint64)
 
         try:
-            n_gj = self.old_hdf5['network/num_gap_junctions'][()][0] \
-                if hasattr(self.old_hdf5['network/num_gap_junctions'][()], "__len__") \
-                else self.old_hdf5['network/num_gap_junctions'][()]
-            print(f"Keeping {n_gj} "
-                  f"out of {[0]} gap junctions "
-                  f"({n_gj / max(1, n_gj)*100:.3f} %)")
+            old_n_gj = self.old_hdf5['network/num_gap_junctions'][()]
+            if hasattr(old_n_gj, '__len__'):
+                old_n_gj = old_n_gj[0]
+            print(f"Keeping {gj_ctr} out of {old_n_gj} gap junctions "
+                  f"({gj_ctr / max(1, old_n_gj) * 100:.3f} %)")
         except:
             import traceback
             print(traceback.format_exc())
@@ -427,6 +429,13 @@ class SwapToDegeneratedMorphologies:
             # Find all the directories in that, and see if any of them contains 'last_dir'
             potential_dir = glob.glob(os.path.join(parent_dir, '*'))
             candidate_dir = [os.path.join(last_dir, x) for x in potential_dir if last_dir in os.path.basename(x)]
+
+            if len(candidate_dir) == 0:
+                # Let's do one last hail mary try
+                partial_last_dir = last_dir.rsplit("-", 1)[0]   # Here we remove everything after last -, and treat that as the stub
+                assert len(partial_last_dir) > 0
+
+                candidate_dir = [os.path.join(last_dir, x) for x in potential_dir if partial_last_dir in os.path.basename(x)]
 
             if len(candidate_dir) != 1:
                 raise ValueError(f"Unable to find {new_neuron_path}, also tried looking for similar folders in {parent_dir}")

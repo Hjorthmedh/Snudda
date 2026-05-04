@@ -22,9 +22,12 @@ class PlotReactionDiffusion:
         return self.sls.list_data_types(neuron_id=neuron_id)
 
     def plot(self, neuron_id, species=None, species_label=None,
+             colour_dict=None,
+             line_style_dict=None,
              ylabel=None,
              compartment_id = 0,
              normalise=False,
+             normalise_factor_dict=None,
              fig_name=None, fig_path="figures", title=None,
              width=800, height=700):
 
@@ -55,7 +58,15 @@ class PlotReactionDiffusion:
 
             data = all_data[s]
 
-            color = palette[i % len(palette)]
+            if colour_dict is None:
+                color = palette[i % len(palette)]
+            else:
+                color = colour_dict.get(s, "#000000")
+
+            if line_style_dict is None:
+                line_style = "solid"
+            else:
+                line_style = line_style_dict.get(s, "solid")
 
             if compartment_id is None:
                 comp_ofs = 0
@@ -95,12 +106,19 @@ class PlotReactionDiffusion:
             try:
                 # data variable contains 'data', 'sec_id_x', 'syninfo'
                 if normalise:
-                    fig.add_trace(go.Scatter(x=time[idx],
-                                             y=data[0][neuron_id].T[comp_ofs][idx]/np.max(data[0][neuron_id].T[comp_ofs][idx]),
-                                             name=s_label, line={"width": 4, "color": color}))
+
+                    if normalise_factor_dict is None:
+                        fig.add_trace(go.Scatter(x=time[idx],
+                                                 y=data[0][neuron_id].T[comp_ofs][idx]/np.max(data[0][neuron_id].T[comp_ofs][idx]),
+                                                 name=s_label, line={"width": 4, "color": color, "dash": line_style}))
+                    else:
+                        norm_factor = normalise_factor_dict[s]
+                        fig.add_trace(go.Scatter(x=time[idx],
+                                                 y=data[0][neuron_id].T[comp_ofs][idx] / norm_factor,
+                                                 name=s_label, line={"width": 4, "color": color, "dash": line_style}))
                 else:
                     fig.add_trace(go.Scatter(x=time[idx], y=data[0][neuron_id].T[comp_ofs][idx],
-                                             name=s_label, line={"width": 4, "color": color}))
+                                             name=s_label, line={"width": 4, "color": color, "dash": line_style}))
             except Exception as e:
                 import traceback
                 print(traceback.format_exc())
@@ -108,7 +126,7 @@ class PlotReactionDiffusion:
                 import pdb
                 pdb.set_trace()
 
-        fig.update_layout(xaxis_title="Time (s)", yaxis_title=ylabel, width=1000, height=800,
+        fig.update_layout(xaxis_title="Time (s)", yaxis_title=ylabel, width=width, height=height,
                           paper_bgcolor="white", plot_bgcolor="white",
                           font={"size": 15},  # General font size for all elements
                           title={"text": title, "font": {"size": 20}, "x": 0.5, "xanchor": "center", "y": 0.9},
@@ -116,8 +134,12 @@ class PlotReactionDiffusion:
                           xaxis={"title": {"font": {"size": 15}}, "tickfont": {"size": 15}},
                           yaxis={"title": {"font": {"size": 15}},
                                  "tickfont": {"size": 15}}, # Y-axis title and tick labels
-                          margin=dict(l=100, r=100, t=160, b=100)) # Margin
-
+                          margin=dict(
+                              l=int(width * 0.15),
+                              r=int(width * 0.05),
+                              t=int(height * 0.12),
+                              b=int(height * 0.12))
+                          )
 
         if fig_name is not None:
             if fig_path is not None:

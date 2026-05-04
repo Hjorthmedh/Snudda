@@ -23,6 +23,7 @@ quantities>=0.16.2
 plotly
 # igraph
 # snudda
+# scikit-optimize   # used by synaptic optimisation
 
 # python-libsbml   # optional, to get access to libsbml
 

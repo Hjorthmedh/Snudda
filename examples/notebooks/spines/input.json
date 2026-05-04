@@ -1,0 +1,30 @@
+{
+    "dSPN": {
+	"cortical_input_on_spines": {
+	    "generator": "poisson",
+	    "type": "AMPA_NMDA",
+	    "synapse_density": "1.15*0.05/(1+exp(-(d-30e-6)/5e-6))",
+	    "num_inputs": 20,
+	    "frequency": 10,
+	    "conductance": 0.5e-9,
+	    "mod_file": "tmGlut",
+	    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json",
+	    
+	    "spines": {
+		"head_length": 0.5e-6,
+		"head_diameter": 0.5e-6,
+		"head_axial_resistance": 150,
+		"neck_length" : 0.5e-6,
+		"neck_diameter": 0.125e-6,
+		"neck_axial_resistance": 1130,
+		"membrane_capacitance": 1.0,
+		"head_mechanism_list": ["pas"],
+		"neck_mechanism_list": ["pas"],
+		"parameter_list_neck": [["g_pas", 1.25e-5], ["e_pas", -85]],
+		"parameter_list_head": [["g_pas", 1.25e-5], ["e_pas", -85]]
+		
+	    }
+	}
+
+    }
+}

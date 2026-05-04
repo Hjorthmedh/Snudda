@@ -128,8 +128,8 @@ class SnuddaNetworkPairPulseSimulation:
 
         print(f"Checking depolarisation/hyperpolarisation of {pre_type} to {post_type} synapses")
 
-        self.inj_spacing = 0.5  # Tried with 0.2 before, too close
         self.inj_duration = current_injection_duration
+        self.inj_spacing = max(0.5, self.inj_duration)  # Tried with 0.2 before, too close
 
         self.snudda_sim = None  # Defined in run_sim
         self.snudda_load = None  # Defined in analyse
@@ -299,7 +299,9 @@ class SnuddaNetworkPairPulseSimulation:
                                 stim_all_at_once=False,
                                 return_run_str=False,
                                 holding_current_init_time=0.1,
-                                max_workers=None):
+                                max_workers=None,
+                                inactivate_neuron=None,
+                                inactivate_neuron_channel=None):
 
         if clamp_mode not in ("current", "voltage"):
             raise ValueError(f"Clamp mode {clamp_mode} is not supported. (use 'voltage' or 'current')")
@@ -327,7 +329,7 @@ class SnuddaNetworkPairPulseSimulation:
         self.inj_info = list(zip(self.pre_id, self.inj_spacing + self.inj_spacing * np.arange(0, len(self.pre_id))))
 
         try:
-            sim_end = self.inj_info[-1][1] + self.inj_spacing
+            sim_end = self.inj_info[-1][1] + self.inj_spacing + self.inj_duration
         except Exception as e:
             import traceback
             print(traceback.format_exc())
@@ -409,6 +411,19 @@ class SnuddaNetworkPairPulseSimulation:
                                               "save_current": True}
 
             sim_config["voltage_clamp"] = volt_clamp_info
+
+        if inactivate_neuron is not None:
+
+            if inactivate_neuron_channel is None:
+                inactivate_neuron_channel = "na_ch"
+
+            if isinstance(inactivate_neuron_channel, str):
+                sim_config["post_init_modifications"] = { inactivate_neuron : { inactivate_neuron_channel : 0.0}}
+            elif isinstance(inactivate_neuron_channel, list):
+                sim_config["post_init_modifications"] = {inactivate_neuron: dict()}
+
+                for ch in inactivate_neuron_channel:
+                    sim_config["post_init_modifications"][inactivate_neuron][ch] = 0.0
 
         snudda_loader.close()
 
@@ -602,7 +617,7 @@ class SnuddaNetworkPairPulseSimulation:
     # This extracts all the voltage deflections, to see how strong they are
 
     def analyse(self, max_dist=None, n_max_show=10, pre_id=None, post_type=None, clamp_mode=None, exp_data_file=None,
-                force_post_id=None, time_window = 0.05, include_gap_junctions=False):
+                force_post_id=None, time_window = 0.05, include_gap_junctions=False, check_pre_type=True):
 
         import matplotlib
         import matplotlib.pyplot as plt
@@ -648,6 +663,11 @@ class SnuddaNetworkPairPulseSimulation:
             if self.n_stimulated_neurons is not None:
                 self.pre_id = self.pre_id[:self.n_stimulated_neurons]
 
+        if check_pre_type:
+            for pid in self.pre_id:
+                if not self.data["neurons"][pid]["type"] == self.pre_type:
+                    raise ValueError(f"pre_id is type = {self.data['neurons'][pid]['type']} (expected {self.pre_type})")
+
         if post_type is None:
             post_type = self.post_type
 
@@ -683,7 +703,7 @@ class SnuddaNetworkPairPulseSimulation:
         for (pre_id, t) in self.inj_info:
             # Post synaptic neuron to preID
             if isinstance(pre_id, list):
-                post_id_set = set(np.where(np.sum(con_mat[pre_id, :], axis=1))[0])
+                post_id_set = set(np.where(np.sum(con_mat[pre_id, :], axis=0))[0])
             else:
                 post_id_set = set(np.where(con_mat[pre_id,:])[0])
 
@@ -696,6 +716,9 @@ class SnuddaNetworkPairPulseSimulation:
                 post_id_set = force_post_id
 
             for post_id in post_id_set:
+
+                if self.data["neurons"][post_id]["type"] != post_type:
+                    raise ValueError(f"Neuron {post_id} is type = {self.data['neurons'][post_id]['type']} (expected {post_type}")
 
                 if max_dist is not None:
                     post_pos = self.snudda_load.data["neuron_positions"][post_id, :]
@@ -894,7 +917,11 @@ class SnuddaNetworkPairPulseSimulation:
     ############################################################################
 
     def analyse_gap_junctions(self, clamp_mode, exp_data_file=None, pre_id=None, post_type=None,
-                              time_window=0.05, baseline_offset=-0.05):
+                              time_window=None, baseline_offset=-0.05,
+                              exp_points=None, exp_mean=None, exp_std=None):
+
+        if time_window is None:
+            time_window = self.inj_duration + self.inj_spacing
 
         import matplotlib.pyplot as plt
         import seaborn as sns
@@ -968,7 +995,7 @@ class SnuddaNetworkPairPulseSimulation:
         for (pre_id, t) in self.inj_info:
 
             if t + time_window > np.max(time):
-                print(f"Simulation only run to {np.max(time)}s, missing pulses at {t}s (check_width={window_width}s)")
+                print(f"Simulation only run to {np.max(time)}s, missing pulses at {t}s (check_width={time_window}s)")
                 continue
 
             t_idx = np.where(np.logical_and(t <= time, time <= t + time_window))[0]
@@ -981,7 +1008,7 @@ class SnuddaNetworkPairPulseSimulation:
 
             # Post synaptic neuron to preID
             if isinstance(pre_id, list):
-                post_id_set = set(np.where(np.sum(con_mat_gj[pre_id, :], axis=1))[0])
+                post_id_set = set(np.where(np.sum(con_mat_gj[pre_id, :], axis=0))[0])
             else:
                 post_id_set = set(np.where(con_mat_gj[pre_id,:])[0])
 
@@ -1022,8 +1049,30 @@ class SnuddaNetworkPairPulseSimulation:
 
         sns.violinplot(y=coupling_coefficient, inner="box")
 
+        # Overlay experimental data in red
+        if exp_points is not None:
+            # Scatter individual datapoints (jittered for visibility)
+            x = np.random.normal(loc=0, scale=0.04, size=len(exp_points)) + 0.5
+            plt.scatter(x, exp_points, color="red", alpha=0.7, zorder=3, label="Experimental data")
+
+        if exp_mean is not None and exp_std is not None:
+            exp_mean = np.atleast_1d(exp_mean)
+            exp_std = np.atleast_1d(exp_std)
+            
+            x = 0.2 * np.arange(len(exp_mean)) + 0.5
+
+            # Plot mean ± std as error bar
+            plt.errorbar(x, exp_mean, yerr=exp_std,
+                         fmt='.', color='red', capsize=5,
+                         label="Experimental mean ± std", zorder=4)
+
         plt.ylabel("Coupling coefficient")
-        plt.title("Gap Junction Coupling")
+        plt.title(f"Gap Junction Coupling {self.pre_type} to {self.post_type}")
+
+        os.makedirs(os.path.join(self.network_path, "figures"), exist_ok=True)
+
+        plt.savefig(os.path.join(self.network_path, "figures", "gap_junction_coupling.png"),
+                    dpi=300, bbox_inches="tight")
 
     ############################################################################
 

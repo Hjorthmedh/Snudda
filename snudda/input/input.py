@@ -378,6 +378,9 @@ class SnuddaInput(object):
                     if "RxD" in neuron_in:
                         it_group.attrs["RxD"] = json.dumps(neuron_in["RxD"])
 
+                    if "spines" in neuron_in and neuron_in["spines"] is not None:
+                        it_group.attrs["spines"] = json.dumps(neuron_in["spines"])
+
                 else:
 
                     # Input is activity of a virtual neuron
@@ -1090,7 +1093,7 @@ class SnuddaInput(object):
                         "dendrite_location"
                         "num_soma_synapses",
                         "cluster_size", "cluster_spread",
-                        "dendrite_location", "morphology_key"]
+                        "dendrite_location", "morphology_key", "spines"]
 
         # location has to be computed by the worker, to parallelize it
 
@@ -1142,7 +1145,8 @@ class SnuddaInput(object):
                         "dendrite_location", "morphology_key",
                         "correlation", "population_unit_correlation_fraction", "population_unit_id",
                         "num_soma_synapses", "location_random_seed",
-                        "add_mother_spikes", "set_mother_spikes", "std_freq"]
+                        "add_mother_spikes", "set_mother_spikes", "std_freq",
+                        "spines"]
 
         defaults = {"jitter": 0.0,
                     "start": 0.0,

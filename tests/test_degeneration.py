@@ -1,3 +1,5 @@
+import io
+import contextlib
 import os
 import numpy as np
 import h5py
@@ -6,6 +8,7 @@ import unittest
 
 from snudda import SnuddaDetect, SnuddaPrune
 from snudda.plotting import PlotNetwork
+from snudda.utils.swap_to_degenerated_morphologies import SwapToDegeneratedMorphologies
 from snudda.utils.swap_to_degenerated_morphologies_extended import SwapToDegeneratedMorphologiesExtended
 
 
@@ -144,6 +147,55 @@ class MyTestCase(unittest.TestCase):
                 hdf5_file["network/neurons/rotation"][20, :] = R_gj.flatten()
 
             hdf5_file.close()
+
+    def test_base_swap_morphologies(self):
+        """Regression test for three bugs in SwapToDegeneratedMorphologies:
+        1. self.rng not initialised in __init__ (AttributeError on write_new_input_file)
+        2. num_synapses scalar indexing crash in write_new_network_file print statement
+        3. gap junction print showing wrong retained count and literal '[0]'
+        """
+        network_D = os.path.join("networks", "network_testing_degeneration", "D")
+        os.makedirs(network_D, exist_ok=True)
+        network_A_file = os.path.join(self.network_A, "network-synapses.hdf5")
+        network_D_file = os.path.join(network_D, "network-synapses.hdf5")
+
+        original_data_dir = os.path.join("validation", "ballanddoublestick_original")
+        updated_data_dir = os.path.join("validation", "ballanddoublestick_degenerated")
+
+        swap = SwapToDegeneratedMorphologies(
+            original_network_file=network_A_file,
+            new_network_file=network_D_file,
+            original_snudda_data_dir=original_data_dir,
+            new_snudda_data_dir=updated_data_dir,
+            filter_axon=True,
+        )
+
+        # Bug 1: self.rng must be initialised after __init__
+        self.assertTrue(hasattr(swap, "rng"),
+                        "self.rng not initialised in __init__")
+
+        # Bugs 2 & 3: write_new_network_file must not produce a traceback in its
+        # summary print statements (previously swallowed by bare except)
+        stdout_buf = io.StringIO()
+        with contextlib.redirect_stdout(stdout_buf):
+            swap.write_new_network_file()
+        output = stdout_buf.getvalue()
+
+        self.assertNotIn("Traceback", output,
+                         "write_new_network_file() printed a traceback — "
+                         "num_synapses or gap-junction print statement is broken")
+
+        # Verify the synapse summary line was printed with correct format
+        self.assertIn("synapses", output,
+                      "Expected synapse summary line missing from output")
+
+        # Verify gap junction summary line was printed (bug 3: used to print 'out of [0]')
+        self.assertIn("gap junctions", output,
+                      "Expected gap junction summary line missing from output")
+        self.assertNotIn("out of [0]", output,
+                         "Gap junction print still contains literal '[0]'")
+
+        swap.close()
 
     def test_something(self):
 

@@ -1,6 +1,8 @@
 import sys
 import os.path
+import json
 
+import mpi4py
 import neuron
 import numpy as np
 
@@ -41,18 +43,34 @@ class RunSynapseRun(object):
                  synapse_type='glut',
                  params={},
                  time=2,
+                 init_synapses=True,
+                 sim=None,
                  random_seed=None,
                  rng=None,
                  log_file=None,
-                 verbose=True):
+                 verbose=True,
+                 pc=None):
 
         self.log_file = log_file  # File pointer
         self.verbose = verbose
+        self.pc = pc
+
+        if pc is not None:
+            self.worker_id = self.pc.id()
+        else:
+            self.worker_id = None
 
         if rng is None:
             self.rng = np.random.default_rng(random_seed)
         else:
             self.rng = rng
+
+        conversion_factor_lookup_file = os.path.join(os.path.dirname(__file__), "..", "convert_units.json")
+        if os.path.isfile(conversion_factor_lookup_file):
+            with open(conversion_factor_lookup_file, "r") as f:
+                self.conv_factor = json.load(f)
+        else:
+            self.conv_factor = {}
 
         self.write_log(f"Holding voltage: {holding_voltage} V")
         self.write_log(f"Stim times: {stim_times} s")
@@ -92,12 +110,16 @@ class RunSynapseRun(object):
         # Done in NrnSimulatorParallel
         # neuron.h.load_file('stdrun.hoc')
 
-        self.sim = NrnSimulatorParallel(cvode_active=False)
+        if sim is None:
+            self.sim = NrnSimulatorParallel(cvode_active=False)
+        else:
+            self.sim = sim
 
         # Should we use weak reference for garbage collection? (weakref package)
 
         # We load the neuron morphology object also, used to place synapses
         self.write_log(f"Using morphology: {neuron_morphology}")
+
         neuron_prototype = NeuronPrototype(neuron_path=neuron_path,
                                            neuron_name="OptimisationNeuron")
         self.morphology = neuron_prototype.clone(parameter_key=neuron_parameter_key,
@@ -129,6 +151,39 @@ class RunSynapseRun(object):
         self.params = params
         self.default_cond = 5e-7
 
+        self.synapse_positions = None
+        self.stim_times = np.array(stim_times)
+
+        if init_synapses:
+            self.setup_synapses(synapse_type=synapse_type,
+                                synapse_density=synapse_density,
+                                num_synapses=num_synapses,
+                                synapse_section_id=synapse_section_id,
+                                synapse_section_x=synapse_section_x)
+
+
+
+        self.soma_record()
+
+        self.holding_current = self.update_holding_current(holding_voltage=holding_voltage,
+                                                           holding_current=holding_current)
+
+        if self.verbose:
+            self.write_log("RunSynapseRun: Init done.")
+
+        # import pdb
+        # pdb.set_trace()
+
+    ############################################################################
+
+    def setup_synapses(self,
+                       synapse_type,
+                       synapse_density=None,
+                       num_synapses=None,
+                       synapse_section_id=None,
+                       synapse_section_x=None):
+
+        # Helper function for init
         # This returns (section,sectionX) so we can reuse it if needed
         self.synapse_positions = self.add_synapse_density(synapse_type=synapse_type,
                                                           synapse_density=synapse_density,
@@ -136,21 +191,10 @@ class RunSynapseRun(object):
                                                           section_id=synapse_section_id,
                                                           section_x=synapse_section_x)
 
-        self.stim_times = np.array(stim_times)
-
         # Assumes input in seconds (SI units)
         self.connect_input_to_synapses(self.stim_times)
-
-        self.soma_record()
         self.synapse_current_record()
 
-        self.holding_current = self.update_holding_current(holding_voltage=holding_voltage,
-                                                           holding_current=holding_current)
-
-        self.write_log("RunSynapseRun: Init done.")
-
-        # import pdb
-        # pdb.set_trace()
 
     ############################################################################
 
@@ -188,11 +232,14 @@ class RunSynapseRun(object):
             self.i_clamp.dur = 2 * self.time * 1e3
 
             self.set_resting_voltage(self.holding_voltage * 1e3)
+
             self.write_log(f"Set holding current {holding_current}A and holding voltage {holding_voltage}V,"
                            f" until {self.i_clamp.dur} ms")
+
             return holding_current
 
-        self.write_log("Updating holding current, might take a bit of time")
+        if self.verbose:
+            self.write_log("Updating holding current, might take a bit of exp_time")
 
         # Disable old iClamp temporarily
         if self.i_clamp is not None:
@@ -206,8 +253,9 @@ class RunSynapseRun(object):
         # self.writeLog("VClamp duration: " + str(self.VClamp.dur1))
 
         neuron.h.finitialize(self.holding_voltage * 1e3)
+
         # !!! There is a WEIRD neuron bug, that if this tstop here is
-        # different from duration of simulation, then the *SECOND* time
+        # different from duration of simulation, then the *SECOND* exp_time
         # a model is initialised we get the length of tSave set by this
         # value, and not by the tStop of that simulation --- go figure!
         self.set_resting_voltage(self.holding_voltage * 1e3)
@@ -220,8 +268,8 @@ class RunSynapseRun(object):
             plt.figure()
             plt.plot(self.t_save, self.v_save)
             plt.title("Holding voltage should be " + str(self.holding_voltage * 1e3) + "mV")
-            plt.xlabel("time (ms)")
-            plt.ylabel("volt (mV)")
+            plt.xlabel("exp_time (ms)")
+            plt.ylabel("exp_volt (mV)")
             plt.ion()
             plt.show()
 
@@ -251,8 +299,9 @@ class RunSynapseRun(object):
     def set_stim_times(self, stim_times):
 
         if len(stim_times) != len(self.stim_times) or (stim_times != self.stim_times).any():
-            print(f"Setting stim times to {stim_times} s")
-            self.write_log(f"Setting stim times to {stim_times} s")
+            if self.verbose:
+                self.write_log(f"Setting stim times to {stim_times} s")
+
             self.stim_vector = neuron.h.Vector(stim_times * 1e3)
             self.stim_times = stim_times * 1e3
 
@@ -329,6 +378,8 @@ class RunSynapseRun(object):
 
         try:
             if synapse_type.lower() == 'glut':
+                syn = neuron.h.tmGlut(section(section_x))
+            elif synapse_type.lower() == 'glut2':
                 syn = neuron.h.tmGlut_double(section(section_x))
             elif synapse_type.lower() == "gaba":
                 syn = neuron.h.tmGabaA(section(section_x))
@@ -361,7 +412,9 @@ class RunSynapseRun(object):
 
     def connect_input_to_synapses(self, stim_times):
 
-        self.write_log(f"Stimulation times (s): {stim_times}")
+        if self.verbose:
+            self.write_log(f"Stimulation times (s): {stim_times}")
+
         self.nc_syn = []
 
         self.stim_vector = neuron.h.Vector(stim_times * 1e3)
@@ -377,6 +430,9 @@ class RunSynapseRun(object):
     ############################################################################
 
     def soma_record(self):
+
+        if self.verbose:
+            self.write_log(f"Worker {self.pc.id() if self.pc is not None else 'LONELY'} soma_record from {id(self.neuron.icell.soma[0](0.5)._ref_v) = }")
 
         self.t_save = neuron.h.Vector()
         self.t_save.record(neuron.h._ref_t)
@@ -402,9 +458,9 @@ class RunSynapseRun(object):
         assert False, "This is the old run method"
 
         if time is None:
-            time = self.time
+            time = self.exp_time
         else:
-            self.time = time
+            self.exp_time = time
 
         if cond is None:
             cond = self.default_cond
@@ -454,7 +510,8 @@ class RunSynapseRun(object):
 
     def set_resting_voltage(self, rest_volt):
 
-        self.write_log("Setting resting voltage to %.3f mV" % rest_volt)
+        if self.verbose:
+            self.write_log("Setting resting voltage to %.3f mV" % rest_volt)
 
         soma = [x for x in self.neuron.icell.soma]
         axon = [x for x in self.neuron.icell.axon]
@@ -470,48 +527,14 @@ class RunSynapseRun(object):
 
     # I wish Neuron would use natural units...
 
-    def si_to_natural_units(self, var_name, value):
+    def si_to_natural_units(self, param_name, param_value):
 
-        conv_factor = {"U": 1.0,
-                       "tauR": 1e3,
-                       "tauF": 1e3,
-                       "cond": 1e6,
-                       "tau": 1e3,
-                       "nmda_ratio": 1.0,
+        if param_name in self.conv_factor:
+            val = param_value * self.conv_factor[param_name]
+        else:
+            val = param_value
 
-                       "tau1_ampa": 1.0,  # Ilaria's file has ms already
-                       "tau2_ampa": 1.0,  # Ilaria's file has ms already
-                       "tau3_ampa": 1.0,  # Ilaria's file has ms already
-                       "tau1_nmda": 1.0,  # Ilaria's file has ms already
-                       "tau2_nmda": 1.0,  # Ilaria's file has ms already
-                       "tau3_nmda": 1.0,  # Ilaria's file has ms already
-                       "tpeak_ampa": 1.0,  # Ilaria's file has ms already
-                       "tpeak_nmda": 1.0,  # Ilaria's file has ms already :/
-                       "ratio_nmda": 1.0,
-
-                       "I2_ampa": 1.0,  # Ilaria's file has ms already
-                       "I3_ampa": 1.0,  # Ilaria's file has ms already
-                       "I2_nmda": 1.0,  # Ilaria's file has ms already
-                       "I3_nmda": 1.0,  # Ilaria's file has ms already
-                       "factor_ampa": 1.0,  # Ilaria's file has ms already
-                       "factor_nmda": 1.0  # Ilaria's file has ms already
-                       }
-
-        if var_name not in conv_factor:
-            self.write_log("Missing conversion fractor for " + str(var_name) \
-                           + ". Please update SItoNaturalUnits function.")
-            self.write_log("convFactor = " + str(conv_factor))
-            import pdb
-            pdb.set_trace()
-
-        try:
-            return value * conv_factor[var_name]
-        except:
-            import traceback
-            tstr = traceback.format_exc()
-            self.write_log(tstr)
-            import pdb
-            pdb.set_trace()
+        return val
 
     ############################################################################
     def plot(self):
@@ -536,7 +559,7 @@ class RunSynapseRun(object):
 
     def run2(self, pars, time=None, cond=1e-8):
 
-        self.write_log(f"Running with pars: {pars}")
+        self.write_log(f"Running {self.pc.id() if self.pc is not None else 'LONELY'} with pars: {pars}")
 
         if time is None:
             time = self.time
@@ -546,24 +569,66 @@ class RunSynapseRun(object):
         for p in pars:
 
             if p == "cond":
-                cond = self.si_to_natural_units(p, pars[p])
+                cond = pars[p] * 1e6  # self.si_to_natural_units(p, pars[p])
+
+            elif p == "tauRatio":
+                # We deal with this later
+                pass
 
             else:
                 v = self.si_to_natural_units(p, pars[p])
                 for s in self.synapses:
                     setattr(s, p, v)
+                # print(f"Setting {p} to {v}")
 
+        # print(f"Worker {self.pc.id()} has {self.synapses[0].tauF = } (before)")
+
+        if "tauRatio" in pars:
+
+            # tau = tauRatio * tauR, since tau < tauR is required in tmGlut.mod file
+            for s in self.synapses:
+                setattr(s, "tau", getattr(s, "tauR") * pars["tauRatio"])
+            # print(f"tau set to {getattr(s, 'tau')}")
+
+        # print(f"Worker {self.worker_id} run: Calling finitialize")
         neuron.h.finitialize(self.holding_voltage * 1e3)
+        # print(f"Worker {self.worker_id} run: Done with finitialize")
+
         for ncs in self.nc_syn:
             ncs.weight[0] = cond
+        # print(f"Setting cond to {cond}")
 
         self.set_resting_voltage(self.holding_voltage * 1e3)
 
+        # Clear the saved vectors, if run more than ones
+        self.t_save.resize(0)
+        self.v_save.resize(0)
+        for i_rec in self.i_save:
+            i_rec.resize(0)
+
         neuron.h.v_init = self.holding_voltage * 1e3
         neuron.h.tstop = time * 1e3
-        self.write_log("About to start NEURON... stay safe")
+
+        if self.verbose:
+            self.write_log("About to start NEURON... stay safe")
+
+        if False:
+            print(f"Worker {self.worker_id} stim_vector len={self.stim_vector.size()}, "
+                  f"stim_vector[0]={self.stim_vector[0] if self.stim_vector.size() > 0 else 'EMPTY'}, "
+                  f"n_synapses={len(self.synapses)}, "
+                  f"n_netcons={len(self.nc_syn)}, "
+                  f"netcon weight={float(self.nc_syn[0].weight[0]) if self.nc_syn else 'NONE'}")
+
+            print(f"Worker {self.worker_id} about to run with "
+                  f"tauF={self.synapses[0].tauF:.4f}, "
+                  f"U={self.synapses[0].U:.4f}, "
+                  f"v_save id={id(self.v_save)}, "
+                  f"soma ref id={id(self.neuron.icell.soma[0](0.5)._ref_v)}")
+
         neuron.h.run()
-        self.write_log("NEURON actually completed?!")
+
+        if self.verbose:
+            self.write_log("NEURON actually completed?!")
 
         # Convert results back to SI units
         return (np.array(self.t_save) * 1e-3,

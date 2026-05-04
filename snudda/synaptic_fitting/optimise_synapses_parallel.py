@@ -3,8 +3,16 @@
 #      -- we need to write code to run on self.pc.id() == 0 that sets up the optimisation
 #          and performs all the goodie stuff
 #
+# TODO: 2026-04-09: tmglut_double (glut2) is running on Dardel, hopefully the result will look good.
+#       We need to get the data for all the synapses, for optimisation.
+#       Then run and verify.
+#       We need a way to setup the runs for multiple different neurons of the same type.
+#       So we want to be able to specify neuron-set file, and random seed.
+#       * We need to make a valiation step, where we randomly pick neuron (morph and parameter keys) and check
+#       that it looks good.
+#
 #      We got to 'get_refined_parameters' function, probably not needed?
-#      We are going to use mpirun and neuron parallel, to run multiple instances at the same time.
+#      We are going to use mpirun and neuron parallel, to run multiple instances at the same exp_time.
 
 # We want to run synapse optimisation in parallel
 # 1. Start using mpirun (to get multiple instances)
@@ -22,6 +30,7 @@ import os
 import sys
 import shutil
 import timeit
+import lzma
 
 import numpy as np
 import json
@@ -35,15 +44,32 @@ import neuron
 from neuron import h  # , gui
 from snudda.utils.snudda_path import snudda_parse_path, get_snudda_data
 from snudda.synaptic_fitting.parameter_bookkeeper import ParameterBookkeeper
+from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
 
 from run_synapse_run import RunSynapseRun
 
+from skopt import gp_minimize
+from skopt import Optimizer
+from joblib import Parallel, delayed
+
+# TODO: If we want to use tmGlut_double we have to make sure all variables are initialised
+#       currently several of the variables are not declared, and thus 0...
+#       factor_ampa, tau1_ampa, I2_ampa, nmda_ratio, ... etc
+
+# TODO: 2026-03-31
+#       X 1. Synapse conductance needs to be set to same values -- conductance was set by optimizer
+#       2. Fix error function (weighting and include decay?)
+#       X 3. Plot results, and verify it looks ok
+#       4. Run on Dardel
+#       5. tmGlutDouble
+#       6. Celebrate!
+#
 
 class SynapseOptimiser:
 
     def __init__(self, data_file,
                  entropy=1023456734529028340264793840,
-                 synapse_type="glut",
+                 synapse_type="glut",  # Change to "glut2" for tmGlut_double
                  load_parameters=True,
                  snudda_data=None,
                  neuron_set_file="neuron_set.json",
@@ -53,9 +79,12 @@ class SynapseOptimiser:
         self.log_file = None
         self.verbose = verbose
         self.rng = None
-
+        self.sim = None
 
         self.data_file = data_file
+        self.parameter_data_file_name = f"{self.data_file}-parameters-optimised-{synapse_type}.json"
+        self.opt_state_data_file_name = f"{self.data_file}-opt-state-{synapse_type}.json.xz"   # Maybe change format if files get too big...
+
         self.neuron_set_file = neuron_set_file
         self.seed = None
         self.entropy=entropy
@@ -65,13 +94,18 @@ class SynapseOptimiser:
         self.rsr_synapse_model = None
         self.synapse_type = synapse_type
         self.data = None
-        self.volt = None
-        self.time = None
+        self.exp_volt = None
+        self.exp_time = None
+        self.exp_volt_interpolated = {}
         self.sample_freq = None
+        self.sim_time = 1.5
         self.trace_holding_voltage = None
         self.stim_time = None
+        self.exp_peak_height = None
         self.cell_type = None
-        self.neuron_set_file = None
+
+        self.last_run_volt = None
+        self.last_run_time = None
 
         self.synapse_parameter_data = None
         self.synapse_section_id = None
@@ -79,10 +113,15 @@ class SynapseOptimiser:
 
         self.cell_properties = None
 
+        self.pc = h.ParallelContext()
+        self.n_workers = self.pc.nhost()
+
         self.load_trace_data()
 
-        # if load_parameters:
-        #     self.load_parameter_data()
+        self.load_parameters = load_parameters
+
+        if load_parameters:
+            self.load_parameter_data()
 
         self.synapse_parameter_file = synapse_parameter_file
 
@@ -93,25 +132,7 @@ class SynapseOptimiser:
         else:
             self.synapse_parameters = {}
 
-        self.parameter_data_file_name = f"{self.data_file}-parameters-full.json"
-
-
-
-        self.pc = h.ParallelContext()
-        self.n_workers = self.pc.nhost()
-
-        print(f"I am {self.pc.id()}/{self.pc.nhost()}")
-        if self.pc.id() == 0:
-            rng = np.random.default_rng(seed=0)
-            param_list = [rng.random(size=(3, 1)) for x in range(self.pc.nhost())]
-            print(f"Before sending: {param_list = }")
-        else:
-            param_list = []
-
-        self.param = self.pc.py_scatter(param_list)
-
-        self.pc.barrier()
-        print(f"Done {self.pc.id()} {self.param.T = }")
+        self.setup_rng()
 
     def setup_rng(self):
 
@@ -124,63 +145,265 @@ class SynapseOptimiser:
         if self.pc.id() == 0:
             # Setup and distribute random seeds to all workers
             seed_sequence = np.random.SeedSequence(entropy=self.entropy)
-            seeds=seed_sequence.generate_state(self.n_workers)
+            seeds=list(seed_sequence.generate_state(self.n_workers))
 
         self.seed = self.pc.py_scatter(seeds)
         self.rng = np.random.default_rng(seed=self.seed)
 
+        print(f"Worker: {self.pc.id()} -- seed: {self.seed}")
+
         self.pc.barrier()
 
 
+    # This function should only be called ones
+
     def prepare_models(self):
 
+        if self.sim is None:
+            self.sim = NrnSimulatorParallel(cvode_active=False)
+
+        print(f"synapse_parameters = {self.synapse_parameters}")
+
+        # This sets self.rsr_synapse_model
+        print(f"Worker {self.pc.id()} calling setup_model")
+        self.setup_model(synapse_density_override=None,
+                         n_synapses_override=None,
+                         synapse_params=self.synapse_parameters,
+                         synapse_position_override=(self.synapse_section_id, self.synapse_section_x),
+                         init_synapses=self.pc.id() == 0)
+
         if self.pc.id() == 0:
-            # Setup the model on master node, this sets self.synapse_section_id (and _x)
-
-            self.synapse_model = self.setup_model(synapse_density_override=None,
-                                                  n_synapses_override=None,
-                                                  synapse_position_override=None)
-
-
-
+            # Get synapse id and x from master node
+            self.synapse_section_id = self.rsr_synapse_model.synapse_section_id
+            self.synapse_section_x = self.rsr_synapse_model.synapse_section_x
+            # TODO: Do we need to get the conductances also?!! !!!
 
         self.pc.barrier()
         # Distribute section id, section x that was picked by master, and any other needed parameters
         self.synapse_section_id, self.synapse_section_x \
-            = self.pc.broadcast((self.synapse_section_id, self.synapse_section_x))
+            = self.pc.py_broadcast((self.synapse_section_id, self.synapse_section_x), 0)
 
         if self.pc.id() != 0:
             # Setup models on all other nodes (but not master)
-            synapse_position_override = (self.synapse_section_id, self.synapse_section_x)
 
-            self.synapse_model = self.setup_model(synapse_position_override=synapse_position_override)
+            print(f"Worker {self.pc.id()} adding master nodes synapses.")
+            self.rsr_synapse_model.setup_synapses(synapse_type=self.synapse_type,
+                                                  num_synapses=len(self.synapse_section_id),
+                                                  synapse_section_id=self.synapse_section_id,
+                                                  synapse_section_x=self.synapse_section_x)
 
         self.pc.barrier()
 
     def run_models(self, model_parameter_list):
 
-        model_parameters = self.pc.py_scatter(model_parameter_list)
+        # model_parameter_list should be the parameters for the master, and empty [] for the workers
+        # master then distributes the parameters to the workers.
 
+        # prepare_models should already be called, so that synapse position is fixed apriori
 
+        model_parameters = self.pc.py_scatter(model_parameter_list, 0)
 
         # we need model parameters, and position of synapses (section_id, section_x)
 
-        self.run_model()
+        if len(model_parameters) != 5:
+            raise ValueError(f"There should be five model parameters: {model_parameters}")
+
+        # print(f"Worker {self.pc.id()} received: {model_parameters}")
+
+        m_params = { "U": model_parameters[0],
+                     "tauR": model_parameters[1],
+                     "tauF": model_parameters[2],
+                     "tauRatio": model_parameters[3],
+                     "cond": model_parameters[4] }
+
+        t_sim, v_sim, i_sim = self.rsr_synapse_model.run2(pars=m_params)
+
+        self.last_run_time = t_sim
+        self.last_run_volt = v_sim
+
+        # We use normalised voltage instead of v_sim
+        v_norm = (v_sim - np.min(v_sim)) / (np.max(v_sim) - np.min(v_sim))
+
+        peak_idx = self.get_peak_idx(time=t_sim, volt=v_norm, stim_time=self.stim_time)
+        peak_height, decay_fits, v_base = self.find_trace_heights(t_sim, v_norm, peak_idx)
+
+        # We need to take decay into accounts also for error, first version only uses peak heights
+        error = self.error_calculation(peak_height=peak_height,
+                                       decay_fits=decay_fits,
+                                       time=t_sim,
+                                       volt=v_norm,
+                                       v_base=v_base)
+
+        print(f"Worker {self.pc.id()} error: {error}")
+
+
+        error = self.pc.py_gather(error, 0)
+
+        return error
 
         # TODO: 2026-03-05 WE ARE HERE, WORKING ON THIS FUNCTION!! SciLifeLab rulez!
 
 
-    def optimise(self):
+    def error_calculation(self, peak_height, decay_fits, time, volt, v_base):
 
-        self.setup_rng()
+        decay_window = [0.01, 0.045]
 
-        # synapse_density_override
-        # n_synapess_override
-        # synapse_position_override
+        try:
+            # Error in peak heights
+            peak_error = np.abs(peak_height - self.exp_peak_height)
+
+            # Weight errors
+            peak_error[0] *= 3
+            peak_error[-2] *= 2
+            peak_error[-1] *= 3
+
+            decay_error = 0
+
+            # Error in decay
+            for st in self.stim_time:
+                start_idx = np.argmin(np.abs(time - (st + decay_window[0])))
+                end_idx = np.argmin(np.abs(time - (st + decay_window[1])))
+
+                if st not in self.exp_volt_interpolated:
+                    self.exp_volt_interpolated[st] = np.interp(time[start_idx:end_idx],
+                                                               self.exp_time,
+                                                               self.exp_volt)
+
+                # TODO, interpolate points to match exp data!!
+
+                decay_error += np.sum(np.abs(volt[start_idx:end_idx] - self.exp_volt_interpolated[st])) / (end_idx - start_idx)
+
+            print(f"Peak error: {np.sum(peak_error)}, decay error: {decay_error}")
+
+            error = np.sum(peak_error) + decay_error
+
+        except Exception as e:
+            import traceback
+            print(traceback.format_exc())
+            print(e)
+            import pdb
+            pdb.set_trace()
+
+        return error
 
 
 
+    def error_calculation_peaks_only(self, peak_height, decay_fits, v_base):
 
+        try:
+            peak_error = np.sum(np.abs(peak_height - self.exp_peak_height))
+        except Exception as e:
+            import traceback
+            print(traceback.format_exc())
+            print(e)
+            import pdb
+            pdb.set_trace()
+
+        return peak_error
+
+    def load_opt_state(self, opt):
+
+        if self.pc.id() != 0:
+            return
+
+        if os.path.isfile(self.opt_state_data_file_name):
+            print(f"Loading optmisation state from {self.opt_state_data_file_name}")
+            with lzma.open(self.opt_state_data_file_name, "rt") as f:
+                state = json.load(f)
+
+            print(f"Found {len(state['yi'])} previous data points.")
+
+            # Instruct the optimizer about previous evaluations
+            opt.tell(state["xi"], state["yi"])
+
+    def save_opt_state(self, opt):
+
+        if self.pc.id() != 0:
+            return
+
+        print(f"Saving opt state: {len(opt.Xi)} xi points, {len(opt.yi)} yi points")
+        print(f"yi = {opt.yi}")
+
+        state = { "xi": opt.Xi,
+                  "yi": opt.yi }
+
+        print(f"Saving optmisation state to {self.opt_state_data_file_name}")
+        with lzma.open(self.opt_state_data_file_name, "wt") as f:
+            json.dump(state, f, indent=4)
+
+
+
+    def optimise(self, n_iterations=10, load_state=True):
+
+        error_list = []
+        start_time = time.perf_counter()
+
+        if self.seed is None:
+            self.setup_rng()
+
+        self.prepare_models()
+
+        if self.pc.id() == 0:
+            model_bounds = self.get_model_bounds()
+            model_bounds = [x for x in zip(*model_bounds)]
+            opt = Optimizer(dimensions=model_bounds, random_state=42, base_estimator="RF")
+
+            if self.load_parameters:
+                self.load_opt_state(opt)
+
+        for i in range(n_iterations):
+
+            if self.pc.id() == 0:
+                print(f"Iteration {i}/{n_iterations}")
+                model_parameter_list = opt.ask(n_points=self.n_workers)
+                # TODO: Should we round model_parameter_list to N decimals before proceeding?
+                print(f"ask: {model_parameter_list =}")
+            else:
+                model_parameter_list = []
+
+            error = self.run_models(model_parameter_list)
+
+            print(f"Worker {self.pc.id()} has neuron = {id(self.rsr_synapse_model.neuron)}")
+
+            if self.pc.id() == 0:
+                print(f"tell: {model_parameter_list = }\n{error = }")
+                opt.tell(model_parameter_list, error)
+                print(f"Error: {error}")
+
+                if i % 100 == 0 and i > 0:
+                    # Just for safety let's save every 100 iterations...
+                    print(f"Iteration {i}: Saving state to {self.opt_state_data_file_name}")
+                    self.save_opt_state(opt)
+
+                error_list.append(np.min(opt.yi))
+
+        if self.pc.id() == 0:
+            best_idx = opt.yi.index(min(opt.yi))
+            print("Best value:", opt.yi[best_idx])
+            print("Best params:", opt.Xi[best_idx])
+            fit_params = opt.Xi[best_idx]
+            min_error = opt.yi[best_idx]
+
+            self.synapse_parameter_data.add_parameters(parameter_set=fit_params,
+                                                       section_id=self.rsr_synapse_model.synapse_section_id,
+                                                       section_x=self.rsr_synapse_model.synapse_section_x,
+                                                       error=min_error)
+
+            self.save_parameter_data()
+            self.save_opt_state(opt)
+
+        self.pc.barrier()
+
+        # This reruns the best run, then plots it
+        self.run_best_run()
+        self.plot_last_run()
+
+        if self.pc.id() == 0:
+            self.plot_error(error_list)
+            self.plot_error(opt.yi, fig_name_info="-ALL", linestyle="None")
+
+        duration = time.perf_counter() - start_time
+        print(f"Duration: {duration} seconds")
 
     def write_log(self, text, flush=True):  # Change flush to False in future, debug
         if self.log_file is not None:
@@ -196,27 +419,42 @@ class SynapseOptimiser:
                 print(text)
 
 
-    def load_trace_data(self, data_file):
+    def load_trace_data(self, data_file=None):
+
+        if data_file is None:
+            data_file = self.data_file
+        else:
+            self.data_file = data_file
 
         self.write_log(f"Loading {data_file}")
 
         with open(data_file, "r") as f:
             self.data = json.load(f)
 
-            self.volt = np.array(self.data["data"]["mean_norm_trace"]).flatten()
-            self.sample_freq = self.data["meta_data"]["sample_frequency"]
+        self.exp_volt = np.array(self.data["data"]["mean_norm_trace"]).flatten()
+        self.sample_freq = self.data["meta_data"]["sample_frequency"]
 
-            if "holding_voltage" in self.data["meta_data"]:
-                self.trace_holding_voltage = self.data["meta_data"]["trace_holding_voltage"]
-            else:
-                self.trace_holding_voltage = None
+        if "holding_voltage" in self.data["meta_data"]:
+            self.trace_holding_voltage = self.data["meta_data"]["holding_voltage"]
+        else:
+            self.trace_holding_voltage = np.mean(self.data["data"]["mean_norm_trace"][:10])
+            print(f"Guessing holding voltage: {self.trace_holding_voltage}")
 
-            dt = 1 / self.sample_freq
-            self.time = 0 + dt * np.arange(0, len(self.volt))
+        if self.trace_holding_voltage > 0:
+            raise ValueError(f"Your holding voltage is probably wrong: {self.trace_holding_voltage} V")
 
-            self.stim_time = np.array(self.data["meta_data"]["stim_time"])
+        dt = 1 / self.sample_freq
+        self.exp_time = 0 + dt * np.arange(0, len(self.exp_volt))
 
-            self.cell_type = self.data["meta_data"]["cell_type"]
+        self.stim_time = np.array(self.data["meta_data"]["stim_time"])
+
+        self.cell_type = self.data["meta_data"]["cell_type"]
+
+        peak_idx = self.get_peak_idx(time=self.exp_time, volt=self.exp_volt, stim_time=self.stim_time)
+
+        self.exp_peak_height, _, _ = self.find_trace_heights(time=self.exp_time,
+                                                             volt=self.exp_volt,
+                                                             peak_idx=peak_idx)
 
     def save_parameter_data(self):
 
@@ -229,7 +467,10 @@ class SynapseOptimiser:
 
     def load_parameter_data(self):
 
-        # TODO: How should this be done with new architecture?
+        if self.pc.id() != 0:
+            return
+
+        print(f"Loading parameters from {self.parameter_data_file_name}")
 
         self.synapse_parameter_data = ParameterBookkeeper(old_book_file=self.parameter_data_file_name, n_max=100)
         self.synapse_parameter_data.check_integrity()
@@ -239,11 +480,6 @@ class SynapseOptimiser:
         if best_dataset is not None:
             self.synapse_section_id = best_dataset["section_id"]
             self.synapse_section_x = best_dataset["section_x"]
-
-        if self.pc.id() != 0:
-            # This is to prevent duplicating entries
-            self.synapse_parameter_data.clear()
-
 
 
     def get_cell_properties(self):
@@ -259,6 +495,9 @@ class SynapseOptimiser:
 
     def update_cell_properties(self, holding_current):
 
+        if self.pc.id() != 0:
+            return
+
         cell_type = self.data["meta_data"]["cell_type"]
 
         with open(self.neuron_set_file, 'r') as f:
@@ -273,11 +512,14 @@ class SynapseOptimiser:
     def setup_model(self,
                     synapse_density_override=None,
                     n_synapses_override=None,
-                    synapse_position_override=None):
+                    synapse_position_override=None,
+                    synapse_params=None,
+                    init_synapses=True):
 
         self.write_log(f"setup_model: synapse_position-override: {synapse_position_override}")
 
-        params = {}
+        if synapse_params is None:
+            synapse_params = {}
 
         t_stim = self.stim_time
 
@@ -328,6 +570,8 @@ class SynapseOptimiser:
 
         print(f"Using random seed {self.seed}")
 
+        print(f"t_stim = {t_stim}")
+
         self.rsr_synapse_model = \
             RunSynapseRun(neuron_path=snudda_parse_path(c_prop["neuron_path"], self.snudda_data),
                           neuron_morphology_key=neuron_morphology_key,
@@ -338,16 +582,23 @@ class SynapseOptimiser:
                           holding_voltage=trace_holding_voltage,
                           holding_current=holding_current,
                           synapse_type=self.synapse_type,
-                          params=params,
+                          params=synapse_params,
                           time=self.sim_time,
                           log_file=self.log_file,
                           synapse_section_id=synapse_section_id,
                           synapse_section_x=synapse_section_x,
+                          sim=self.sim,
                           random_seed=self.seed,
-                          verbose=True)
+                          init_synapses=init_synapses,
+                          verbose=True,
+                          pc=self.pc)
+
+        self.pc.barrier()
 
         if self.rsr_synapse_model.holding_current != holding_current:
             self.update_cell_properties(holding_current=self.rsr_synapse_model.holding_current)
+
+        self.pc.barrier()
 
         return self.rsr_synapse_model
 
@@ -383,13 +634,13 @@ class SynapseOptimiser:
             t_idx = np.where(np.logical_and(t_start <= time, time <= t_end))[0]
 
             if len(t_idx) == 0:
-                self.write_log(f"No time points within {t_start} and {t_end}", flush=True)
+                self.write_log(f"No exp_time points within {t_start} and {t_end}", flush=True)
                 import pdb
                 pdb.set_trace()
 
-            assert len(t_idx) > 0, f"No time points within {t_start} and {t_end}"
+            assert len(t_idx) > 0, f"No exp_time points within {t_start} and {t_end}"
 
-            if self.synapse_type == "glut":
+            if self.synapse_type in ("glut", "glut2"):
                 p_idx = t_idx[np.argmax(volt[t_idx])]
             elif self.synapse_type == "gaba":
                 # We assume that neuron is more depolarised than -65, ie gaba is
@@ -403,8 +654,6 @@ class SynapseOptimiser:
             peak_idx.append(int(p_idx))
             peak_time.append(time[p_idx])
             peak_volt.append(volt[p_idx])
-
-        # Save to cache -- obs peakVolt is NOT amplitude of peak, just volt
 
         peak_dict = {"peakIdx": np.array(peak_idx),
                     "peakTime": np.array(peak_time),
@@ -487,22 +736,23 @@ class SynapseOptimiser:
                     self.write_log(tstr)
 
                     ### DEBUGGING START
-                    import pickle
-                    from datetime import datetime
+                    if False:
+                        import pickle
+                        from datetime import datetime
 
-                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    filename = f"curve_fit_args_{timestamp}.pkl"
+                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                        filename = f"curve_fit_args_{timestamp}.pkl"
 
-                    dump_data = {
-                        "t_ab_fit": t_ab_fit,
-                        "v_ab_fit": v_ab_fit,
-                        "p0d": p0d,
-                    }
+                        dump_data = {
+                            "t_ab_fit": t_ab_fit,
+                            "v_ab_fit": v_ab_fit,
+                            "p0d": p0d,
+                        }
 
-                    with open(filename, "wb") as f:
-                        pickle.dump(dump_data, f)
+                        with open(filename, "wb") as f:
+                            pickle.dump(dump_data, f)
 
-                    print(f"Saved to {filename}")
+                        print(f"Saved to {filename}")
 
                     ### DEBIGGING END
 
@@ -531,8 +781,8 @@ class SynapseOptimiser:
                     plt.figure()
                     plt.plot(t_ab, v_ab, 'r')
                     plt.title("Error in findTraceHeights")
-                    plt.xlabel("time")
-                    plt.ylabel("volt")
+                    plt.xlabel("exp_time")
+                    plt.ylabel("exp_volt")
                     # plt.plot(tAB,vFit,'k-')
                     plt.ion()
                     plt.show()
@@ -541,126 +791,6 @@ class SynapseOptimiser:
                 pdb.set_trace()
 
         return peak_height.copy(), decay_fits, v_base
-
-    def neuron_synapse_helper_glut(self, t_spike,
-                                   u, tau_r, tau_f, tau_ratio, cond,
-                                   smooth_exp_trace8, smooth_exp_trace9, exp_peak_height,
-                                   return_type="peaks"):
-
-        if self.debug_pars_flag:
-            self.debug_pars.append([u, tau_r, tau_f, tau_ratio, cond])
-
-        params = self.synapse_parameters
-        tau = tau_r * tau_ratio
-
-        peak_h, t_sim, v_sim = self.run_model(t_spike, u,
-                                              tau_r, tau_f, cond, tau,
-                                              params=params,
-                                              return_trace=True)
-
-        # Calculate error in decay fit
-        sim_trace8, sim_time8 = self.smoothing_trace(v_sim, self.num_smoothing,
-                                                     time=t_sim,
-                                                     start_time=self.decay_start_fit8,
-                                                     end_time=self.decay_end_fit8)
-
-        sim_trace9, sim_time9 = self.smoothing_trace(v_sim, self.num_smoothing,
-                                                     time=t_sim,
-                                                     start_time=self.decay_start_fit9,
-                                                     end_time=self.decay_end_fit9)
-
-        # We only want to use the bit of the trace after max
-        idx_max8 = np.argmax(smooth_exp_trace8)
-        idx_max9 = np.argmax(smooth_exp_trace9)
-
-        # Calculating error in peak height
-        if self.normalise_trace:
-            h_diff = np.abs(peak_h/peak_h[0] - exp_peak_height/exp_peak_height[0])
-        else:
-            h_diff = np.abs(peak_h - exp_peak_height)
-
-        h_diff[0] *= 3
-        h_diff[-2] *= 2
-        h_diff[-1] *= 3
-
-        # This is to prevent the model spiking
-        spike_penalty = np.sum(peak_h > 0.03) * 20
-
-        h_error = np.sum(h_diff) / len(h_diff)
-
-        decay_error8 = np.mean((smooth_exp_trace8[idx_max8:] - sim_trace8[idx_max8:]) ** 2)
-        decay_error9 = np.mean((smooth_exp_trace9[idx_max9:] - sim_trace9[idx_max9:]) ** 2)
-
-        fit_error = h_error + decay_error8 + decay_error9 + spike_penalty
-
-        print(f"{fit_error = }")
-
-        if spike_penalty > 0:
-            self.write_log("Action potential detected in trace. Penalising!")
-
-        if False:
-            peak_base = v_sim[-1]
-            plt.figure()
-            plt.plot(t_sim, v_sim, 'k-')
-            plt.plot(sim_time8, sim_trace8, 'y--')
-            plt.plot(sim_time8, smooth_exp_trace8, 'r--')
-            plt.plot(sim_time9, sim_trace9, 'y--')
-            plt.plot(sim_time9, smooth_exp_trace9, 'r--')
-
-            for tp, expH, modH in zip(t_spike, exp_peak_height, peak_h):
-                plt.plot([tp, tp], [peak_base, expH + peak_base], 'r-', linewidth=3)
-                plt.plot([tp, tp], [peak_base, modH + peak_base], 'b-')
-            plt.title("hE = %g, dE8 = %g, dE9 = %g" \
-                      % (h_error, decay_error8, decay_error9))
-
-            plt.ion()
-            plt.show()
-
-        if return_type == "peaks":
-            return peak_h
-        elif return_type == "error":
-            return fit_error
-        elif return_type == "full":
-            return fit_error, peak_h, t_sim, v_sim
-        else:
-            assert False, "Unknown return type: " + str(return_type)
-
-    def run_model(self, t_spike, u, tau_r, tau_f, cond, tau,
-                  params=None,
-                  return_trace=False):
-
-        if params is None:
-            params = {}
-
-        # self.writeLog("Running neuron model")
-
-        assert self.rsr_synapse_model is not None, \
-            "!!! Need to call setupModel first"
-
-        # Should we make a copy of params, to not destroy it? ;)
-        params["U"] = u
-        params["tauR"] = tau_r
-        params["tauF"] = tau_f
-        params["cond"] = cond
-        params["tau"] = tau
-
-        # self.writeLog("params=" + str(params))
-
-        self.pc.barrier()
-        (t_sim, v_sim, i_sim) = self.rsr_synapse_model.run2(pars=params)
-
-        if t_sim.shape != v_sim.shape:
-            self.write_log("Shape are different, why?!", flush=True)
-            import pdb
-            pdb.set_trace()
-
-        peak_idx = self.get_peak_idx(time=t_sim, volt=v_sim, stim_time=t_spike)
-        peak_height, decay_fits, v_base = self.find_trace_heights(t_sim, v_sim, peak_idx)
-
-        if return_trace:
-            return peak_height, t_sim, v_sim
-        else:
-            return peak_height
 
     # This should read from a JSON file instead
 
@@ -674,166 +804,107 @@ class SynapseOptimiser:
 
         return lower_bound, upper_bound
 
-
-    # TODO: BUtcher this function
-    def parallel_optimise_single_cell(self, n_trials=10000, post_opt=False):
-
-        start_time = timeit.default_timer()
+    def plot_last_run(self, fig_name=None):
 
         if self.pc.id() != 0:
-            self.write_log("parallel_optimise_single_cell should only be called on master node")
             return
 
-        # 1. Setup workers
-        params = self.synapse_parameters
+        import matplotlib.pyplot as plt
 
-        if self.synapse_section_id is not None:
-            syn_override = self.synapse_section_id, self.synapse_section_x
+        plt.figure()
+        plt.plot(self.last_run_time, (self.last_run_volt  - np.min(self.last_run_volt))/ (np.max(self.last_run_volt) - np.min(self.last_run_volt)), color='black', label="model")
+        plt.plot(self.exp_time, self.exp_volt , color='red', label="experiment")
+        plt.xlabel("Time (s)")
+        plt.ylabel("Voltage")
+        plt.legend()
+
+        if fig_name is None:
+            fig_name = os.path.join("figures", os.path.basename(self.data_file).split(".")[0] + f"-{self.synapse_type}.png")
+
+        os.makedirs("figures", exist_ok=True)
+
+        plt.savefig(fig_name, dpi=300)
+
+    def run_best_run(self):
+
+        # Get the best parameters
+        # Distribute the best parameters to workers (all will be identical), wasteful (run just one worker)
+        # Run
+
+        if self.pc.id() == 0:
+            best_param = self.synapse_parameter_data.get_best_parameterset()
+            best_param_list = [best_param for x in range(self.n_workers)]
         else:
-            syn_override = None
+            best_param_list = []
 
-        # 2. Setup one cell to optimise, randomise synapse positions
-        synapse_model = self.setup_model(params=params,
-                                         synapse_position_override=syn_override)
+        self.run_models(best_param_list)
 
-        # (volt,time) = self.getData(dataType,cellID)
-        peak_idx = self.get_peak_idx(stim_time=self.stim_time,
-                                     time=self.time,
-                                     volt=self.volt)
-        t_spikes = self.time[peak_idx]
+    def plot_error(self, error_list, fig_name_info="", marker=".", linestyle="-"):
 
-        sigma = np.ones(len(peak_idx))
-        sigma[-1] = 1. / 3
+        if self.pc.id() != 0:
+            return
 
-        peak_height, decay_fits, v_base = self.find_trace_heights(self.time, self.volt, peak_idx)
+        import matplotlib.pyplot as plt
+        plt.figure()
+        plt.plot(error_list, marker=marker, linestyle=linestyle)
+        plt.ylabel("Error")
 
-        if False:
-            plt.figure()
-            plt.plot(self.time, self.volt, color="black")
-            for idx in range(len(decay_fits)):
-                plt.plot(decay_fits[idx][0], decay_fits[idx][1], color="red")
-            plt.show()
+        fig_name = os.path.join("figures", os.path.basename(self.data_file).split(".")[0] + fig_name_info + f"-{self.synapse_type}-error.png")
 
-        skip_sets = self.synapse_parameter_data.old_iter
-        print(f"Starting sobol sequence at position {skip_sets}")
-
-        # 2b. Create list of all parameter points to investigate
-        model_bounds = self.get_model_bounds()
-        parameter_points = self.setup_parameter_set(model_bounds, n_trials, skip_sets=skip_sets)
-
-        # 3. Send synapse positions to all workers, and split parameter points
-        #    between workers
-
-        if self.d_view is not None:
-            self.setup_parallel(self.d_view)
-
-            self.d_view.scatter("parameter_points", parameter_points, block=True)
-
-            self.d_view.push({"params": params,
-                              "synapse_section_id": synapse_model.synapse_section_id,
-                              "synapse_section_x": synapse_model.synapse_section_x,
-                              "model_bounds": model_bounds,
-                              "stim_time": self.stim_time,
-                              "peak_height": peak_height},
-                             block=True)
-
-            cmd_str_setup = \
-                "ly.sobol_worker_setup(params=params," \
-                + "synapse_position_override=(synapse_section_id,synapse_section_x))"
-
-            self.d_view.execute(f"ly.write_log('TESTING LOG A')", block=True)
-
-            self.write_log("Calling sobol_worker_setup")
-            self.d_view.execute(cmd_str_setup, block=True)
-
-            self.d_view.execute(f"ly.write_log('TESTING LOG B')", block=True)
-
-            cmd_str = ("res = ly.sobol_scan(t_stim = stim_time,"
-                       "                    h_peak = peak_height,"
-                       "                    parameter_sets=parameter_points,"
-                       "                    model_bounds=model_bounds,"
-                       "                    smooth_exp_trace8=ly.smooth_exp_volt8,"
-                       "                    smooth_exp_trace9=ly.smooth_exp_volt9)")
-
-            self.write_log("Executing workers, bang bang")
-            self.d_view.execute(cmd_str, block=True)
-
-            # 5. Gather worker data
-            self.write_log("Gathering results from workers")
-            # res = self.d_view["res"]
-            res = self.d_view.gather("res", block=True)
-            self.write_log("Results gathered.")
-
-            #  for r in res:
-            self.synapse_parameter_data.merge(res)
-
-            self.save_parameter_data()
-
-        else:
-
-            # No dView, run in serial mode...
-            self.sobol_worker_setup(params=params,
-                                    synapse_position_override=(synapse_model.synapse_section_id,
-                                                               synapse_model.synapse_section_x))
-
-            self.sobol_scan(parameter_sets=parameter_points,
-                            t_stim=self.stim_time,
-                            h_peak=peak_height,
-                            model_bounds=model_bounds,
-                            smooth_exp_trace8=self.smooth_exp_volt8,
-                            smooth_exp_trace9=self.smooth_exp_volt9)
-
-            self.save_parameter_data()
-
-
-        self.write_log(f"Sobol search done. Best parameter {self.synapse_parameter_data.get_best_parameterset()}")
-
-        if post_opt:
-            # This updates parameters and saves new parameter cache
-            self.get_refined_parameters()
-
-            self.save_parameter_data()
-
-        end_time = timeit.default_timer()
-
-        self.write_log(f"Optimisation duration: {end_time - start_time}.1f s", flush=True)
-
+        plt.savefig(fig_name, dpi=300)
+        plt.close()
 
 
 if __name__ == "__main__":
-    so = SynapseOptimiser()
+
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Synapse optimisation using MPI parallel workers.")
+    parser.add_argument("data_file", type=str,
+                        help="Path to the data file (JSON) to optimise against.")
+    parser.add_argument("--iterations", type=int, default=100,
+                        help="Number of optimisation iterations to run (default: 100).")
+    parser.add_argument("--snudda_data", type=str, default=None,
+                        help="Path to the Snudda data directory.")
+    parser.add_argument("--synapse_type", default="glut", help="Specify synapse ['glut', 'glut2']")
+    parser.add_argument("--synapse_parameter_file", type=str, default=None)
+    parser.add_argument("--neuron_set_file", type=str, default="neuron_set.json")
+    parser.add_argument("--profile", action="store_true", default=False)
+    parser.add_argument("--verbose", action="store_true", default=False)
+
+    args = parser.parse_args()
+
+    if args.synapse_type == "glut2" and args.synapse_parameter_file is None:
+        raise Exception("Synapse parameter file is required for glut2 synapse (tmGlut_double).")
+
+    so = SynapseOptimiser(data_file=args.data_file,
+                          snudda_data=args.snudda_data,
+                          synapse_type=args.synapse_type,
+                          synapse_parameter_file=args.synapse_parameter_file,
+                          neuron_set_file=args.neuron_set_file,
+                          verbose=args.verbose)
+
+    if args.profile:
+        import cProfile
+        prof_file = f"profile-synaptic-opt.prof"
+        cProfile.runctx("so.optimise(n_iterations=args.iterations)", globals(), locals(), filename=prof_file)
+
+        if so.pc.id() == 0:
+            # To analyse profile data:
+            import pstats
+            from pstats import SortKey
+            p = pstats.Stats(prof_file)
+            p.strip_dirs().sort_stats(SortKey.CUMULATIVE).print_stats(100)
+
+    else:
+        so.optimise(n_iterations=args.iterations)
 
 
-"""
 
-from skopt import gp_minimize
-from skopt import Optimizer
-from joblib import Parallel, delayed
+    # mpirun -n 5 python optimise_synapses_parallel.py ../data/synapses/example_data/10_MSN12_GBZ_CC_H20.json --iterations 50 --snudda_data /home/hjorth/HBP/BasalGangliaData/data/
 
+    # Stored:  /media/psf/KTH/2025-11-13-Yvonne-data-teanalysing/Yvonne2019/CategorisedSTP/
+    # mpirun -n 5 python optimise_synapses_parallel.py ../data/synapses/example_data/mixed_test_data.json  --iterations 3 --snudda_data /home/hjorth/HBP/BasalGangliaData/data/
 
-## Parallell optimisation
-
-opt = Optimizer(dimensions=m_bounds, random_state=42)
-
-n_iterations = 10
-batch_size = 8  # tune this to your number of CPU cores
-
-# TODO: This can not handle the self reference, need to make func
-#       self contained.
-
-for i in range(n_iterations):
-    print(f"Iteration {i}/{n_iterations}")
-    x_batch = opt.ask(n_points=batch_size)
-
-    # Here run simulation, get results and put it in y_batch
-
-    # y_batch = Parallel(n_jobs=-1)(delayed(func)(x) for x in x_batch)  # couldnt pickle
-    opt.tell(x_batch, y_batch)
-
-best_idx = opt.yi.index(min(opt.yi))
-print("Best value:", min(opt.yi))
-print("Best params:", opt.Xi[best_idx])
-
-fit_params = opt.Xi[best_idx]
-min_error = opt.yi
-"""
+    #
+    # mpirun -n 5 python optimise_synapses_parallel.py ../data/synapses/example_data/mixed_test_data.json  --iterations 3 --snudda_data /home/hjorth/HBP/BasalGangliaData/data/ --synapse_type glut2 --synapse_parameter_file ../data/synapses/example_data/M1-ipsi_dSPN.json
