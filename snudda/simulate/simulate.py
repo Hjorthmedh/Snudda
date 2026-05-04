@@ -1893,6 +1893,7 @@ class SnuddaSimulate(object):
                     else:
                         # No spine, regular synapse on dendrite
                         syn = self.get_external_input_synapse(channel_module, section, section_x)
+                        spine = None
 
                     nc = h.NetCon(vs, syn)
 
@@ -1941,7 +1942,7 @@ class SnuddaSimulate(object):
                                                                         flux_variable=rxd_flux_variable)
 
                     # Need to save references, otherwise they will be freed
-                    self.external_stim[neuron_id, input_type].append((v, vs, nc, syn, spikes, section_id, section_x))
+                    self.external_stim[neuron_id, input_type].append((v, vs, nc, syn, spikes, section_id, section_x, spine))
 
     def get_rxd_external_input_parameters(self, neuron_input):
 

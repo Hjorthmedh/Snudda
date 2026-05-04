@@ -63,7 +63,11 @@ class Spine:
         neck.cm = membrane_capacitance
 
         for mech in mechanism_list:
-            neck.insert(mech)
+            try:
+                neck.insert(mech)
+            except Exception as e:
+                print(f"Problem inserting mechanism {mech} into spine neck")
+                raise e
 
         for par_name, par_value in parameter_list:
             for seg in neck:
@@ -90,7 +94,11 @@ class Spine:
         head.cm = membrane_capacitance
 
         for mech in mechanism_list:
-            head.insert(mech)
+            try:
+                head.insert(mech)
+            except Exception as e:
+                print(f"Problem inserting mechanism {mech} into spine head")
+                raise e
 
         for par_name, par_value in parameter_list:
             for seg in head:
