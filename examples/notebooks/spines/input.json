@@ -11,14 +11,15 @@
 	    "parameter_file": "$DATA/synapses/striatum/M1RH_Analysis_190925.h5-parameters-MS.json",
 	    
 	    "spines": {
-		"neck_length" : 0.5e-6,
-		"neck_diameter": 0.125e-6,
-		"neck_axial_resistance": 1130,
 		"head_length": 0.5e-6,
 		"head_diameter": 0.5e-6,
 		"head_axial_resistance": 150,
+		"neck_length" : 0.5e-6,
+		"neck_diameter": 0.125e-6,
+		"neck_axial_resistance": 1130,
 		"membrance_capacitance": 1.0,
-		"mechanism_list": ["pas", "caldyn", "caldyn_synaptic", "cal13_ms"],
+		"head_mechanism_list": ["pas", "caldyn", "caldyn_synaptic", "cal13_ms"],
+		"neck_mechanism_list": ["pas"],
 		"parameter_list_neck": [["g_pas", 1.25e-5], ["e_pas", -85]],
 		"parameter_list_head": [["g_pas", 1.25e-5], ["e_pas", -85]]
 		

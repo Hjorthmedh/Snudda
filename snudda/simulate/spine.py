@@ -6,16 +6,17 @@ class Spine:
                  parent_section,
                  parent_x,
                  name,
-                 neck_length,
-                 neck_diameter,
-                 neck_axial_resistance,
                  head_length,
                  head_diameter,
                  head_axial_resistance,
+                 neck_length,
+                 neck_diameter,
+                 neck_axial_resistance,
                  membrane_capacitance=1.0,
-                 mechanism_list = tuple(),
-                 parameter_list_neck = tuple(),
-                 parameter_list_head = tuple()
+                 parameter_list_neck=tuple(),
+                 parameter_list_head=tuple(),
+                 neck_mechanism_list = tuple(),
+                 head_mechanism_list = tuple()
                  ):
 
         # Example:
@@ -29,7 +30,7 @@ class Spine:
                                            diameter=neck_diameter,
                                            axial_resistance=neck_axial_resistance,
                                            membrane_capacitance=membrane_capacitance,
-                                           mechanism_list=mechanism_list,
+                                           mechanism_list=neck_mechanism_list,
                                            parameter_list=parameter_list_neck)
 
         self.head = self.create_head(spine_neck=self.neck,
@@ -37,7 +38,7 @@ class Spine:
                                      diameter=head_diameter,
                                      axial_resistance=head_axial_resistance,
                                      membrane_capacitance=membrane_capacitance,
-                                     mechanism_list=mechanism_list,
+                                     mechanism_list=head_mechanism_list,
                                      parameter_list=parameter_list_head)
 
         # Connecting the spine to the parent compartment
