@@ -23,10 +23,10 @@
     ],
     "codeRepository": "https://github.com/hjorthmedh/Snudda",
     "dateCreated": "2024-12-06",
-    "dateModified": "2026-03-19",
+    "dateModified": "2026-05-04",
     "datePublished": "2021-07-01",
     "description": "Snudda creates the connectivity for realistic networks of simulated neurons in silico in a bottom up fashion that can then be simulated using the NEURON software. Neurons are placed within 3D meshes representing the structures of interest, with neural densities as seen in experiments. Based on reconstructed morphologies and neuron placement we can infer locations of putative synapses based on proximity between axon and dendrites. Projections between different structures can be added either using axon reconstructions, or by defining a connectivity map between regions. Putative synapses are pruned to match experimental pair-wise data on connectivity. Networks can be simulated either on desktop machines, or on super computers.",
-    "downloadUrl": "https://files.pythonhosted.org/packages/e1/60/8c8ac3caf949459629d22f48e1c165285fec03b38482a4d770c209a261c1/snudda-2.2.6.4.tar.gz",
+    "downloadUrl": "https://files.pythonhosted.org/packages/98/07/ea91db98c3c5e2276e9c6ec97ce8bf90dd7366b8451055320152ad92b99a/snudda-2.2.6.5.tar.gz",
     "funder": [
         {
             "@type": "Organization",
@@ -40,7 +40,7 @@
     "name": "Snudda",
     "programmingLanguage": "Python",
     "softwareRequirements": "Python 3.11+",
-    "version": "2.2.6.4",
+    "version": "2.2.6.5",
     "referencePublication": "https://doi.org/10.1007/s12021-021-09531-w",
     "license": "https://spdx.org/licenses/GPL-3.0-only.html"
 }
