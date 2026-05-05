@@ -24,6 +24,7 @@ class Spine:
         # parameter_list = [("g_pas", 1.25e-5), ("e_pas", -85)]
 
         self.parent_section = parent_section
+        self.parent_x = parent_x
         self.name = name
 
         self.neck = self.create_spine_neck(length=neck_length,
