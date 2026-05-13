@@ -24,6 +24,7 @@ class PlotReactionDiffusion:
     def plot(self, neuron_id, species=None, species_label=None,
              colour_dict=None,
              line_style_dict=None,
+             time_range=None,
              ylabel=None,
              compartment_id = 0,
              normalise=False,
@@ -54,7 +55,11 @@ class PlotReactionDiffusion:
         all_data = self.sls.get_all_data(neuron_id=neuron_id, exclude=["spikes", "voltage"])
 
         for i, s in enumerate(species):
-            idx = time >= 0.0
+
+            if time_range is None:
+                idx = time >= 0.0
+            else:
+                idx = np.logical_and(time_range[0] <= time, time <= time_range[1])
 
             data = all_data[s]
 
