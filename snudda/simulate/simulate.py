@@ -2415,7 +2415,7 @@ class SnuddaSimulate(object):
 
         syn_ctr = 0
 
-        for _, _, nc, syn, _, section_id, section_x in external_synapes_list:
+        for _, _, nc, syn, _, section_id, section_x, spine in external_synapes_list:
 
             # print(f"add_external_synapse_recording {input_type = }, {neuron_id =}, {syn = }, {variable =}")
 
@@ -2424,9 +2424,13 @@ class SnuddaSimulate(object):
             seg = syn.get_segment()
 
             synapse_type = str(syn.hname().split("[")[0])
+            if spine is None:
+                synapse_str = "synapse"
+            else:
+                synapse_str = "spine_synapse"
 
             self.record.register_synapse_data(neuron_id=neuron_id,
-                                              data_type=f"synapse_{variable}",
+                                              data_type=f"{synapse_str}_{variable}",
                                               data=data,
                                               synapse_type=-1,  # We need to get this from input config
                                               presynaptic_id=-1,
