@@ -37,7 +37,7 @@ class RegionMesh:
         """ Check if points are inside, returns bool array."""
 
         is_inside = np.zeros(len(points), dtype=bool)
-        inside_idx = self.mesh.inside_points(points, return_ids=True)
+        inside_idx = self.mesh.inside_points(points, return_ids=True, tol=1e-6)
         is_inside[inside_idx] = True
 
         return is_inside
