@@ -529,29 +529,38 @@ class SnuddaInit(object):
             neuron_file_list = [(name, full_neuron_path)]
 
         else:
-            # Assume each subdirectory in current folder contains a neuron
-
-            # Find which neurons are available in neuron_dir
-            # OBS, we need to sort the list of neuron directories, so every computer gets the same order
-            dir_list = sorted(glob.glob(os.path.join(snudda_parse_path(neuron_dir, self.snudda_data), "*")))
+            # Check for a manifest JSON file (e.g. lts.json) that explicitly lists neuron paths.
+            # This takes priority over directory scanning so that incomplete subdirectories are ignored.
+            manifest_file = os.path.join(full_neuron_path, f"{name.lower()}.json")
             neuron_file_list = []
 
-            assert len(dir_list) > 0, f"Neuron dir {snudda_parse_path(neuron_dir, self.snudda_data)} is empty!"
+            if os.path.isfile(manifest_file):
+                with open(manifest_file, "r") as f:
+                    manifest = json.load(f)
+                if name in manifest and "neuron_path" in manifest[name]:
+                    print(f"Reading neuron paths for {name} from {manifest_file}")
+                    for key, path in manifest[name]["neuron_path"].items():
+                        neuron_file_list.append((key, path))
 
-            ctr = 0
+            if not neuron_file_list:
+                # Fall back: assume each subdirectory in current folder contains a neuron
+                # OBS, we need to sort the list of neuron directories, so every computer gets the same order
+                dir_list = sorted(glob.glob(os.path.join(snudda_parse_path(neuron_dir, self.snudda_data), "*")))
 
-            for fd in dir_list:
+                assert len(dir_list) > 0, f"Neuron dir {snudda_parse_path(neuron_dir, self.snudda_data)} is empty!"
 
-                d = snudda_simplify_path(fd, self.snudda_data)
+                ctr = 0
 
-                if snudda_isdir(d, self.snudda_data):
-                    # We want to maintain the $SNUDDA_DATA keyword in the path so that the user can move
-                    # the config file between systems and still run it.
+                for fd in dir_list:
 
-                    # sd = snudda_parse_path(d, self.snudda_data)
+                    d = snudda_simplify_path(fd, self.snudda_data)
 
-                    neuron_file_list.append((f"{name}_{ctr}", d))
-                    ctr += 1
+                    if snudda_isdir(d, self.snudda_data):
+                        # We want to maintain the $SNUDDA_DATA keyword in the path so that the user can move
+                        # the config file between systems and still run it.
+
+                        neuron_file_list.append((f"{name}_{ctr}", d))
+                        ctr += 1
 
         # First check how many unique cells we hava available, then we
         # calculate how many of each to use in simulation
