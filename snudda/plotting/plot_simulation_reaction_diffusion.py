@@ -30,7 +30,8 @@ class PlotReactionDiffusion:
              normalise=False,
              normalise_factor_dict=None,
              fig_name=None, fig_path="figures", title=None,
-             width=800, height=700):
+             width=800, height=700,
+             show=True):
 
         """ compartment_id is based on the order the compartments are added, ie. 0 is first one added, usually soma"""
 
@@ -156,7 +157,8 @@ class PlotReactionDiffusion:
             else:
                 fig.write_image(fig_name, width=width, height=height)
 
-        fig.show()
+        if show:
+            fig.show()
 
         return fig
 
@@ -178,6 +180,8 @@ def plot_cli():
     parser.add_argument("--title", type=str, default=None, help="Plot title")
     parser.add_argument("--width", type=int, default=800, help="Figure width in pixels (default: 800)")
     parser.add_argument("--height", type=int, default=700, help="Figure height in pixels (default: 700)")
+    parser.add_argument("--show", action="store_true", help="Show figure")
+    args = parser.parse_args()
 
     args = parser.parse_args()
 
@@ -191,6 +195,7 @@ def plot_cli():
     else:
         fig_name = args.fig_name
 
+
     plotter.plot(
         neuron_id=args.neuron_id,
         species=args.species,
@@ -202,8 +207,14 @@ def plot_cli():
         fig_path=args.fig_path,
         title=args.title,
         width=args.width,
-        height=args.height
+        height=args.height,
+        show=args.show
     )
+
+    if args.show:
+        input("Press a key to close figure and continue")
+
+
 
 if __name__ == "__main__":
     plot_cli()
