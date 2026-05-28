@@ -440,6 +440,8 @@ class SnuddaSaveNetworkRecordings:
 
                 # TODO: Also write extraAxons info to file
 
+                meta_data.create_dataset("snudda_data", data=self.network_data["snudda_data"])
+
             out_file.close()
 
         self.header_exists = True
