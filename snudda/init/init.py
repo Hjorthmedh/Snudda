@@ -224,7 +224,7 @@ class SnuddaInit(object):
 
         if n_putative_points:
             # This is used for neuron placement, putative points are points picked before d_min filtering
-            vol["n_putative_points"] = n_putative_points
+            vol["num_putative_points"] = n_putative_points
 
         return vol
 
