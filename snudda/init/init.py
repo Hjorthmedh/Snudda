@@ -785,14 +785,14 @@ class SnuddaInit(object):
                                mu2=mu2,
                                a3=a3,
                                cluster_synapses=cluster_synapses,
-                               dist_pruning_other=None,
-                               f1_other=None,
-                               soft_max_other=None,
-                               mu2_other=None,
-                               a3_other=None,
-                               conductance=None,
-                               mod_file=None,
-                               parameter_file=None,
+                               dist_pruning_other=dist_pruning_other,
+                               f1_other=f1_other,
+                               soft_max_other=soft_max_other,
+                               mu2_other=mu2_other,
+                               a3_other=a3_other,
+                               conductance=conductance,
+                               mod_file=mod_file,
+                               parameter_file=parameter_file,
                                channel_param_dictionary=channel_param_dictionary)
 
         # Next we need to add the connection mapping specific parameters
