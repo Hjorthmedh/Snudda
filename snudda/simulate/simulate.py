@@ -3256,7 +3256,8 @@ class SnuddaSimulate(object):
     def _setup_print_sim_time_helper(self, t_max):
         """ Helper method for printing simulation time during execution. """
         update_points = np.array([0.0, 0.01, 0.02, 0.03, 0.04, 0.05,
-                                  0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 1.0]) * t_max
+                                  0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,
+                                  0.95, 0.96, 0.97, 0.98, 0.99, 1.0]) * t_max
 
         # update_points = np.arange(t_max / 100., t_max, t_max / 100.)
         for t in update_points:
