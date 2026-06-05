@@ -255,6 +255,10 @@ class SnuddaSimulate(object):
                 self.sample_dt = self.sim_info["sample_dt"]
                 self.write_log(f"Sample dt: {self.sample_dt} s")
 
+            # Fallback in case sample_dt is not set.
+            if self.sample_dt is None:
+                self.sample_dt = self.sim_dt
+
             if "disable_synapses" in self.sim_info:
                 self.disable_synapses = self.sim_info["disable_synapses"]
                 self.write_log(f"Disable synapses: {self.disable_synapses}")
