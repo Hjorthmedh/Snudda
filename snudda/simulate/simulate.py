@@ -149,7 +149,7 @@ class SnuddaSimulate(object):
         self.fih_time = None
         self.last_sim_report_time = 0
         self.sample_dt = sample_dt  # None means all values, 0.0005 means 0.5ms time resolution in saved files
-        self.sim_dt = 0.025
+        self.sim_dt = 0.025*1e-3
         self.use_cvode = False
 
         self.pc = h.ParallelContext()
@@ -248,8 +248,11 @@ class SnuddaSimulate(object):
                     self.write_log(f"Using CVODE for NEURON simulation")
 
             if "sim_dt" in self.sim_info:
-                self.sim_dt = self.sim_info["sim_dt"] * 1e3  # OBS, converted to ms for NEURON
-                self.write_log(f"Setting simulation dt={self.sim_dt} ms")
+                self.sim_dt = self.sim_info["sim_dt"]  # in secods, converted ms later
+                self.write_log(f"Setting simulation dt={self.sim_dt*1e3} ms")
+
+            if self.sim_dt > 0.001:
+                raise ValueError(f"Warning, timestep {self.sim_dt} should be specified in seconds (e.g. 0.025e-3 s).")
 
             if "sample_dt" in self.sim_info:
                 self.sample_dt = self.sim_info["sample_dt"]
@@ -2765,7 +2768,7 @@ class SnuddaSimulate(object):
 
         self.write_log(f"Running simulation for {t / 1000.0} s", force_print=True)
 
-        self.sim.run(t, dt=self.sim_dt)
+        self.sim.run(t, dt=self.sim_dt*1e3)
         self.pc.barrier()
         self.write_log("Simulation done.")
 
