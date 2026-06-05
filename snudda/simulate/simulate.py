@@ -2766,7 +2766,7 @@ class SnuddaSimulate(object):
         # Make sure all processes are synchronised
         self.pc.barrier()
 
-        self.write_log(f"Running simulation for {t / 1000.0} s", force_print=True)
+        self.write_log(f"Running simulation for {t / 1000.0} s, with dt = {self.sim_dt} s", force_print=True)
 
         self.sim.run(t, dt=self.sim_dt*1e3)
         self.pc.barrier()
