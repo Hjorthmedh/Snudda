@@ -1071,7 +1071,7 @@ class SnuddaNetworkPairPulseSimulation:
 
         os.makedirs(os.path.join(self.network_path, "figures"), exist_ok=True)
 
-        plt.savefig(os.path.join(self.network_path, "figures", "gap_junction_coupling.png"),
+        plt.savefig(os.path.join(self.network_path, "figures", "gap_junction_coupling.pdf"),
                     dpi=300, bbox_inches="tight")
 
     ############################################################################
