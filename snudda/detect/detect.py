@@ -1307,7 +1307,7 @@ class SnuddaDetect(object):
                                     self.resize_hyper_voxel_synapses_matrix()
 
                                 cluster_cond = self.hyper_voxel_rng.lognormal(synapse_mu, synapse_sigma, cluster_size)
-                                cluster_cond = np.maximum(cluster_cond, mean_synapse_cond * 0.1)
+                                cluster_cond = np.minimum(np.maximum(cluster_cond, mean_synapse_cond * 0.1), mean_synapse_cond*10)
                                 cluster_param_id = self.hyper_voxel_rng.integers(1000000, size=cluster_size)
 
                                 # We need to convert coords to hyper voxel coords, to fit with other coords
