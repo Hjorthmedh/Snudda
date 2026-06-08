@@ -17,7 +17,7 @@
                 "type": "mesh",
                 "d_min": 1.5e-05,
                 "mesh_file": "networks/modify_network/mesh/Striatum-cube-mesh-0.00013543930142996346.obj",
-                "n_putative_points": 600
+                "num_putative_points": 600
             },
             "connectivity": {
                 "FS,FS": {

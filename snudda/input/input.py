@@ -1090,10 +1090,10 @@ class SnuddaInput(object):
 
         keys_to_copy = ["generator", "conductance", "mod_file", "parameter_file",
                         "parameter_list", "synapse_density", "RxD",
-                        "dendrite_location"
+                        "dendrite_location",
                         "num_soma_synapses",
                         "cluster_size", "cluster_spread",
-                        "dendrite_location", "morphology_key", "spines"]
+                        "morphology_key", "spines"]
 
         # location has to be computed by the worker, to parallelize it
 
