@@ -2105,7 +2105,11 @@ class SnuddaSimulate(object):
 
         if save_i_flag and (len(self.t_save) == 0 or self.t_save is None):
             self.t_save = self.sim.neuron.h.Vector()
-            self.t_save.record(self.sim.neuron.h._ref_t, self.sample_dt*1e3)
+
+            if self.sample_dt is not None:
+                self.t_save.record(self.sim.neuron.h._ref_t, self.sample_dt*1e3)
+            else:
+                self.t_save.record(self.sim.neuron.h._ref_t)
 
         for cID, v, rs, dur in zip(cell_id, voltage, res, duration):
 
@@ -2133,7 +2137,12 @@ class SnuddaSimulate(object):
 
             if save_i_flag:
                 cur = self.sim.neuron.h.Vector()
-                cur.record(vc._ref_i, self.sample_dt*1e3)
+
+                if self.sample_dt is not None:
+                    cur.record(vc._ref_i, self.sample_dt*1e3)
+                else:
+                    cur.record(vc._ref_i)
+
                 self.i_save.append(cur)
                 self.i_key.append(cID)
                 self.record.register_compartment_data(neuron_id=cID,
@@ -2198,7 +2207,11 @@ class SnuddaSimulate(object):
         self.pc.threshold(cell_id, self.spike_threshold)  # TODO: Set individual spike thresholds based on parameters
         for s, sx, sid in zip(sections, sec_x, sec_id):
             v = self.sim.neuron.h.Vector()
-            v.record(getattr(s(sx), '_ref_v'), self.sample_dt*1e3)
+
+            if self.sample_dt is not None:
+                v.record(getattr(s(sx), '_ref_v'), self.sample_dt*1e3)
+            else:
+                v.record(getattr(s(sx), '_ref_v'))
 
             # From the Snudda synapse matrix. sec_id -1 is soma, sec_id >= 0 is dendrite, sec_id <= -2 is axon
             self.record.register_compartment_data(neuron_id=cell_id,
@@ -2207,7 +2220,12 @@ class SnuddaSimulate(object):
 
         if self.record.time is None:
             t_save = self.sim.neuron.h.Vector()
-            t_save.record(self.sim.neuron.h._ref_t, self.sample_dt*1e3)
+
+            if self.sample_dt is not None:
+                t_save.record(self.sim.neuron.h._ref_t, self.sample_dt*1e3)
+            else:
+                t_save.record(self.sim.neuron.h._ref_t)
+
             self.record.register_time(time=t_save)
 
     def add_synapse_current_recording_all(self, dest_id=None, max_synapses=500):
@@ -2274,7 +2292,10 @@ class SnuddaSimulate(object):
                            f"{e}", is_error=True)
             raise e
 
-        data = self.sim.neuron.h.Vector().record(var, self.sample_dt*1e3)
+        if self.sample_dt is not None:
+            data = self.sim.neuron.h.Vector().record(var, self.sample_dt*1e3)
+        else:
+            data = self.sim.neuron.h.Vector().record(var)
 
         self.record.register_compartment_data(data_type=f"{density_mechanism}.{variable}",
                                               neuron_id=neuron_id,
@@ -2284,7 +2305,11 @@ class SnuddaSimulate(object):
 
         if self.record.time is None:
             t_save = self.sim.neuron.h.Vector()
-            t_save.record(self.sim.neuron.h._ref_t, self.sample_dt*1e3)
+            if self.sample_dt is not None:
+                t_save.record(self.sim.neuron.h._ref_t, self.sample_dt*1e3)
+            else:
+                t_save.record(self.sim.neuron.h._ref_t)
+
             self.record.register_time(time=t_save)
 
     def add_membrane_recording(self, variable, neuron_id, sec_id, sec_x):
@@ -2295,7 +2320,11 @@ class SnuddaSimulate(object):
 
         segment = self.neurons[neuron_id].map_id_to_compartment(sec_id)(sec_x)
         var = getattr(segment, f"_ref_{variable}")
-        data = self.sim.neuron.h.Vector().record(var, self.sample_dt*1e3)
+
+        if self.sample_dt is not None:
+            data = self.sim.neuron.h.Vector().record(var, self.sample_dt*1e3)
+        else:
+            data = self.sim.neuron.h.Vector().record(var)
 
         self.record.register_compartment_data(data_type=f"membrane.{variable}",
                                               neuron_id=neuron_id,
@@ -2370,7 +2399,10 @@ class SnuddaSimulate(object):
         for syn, nc, sec_id, sec_x in syn_list:
             data = self.sim.neuron.h.Vector()
 
-            data.record(getattr(syn, f"_ref_{variable}"), self.sample_dt*1e3)
+            if self.sample_dt is not None:
+                data.record(getattr(syn, f"_ref_{variable}"), self.sample_dt*1e3)
+            else:
+                data.record(getattr(syn, f"_ref_{variable}"))
 
             seg = syn.get_segment()
 
@@ -2400,7 +2432,10 @@ class SnuddaSimulate(object):
         for syn, nc, synapse_type_id, sec_id in point_process_list:
             data = self.sim.neuron.h.Vector()
 
-            data.record(getattr(syn, f"_ref_{variable}"), self.sample_dt*1e3)
+            if self.sample_dt is not None:
+                data.record(getattr(syn, f"_ref_{variable}"), self.sample_dt*1e3)
+            else:
+                data.record(getattr(syn, f"_ref_{variable}"))
 
             seg = syn.get_segment()
 
@@ -2450,7 +2485,10 @@ class SnuddaSimulate(object):
 
             data = self.sim.neuron.h.Vector()
 
-            data.record(getattr(syn, f"_ref_{variable}"), self.sample_dt*1e3)
+            if self.sample_dt is not None:
+                data.record(getattr(syn, f"_ref_{variable}"), self.sample_dt*1e3)
+            else:
+                data.record(getattr(syn, f"_ref_{variable}"))
 
             seg = syn.get_segment()
 
@@ -2489,7 +2527,11 @@ class SnuddaSimulate(object):
                 continue
 
             data = self.sim.neuron.h.Vector()
-            data.record(getattr(syn, f"_ref_{variable}"), self.sample_dt*1e3)
+            if self.sample_dt is not None:
+                data.record(getattr(syn, f"_ref_{variable}"), self.sample_dt*1e3)
+            else:
+                data.record(getattr(syn, f"_ref_{variable}"))
+
             seg = syn.get_segment()
 
             self.record.register_synapse_data(neuron_id=dest_id, data_type=data_type, data=data,
@@ -2511,7 +2553,12 @@ class SnuddaSimulate(object):
 
         for syn, nc, synapse_type_id, sec_id in synapse_info_list:
             data = self.sim.neuron.h.Vector()
-            data.record(syn._ref_i, self.sample_dt*1e3)
+
+            if self.sample_dt is not None:
+                data.record(syn._ref_i, self.sample_dt*1e3)
+            else:
+                data.record(syn._ref_i)
+
             seg = syn.get_segment()
 
             self.record.register_synapse_data(neuron_id=dest_id, data_type="synaptic_current", data=data,
@@ -2540,7 +2587,10 @@ class SnuddaSimulate(object):
         conc_ref = spec[ecs].node_by_location(x, y, z)._ref_value
         vector = self.sim.neuron.h.Vector()
 
-        vector.record(conc_ref, self.sample_dt*1e3)
+        if self.sample_dt is not None:
+            vector.record(conc_ref, self.sample_dt*1e3)
+        else:
+            vector.record(conc_ref)
 
         # Get the ijk index:
         e = self.extracellular_regions[volume_id].compartments["ecs"]
@@ -2560,7 +2610,11 @@ class SnuddaSimulate(object):
 
         if self.record.time is None:
             t_save = self.sim.neuron.h.Vector()
-            t_save.record(self.sim.neuron.h._ref_t, self.sample_dt*1e3)
+            if self.sample_dt is not None:
+                t_save.record(self.sim.neuron.h._ref_t, self.sample_dt*1e3)
+            else:
+                t_save.record(self.sim.neuron.h._ref_t)
+
             self.record.register_time(time=t_save)
 
         pass
@@ -2596,7 +2650,11 @@ class SnuddaSimulate(object):
         conc_ref = self.neurons[neuron_id].modulation.species[species][region].nodes(segment)._ref_concentration
 
         vector = self.sim.neuron.h.Vector()
-        vector.record(conc_ref, self.sample_dt*1e3)
+
+        if self.sample_dt is not None:
+            vector.record(conc_ref, self.sample_dt*1e3)
+        else:
+            vector.record(conc_ref)
 
         # Convert back from RxD millimolar -> molar
         self.record.add_unit(data_type=species, target_unit="mM", conversion_factor=1)
@@ -2608,7 +2666,11 @@ class SnuddaSimulate(object):
 
         if self.record.time is None:
             t_save = self.sim.neuron.h.Vector()
-            t_save.record(self.sim.neuron.h._ref_t, self.sample_dt*1e3)
+            if self.sample_dt is not None:
+                t_save.record(self.sim.neuron.h._ref_t, self.sample_dt*1e3)
+            else:
+                t_save.record(self.sim.neuron.h._ref_t)
+
             self.record.register_time(time=t_save)
 
     def add_rxd_internal_concentration_recording_all(self, species, neuron_id):
