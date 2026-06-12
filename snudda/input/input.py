@@ -1326,7 +1326,7 @@ class SnuddaInput(object):
             if np.size(freq) == 1:
                 freq = np.full(np.size(time_range[0]), freq)
 
-            assert len(time_range[0]) == len(time_range[1]) == len(freq), \
+            assert np.size(time_range[0]) == np.size(time_range[1]) == np.size(freq), \
                 (f"Frequency, start and end time vectors need to be of same length."
                  f"\nfreq: {freq}\nstart: {time_range[0]}\nend:{time_range[1]}")
 
