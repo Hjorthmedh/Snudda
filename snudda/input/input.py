@@ -1303,8 +1303,29 @@ class SnuddaInput(object):
 
         t_spikes = []
 
-        for f, t_start, t_end in zip(frequencies, time_ranges[0], time_ranges[1]):
-            t_spikes.append(self.generate_poisson_spikes(f, (t_start, t_end), rng=rng))
+        if isinstance(frequencies, np.ndarray):
+            freq = frequencies.flatten()
+        else:
+            freq = frequencies
+
+        if isinstance(time_ranges[0], np.ndarray):
+            start_time = time_ranges[0].flatten()
+        else:
+            start_time = time_ranges[0]
+
+        if isinstance(time_ranges[1], np.ndarray):
+            end_time = time_ranges[1].flatten()
+        else:
+            end_time = time_ranges[1]
+
+        try:
+            for f, t_start, t_end in zip(freq, start_time, end_time):
+                t_spikes.append(self.generate_poisson_spikes(f, (t_start, t_end), rng=rng))
+        except:
+            import traceback
+            print(traceback.format_exc())
+            import pdb
+            pdb.set_trace()
 
         # Double check correct dimension
         return np.sort(np.concatenate(t_spikes))

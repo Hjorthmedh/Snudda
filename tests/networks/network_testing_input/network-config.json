@@ -169,18 +169,18 @@
                         "cluster_size": 1,
                         "cluster_spread": null,
                         "pruning": {
-                            "f1": 0.28500000000000003,
-                            "soft_max": 3,
-                            "mu2": 2.4,
-                            "a3": 1.0,
+                            "f1": 0.209,
+                            "soft_max": null,
+                            "mu2": 1.6864,
+                            "a3": 0.9998,
                             "dist_pruning": "1-exp(-(0.4*d/60e-6)**2)",
                             "cluster_pruning": false
                         },
                         "pruning_other": {
-                            "f1": 0.28500000000000003,
-                            "soft_max": 3,
-                            "mu2": 2.4,
-                            "a3": 1.0,
+                            "f1": 0.209,
+                            "soft_max": null,
+                            "mu2": 1.6864,
+                            "a3": 0.9998,
                             "dist_pruning": "1-exp(-(0.4*d/60e-6)**2)",
                             "cluster_pruning": false
                         }
@@ -208,18 +208,18 @@
                         "cluster_size": 1,
                         "cluster_spread": null,
                         "pruning": {
-                            "f1": 0.164,
-                            "soft_max": 3,
-                            "mu2": 2.4,
-                            "a3": 1.0,
+                            "f1": 0.2175,
+                            "soft_max": null,
+                            "mu2": 1.7053,
+                            "a3": 0.4214,
                             "dist_pruning": "1-exp(-(0.4*d/60e-6)**2)",
                             "cluster_pruning": false
                         },
                         "pruning_other": {
-                            "f1": 0.164,
-                            "soft_max": 3,
-                            "mu2": 2.4,
-                            "a3": 1.0,
+                            "f1": 0.2175,
+                            "soft_max": null,
+                            "mu2": 1.7053,
+                            "a3": 0.4214,
                             "dist_pruning": "1-exp(-(0.4*d/60e-6)**2)",
                             "cluster_pruning": false
                         }
@@ -269,18 +269,18 @@
                         "cluster_size": 1,
                         "cluster_spread": null,
                         "pruning": {
-                            "f1": 0.279,
-                            "soft_max": 4,
-                            "mu2": 2.4,
-                            "a3": 1.0,
+                            "f1": 0.1741,
+                            "soft_max": null,
+                            "mu2": 1.5767,
+                            "a3": 0.9837,
                             "dist_pruning": "1-exp(-(0.4*d/60e-6)**2)",
                             "cluster_pruning": false
                         },
                         "pruning_other": {
-                            "f1": 0.279,
-                            "soft_max": 4,
-                            "mu2": 2.4,
-                            "a3": 1.0,
+                            "f1": 0.1741,
+                            "soft_max": null,
+                            "mu2": 1.5767,
+                            "a3": 0.9837,
                             "dist_pruning": "1-exp(-(0.4*d/60e-6)**2)",
                             "cluster_pruning": false
                         }
@@ -308,18 +308,18 @@
                         "cluster_size": 1,
                         "cluster_spread": null,
                         "pruning": {
-                            "f1": 0.55,
-                            "soft_max": 4,
-                            "mu2": 2.4,
-                            "a3": 1.0,
+                            "f1": 0.3105,
+                            "soft_max": null,
+                            "mu2": 1.6518,
+                            "a3": 0.999,
                             "dist_pruning": "1-exp(-(0.4*d/60e-6)**2)",
                             "cluster_pruning": false
                         },
                         "pruning_other": {
-                            "f1": 0.55,
-                            "soft_max": 4,
-                            "mu2": 2.4,
-                            "a3": 1.0,
+                            "f1": 0.3105,
+                            "soft_max": null,
+                            "mu2": 1.6518,
+                            "a3": 0.999,
                             "dist_pruning": "1-exp(-(0.4*d/60e-6)**2)",
                             "cluster_pruning": false
                         }
