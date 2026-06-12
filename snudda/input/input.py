@@ -1330,7 +1330,7 @@ class SnuddaInput(object):
                 (f"Frequency, start and end time vectors need to be of same length."
                  f"\nfreq: {freq}\nstart: {time_range[0]}\nend:{time_range[1]}")
 
-            if self.time_interval_overlap_warning:
+            if self.time_interval_overlap_warning and np.size(time_range[0]) > 1:
                 assert (np.array(time_range[0][1:]) - np.array(time_range[1][0:-1]) >= 0).all(), \
                     f"Time range should not overlap: start: {time_range[0]}, end: {time_range[1]}"
 
