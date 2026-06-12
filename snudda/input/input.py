@@ -1321,7 +1321,7 @@ class SnuddaInput(object):
 
         assert np.size(freq) == np.size(time_range[0]) or np.size(freq) == 1
 
-        if np.size(time_range[0]) > 1:
+        if type(time_range[0]) in (list, np.ndarray):
 
             if np.size(freq) == 1:
                 freq = np.full(np.size(time_range[0]), freq)
