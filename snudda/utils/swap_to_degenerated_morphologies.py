@@ -807,7 +807,7 @@ class SwapToDegeneratedMorphologies:
 
         keep_idx = np.zeros(old_sec_id.shape, dtype=bool)
         new_sec_id = np.full(old_sec_id.shape, -9999999, dtype=int)
-        new_sec_x = np.full(old_sec_id.shape, np.nan)
+        new_sec_x = np.full(old_sec_id.shape, -1)
 
         old_param_key, old_morph_key, old_path = self.find_old_morphology(neuron_id=neuron_id)
 
