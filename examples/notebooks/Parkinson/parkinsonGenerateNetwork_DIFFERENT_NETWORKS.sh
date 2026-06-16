@@ -1,6 +1,9 @@
 export IPYTHONDIR="`pwd`/.ipython"
 export IPYTHON_PROFILE=default
 
+echo "2026-06-16: Make sure this SH script uses the same generation method as the updated Jupyter notebook. When that is done, remove this warning message."
+exit
+
 
 # OBS, currently init is commented out, so numneurons not used
 export numNeurons=3000

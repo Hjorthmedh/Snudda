@@ -1,6 +1,10 @@
 export IPYTHONDIR="`pwd`/.ipython"
 export IPYTHON_PROFILE=default
 
+echo "2026-06-16: Make sure this SH script uses the same generation method as the updated Jupyter notebook. When that is done, remove this warning message."
+exit
+
+
 
 export numNeurons=1000
 export simNamePart=1k_test_v0
