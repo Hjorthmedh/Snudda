@@ -51,17 +51,23 @@ class ForceMorphologyVariations(object):
             self.updated_network[f"network/neurons/neuron_path"][idx] = neuron_path
             self.updated_network[f"network/neurons/morphology"][idx] = new_morph_name
 
-            # Make sure no names are truncated
-            assert self.updated_network[f"network/neurons/neuron_path"][idx] == neuron_path, f"Warning truncated names for neuron_id {neuron_id}"
+
+            if SnuddaLoad.to_str(self.updated_network[f"network/neurons/neuron_path"][idx]) != neuron_path:
+                print(f"Warning truncated names for neuron_id {neuron_id}")
+                print(SnuddaLoad.to_str(self.updated_network[f"network/neurons/neuron_path"][idx]))
+                print(neuron_path)
+                import pdb
+                pdb.set_trace()
+
 
             # TODO: Make sure that axon_density, and friends,... reaction_diffusion_file etc
             #       are not set, because if so they might differ between WT and PD/SZ networks
             #
 
         # Write the new data to file
-        self.updated_network["meta/snudda_data"] = self.updated_snudda_data
-        self.updated_network["meta/config_file"] = self.updated_network_config_file
-        self.updated_network["meta/config"] = json.dumps(self.updated_config)
+        self.updated_network["meta/snudda_data"][()] = self.updated_snudda_data
+        self.updated_network["meta/config_file"][()] = self.updated_network_config_file
+        self.updated_network["meta/config"][()] = json.dumps(self.updated_config)
 
         self.original_network.close()
         self.original_network = None
@@ -90,11 +96,11 @@ class ForceMorphologyVariations(object):
         """ Given neuron_id it looks up what was old morphology, then looks for a new morphology with the same name
             and finds the corresponding morphology_key. It also tries to pick a parameter_key """
 
-        orig_morph_key = SnuddaLoad.to_str(self.original_network["neurons"][neuron_id]["morphology_key"])
-        orig_param_key = SnuddaLoad.to_str(self.original_network["neurons"][neuron_id]["parameter_key"])
+        orig_morph_key = SnuddaLoad.to_str(self.original_network["network/neurons"]["morphology_key"][neuron_id])
+        orig_param_key = SnuddaLoad.to_str(self.original_network["network/neurons"]["parameter_key"][neuron_id])
 
         # We assume the new morphology is in the same relative path, but using a different SNUDDA_DATA
-        orig_simple_path = SnuddaLoad.to_str(self.original_network["neurons"][neuron_id]["neuron_path"])
+        orig_simple_path = SnuddaLoad.to_str(self.original_network["network/neurons"]["neuron_path"][neuron_id])
         orig_neuron_path = snudda_parse_path(orig_simple_path, os.path.realpath(self.original_snudda_data))
         new_neuron_path = orig_neuron_path.replace(os.path.realpath(self.original_snudda_data),
                                                    os.path.realpath(self.updated_snudda_data))
@@ -212,4 +218,4 @@ if __name__ == "__main__":
 
     fmv = ForceMorphologyVariations(args.network_path, args.original_network_path)
     fmv.swap()
-    
+
