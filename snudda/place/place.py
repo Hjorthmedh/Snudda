@@ -381,6 +381,8 @@ class SnuddaPlace(object):
             else:
                 region_seed = self.volume[region_name]["random_seed"]
 
+            print(f"Region {region_name} uses random seed {region_seed}")
+
             region_rnd = np.random.default_rng(region_seed + 123)
 
             if snudda_path_exists(volume_data["mesh_file"], self.snudda_data):
