@@ -11,9 +11,9 @@ from snudda.utils.snudda_path import snudda_simplify_path
 
 class ForceMorphologyVariations(object):
 
-    def __init__(self, network_path, original_network_path):
+    def __init__(self, network_path, original_network_path, verbose=False):
 
-        self.verbose = True
+        self.verbose = verbose
 
         self.network_path = network_path
         self.original_network_path = original_network_path
@@ -67,6 +67,7 @@ class ForceMorphologyVariations(object):
         # Write the new data to file
         self.updated_network["meta/snudda_data"][()] = self.updated_snudda_data
         self.updated_network["meta/config_file"][()] = self.updated_network_config_file
+        print(f"Updating config_file to {self.updated_network_config_file}")
         self.updated_network["meta/config"][()] = json.dumps(self.updated_config)
 
         self.original_network.close()

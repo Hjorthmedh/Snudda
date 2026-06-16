@@ -434,6 +434,7 @@ class Snudda(object):
 
     def detect_synapses(self,
                         random_seed=None,
+                        config_file=None,
                         parallel=None,
                         ipython_profile=None,
                         ipython_timeout=120,
@@ -459,7 +460,9 @@ class Snudda(object):
             print(f"Creating directory {log_dir}")
             os.makedirs(log_dir, exist_ok=True)
 
-        config_file = os.path.join(self.network_path, "network-config.json")
+        if config_file is None:
+            config_file = os.path.join(self.network_path, "network-config.json")
+
         position_file = os.path.join(self.network_path, "network-neuron-positions.hdf5")
         log_filename = os.path.join(self.network_path, "log", "touch-detection.txt")
         save_file = os.path.join(self.network_path, "voxels", "network-putative-synapses.hdf5")
