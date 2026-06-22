@@ -1350,7 +1350,7 @@ def snudda_load_cli():
 
     if args.list_morph:
         for x in nl.data["neurons"]:
-            print(f"{x['neuron_id']} {x['name']} {x["morphology"]}")
+            print(f"{x['neuron_id']} {x['name']} {x['morphology']}")
 
 if __name__ == "__main__":
     snudda_load_cli()
