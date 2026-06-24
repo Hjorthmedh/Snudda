@@ -564,7 +564,7 @@ class SnuddaInput(object):
                 except:
                     import traceback
                     self.write_log(traceback.format_exc(), is_error=True)
-                    self.write_log(f"Did you forget to specify the name of the input to {neuron_type}?",
+                    self.write_log(f"Did you forget to specify the name of the input to {neuron_type}, e.g. 'cortical'?",
                                    force_print=True)
                     sys.exit(-1)
 
@@ -1114,6 +1114,19 @@ class SnuddaInput(object):
         csv_input["num_soma_synapses"] = csv_input.get("num_soma_synapses", 0)
         csv_input["cluster_spread"] = csv_input.get("cluster_spread", None)
         csv_input["cluster_size"] = csv_input.get("cluster_size", None)
+
+        if "num_inputs" in input_inf:
+            if num_spike_trains < input_inf["num_inputs"]:
+                raise ValueError(f"Not enough inputs trains in csv file")
+
+            num_spike_trains = input_inf["num_inputs"]
+
+            if num_spike_trains > input_inf["num_inputs"]:
+                if self.verbose:
+                    self.write_log(f"Found {num_spike_trains} spikes in {csv_file}, only using first {input_inf['num_inputs']}")
+
+                csv_input["spikes"] = csv_input["spikes"][:num_spike_trains, :]
+                csv_input["num_spikes"] = csv_input["num_spikes"][:num_spike_trains]
 
         csv_input["num_inputs"] = num_spike_trains
         csv_input["parameter_id"] = rng_master.integers(1e6, size=num_spike_trains)
