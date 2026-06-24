@@ -1014,6 +1014,15 @@ class SnuddaSimulate(object):
                 if not os.path.isfile(modulation):
                     modulation = None
 
+            # Optional drop-in mechanisms appended on top of the neuron's mechanisms.json
+            # (e.g. a PKAc buffer mechanism for .mod-based modulation). Same shape as
+            # mechanisms.json: {section_list: [suffix, ...]}.
+            extra_mechanisms = None
+            if neuron_type in self.network_info["config"]["regions"][region]["neurons"] and \
+                    "extra_mechanisms" in self.network_info["config"]["regions"][region]["neurons"][neuron_type]:
+                extra_mechanisms = \
+                    self.network_info["config"]["regions"][region]["neurons"][neuron_type]["extra_mechanisms"]
+
             if not self.use_rxd_neuromodulation:
                 reaction_diffusion_file = None
 
@@ -1104,6 +1113,7 @@ class SnuddaSimulate(object):
                                                parameter_key=parameter_key,
                                                morphology_key=morphology_key,
                                                modulation_key=modulation_key,
+                                               extra_mechanisms=extra_mechanisms,
                                                use_rxd_neuromodulation=self.use_rxd_neuromodulation,
                                                replace_axon_length=axon_length,
                                                replace_axon_nseg_frequency=axon_nseg_frequency,
