@@ -31,7 +31,7 @@ pip install wheel
 pip install -r requirements.txt
 pip install neuron --upgrade
 pip install -e .[dev]
-
+pip install scikit-optimize
 
 
 
