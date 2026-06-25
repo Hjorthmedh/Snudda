@@ -1,5 +1,6 @@
 .ipython
 *.pickle
+*.pkl
 *.hdf5
 
 # Byte-compiled / optimized / DLL files
