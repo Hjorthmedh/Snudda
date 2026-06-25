@@ -1,3 +1,7 @@
+#
+# TO RUN THIS CODE YOU ALSO NEED:
+# pip install scikit-optimize
+
 # TODO: 2026-02-26 -- Dear future humans.
 #      -- We have copied optimise_synapse_full.py (but not all of it)
 #      -- we need to write code to run on self.pc.id() == 0 that sets up the optimisation
