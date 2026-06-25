@@ -368,7 +368,6 @@ class SynapseOptimiser:
                 print(f"Iteration {i}/{n_iterations}")
                 model_parameter_list = opt.ask(n_points=self.n_workers)
                 # TODO: Should we round model_parameter_list to N decimals before proceeding?
-                print(f"ask: {model_parameter_list =}")
             else:
                 model_parameter_list = []
 
@@ -377,9 +376,7 @@ class SynapseOptimiser:
             print(f"Worker {self.pc.id()} has neuron = {id(self.rsr_synapse_model.neuron)}")
 
             if self.pc.id() == 0:
-                print(f"tell: {model_parameter_list = }\n{error = }")
                 opt.tell(model_parameter_list, error)
-                print(f"Error: {error}")
 
                 if i % 100 == 0 and i > 0:
                     # Just for safety let's save every 100 iterations...
