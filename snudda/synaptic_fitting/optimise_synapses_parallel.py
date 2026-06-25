@@ -76,7 +76,9 @@ class SynapseOptimiser:
                  synapse_parameter_file=None,
                  verbose=True):
 
-        os.makedirs("logs", exist_ok=True)
+        os.makedirs("log", exist_ok=True)
+        self.pc = h.ParallelContext()
+
         self.log_file = open(f"log/opt_log_rank{self.pc.id()}.txt", "w")
         self.verbose = verbose
         self.rng = None
@@ -115,7 +117,6 @@ class SynapseOptimiser:
 
         self.cell_properties = None
 
-        self.pc = h.ParallelContext()
         self.n_workers = self.pc.nhost()
 
         self.load_trace_data()
