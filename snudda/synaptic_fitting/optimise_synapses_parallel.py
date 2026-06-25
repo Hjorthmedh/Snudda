@@ -43,7 +43,6 @@ from mpi4py import MPI  # This must be imported before neuron, to run parallel
 import neuron
 from neuron import h  # , gui
 
-from snudda.synaptic_fitting.ExampleOptimisation import log_file_name
 from snudda.utils.snudda_path import snudda_parse_path, get_snudda_data
 from snudda.synaptic_fitting.parameter_bookkeeper import ParameterBookkeeper
 from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
