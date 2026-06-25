@@ -35,6 +35,7 @@ class NeuronModel(ephys.models.CellModel):
                  parameter_key=None,
                  morphology_key=None,
                  modulation_key=None,
+                 extra_mechanisms=None,
                  use_rxd_neuromodulation=True,
                  replace_axon_length=60e-6,
                  replace_axon_nseg_frequency=40e-6,
@@ -62,6 +63,10 @@ class NeuronModel(ephys.models.CellModel):
             parameter_key (str): parameter key for lookup in parameter.json
             morphology_key (str): morphology key, together with parameter_key lookup in meta.json
             modulation_key (str): modulation key, lookup in modulation.json
+            extra_mechanisms (dict): mechanisms to append on top of mech_file, shaped like mechanisms.json
+                                     (e.g. {"soma": ["pka_buffer"], "basal": ["pka_buffer"]}).
+                                     Useful for drop-in mechanisms that should not require editing
+                                     the neuron's mechanisms.json on disk.
             volume_id (str): name of volume (region) that neuron is located in
 
         """
@@ -129,7 +134,7 @@ class NeuronModel(ephys.models.CellModel):
                                        replace_axon_myelin_length=replace_axon_myelin_length,
                                        replace_axon_myelin_diameter=replace_axon_myelin_diameter)
 
-        mechs = self.define_mechanisms(mechanism_config=mech_file)
+        mechs = self.define_mechanisms(mechanism_config=mech_file, extra_mechanisms=extra_mechanisms)
         params = self.define_parameters(param_file, parameter_id, parameter_key)
 
         if modulation_file:
@@ -159,8 +164,14 @@ class NeuronModel(ephys.models.CellModel):
 
     # Helper function
 
-    def define_mechanisms(self, mechanism_config=None):
-        """Define mechanisms based on mechanism_config """
+    def define_mechanisms(self, mechanism_config=None, extra_mechanisms=None):
+        """Define mechanisms based on mechanism_config, optionally appending extra_mechanisms.
+
+        Args:
+            mechanism_config: Path to mechanisms.json
+            extra_mechanisms (dict): Optional {section_list: [suffix, ...]} appended to the list
+                                     loaded from mechanism_config. Same shape as mechanisms.json.
+        """
 
         assert (mechanism_config is not None)
         # print("Using mechanmism config: " + mechanism_config)
@@ -173,6 +184,11 @@ class NeuronModel(ephys.models.CellModel):
             print(f"mod_path set to {mod_path} (not yet implemented)")
         else:
             mod_path = None
+
+        # Merge extra_mechanisms into mech_definitions so they share the same code path.
+        if extra_mechanisms:
+            for section_list, channels in extra_mechanisms.items():
+                mech_definitions.setdefault(section_list, []).extend(channels)
 
         mechanisms = []
         for section_list in mech_definitions:
