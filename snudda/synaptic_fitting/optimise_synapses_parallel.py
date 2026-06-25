@@ -76,10 +76,12 @@ class SynapseOptimiser:
                  synapse_parameter_file=None,
                  verbose=True):
 
-        self.log_file = None
+        os.makedirs("logs", exist_ok=True)
+        self.log_file = open(f"log/opt_log_rank{self.pc.id()}.txt", "w")
         self.verbose = verbose
         self.rng = None
         self.sim = None
+
 
         self.data_file = data_file
         self.parameter_data_file_name = f"{self.data_file}-parameters-optimised-{synapse_type}.json"
@@ -798,9 +800,17 @@ class SynapseOptimiser:
 
         mb = self.data["model_data"]
 
-        param_list = ["U", "tauR", "tauF", "tauRatio", "cond"]
-        lower_bound = [mb[x][0] for x in param_list]
-        upper_bound = [mb[x][1] for x in param_list]
+        try:
+            param_list = ["U", "tauR", "tauF", "tauRatio", "cond"]
+            lower_bound = [mb[x][0] for x in param_list]
+            upper_bound = [mb[x][1] for x in param_list]
+        except:
+            import traceback
+            tstr = traceback.format_exc()
+            self.write_log(tstr, flush=True)
+            print(tstr)
+            import pdb
+            pdb.set_trace()
 
         return lower_bound, upper_bound
 
