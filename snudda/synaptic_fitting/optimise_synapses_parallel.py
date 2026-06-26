@@ -378,9 +378,10 @@ class SynapseOptimiser:
             if self.pc.id() == 0:
                 opt.tell(model_parameter_list, error)
 
-                if i % 100 == 0 and i > 0:
+                if i % 20 == 0 and i > 0:
                     # Just for safety let's save every 100 iterations...
-                    print(f"Iteration {i}: Saving state to {self.opt_state_data_file_name}")
+                    elapsed_time = time.perf_counter() - start_time
+                    print(f"Iteration {i}: Saving state to {self.opt_state_data_file_name} (elapsed time: {elapsed_time:.0f} seconds)")
                     self.save_opt_state(opt)
 
                 error_list.append(np.min(opt.yi))
