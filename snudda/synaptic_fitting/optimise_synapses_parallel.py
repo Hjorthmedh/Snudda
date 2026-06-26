@@ -150,7 +150,8 @@ class SynapseOptimiser:
     def setup_rng(self):
 
         if self.rng is not None:
-            print(f"setup_rng: rng already setup, skipping.")
+            if self.verbose:
+                self.write_log(f"setup_rng: rng already setup, skipping.")
             return
 
         seeds = []
@@ -163,7 +164,8 @@ class SynapseOptimiser:
         self.seed = self.pc.py_scatter(seeds)
         self.rng = np.random.default_rng(seed=self.seed)
 
-        print(f"Worker: {self.pc.id()} -- seed: {self.seed}")
+        if self.verbose:
+            self.write_log(f"Worker: {self.pc.id()} -- seed: {self.seed}")
 
         self.pc.barrier()
 
@@ -175,10 +177,11 @@ class SynapseOptimiser:
         if self.sim is None:
             self.sim = NrnSimulatorParallel(cvode_active=False)
 
-        print(f"synapse_parameters = {self.synapse_parameters}")
+        if self.verbose:
+            self.write_log(f"synapse_parameters = {self.synapse_parameters}")
+            self.write_log(f"Worker {self.pc.id()} calling setup_model")
 
         # This sets self.rsr_synapse_model
-        print(f"Worker {self.pc.id()} calling setup_model")
         self.setup_model(synapse_density_override=None,
                          n_synapses_override=None,
                          synapse_params=self.synapse_parameters,
@@ -199,7 +202,9 @@ class SynapseOptimiser:
         if self.pc.id() != 0:
             # Setup models on all other nodes (but not master)
 
-            print(f"Worker {self.pc.id()} adding master nodes synapses.")
+            if self.verbose:
+                self.write_log(f"Worker {self.pc.id()} adding master nodes synapses.")
+
             self.rsr_synapse_model.setup_synapses(synapse_type=self.synapse_type,
                                                   num_synapses=len(self.synapse_section_id),
                                                   synapse_section_id=self.synapse_section_id,
@@ -254,8 +259,8 @@ class SynapseOptimiser:
             # We set a high error to mark this as bad.
             error = 1e9
 
-        print(f"Worker {self.pc.id()} error: {error}")
-
+        if self.verbose:
+            self.write_log(f"Worker {self.pc.id()} error: {error}")
 
         error = self.pc.py_gather(error, 0)
 
@@ -293,7 +298,8 @@ class SynapseOptimiser:
 
                 decay_error += np.sum(np.abs(volt[start_idx:end_idx] - self.exp_volt_interpolated[st])) / (end_idx - start_idx)
 
-            print(f"Peak error: {np.sum(peak_error)}, decay error: {decay_error}")
+            if self.verbose:
+                self.write_log(f"Peak error: {np.sum(peak_error)}, decay error: {decay_error}")
 
             error = np.sum(peak_error) + decay_error
 
@@ -320,7 +326,7 @@ class SynapseOptimiser:
             peak_error = np.sum(np.abs(peak_height - self.exp_peak_height))
         except Exception as e:
             import traceback
-            print(traceback.format_exc())
+            self.write_log(traceback.format_exc())
             print(e)
 
             if can_debug():
@@ -337,11 +343,13 @@ class SynapseOptimiser:
             return
 
         if os.path.isfile(self.opt_state_data_file_name):
-            print(f"Loading optmisation state from {self.opt_state_data_file_name}")
+            if self.verbose:
+                self.write_log(f"Loading optmisation state from {self.opt_state_data_file_name}")
             with lzma.open(self.opt_state_data_file_name, "rt") as f:
                 state = json.load(f)
 
-            print(f"Found {len(state['yi'])} previous data points.")
+            if self.verbose:
+                self.write_log(f"Found {len(state['yi'])} previous data points.")
 
             # Instruct the optimizer about previous evaluations
             opt.tell(state["xi"], state["yi"])
@@ -351,13 +359,14 @@ class SynapseOptimiser:
         if self.pc.id() != 0:
             return
 
-        print(f"Saving opt state: {len(opt.Xi)} xi points, {len(opt.yi)} yi points")
-        print(f"yi = {opt.yi}")
+        if self.verbose:
+            self.write_log(f"Saving opt state: {len(opt.Xi)} xi points, {len(opt.yi)} yi points")
+            self.write_log(f"yi = {opt.yi}")
 
         state = { "xi": opt.Xi,
                   "yi": opt.yi }
 
-        print(f"Saving optmisation state to {self.opt_state_data_file_name}")
+        self.write_log(f"Saving optmisation state to {self.opt_state_data_file_name}")
         with lzma.open(self.opt_state_data_file_name, "wt") as f:
             json.dump(state, f, indent=4)
 
@@ -384,7 +393,9 @@ class SynapseOptimiser:
         for i in range(n_iterations):
 
             if self.pc.id() == 0:
-                print(f"Iteration {i}/{n_iterations}")
+                if self.verbose:
+                    self.write_log(f"Iteration {i}/{n_iterations}")
+
                 model_parameter_list = opt.ask(n_points=self.n_workers)
                 # TODO: Should we round model_parameter_list to N decimals before proceeding?
             else:
@@ -392,7 +403,8 @@ class SynapseOptimiser:
 
             error = self.run_models(model_parameter_list)
 
-            print(f"Worker {self.pc.id()} has neuron = {id(self.rsr_synapse_model.neuron)}")
+            if self.verbose:
+                self.write_log(f"Worker {self.pc.id()} has neuron = {id(self.rsr_synapse_model.neuron)}")
 
             if self.pc.id() == 0:
                 opt.tell(model_parameter_list, error)
@@ -400,15 +412,15 @@ class SynapseOptimiser:
                 if i % 20 == 0 and i > 0:
                     # Just for safety let's save every 100 iterations...
                     elapsed_time = time.perf_counter() - start_time
-                    print(f"Iteration {i}: Saving state to {self.opt_state_data_file_name} (elapsed time: {elapsed_time:.0f} seconds)")
+                    self.write_log(f"Iteration {i}: Saving state to {self.opt_state_data_file_name} (elapsed time: {elapsed_time:.0f} seconds)")
                     self.save_opt_state(opt)
 
                 error_list.append(np.min(opt.yi))
 
         if self.pc.id() == 0:
             best_idx = opt.yi.index(min(opt.yi))
-            print("Best value:", opt.yi[best_idx])
-            print("Best params:", opt.Xi[best_idx])
+            self.write_log("Best value:", opt.yi[best_idx])
+            self.write_log("Best params:", opt.Xi[best_idx])
             fit_params = opt.Xi[best_idx]
             min_error = opt.yi[best_idx]
 
@@ -431,7 +443,7 @@ class SynapseOptimiser:
             self.plot_error(opt.yi, fig_name_info="-ALL", linestyle="None")
 
         duration = time.perf_counter() - start_time
-        print(f"Duration: {duration} seconds")
+        self.write_log(f"Duration: {duration} seconds")
 
     def write_log(self, text, flush=True):  # Change flush to False in future, debug
         if self.log_file is not None:
@@ -466,7 +478,9 @@ class SynapseOptimiser:
             self.trace_holding_voltage = self.data["meta_data"]["holding_voltage"]
         else:
             self.trace_holding_voltage = np.mean(self.data["data"]["mean_norm_trace"][:10])
-            print(f"Guessing holding voltage: {self.trace_holding_voltage}")
+
+            if self.verbose:
+                self.write_log(f"Guessing holding voltage: {self.trace_holding_voltage}")
 
         if self.trace_holding_voltage > 0:
             raise ValueError(f"Your holding voltage is probably wrong: {self.trace_holding_voltage} V")
@@ -487,7 +501,8 @@ class SynapseOptimiser:
     def save_parameter_data(self):
 
         if self.pc.id() != 0:
-            self.write_log("No servants are allowed to write output to json, ignoring call.")
+            if self.verbose:
+                self.write_log("No servants are allowed to write output to json, ignoring call.")
             return
 
         self.write_log(f"Saving data to {self.parameter_data_file_name}")
@@ -498,7 +513,7 @@ class SynapseOptimiser:
         if self.pc.id() != 0:
             return
 
-        print(f"Loading parameters from {self.parameter_data_file_name}")
+        self.write_log(f"Loading parameters from {self.parameter_data_file_name}")
 
         self.synapse_parameter_data = ParameterBookkeeper(old_book_file=self.parameter_data_file_name, n_max=100)
         self.synapse_parameter_data.check_integrity()
@@ -596,9 +611,9 @@ class SynapseOptimiser:
         # Temporarily force regeneration of holding current
         holding_current = None
 
-        print(f"Using random seed {self.seed}")
-
-        print(f"t_stim = {t_stim}")
+        if self.verbose:
+            self.write_log(f"Using random seed {self.seed}")
+            self.write_log(f"t_stim = {t_stim}")
 
         self.rsr_synapse_model = \
             RunSynapseRun(neuron_path=snudda_parse_path(c_prop["neuron_path"], self.snudda_data),
