@@ -72,9 +72,10 @@ class RunSynapseRun(object):
         else:
             self.conv_factor = {}
 
-        self.write_log(f"Holding voltage: {holding_voltage} V")
-        self.write_log(f"Stim times: {stim_times} s")
-        self.write_log(f"Synapse type: {synapse_type}")
+        if self.verbose:
+            self.write_log(f"Holding voltage: {holding_voltage} V")
+            self.write_log(f"Stim times: {stim_times} s")
+            self.write_log(f"Synapse type: {synapse_type}")
 
         self.time = time
         self.synapses = []
@@ -118,7 +119,8 @@ class RunSynapseRun(object):
         # Should we use weak reference for garbage collection? (weakref package)
 
         # We load the neuron morphology object also, used to place synapses
-        self.write_log(f"Using morphology: {neuron_morphology}")
+        if self.verbose:
+            self.write_log(f"Using morphology: {neuron_morphology}")
 
         neuron_prototype = NeuronPrototype(neuron_path=neuron_path,
                                            neuron_name="OptimisationNeuron")
@@ -233,8 +235,9 @@ class RunSynapseRun(object):
 
             self.set_resting_voltage(self.holding_voltage * 1e3)
 
-            self.write_log(f"Set holding current {holding_current}A and holding voltage {holding_voltage}V,"
-                           f" until {self.i_clamp.dur} ms")
+            if self.verbose:
+                self.write_log(f"Set holding current {holding_current}A and holding voltage {holding_voltage}V,"
+                               f" until {self.i_clamp.dur} ms")
 
             return holding_current
 
@@ -290,7 +293,8 @@ class RunSynapseRun(object):
 
         self.set_resting_voltage(self.holding_voltage * 1e3)
 
-        self.write_log(f"Holding voltage {self.holding_voltage * 1e3} mV, IClamp amp = {cur} nA")
+        if self.verbose:
+            self.write_log(f"Holding voltage {self.holding_voltage * 1e3} mV, IClamp amp = {cur} nA")
 
         return cur * 1e-9  # Convert to SI units
 
@@ -453,61 +457,6 @@ class RunSynapseRun(object):
 
     ############################################################################
 
-    def run(self, tau, tau_r, tau_f, u, cond=None, time=None):
-
-        assert False, "This is the old run method"
-
-        if time is None:
-            time = self.exp_time
-        else:
-            self.exp_time = time
-
-        if cond is None:
-            cond = self.default_cond
-
-        # print(vars())
-
-        # print("Running: tau: %.3g, tauR: %.3g, tauF: %.3g, U: %.3g, cond: %.3g\n" \
-        #      % (tau,tauR,tauF,U,cond))
-
-        # Convert from SI units to natural units that Neuron uses
-        for ncs in self.nc_syn:
-            ncs.weight[0] = 1 * cond * 1e6
-
-        for syn in self.synapses:
-            syn.tau = tau * 1e3
-            syn.tau_r = tau_r * 1e3
-            syn.tau_f = tau_f * 1e3
-            syn.u = u
-
-        # print(self.littleSynapse.tau)
-
-        # print("Initialise voltage to " + str(self.holdingVoltage*1e3) + " mV")
-        neuron.h.finitialize(self.holding_voltage * 1e3)  # OLD : -70
-        neuron.h.tstop = time * 1e3
-
-        neuron.h.run()
-
-        # self.tSave.resize()
-        # self.vSave.resize()
-        # self.iSave.resize()
-
-        if np.array(self.t_save).shape != np.array(self.v_save).shape:
-            self.write_log("THIS IS WRONG, should be same shape!!")
-            self.write_log(f"size t = {np.array(self.t_save).shape}")
-            self.write_log(f"size v = {np.array(self.v_save).shape}")
-            import pdb
-            pdb.set_trace()
-
-        # print("Last V = " + str(self.vSave[-1]*1e-3))
-
-        # Convert back to SI units
-        return (np.array(self.t_save) * 1e-3,
-                np.array(self.v_save) * 1e-3,
-                np.array(self.i_save) * 1e-9)
-
-    ############################################################################
-
     def set_resting_voltage(self, rest_volt):
 
         if self.verbose:
@@ -559,7 +508,8 @@ class RunSynapseRun(object):
 
     def run2(self, pars, time=None, cond=1e-8):
 
-        self.write_log(f"Running {self.pc.id() if self.pc is not None else 'LONELY'} with pars: {pars}")
+        if self.verbose:
+            self.write_log(f"Running {self.pc.id() if self.pc is not None else 'LONELY'} with pars: {pars}")
 
         if time is None:
             time = self.time

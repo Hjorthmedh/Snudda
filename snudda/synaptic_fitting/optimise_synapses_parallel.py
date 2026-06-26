@@ -598,7 +598,7 @@ class SynapseOptimiser:
                           sim=self.sim,
                           random_seed=self.seed,
                           init_synapses=init_synapses,
-                          verbose=True,
+                          verbose=self.verbose,
                           pc=self.pc)
 
         self.pc.barrier()
