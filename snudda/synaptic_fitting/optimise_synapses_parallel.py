@@ -42,6 +42,7 @@ import copy
 import time
 
 import scipy
+import datetime
 
 from mpi4py import MPI  # This must be imported before neuron, to run parallel
 import neuron
@@ -50,6 +51,7 @@ from neuron import h  # , gui
 from snudda.utils.snudda_path import snudda_parse_path, get_snudda_data
 from snudda.synaptic_fitting.parameter_bookkeeper import ParameterBookkeeper
 from snudda.simulate.nrn_simulator_parallel import NrnSimulatorParallel
+from snudda.utils.debug import can_debug
 
 from run_synapse_run import RunSynapseRun
 
@@ -227,23 +229,30 @@ class SynapseOptimiser:
                      "tauRatio": model_parameters[3],
                      "cond": model_parameters[4] }
 
-        t_sim, v_sim, i_sim = self.rsr_synapse_model.run2(pars=m_params)
+        try:
+            t_sim, v_sim, i_sim = self.rsr_synapse_model.run2(pars=m_params)
 
-        self.last_run_time = t_sim
-        self.last_run_volt = v_sim
+            self.last_run_time = t_sim
+            self.last_run_volt = v_sim
 
-        # We use normalised voltage instead of v_sim
-        v_norm = (v_sim - np.min(v_sim)) / (np.max(v_sim) - np.min(v_sim))
+            # We use normalised voltage instead of v_sim
+            v_norm = (v_sim - np.min(v_sim)) / (np.max(v_sim) - np.min(v_sim))
 
-        peak_idx = self.get_peak_idx(time=t_sim, volt=v_norm, stim_time=self.stim_time)
-        peak_height, decay_fits, v_base = self.find_trace_heights(t_sim, v_norm, peak_idx)
+            peak_idx = self.get_peak_idx(time=t_sim, volt=v_norm, stim_time=self.stim_time)
+            peak_height, decay_fits, v_base = self.find_trace_heights(t_sim, v_norm, peak_idx)
 
-        # We need to take decay into accounts also for error, first version only uses peak heights
-        error = self.error_calculation(peak_height=peak_height,
-                                       decay_fits=decay_fits,
-                                       time=t_sim,
-                                       volt=v_norm,
-                                       v_base=v_base)
+            # We need to take decay into accounts also for error, first version only uses peak heights
+            error = self.error_calculation(peak_height=peak_height,
+                                           decay_fits=decay_fits,
+                                           time=t_sim,
+                                           volt=v_norm,
+                                           v_base=v_base)
+        except:
+            import traceback
+            error_str = traceback.print_exc()
+            self.write_log(f"Error duing model evaluation, and error calculation: {error_str}")
+            # We set a high error to mark this as bad.
+            error = 1e9
 
         print(f"Worker {self.pc.id()} error: {error}")
 
@@ -290,10 +299,16 @@ class SynapseOptimiser:
 
         except Exception as e:
             import traceback
-            print(traceback.format_exc())
+            t_str = traceback.format_exc()
+            self.write_log(f"error_calculation: {t_str}")
             print(e)
-            import pdb
-            pdb.set_trace()
+
+            if can_debug():
+                import pdb
+                pdb.set_trace()
+
+            # Raise the error onwards, outer loop has to handle it.
+            raise e
 
         return error
 
@@ -307,8 +322,12 @@ class SynapseOptimiser:
             import traceback
             print(traceback.format_exc())
             print(e)
-            import pdb
-            pdb.set_trace()
+
+            if can_debug():
+                import pdb
+                pdb.set_trace()
+
+            raise e
 
         return peak_error
 
@@ -644,10 +663,13 @@ class SynapseOptimiser:
 
             if len(t_idx) == 0:
                 self.write_log(f"No exp_time points within {t_start} and {t_end}", flush=True)
-                import pdb
-                pdb.set_trace()
 
-            assert len(t_idx) > 0, f"No exp_time points within {t_start} and {t_end}"
+                if can_debug():
+                    import pdb
+                    pdb.set_trace()
+
+                raise ValueError(f"No exp_time points within {t_start} and {t_end}")
+
 
             if self.synapse_type in ("glut", "glut2"):
                 p_idx = t_idx[np.argmax(volt[t_idx])]
@@ -657,8 +679,11 @@ class SynapseOptimiser:
                 p_idx = t_idx[np.argmax(volt[t_idx])]
             else:
                 self.write_log("Unknown synapse type : " + str(self.synapse_type), flush=True)
-                import pdb
-                pdb.set_trace()
+                if can_debug():
+                    import pdb
+                    pdb.set_trace()
+                else:
+                    raise ValueError(f"Unknown synapse type : {self.synapse_type}")
 
             peak_idx.append(int(p_idx))
             peak_time.append(time[p_idx])
@@ -723,11 +748,12 @@ class SynapseOptimiser:
                 plt.plot(time, volt)
                 plt.xlabel("Time (error plot)")
                 plt.ylabel("Volt (error plot)")
+                plt.title(f"{idx_start =}, {idx_end =}")
                 plt.ion()
+                plt.savefig(f"error-plot-{datetime.now()}.png")
                 plt.show()
                 plt.title("ERROR!!!")
-                import pdb
-                pdb.set_trace()
+                raise ValueError(f"find_trace_heights: {idx_start =}, {idx_end =}")
 
             t_ab = time[idx_start:idx_end]
             v_ab = volt[idx_start:idx_end]
@@ -777,7 +803,7 @@ class SynapseOptimiser:
                 v_fit = decay_func(t_ab - t_ab[0], fit_params[0], fit_params[1], fit_params[2])
                 decay_fits.append((t_ab, v_fit))
 
-            except:
+            except Exception as e:
                 self.write_log("Check that the threshold in the peak detection before is OK")
                 # self.plot(name)
                 import traceback
@@ -793,11 +819,15 @@ class SynapseOptimiser:
                     plt.xlabel("exp_time")
                     plt.ylabel("exp_volt")
                     # plt.plot(tAB,vFit,'k-')
+                    plt.savefig(f"error-plot-find-trace-heights{datetime.now()}.png")
                     plt.ion()
                     plt.show()
 
-                import pdb
-                pdb.set_trace()
+                if can_debug():
+                    import pdb
+                    pdb.set_trace()
+
+                raise e
 
         return peak_height.copy(), decay_fits, v_base
 
@@ -811,13 +841,15 @@ class SynapseOptimiser:
             param_list = ["U", "tauR", "tauF", "tauRatio", "cond"]
             lower_bound = [mb[x][0] for x in param_list]
             upper_bound = [mb[x][1] for x in param_list]
-        except:
+        except Exception as e:
             import traceback
             tstr = traceback.format_exc()
             self.write_log(tstr, flush=True)
             print(tstr)
-            import pdb
-            pdb.set_trace()
+
+            if can_debug():
+                import pdb
+                pdb.set_trace()
 
         return lower_bound, upper_bound
 
