@@ -578,7 +578,7 @@ class RunSynapseRun(object):
         neuron.h.run()
 
         if self.verbose:
-            self.write_log("NEURON actually completed?!")
+            self.write_log("NEURON completed.")
 
         # Convert results back to SI units
         return (np.array(self.t_save) * 1e-3,
