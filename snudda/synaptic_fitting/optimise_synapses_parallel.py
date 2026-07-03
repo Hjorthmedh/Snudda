@@ -58,7 +58,8 @@ from run_synapse_run import RunSynapseRun
 from skopt import gp_minimize
 from skopt import Optimizer
 from joblib import Parallel, delayed
-from sklearn.ensemble import RandomForestRegressor
+from skopt.learning import RandomForestRegressor as SkoptRandomForestRegressor
+
 
 
 # TODO: If we want to use tmGlut_double we have to make sure all variables are initialised
@@ -388,9 +389,9 @@ class SynapseOptimiser:
             model_bounds = self.get_model_bounds()
             model_bounds = [x for x in zip(*model_bounds)]
 
-            base_estimator = RandomForestRegressor(n_estimators=20, n_jobs=-1, random_state=42)
+            base_estimator = SkoptRandomForestRegressor(n_estimators=20, n_jobs=-1, random_state=42)
             opt = Optimizer(dimensions=model_bounds, random_state=42, base_estimator=base_estimator)
-            
+
             # opt = Optimizer(dimensions=model_bounds, random_state=42, base_estimator="RF")
 
             if self.load_parameters:
