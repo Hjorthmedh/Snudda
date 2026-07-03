@@ -765,7 +765,7 @@ class SynapseOptimiser:
                 plt.ylabel("Volt (error plot)")
                 plt.title(f"{idx_start =}, {idx_end =}")
                 plt.ion()
-                plt.savefig(f"error-plot-{datetime.now()}.png")
+                plt.savefig(f"error-plot-{datetime.datetime.now()}.png")
                 plt.show()
                 plt.title("ERROR!!!")
                 raise ValueError(f"find_trace_heights: {idx_start =}, {idx_end =}")
