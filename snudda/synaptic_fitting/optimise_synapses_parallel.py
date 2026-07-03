@@ -834,7 +834,7 @@ class SynapseOptimiser:
                     plt.xlabel("exp_time")
                     plt.ylabel("exp_volt")
                     # plt.plot(tAB,vFit,'k-')
-                    plt.savefig(f"error-plot-find-trace-heights{datetime.now()}.png")
+                    plt.savefig(f"error-plot-find-trace-heights{datetime.datetime.now()}.png")
                     plt.ion()
                     plt.show()
 
