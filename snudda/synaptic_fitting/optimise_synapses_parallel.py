@@ -573,6 +573,8 @@ class SynapseOptimiser:
 
         t_stim = self.stim_time
 
+        self.pc.barrier()
+
         # Read the info needed to setup the neuron hosting the synapses
         c_prop = self.get_cell_properties()
 
