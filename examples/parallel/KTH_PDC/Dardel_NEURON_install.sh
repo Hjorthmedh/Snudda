@@ -58,7 +58,7 @@ pushd $TMP0_DIR
 ln -s /lib64/libncurses.so.6 libncurses.so
 ln -s /lib64/libtinfo.so.6 libtinfo.so
 ln -s /lib64/libreadline.so.7 libreadline.so
-ln -s $LM/lib/libpython3.10.so .
+ln -s $LM/lib/libpython3.13.so .
 popd
 
 # export CXX=CC
@@ -78,8 +78,8 @@ export MINIC=$LM
 export PATH=$LM/bin:$LN/bin:$PATH
 # export LD_LIBRARY_PATH=$LN/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$TMP0_DIR:$MPICH_DIR/lib:$LD_LIBRARY_PATH
-export PYTHONPATH=$L/lib/python3.8/site-packages:$PYTHONPATH
-export PYTHONPATH=$LN/lib/python:$LM/lib/python3.8/
+export PYTHONPATH=$L/miniconda3/lib/python3.13/site-packages:$PYTHONPATH
+export PYTHONPATH=$LN/lib/python:$LM/lib/python3.13/
 
 export NRN_INSTALL_LOC=$LN
 
@@ -90,7 +90,7 @@ export MPICC=cc
 export MPICXX=CC
 
 # This version number might need to update in the future
-module load cmake/3.22.3
+module load cmake/4.3.3
 
 
 # We need to recompile mpi4py to use mpich libraries of beskow
@@ -112,7 +112,7 @@ pushd $L
   # OLD: git clone -q https://github.com/nrnhines/nrn
 
   # You have to do git clone manually!!
-  git clone https://github.com/neuronsimulator/nrn -b 8.2.2
+  git clone https://github.com/neuronsimulator/nrn
   
   cd nrn
   rm -r build

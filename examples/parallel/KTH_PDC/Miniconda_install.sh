@@ -40,12 +40,17 @@ elif [ $SNIC_RESOURCE == "beskow" ]; then
     # module load ??? # What is openmpi module on Beskow?
    #do something
 elif [ $SNIC_RESOURCE == "dardel" ]; then
-    echo "On Beskow"
+    echo "On Dardel"
 
-    # module swap PrgEnv-cray PrgEnv-gnu
-    # module unload cray-libsci atp
-    # export CRAYPE_LINK_TYPE=dynamic
-    # export CRAY_ROOTFS=DSL
+    # Commented before?
+    module load cray-python
+    module swap PrgEnv-cray PrgEnv-gnu
+    module unload cray-libsci atp
+    module unload cray-libsci
+
+    export CRAYPE_LINK_TYPE=dynamic
+    export CRAY_ROOTFS=DSL
+    # End commented before?
     
     # Recompile mpi4py using MPICH
     export MPICC=cc
