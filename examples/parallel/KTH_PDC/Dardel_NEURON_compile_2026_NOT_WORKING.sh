@@ -13,6 +13,9 @@ set -euo pipefail
 VENV="${1:?Usage: $0 /path/to/venv /path/to/build/dir}"
 L="${2:-/cfs/klemming/projects/snic/<your-project>/$USER/neuron_build}"
 
+export VENV=/cfs/klemming/projects/snic/snic2021-5-492/snudda_env
+export L=/cfs/klemming/projects/snic/snic2021-5-492/NEURON/
+
 echo "Using venv:       $VENV"
 echo "Build/install dir: $L"
 mkdir -pv "$L"
@@ -33,6 +36,8 @@ module load PDC
 
 module swap PrgEnv-cray PrgEnv-gnu
 module unload cray-libsci atp
+module load cray-mpich
+# module load cray-mpich-abi
 module load cmake/3.22.3       # bump if a newer cmake module is available
 
 export CRAYPE_LINK_TYPE=dynamic
@@ -63,6 +68,10 @@ popd
 
 export LD_LIBRARY_PATH="$TMP0_DIR:${MPICH_DIR:-}/lib:${LD_LIBRARY_PATH:-}"
 
+export LIBRARY_PATH=/opt/cray/pe/python/3.12.12/lib:$LIBRARY_PATH
+export LD_LIBRARY_PATH=/opt/cray/pe/python/3.12.12/lib:$LD_LIBRARY_PATH
+
+
 # Remove any pip-installed neuron package so it doesn't shadow the build
 pip uninstall neuron -y || true
 pip install mpi4py --no-cache-dir --force-reinstall
@@ -75,7 +84,7 @@ export NRN_INSTALL_LOC="$L/neuron"
 pushd "$L"
   # Clone manually first if this hangs on a compute node (known Beskow/Dardel quirk)
   if [ ! -d nrn ]; then
-    git clone https://github.com/neuronsimulator/nrn -b 8.2.2
+    git clone https://github.com/neuronsimulator/nrn
   fi
 
   cd nrn
@@ -88,7 +97,7 @@ pushd "$L"
     -DNRN_ENABLE_INTERVIEWS=OFF \
     -DNRN_ENABLE_PYTHON=ON \
     -DNRN_ENABLE_MPI=ON \
-    -DNRN_ENABLE_RX3D=ON \
+    -DNRN_ENABLE_RX3D=OFF \
     -DCMAKE_INSTALL_PREFIX="$NRN_INSTALL_LOC" \
     -DNRN_ENABLE_BINARY_SPECIAL=ON \
     -DNRN_ENABLE_CORENEURON=OFF \
