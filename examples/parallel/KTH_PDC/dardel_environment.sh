@@ -12,19 +12,21 @@ N_ENGINES=${N_ENGINES:-$((SLURM_NTASKS-2))}
 
 # Make sure this is right python version
 export SNUDDA_DIR=$HOME/Snudda
-export PYTHONPATH=$SNUDDA_DIR/snudda_env/lib/python3.11/
+export PYTHONPATH=$SNUDDA_DIR/snudda_env/lib/python3.12/:$PYTHONPATH
 
 # This is needed for NEURON
 unset DISPLAY
 
 ulimit -s unlimited
 
-module load snic-env
+# module load snic-env
+# module load cray-python
+# module swap PrgEnv-cray PrgEnv-gnu
+# module load cray-mpich-abi
+# module unload cray-libsci
 
-module load cray-python
-module swap PrgEnv-cray PrgEnv-gnu
-module load cray-mpich-abi
-module unload cray-libsci
+module load PDC
+module load neuron
 
 source $HOME/Snudda/snudda_env/bin/activate
 
@@ -63,11 +65,11 @@ if [ -z "$NO_SIM" ]; then
 
     SPECIAL_PATH=x86_64/special
 
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CRAY_LD_LIBRARY_PATH
+    # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CRAY_LD_LIBRARY_PATH
 
     # Explicitly adding MPI paths (suggested by ChatGTP, why are they not loaded automatically?)
-    export LD_LIBRARY_PATH=/opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3/lib:$LD_LIBRARY_PATH
-    export MPI_LIB_NRN_PATH=/opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3/lib
+    # export LD_LIBRARY_PATH=/opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3/lib:$LD_LIBRARY_PATH
+    # export MPI_LIB_NRN_PATH=/opt/cray/pe/mpich/8.1.31/ofi/gnu/12.3/lib
 
     # Clear old compilation
     rm -rf x86_64 2>/dev/null || true
@@ -81,6 +83,8 @@ if [ -z "$NO_SIM" ]; then
     CC --version
 
     export FI_CXI_DEFAULT_VNI=$(od -vAn -N4 -tu < /dev/urandom)
-    srun -n 1 nrnivmodl -incflags "-lltdl=/usr/lib64/libltdl.so.7 -lreadline=/lib64/libreadline.so.7 -lncurses=/lib64/libncurses.so.6.1" -loadflags "-DLTDL_LIBRARY=/usr/lib64/libltdl.so.7 -DREADLINE_LIBRARY=/lib64/libreadline.so.7 -DNCURSES_LIBRARY=/lib64/libncurses.so.6.1" mechanisms/
+    # srun -n 1 nrnivmodl -incflags "-lltdl=/usr/lib64/libltdl.so.7 -lreadline=/lib64/libreadline.so.7 -lncurses=/lib64/libncurses.so.6.1" -loadflags "-DLTDL_LIBRARY=/usr/lib64/libltdl.so.7 -DREADLINE_LIBRARY=/lib64/libreadline.so.7 -DNCURSES_LIBRARY=/lib64/libncurses.so.6.1" mechanisms/
 
+    srun -n 1 nrnivmodl mechanisms/
+    
 fi
