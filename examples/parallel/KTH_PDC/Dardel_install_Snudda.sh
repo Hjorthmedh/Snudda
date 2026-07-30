@@ -33,10 +33,25 @@ pip install --upgrade pip
 pip install wheel
 # pip install -r requirements.txt
 # dardel-requirements.txt excludes mpi4py which we get from PDC/neuron modules loaded above
-grep -v mpi4py requirements.txt | grep -v neuron > dardel-requirements.txt
+
+grep -vE '^(mpi4py|neuron|bluepyopt)' requirements.txt > dardel-requirements.txt
+
+cat >> dardel-requirements.txt << 'EOF'
+
+# BluePyOpt dependencies
+deap
+efel
+Jinja2
+pandas
+Pebble
+pickleshare
+EOF
+
+
 pip install -r dardel-requirements.txt
+pip install bluepyopt --no-deps   # To avoid overwriting PDC neuron installation
 # pip install neuron --upgrade
-pip install -e .[dev] --no-deps
+pip install -e ".[dev]" --no-deps
 pip install scikit-optimize
 
 
