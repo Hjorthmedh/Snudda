@@ -12,7 +12,8 @@ N_ENGINES=${N_ENGINES:-$((SLURM_NTASKS-2))}
 
 # Make sure this is right python version
 export SNUDDA_DIR=$HOME/Snudda
-export PYTHONPATH=$SNUDDA_DIR/snudda_env/lib/python3.12/:$PYTHONPATH
+# export PYTHONPATH=$SNUDDA_DIR/snudda_env/lib/python3.12/:$PYTHONPATH
+unset PYTHONPATH
 
 # This is needed for NEURON
 unset DISPLAY
