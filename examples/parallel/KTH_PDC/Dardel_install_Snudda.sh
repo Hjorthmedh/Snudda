@@ -36,7 +36,7 @@ pip install wheel
 grep -v mpi4py requirements.txt > dardel-requirements.txt
 pip install -r dardel-requirements.txt
 # pip install neuron --upgrade
-pip install -e .[dev]
+pip install -e .[dev] --no-deps
 pip install scikit-optimize
 
 
