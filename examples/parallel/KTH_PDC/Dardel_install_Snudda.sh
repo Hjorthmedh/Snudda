@@ -33,7 +33,8 @@ pip install --upgrade pip
 pip install wheel
 # pip install -r requirements.txt
 # dardel-requirements.txt excludes mpi4py which we get from PDC/neuron modules loaded above
-pip install -r examples/parallel/KTH_PDC/dardel-requirements.txt
+grep -v mpi4py requirements.txt > dardel-requirements.txt
+pip install -r dardel-requirements.txt
 # pip install neuron --upgrade
 pip install -e .[dev]
 pip install scikit-optimize
