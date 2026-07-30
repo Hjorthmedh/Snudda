@@ -14,25 +14,22 @@ fi
 pushd $HOME/Snudda
 git pull
 
-# module load snic-env
-# module load cray-python
-# module swap PrgEnv-cray PrgEnv-gnu
-# module load cray-mpich-abi
-# module unload cray-libsci
-
-module load PDC
-module load neuron
+module load snic-env
+module load cray-python
+module swap PrgEnv-cray PrgEnv-gnu
+module load cray-mpich-abi
+module unload cray-libsci
 
 # Setup virtual environment
 python -m venv snudda_env
 source snudda_env/bin/activate
 
 pip install --upgrade pip
-# MPICC=cc pip install mpi4py
+MPICC=cc pip install mpi4py
 
 pip install wheel
 pip install -r requirements.txt
-# pip install neuron --upgrade
+pip install neuron --upgrade
 pip install -e .[dev]
 pip install scikit-optimize
 
