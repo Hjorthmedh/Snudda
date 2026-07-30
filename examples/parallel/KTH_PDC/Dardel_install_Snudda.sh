@@ -24,7 +24,7 @@ module load PDC
 module load neuron
 
 # Setup virtual environment
-python -m venv snudda_env
+python -m venv --system-site-packages snudda_env
 source snudda_env/bin/activate
 
 pip install --upgrade pip
