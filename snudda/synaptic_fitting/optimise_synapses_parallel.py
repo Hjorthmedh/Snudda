@@ -150,7 +150,13 @@ class SynapseOptimiser:
         os.makedirs("log", exist_ok=True)
         self.pc = h.ParallelContext()
 
-        log_file_name = f"log/opt_log_rank{self.pc.id()}.txt"
+        slurm_job_id = os.environ.get("SLURM_JOB_ID", os.environ.get("SLURM_JOBID"))
+
+        if slurm_job_id is not None:
+            log_file_name = f"log/opt_log_job_{slurm_job_id}_rank{self.pc.id()}.txt"
+        else:
+            log_file_name = f"log/opt_log_rank{self.pc.id()}.txt"
+
         self.log_file = open(log_file_name, "w")
         print(f"Writiing to log file: {log_file_name}")
 
