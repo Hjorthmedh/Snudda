@@ -2,7 +2,7 @@ import sys
 import os.path
 import json
 
-import mpi4py
+from mpi4py import MPI
 import neuron
 import numpy as np
 
@@ -41,7 +41,7 @@ class RunSynapseRun(object):
                  holding_voltage=-70e-3,
                  holding_current=None,
                  synapse_type='glut',
-                 params={},
+                 params= None, # dict
                  time=2,
                  init_synapses=True,
                  sim=None,
@@ -59,6 +59,9 @@ class RunSynapseRun(object):
             self.worker_id = self.pc.id()
         else:
             self.worker_id = None
+
+        if params is None:
+            params = {}
 
         if rng is None:
             self.rng = np.random.default_rng(random_seed)
@@ -214,7 +217,6 @@ class RunSynapseRun(object):
 
         self.vec_stim = None
         self.stim_vector = None
-        self.little_synapse = None
 
     ############################################################################
 
@@ -302,6 +304,8 @@ class RunSynapseRun(object):
 
     def set_stim_times(self, stim_times):
 
+        raise DeprecationWarning(f"Is this function used? Remove it...")
+
         if len(stim_times) != len(self.stim_times) or (stim_times != self.stim_times).any():
             if self.verbose:
                 self.write_log(f"Setting stim times to {stim_times} s")
@@ -331,6 +335,8 @@ class RunSynapseRun(object):
 
             self.synapse_locations = input_coords
             dist_from_soma = self.morphology.dend[:, 4]
+
+            import matplotlib.pyplot as plt
 
             # plot density function
             plt.figure()
@@ -378,7 +384,7 @@ class RunSynapseRun(object):
 
     def add_synapse(self, synapse_type, section, section_x, params):
 
-        section_x = np.maximum(section_x, 1e-6)  # Cant be 0 or 1
+        section_x = np.clip(section_x, 1e-6, 1 - 1e-6)  # Cant be 0 or 1
 
         try:
             if synapse_type.lower() == 'glut':
@@ -392,12 +398,13 @@ class RunSynapseRun(object):
 
             self.synapses.append(syn)
 
-        except:
+        except Exception:
             import traceback
             tstr = traceback.format_exc()
             self.write_log(tstr)
 
             self.write_log("Did you remember to run nrnivmodl first, to generate channels mod files?")
+            MPI.COMM_WORLD.Abort(1)
             sys.exit(-1)
 
         for p in params:
@@ -487,6 +494,8 @@ class RunSynapseRun(object):
 
     ############################################################################
     def plot(self):
+
+        import matplotlib.pyplot as plt
 
         ax = self.morphology.plot_neuron(axon_colour='red', dend_colour='blue', soma_colour='green')
 

@@ -97,10 +97,14 @@ class SynapseOptimiser:
         self.rng = None
         self.sim = None
 
-
         self.data_file = data_file
-        self.parameter_data_file_name = f"{self.data_file}-parameters-optimised-{synapse_type}.json"
-        self.opt_state_data_file_name = f"{self.data_file}-opt-state-{synapse_type}.json.xz"   # Maybe change format if files get too big...
+        new_path, data_file_name = os.path.split(data_file)
+        new_path = os.path.join(new_path, "fitted")
+        os.makedirs(new_path, exist_ok=True)
+        new_file_name = data_file_name.replace(".json", "")
+
+        self.parameter_data_file_name = os.path.join(new_path, f"{new_file_name}-parameters-optimised-{synapse_type}.json")
+        self.opt_state_data_file_name = os.path.join(new_path, f"{new_file_name}-opt-state-{synapse_type}.json.xz")   # Maybe change format if files get too big...
 
         self.neuron_set_file = neuron_set_file
         self.seed = None
@@ -255,10 +259,10 @@ class SynapseOptimiser:
                                            time=t_sim,
                                            volt=v_norm,
                                            v_base=v_base)
-        except:
+        except Exception:
             import traceback
-            error_str = traceback.print_exc()
-            self.write_log(f"Error duing model evaluation, and error calculation: {error_str}")
+            error_str = traceback.format_exc()
+            self.write_log(f"Error during model evaluation, and error calculation: {error_str}")
             # We set a high error to mark this as bad.
             error = 1e9
 
@@ -426,8 +430,8 @@ class SynapseOptimiser:
 
         if self.pc.id() == 0:
             best_idx = opt.yi.index(min(opt.yi))
-            self.write_log("Best value:", opt.yi[best_idx])
-            self.write_log("Best params:", opt.Xi[best_idx])
+            self.write_log(f"Best value: {opt.yi[best_idx]}")
+            self.write_log(f"Best params: {opt.Xi[best_idx]}")
             fit_params = opt.Xi[best_idx]
             min_error = opt.yi[best_idx]
 
@@ -614,8 +618,8 @@ class SynapseOptimiser:
             self.trace_holding_voltage = trace_holding_voltage
         else:
             trace_holding_voltage = None
-            assert f"You need to specify either a trace_holding_voltage in {self.data_file}" \
-                   f"or specify baselineVoltage in neuronSet.json for the neuron type in question."
+            raise ValueError(f"You need to specify either a trace_holding_voltage in {self.data_file} " \
+                             f"or specify baselineVoltage in neuronSet.json for the neuron type in question.")
 
         # Temporarily force regeneration of holding current
         holding_current = None
@@ -761,7 +765,7 @@ class SynapseOptimiser:
 
             try:
                 assert idx_start < idx_end
-            except:
+            except Exception:
                 import traceback
                 tstr = traceback.format_exc()
                 self.write_log(tstr, flush=True)
@@ -874,6 +878,8 @@ class SynapseOptimiser:
             if can_debug():
                 import pdb
                 pdb.set_trace()
+            else:
+                raise ValueError(tstr)
 
         return lower_bound, upper_bound
 
