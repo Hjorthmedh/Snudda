@@ -442,7 +442,7 @@ class SynapseOptimiser:
 
         self.write_log(f"Saving optmisation state to {self.opt_state_data_file_name}")
         with lzma.open(self.opt_state_data_file_name, "wt") as f:
-            json.dump(state, f, indent=4)
+            json.dump(state, f)
 
 
 
@@ -464,7 +464,7 @@ class SynapseOptimiser:
             # opt = Optimizer(dimensions=model_bounds, random_state=42, base_estimator=base_estimator)
 
             # 2026-07-31, speedup suggested by Claude
-            base_estimator = SkoptRandomForestRegressor(n_estimators=10, n_jobs=-1, random_state=42)
+            base_estimator = SkoptRandomForestRegressor(n_estimators=10, n_jobs=1, random_state=42)
             opt = Optimizer(dimensions=model_bounds, random_state=42, base_estimator=base_estimator,
                             acq_func="EI",
                             acq_optimizer_kwargs={"n_points": 2000})
@@ -496,7 +496,7 @@ class SynapseOptimiser:
             if self.pc.id() == 0:
                 opt.tell(model_parameter_list, error)
 
-                if i % 20 == 0 and i > 0:
+                if i % 50 == 0 and i > 0:
                     # Just for safety let's save every 100 iterations...
                     elapsed_time = time.perf_counter() - start_time
                     self.write_log(f"Iteration {i}: Saving state to {self.opt_state_data_file_name} (elapsed time: {elapsed_time:.0f} seconds)")
