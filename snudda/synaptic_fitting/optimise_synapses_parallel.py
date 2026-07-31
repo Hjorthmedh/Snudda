@@ -57,6 +57,8 @@ from run_synapse_run import RunSynapseRun
 
 from skopt import gp_minimize
 from skopt import Optimizer
+from skopt.acquisition import _gaussian_acquisition
+
 from joblib import Parallel, delayed
 from skopt.learning import RandomForestRegressor as SkoptRandomForestRegressor
 
@@ -74,6 +76,65 @@ from skopt.learning import RandomForestRegressor as SkoptRandomForestRegressor
 #       5. tmGlutDouble
 #       6. Celebrate!
 #
+
+def ask_batch_fast(opt, n_points, candidate_pool_size=2000, min_dist_frac=0.03):
+    """Replacement for opt.ask(n_points=..., strategy='cl_min').
+
+    skopt's built-in batch ask() copies the optimizer and refits the
+    surrogate model n_points+1 times (once per fake 'lie' point told to
+    the copy). This function instead reuses the model already fit by the
+    last opt.tell() call and ranks a pool of random candidates by
+    acquisition value -- one model, zero extra refits.
+    """
+    if not opt.models:
+        # Still in the initial random-sampling phase, no surrogate to reuse yet.
+        return opt.ask(n_points=n_points)
+
+    est = opt.models[-1]
+
+    X_pool = opt.space.transform(
+        opt.space.rvs(n_samples=candidate_pool_size, random_state=opt.rng)
+    )
+
+    values = _gaussian_acquisition(
+        X=X_pool,
+        model=est,
+        y_opt=np.min(opt.yi),
+        acq_func="EI",
+        acq_func_kwargs=opt.acq_func_kwargs,
+    )
+
+    # Normalise each dimension to [0, 1] just for the diversity check below --
+    # your params span wildly different scales (cond ~1e-9, U ~0-1), so raw
+    # distance would be dominated by whichever parameter has the biggest units.
+    bounds = np.array(opt.space.transformed_bounds)
+    ranges = np.maximum(bounds[:, 1] - bounds[:, 0], 1e-12)
+    X_norm = (X_pool - bounds[:, 0]) / ranges
+
+    order = np.argsort(values)  # best (lowest) acquisition value first
+    chosen, chosen_norm = [], []
+
+    for idx in order:
+        x_n = X_norm[idx]
+        if chosen_norm:
+            d = np.linalg.norm(np.array(chosen_norm) - x_n, axis=1).min()
+            if d < min_dist_frac:
+                continue  # too close to an already-picked point this batch, skip
+        chosen.append(idx)
+        chosen_norm.append(x_n)
+        if len(chosen) == n_points:
+            break
+
+    if len(chosen) < n_points:
+        # Diversity filter was too strict to fill the batch -- top up with
+        # the next-best points regardless of spacing.
+        for idx in order:
+            if idx not in chosen:
+                chosen.append(idx)
+            if len(chosen) == n_points:
+                break
+
+    return opt.space.inverse_transform(X_pool[chosen])
 
 class SynapseOptimiser:
 
@@ -393,8 +454,14 @@ class SynapseOptimiser:
             model_bounds = self.get_model_bounds()
             model_bounds = [x for x in zip(*model_bounds)]
 
-            base_estimator = SkoptRandomForestRegressor(n_estimators=20, n_jobs=-1, random_state=42)
-            opt = Optimizer(dimensions=model_bounds, random_state=42, base_estimator=base_estimator)
+            # base_estimator = SkoptRandomForestRegressor(n_estimators=20, n_jobs=-1, random_state=42)
+            # opt = Optimizer(dimensions=model_bounds, random_state=42, base_estimator=base_estimator)
+
+            # 2026-07-31, speedup suggested by Claude
+            base_estimator = SkoptRandomForestRegressor(n_estimators=10, n_jobs=-1, random_state=42)
+            opt = Optimizer(dimensions=model_bounds, random_state=42, base_estimator=base_estimator,
+                            acq_func="EI",
+                            acq_optimizer_kwargs={"n_points": 2000})
 
             # opt = Optimizer(dimensions=model_bounds, random_state=42, base_estimator="RF")
 
@@ -407,8 +474,11 @@ class SynapseOptimiser:
                 if self.verbose:
                     self.write_log(f"Iteration {i}/{n_iterations}")
 
-                model_parameter_list = opt.ask(n_points=self.n_workers)
-                # TODO: Should we round model_parameter_list to N decimals before proceeding?
+                # model_parameter_list = opt.ask(n_points=self.n_workers)
+
+                # 2026-07-31, speedup suggsted by Claude. Optimisation was running really slowly on big cluster
+                model_parameter_list = ask_batch_fast(opt, n_points=self.n_workers)
+
             else:
                 model_parameter_list = []
 
