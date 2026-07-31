@@ -435,7 +435,7 @@ class SynapseOptimiser:
 
         if self.verbose:
             self.write_log(f"Saving opt state: {len(opt.Xi)} xi points, {len(opt.yi)} yi points")
-            self.write_log(f"yi = {opt.yi}")
+            # self.write_log(f"yi = {opt.yi}")
 
         state = { "xi": opt.Xi,
                   "yi": opt.yi }
