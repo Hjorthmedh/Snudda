@@ -42,6 +42,8 @@ import copy
 import time
 
 import scipy
+from scipy.signal import find_peaks
+
 import datetime
 
 from mpi4py import MPI  # This must be imported before neuron, to run parallel
@@ -372,10 +374,14 @@ class SynapseOptimiser:
 
                 decay_error += np.sum(np.abs(volt[start_idx:end_idx] - self.exp_volt_interpolated[st])) / (end_idx - start_idx)
 
-            if self.verbose:
-                self.write_log(f"Peak error: {np.sum(peak_error)}, decay error: {decay_error}")
+            peak_data, peak_prop = find_peaks(volt, threshold=np.median(volt))
+            n_peaks = len(peak_data)
+            n_peak_error = np.abs(9 - n_peaks) * 10
 
-            error = np.sum(peak_error) + decay_error
+            if self.verbose:
+                self.write_log(f"Peak error: {np.sum(peak_error)}, decay error: {decay_error}, num peak error: {n_peak_error}")
+
+            error = np.sum(peak_error) + decay_error + n_peak_error
 
         except Exception as e:
             import traceback
