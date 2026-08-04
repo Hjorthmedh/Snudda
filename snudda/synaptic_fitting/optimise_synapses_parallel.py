@@ -1000,6 +1000,26 @@ class SynapseOptimiser:
 
         self.run_models(best_param_list)
 
+    def run_user_specified_parameters(self, user_parameter_list):
+
+        if self.pc.id() != 0:
+            return
+
+        if len(user_parameter_list) != 5:
+            raise ValueError(f"Expected 5 parameters (U, tauR,tauF, tauRatio,cond), got {len(user_parameter_list)}")
+
+        m_params = { "U": user_parameter_list[0],
+                     "tauR": user_parameter_list[1],
+                     "tauF": user_parameter_list[2],
+                     "tauRatio": user_parameter_list[3],
+                     "cond": user_parameter_list[4] }
+
+        t_sim, v_sim, i_sim = self.rsr_synapse_model.run2(pars=m_params)
+
+        self.last_run_time = t_sim
+        self.last_run_volt = v_sim
+
+
     def plot_error(self, error_list, fig_name_info="", marker=".", linestyle="-"):
 
         if self.pc.id() != 0:
@@ -1030,6 +1050,9 @@ if __name__ == "__main__":
     parser.add_argument("--synapse_type", default="glut", help="Specify synapse ['glut', 'glut2']")
     parser.add_argument("--synapse_parameter_file", type=str, default=None)
     parser.add_argument("--neuron_set_file", type=str, default="neuron_set.json")
+    parser.add_argument("--user_parameters", default=None,
+                        type=lambda s: [float(x) for x in s.split(",")],
+                        help="Run user parameters: U,tauR,tauF,tauRatio,cond")
     parser.add_argument("--profile", action="store_true", default=False)
     parser.add_argument("--verbose", action="store_true", default=False)
 
@@ -1044,6 +1067,13 @@ if __name__ == "__main__":
                           synapse_parameter_file=args.synapse_parameter_file,
                           neuron_set_file=args.neuron_set_file,
                           verbose=args.verbose)
+
+    if args.user_parameters is not None:
+        so.prepare_models()
+        so.run_user_specified_parameters(args.user_parameters)
+        so.plot_last_run("figures/user_specified_parameters.png")
+        sys.exit(0)
+
 
     if args.profile:
         import cProfile
