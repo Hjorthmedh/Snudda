@@ -319,6 +319,8 @@ class SynapseOptimiser:
             # We use normalised voltage instead of v_sim
             v_norm = (v_sim - np.min(v_sim)) / (np.max(v_sim) - np.min(v_sim))
 
+            max_volt = np.max(v_sim)
+
             peak_idx = self.get_peak_idx(time=t_sim, volt=v_norm, stim_time=self.stim_time)
             peak_height, decay_fits, v_base = self.find_trace_heights(t_sim, v_norm, peak_idx)
 
@@ -327,7 +329,8 @@ class SynapseOptimiser:
                                            decay_fits=decay_fits,
                                            time=t_sim,
                                            volt=v_norm,
-                                           v_base=v_base)
+                                           v_base=v_base,
+                                           max_volt=max_volt)
         except Exception:
             import traceback
             error_str = traceback.format_exc()
@@ -345,7 +348,7 @@ class SynapseOptimiser:
         # TODO: 2026-03-05 WE ARE HERE, WORKING ON THIS FUNCTION!! SciLifeLab rulez!
 
 
-    def error_calculation(self, peak_height, decay_fits, time, volt, v_base):
+    def error_calculation(self, peak_height, decay_fits, time, volt, v_base, max_volt):
 
         decay_window = [0.01, 0.045]
 
@@ -378,10 +381,15 @@ class SynapseOptimiser:
             n_peaks = len(peak_data)
             n_peak_error = np.abs(9 - n_peaks) * 10
 
+            if max_volt > 0:
+                max_error = max_volt * 1e6
+            else:
+                max_error = 0
+
             if self.verbose:
                 self.write_log(f"Peak error: {np.sum(peak_error)}, decay error: {decay_error}, num peak error: {n_peak_error}")
 
-            error = np.sum(peak_error) + decay_error + n_peak_error
+            error = np.sum(peak_error) + decay_error + n_peak_error + max_error
 
         except Exception as e:
             import traceback
