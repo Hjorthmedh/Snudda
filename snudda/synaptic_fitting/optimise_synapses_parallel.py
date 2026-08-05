@@ -333,7 +333,7 @@ class SynapseOptimiser:
             error_str = traceback.format_exc()
             self.write_log(f"Error during model evaluation, and error calculation: {error_str}")
             # We set a high error to mark this as bad.
-            error = 1e9
+            error = 1e4
 
         if self.verbose:
             self.write_log(f"Worker {self.pc.id()} error: {error}")
