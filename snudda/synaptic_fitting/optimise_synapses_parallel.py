@@ -382,14 +382,14 @@ class SynapseOptimiser:
             n_peak_error = np.abs(9 - n_peaks) * 10
 
             if max_volt > 0:
-                max_error = max_volt * 1e6
+                max_volt_error = max_volt * 1e6
             else:
-                max_error = 0
+                max_volt_error = 0
 
             if self.verbose:
-                self.write_log(f"Peak error: {np.sum(peak_error)}, decay error: {decay_error}, num peak error: {n_peak_error}")
+                self.write_log(f"Peak error: {np.sum(peak_error)}, decay error: {decay_error}, num peak error: {n_peak_error}, max_volt_error: {max_volt_error}")
 
-            error = np.sum(peak_error) + decay_error + n_peak_error + max_error
+            error = np.sum(peak_error) + decay_error + n_peak_error + max_volt_error
 
         except Exception as e:
             import traceback
