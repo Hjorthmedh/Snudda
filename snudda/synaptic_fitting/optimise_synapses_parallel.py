@@ -381,8 +381,10 @@ class SynapseOptimiser:
             n_peaks = len(peak_data)
             n_peak_error = np.abs(9 - n_peaks) * 10
 
-            if max_volt > 0:
-                max_volt_error = max_volt * 1e6
+            spike_threshold = -20e-3
+
+            if max_volt > spike_threshold:
+                max_volt_error = (max_volt - spike_threshold) * 1e6
             else:
                 max_volt_error = 0
 
