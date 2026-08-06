@@ -146,6 +146,8 @@ class SynapseOptimiser:
                  load_parameters=True,
                  snudda_data=None,
                  neuron_set_file="neuron_set.json",
+                 n_synapses = None,
+                 synapse_density = None,
                  name_tag=None,
                  synapse_parameter_file=None,
                  verbose=True):
@@ -162,7 +164,7 @@ class SynapseOptimiser:
             log_file_name = f"log/opt_log_rank-{self.pc.id()}.txt"
 
         if self.name_tag is not None:
-            log_file_name.replace(".txt", f"-{self.name_tag}.txt")
+            log_file_name = log_file_name.replace(".txt", f"-{self.name_tag}.txt")
 
         self.log_file = open(log_file_name, "w")
         print(f"Writiing to log file: {log_file_name}")
@@ -186,6 +188,11 @@ class SynapseOptimiser:
         self.neuron_set_file = neuron_set_file
         self.seed = None
         self.entropy=entropy
+
+        # These are by default None, normally read from neuron_set file,
+        # but we have option to override them when calling
+        self.n_synapses_override = n_synapses
+        self.synapse_density_override = synapse_density
 
         self.snudda_data = get_snudda_data(snudda_data=snudda_data)
 
@@ -266,8 +273,8 @@ class SynapseOptimiser:
             self.write_log(f"Worker {self.pc.id()} calling setup_model")
 
         # This sets self.rsr_synapse_model
-        self.setup_model(synapse_density_override=None,
-                         n_synapses_override=None,
+        self.setup_model(synapse_density_override=self.synapse_density_override,
+                         n_synapses_override=self.n_synapses_override,
                          synapse_params=self.synapse_parameters,
                          synapse_position_override=(self.synapse_section_id, self.synapse_section_x),
                          init_synapses=self.pc.id() == 0)
@@ -1072,6 +1079,8 @@ if __name__ == "__main__":
     parser.add_argument("--user_parameters", default=None,
                         type=lambda s: [float(x) for x in s.split(",")],
                         help="Run user parameters: U,tauR,tauF,tauRatio,cond")
+    parser.add_argument("--n_synapses", type=int, default=None, help="Override number of synapses in config file")
+    parser.add_argument("--synapse_density", type=str, default=None, help="Override synapse density in config file")
     parser.add_argument("--profile", action="store_true", default=False)
     parser.add_argument("--verbose", action="store_true", default=False)
 
@@ -1085,6 +1094,8 @@ if __name__ == "__main__":
                           synapse_type=args.synapse_type,
                           synapse_parameter_file=args.synapse_parameter_file,
                           neuron_set_file=args.neuron_set_file,
+                          n_synapses=args.n_synapses,
+                          synapse_density=args.synapse_density,
                           name_tag=args.name_tag,
                           verbose=args.verbose)
 
