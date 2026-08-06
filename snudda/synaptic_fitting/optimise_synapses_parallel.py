@@ -146,18 +146,23 @@ class SynapseOptimiser:
                  load_parameters=True,
                  snudda_data=None,
                  neuron_set_file="neuron_set.json",
+                 name_tag=None,
                  synapse_parameter_file=None,
                  verbose=True):
 
         os.makedirs("log", exist_ok=True)
         self.pc = h.ParallelContext()
 
+        self.name_tag = name_tag
         slurm_job_id = os.environ.get("SLURM_JOB_ID", os.environ.get("SLURM_JOBID"))
 
         if slurm_job_id is not None:
-            log_file_name = f"log/opt_log_job_{slurm_job_id}_rank{self.pc.id()}.txt"
+            log_file_name = f"log/opt_log_job_{slurm_job_id}_rank-{self.pc.id()}.txt"
         else:
-            log_file_name = f"log/opt_log_rank{self.pc.id()}.txt"
+            log_file_name = f"log/opt_log_rank-{self.pc.id()}.txt"
+
+        if self.name_tag is not None:
+            log_file_name.replace(".txt", f"-{self.name_tag}.txt")
 
         self.log_file = open(log_file_name, "w")
         print(f"Writiing to log file: {log_file_name}")
@@ -171,6 +176,9 @@ class SynapseOptimiser:
         new_path = os.path.join(new_path, "fitted")
         os.makedirs(new_path, exist_ok=True)
         new_file_name = data_file_name.replace(".json", "")
+
+        if self.name_tag is not None:
+            new_file_name += f"-{self.name_tag}"
 
         self.parameter_data_file_name = os.path.join(new_path, f"{new_file_name}-parameters-optimised-{synapse_type}.json")
         self.opt_state_data_file_name = os.path.join(new_path, f"{new_file_name}-opt-state-{synapse_type}.json.xz")   # Maybe change format if files get too big...
@@ -1060,6 +1068,7 @@ if __name__ == "__main__":
     parser.add_argument("--synapse_type", default="glut", help="Specify synapse ['glut', 'glut2']")
     parser.add_argument("--synapse_parameter_file", type=str, default=None)
     parser.add_argument("--neuron_set_file", type=str, default="neuron_set.json")
+    parser.add_argument("--name_tag", type=str, default=None, help="Name tag for run")
     parser.add_argument("--user_parameters", default=None,
                         type=lambda s: [float(x) for x in s.split(",")],
                         help="Run user parameters: U,tauR,tauF,tauRatio,cond")
@@ -1076,6 +1085,7 @@ if __name__ == "__main__":
                           synapse_type=args.synapse_type,
                           synapse_parameter_file=args.synapse_parameter_file,
                           neuron_set_file=args.neuron_set_file,
+                          name_tag=args.name_tag,
                           verbose=args.verbose)
 
     if args.user_parameters is not None:
