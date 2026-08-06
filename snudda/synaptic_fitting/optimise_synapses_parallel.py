@@ -399,7 +399,7 @@ class SynapseOptimiser:
             spike_threshold = -20e-3
 
             if max_volt > spike_threshold:
-                max_volt_error = (max_volt - spike_threshold) * 1e6
+                max_volt_error = (max_volt - spike_threshold) * 1e4
             else:
                 max_volt_error = 0
 
@@ -1005,7 +1005,12 @@ class SynapseOptimiser:
         plt.legend()
 
         if fig_name is None:
-            fig_name = os.path.join("figures", os.path.basename(self.data_file).split(".")[0] + f"-{self.synapse_type}.png")
+            if self.name_tag is not None:
+                name_tag = f"-{self.name_tag}"
+            else:
+                name_tag = ""
+
+            fig_name = os.path.join("figures", os.path.basename(self.data_file).split(".")[0] + f"-{self.synapse_type}{name_tag}.png")
 
         os.makedirs("figures", exist_ok=True)
 
@@ -1055,7 +1060,12 @@ class SynapseOptimiser:
         plt.plot(error_list, marker=marker, linestyle=linestyle)
         plt.ylabel("Error")
 
-        fig_name = os.path.join("figures", os.path.basename(self.data_file).split(".")[0] + fig_name_info + f"-{self.synapse_type}-error.png")
+        if self.name_tag is not None:
+            name_tag = f"-{self.name_tag}"
+        else:
+            name_tag = ""
+
+        fig_name = os.path.join("figures", os.path.basename(self.data_file).split(".")[0] + fig_name_info + f"-{self.synapse_type}{name_tag}error.png")
 
         plt.savefig(fig_name, dpi=300)
         plt.close()
@@ -1104,7 +1114,7 @@ if __name__ == "__main__":
     if args.user_parameters is not None:
         so.prepare_models()
         so.run_user_specified_parameters(args.user_parameters)
-        so.plot_last_run("figures/user_specified_parameters.png")
+        so.plot_last_run(f"figures/user_specified_parameters-{args.name_tag}.png")
         sys.exit(0)
 
 
