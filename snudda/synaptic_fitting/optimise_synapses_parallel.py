@@ -1081,6 +1081,7 @@ if __name__ == "__main__":
                         help="Run user parameters: U,tauR,tauF,tauRatio,cond")
     parser.add_argument("--n_synapses", type=int, default=None, help="Override number of synapses in config file")
     parser.add_argument("--synapse_density", type=str, default=None, help="Override synapse density in config file")
+    parser.add_argument("--entropy", type=int, default=1023456734529028340264793840, help="Entropy for random generator")
     parser.add_argument("--profile", action="store_true", default=False)
     parser.add_argument("--verbose", action="store_true", default=False)
 
@@ -1097,6 +1098,7 @@ if __name__ == "__main__":
                           n_synapses=args.n_synapses,
                           synapse_density=args.synapse_density,
                           name_tag=args.name_tag,
+                          entropy=args.entropy,
                           verbose=args.verbose)
 
     if args.user_parameters is not None:
