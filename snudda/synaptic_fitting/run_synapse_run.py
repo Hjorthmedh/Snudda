@@ -515,7 +515,7 @@ class RunSynapseRun(object):
 
     # OBS, soma parameters are ignored by run2 (they should be set during setup)
 
-    def run2(self, pars, time=None, cond=1e-8):
+    def run2(self, pars, time=None, cond=0.5e-9):
 
         if self.verbose:
             self.write_log(f"Running {self.pc.id() if self.pc is not None else 'LONELY'} with pars: {pars}")
@@ -524,6 +524,8 @@ class RunSynapseRun(object):
             time = self.time
         else:
             self.time = time
+
+        cond *= 1e6  # convert SI -> natural units for neuron
 
         for p in pars:
 

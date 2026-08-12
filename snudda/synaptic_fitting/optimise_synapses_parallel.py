@@ -167,11 +167,13 @@ class SynapseOptimiser:
             log_file_name = log_file_name.replace(".txt", f"-{self.name_tag}.txt")
 
         self.log_file = open(log_file_name, "w")
-        print(f"Writiing to log file: {log_file_name}")
+        print(f"Writing to log file: {log_file_name}")
 
         self.verbose = verbose
         self.rng = None
         self.sim = None
+
+        self.parameter_list = ["U", "tauR", "tauF", "tauRatio", "nmda_ratio"]
 
         self.data_file = data_file
         new_path, data_file_name = os.path.split(data_file)
@@ -319,13 +321,9 @@ class SynapseOptimiser:
 
         # print(f"Worker {self.pc.id()} received: {model_parameters}")
 
-        m_params = { "U": model_parameters[0],
-                     "tauR": model_parameters[1],
-                     "tauF": model_parameters[2],
-                     "tauRatio": model_parameters[3],
-                     "cond": model_parameters[4] }
-
         try:
+            m_params = dict(zip(self.parameter_list, model_parameters))
+
             t_sim, v_sim, i_sim = self.rsr_synapse_model.run2(pars=m_params)
 
             self.last_run_time = t_sim
@@ -973,9 +971,8 @@ class SynapseOptimiser:
         mb = self.data["model_data"]
 
         try:
-            param_list = ["U", "tauR", "tauF", "tauRatio", "cond"]
-            lower_bound = [mb[x][0] for x in param_list]
-            upper_bound = [mb[x][1] for x in param_list]
+            lower_bound = [mb[x][0] for x in self.parameter_list]
+            upper_bound = [mb[x][1] for x in self.parameter_list]
         except Exception as e:
             import traceback
             tstr = traceback.format_exc()
@@ -1038,11 +1035,7 @@ class SynapseOptimiser:
         if len(user_parameter_list) != 5:
             raise ValueError(f"Expected 5 parameters (U, tauR,tauF, tauRatio,cond), got {len(user_parameter_list)}")
 
-        m_params = { "U": user_parameter_list[0],
-                     "tauR": user_parameter_list[1],
-                     "tauF": user_parameter_list[2],
-                     "tauRatio": user_parameter_list[3],
-                     "cond": user_parameter_list[4] }
+        m_params = dict(zip(self.parameter_list, user_parameter_list))
 
         t_sim, v_sim, i_sim = self.rsr_synapse_model.run2(pars=m_params)
 
