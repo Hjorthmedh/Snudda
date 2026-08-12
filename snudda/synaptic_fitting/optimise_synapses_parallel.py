@@ -213,6 +213,7 @@ class SynapseOptimiser:
 
         self.last_run_volt = None
         self.last_run_time = None
+        self.last_run_parameters = None
 
         self.synapse_parameter_data = None
         self.synapse_section_id = None
@@ -344,6 +345,9 @@ class SynapseOptimiser:
                                            volt=v_norm,
                                            v_base=v_base,
                                            max_volt=max_volt)
+
+            self.last_run_parameters = m_params
+
         except Exception:
             import traceback
             error_str = traceback.format_exc()
@@ -1001,6 +1005,10 @@ class SynapseOptimiser:
         plt.ylabel("Voltage")
         plt.legend()
 
+        title_str = ", ".join(f"{k}={v:.3g}" if isinstance(v, float) else f"{k}={v}"
+                               for k, v in self.last_run_parameters.items())
+        plt.title(title_str, fontsize=8, wrap=True)
+
         if fig_name is None:
             if self.name_tag is not None:
                 name_tag = f"-{self.name_tag}"
@@ -1041,6 +1049,8 @@ class SynapseOptimiser:
 
         self.last_run_time = t_sim
         self.last_run_volt = v_sim
+
+        self.last_run_parameters = m_params
 
 
     def plot_error(self, error_list, fig_name_info="", marker=".", linestyle="-"):
