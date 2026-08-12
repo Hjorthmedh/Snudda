@@ -1100,6 +1100,7 @@ if __name__ == "__main__":
                           neuron_set_file=args.neuron_set_file,
                           n_synapses=args.n_synapses,
                           synapse_density=args.synapse_density,
+                          load_parameters=args.user_parameters is None,
                           name_tag=args.name_tag,
                           entropy=args.entropy,
                           verbose=args.verbose)
