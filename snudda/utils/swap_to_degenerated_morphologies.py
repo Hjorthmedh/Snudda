@@ -807,7 +807,7 @@ class SwapToDegeneratedMorphologies:
 
         keep_idx = np.zeros(old_sec_id.shape, dtype=bool)
         new_sec_id = np.full(old_sec_id.shape, -9999999, dtype=int)
-        new_sec_x = np.full(old_sec_id.shape, np.nan)
+        new_sec_x = np.full(old_sec_id.shape, -1, dtype=float)  # used np.nan as default, changed to -1 default for unitialised
 
         old_param_key, old_morph_key, old_path = self.find_old_morphology(neuron_id=neuron_id)
 
@@ -827,7 +827,7 @@ class SwapToDegeneratedMorphologies:
                     import pdb
                     pdb.set_trace()
 
-                if not np.isnan(new_x):
+                if not np.isnan(new_x) and new_x != -1:
                     assert 0 <= new_x <= 1, f"Out of range new_x={new_x} (required 0-1)"
 
                     keep_idx[idx] = True

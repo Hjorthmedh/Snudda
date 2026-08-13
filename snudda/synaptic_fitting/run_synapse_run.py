@@ -2,7 +2,7 @@ import sys
 import os.path
 import json
 
-import mpi4py
+from mpi4py import MPI
 import neuron
 import numpy as np
 
@@ -41,7 +41,7 @@ class RunSynapseRun(object):
                  holding_voltage=-70e-3,
                  holding_current=None,
                  synapse_type='glut',
-                 params={},
+                 params= None, # dict
                  time=2,
                  init_synapses=True,
                  sim=None,
@@ -60,6 +60,9 @@ class RunSynapseRun(object):
         else:
             self.worker_id = None
 
+        if params is None:
+            params = {}
+
         if rng is None:
             self.rng = np.random.default_rng(random_seed)
         else:
@@ -72,9 +75,10 @@ class RunSynapseRun(object):
         else:
             self.conv_factor = {}
 
-        self.write_log(f"Holding voltage: {holding_voltage} V")
-        self.write_log(f"Stim times: {stim_times} s")
-        self.write_log(f"Synapse type: {synapse_type}")
+        if self.verbose:
+            self.write_log(f"Holding voltage: {holding_voltage} V")
+            self.write_log(f"Stim times: {stim_times} s")
+            self.write_log(f"Synapse type: {synapse_type}")
 
         self.time = time
         self.synapses = []
@@ -118,7 +122,8 @@ class RunSynapseRun(object):
         # Should we use weak reference for garbage collection? (weakref package)
 
         # We load the neuron morphology object also, used to place synapses
-        self.write_log(f"Using morphology: {neuron_morphology}")
+        if self.verbose:
+            self.write_log(f"Using morphology: {neuron_morphology}")
 
         neuron_prototype = NeuronPrototype(neuron_path=neuron_path,
                                            neuron_name="OptimisationNeuron")
@@ -212,7 +217,6 @@ class RunSynapseRun(object):
 
         self.vec_stim = None
         self.stim_vector = None
-        self.little_synapse = None
 
     ############################################################################
 
@@ -233,8 +237,9 @@ class RunSynapseRun(object):
 
             self.set_resting_voltage(self.holding_voltage * 1e3)
 
-            self.write_log(f"Set holding current {holding_current}A and holding voltage {holding_voltage}V,"
-                           f" until {self.i_clamp.dur} ms")
+            if self.verbose:
+                self.write_log(f"Set holding current {holding_current}A and holding voltage {holding_voltage}V,"
+                               f" until {self.i_clamp.dur} ms")
 
             return holding_current
 
@@ -290,13 +295,16 @@ class RunSynapseRun(object):
 
         self.set_resting_voltage(self.holding_voltage * 1e3)
 
-        self.write_log(f"Holding voltage {self.holding_voltage * 1e3} mV, IClamp amp = {cur} nA")
+        if self.verbose:
+            self.write_log(f"Holding voltage {self.holding_voltage * 1e3} mV, IClamp amp = {cur} nA")
 
         return cur * 1e-9  # Convert to SI units
 
     ############################################################################
 
     def set_stim_times(self, stim_times):
+
+        raise DeprecationWarning(f"Is this function used? Remove it...")
 
         if len(stim_times) != len(self.stim_times) or (stim_times != self.stim_times).any():
             if self.verbose:
@@ -327,6 +335,8 @@ class RunSynapseRun(object):
 
             self.synapse_locations = input_coords
             dist_from_soma = self.morphology.dend[:, 4]
+
+            import matplotlib.pyplot as plt
 
             # plot density function
             plt.figure()
@@ -374,7 +384,7 @@ class RunSynapseRun(object):
 
     def add_synapse(self, synapse_type, section, section_x, params):
 
-        section_x = np.maximum(section_x, 1e-6)  # Cant be 0 or 1
+        section_x = np.clip(section_x, 1e-6, 1 - 1e-6)  # Cant be 0 or 1
 
         try:
             if synapse_type.lower() == 'glut':
@@ -388,12 +398,13 @@ class RunSynapseRun(object):
 
             self.synapses.append(syn)
 
-        except:
+        except Exception:
             import traceback
             tstr = traceback.format_exc()
             self.write_log(tstr)
 
             self.write_log("Did you remember to run nrnivmodl first, to generate channels mod files?")
+            MPI.COMM_WORLD.Abort(1)
             sys.exit(-1)
 
         for p in params:
@@ -453,61 +464,6 @@ class RunSynapseRun(object):
 
     ############################################################################
 
-    def run(self, tau, tau_r, tau_f, u, cond=None, time=None):
-
-        assert False, "This is the old run method"
-
-        if time is None:
-            time = self.exp_time
-        else:
-            self.exp_time = time
-
-        if cond is None:
-            cond = self.default_cond
-
-        # print(vars())
-
-        # print("Running: tau: %.3g, tauR: %.3g, tauF: %.3g, U: %.3g, cond: %.3g\n" \
-        #      % (tau,tauR,tauF,U,cond))
-
-        # Convert from SI units to natural units that Neuron uses
-        for ncs in self.nc_syn:
-            ncs.weight[0] = 1 * cond * 1e6
-
-        for syn in self.synapses:
-            syn.tau = tau * 1e3
-            syn.tau_r = tau_r * 1e3
-            syn.tau_f = tau_f * 1e3
-            syn.u = u
-
-        # print(self.littleSynapse.tau)
-
-        # print("Initialise voltage to " + str(self.holdingVoltage*1e3) + " mV")
-        neuron.h.finitialize(self.holding_voltage * 1e3)  # OLD : -70
-        neuron.h.tstop = time * 1e3
-
-        neuron.h.run()
-
-        # self.tSave.resize()
-        # self.vSave.resize()
-        # self.iSave.resize()
-
-        if np.array(self.t_save).shape != np.array(self.v_save).shape:
-            self.write_log("THIS IS WRONG, should be same shape!!")
-            self.write_log(f"size t = {np.array(self.t_save).shape}")
-            self.write_log(f"size v = {np.array(self.v_save).shape}")
-            import pdb
-            pdb.set_trace()
-
-        # print("Last V = " + str(self.vSave[-1]*1e-3))
-
-        # Convert back to SI units
-        return (np.array(self.t_save) * 1e-3,
-                np.array(self.v_save) * 1e-3,
-                np.array(self.i_save) * 1e-9)
-
-    ############################################################################
-
     def set_resting_voltage(self, rest_volt):
 
         if self.verbose:
@@ -539,6 +495,8 @@ class RunSynapseRun(object):
     ############################################################################
     def plot(self):
 
+        import matplotlib.pyplot as plt
+
         ax = self.morphology.plot_neuron(axon_colour='red', dend_colour='blue', soma_colour='green')
 
         ax.scatter(self.synapse_locations[:, 0],
@@ -557,14 +515,17 @@ class RunSynapseRun(object):
 
     # OBS, soma parameters are ignored by run2 (they should be set during setup)
 
-    def run2(self, pars, time=None, cond=1e-8):
+    def run2(self, pars, time=None, cond=0.5e-9):
 
-        self.write_log(f"Running {self.pc.id() if self.pc is not None else 'LONELY'} with pars: {pars}")
+        if self.verbose:
+            self.write_log(f"Running {self.pc.id() if self.pc is not None else 'LONELY'} with pars: {pars}")
 
         if time is None:
             time = self.time
         else:
             self.time = time
+
+        cond *= 1e6  # convert SI -> natural units for neuron
 
         for p in pars:
 
@@ -628,7 +589,7 @@ class RunSynapseRun(object):
         neuron.h.run()
 
         if self.verbose:
-            self.write_log("NEURON actually completed?!")
+            self.write_log("NEURON completed.")
 
         # Convert results back to SI units
         return (np.array(self.t_save) * 1e-3,

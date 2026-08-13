@@ -1182,6 +1182,8 @@ def snudda_load_cli():
     parser.add_argument("--centre", help="List n neurons in centre (-1 = all)", type=int)
     parser.add_argument("--listParam", help="List parameters for neuron_id", type=int)
     parser.add_argument("--countSyn", help="Count synapses per type", action="store_true")
+    parser.add_argument("--list_morph", help="List morphologies", action="store_true")
+
 
     args = parser.parse_args()
 
@@ -1346,6 +1348,9 @@ def snudda_load_cli():
         print(f"All neurons of type {incoming_to_type} receive in total {synapse_count:.0f} synapses, "
               f"and have {gap_junction_count:.0f} gap junctions in total.")
 
+    if args.list_morph:
+        for x in nl.data["neurons"]:
+            print(f"{x['neuron_id']} {x['name']} {x['morphology']}")
 
 if __name__ == "__main__":
     snudda_load_cli()

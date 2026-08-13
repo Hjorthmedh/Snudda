@@ -381,6 +381,8 @@ class SnuddaPlace(object):
             else:
                 region_seed = self.volume[region_name]["random_seed"]
 
+            print(f"Region {region_name} uses random seed {region_seed}")
+
             region_rnd = np.random.default_rng(region_seed + 123)
 
             if snudda_path_exists(volume_data["mesh_file"], self.snudda_data):
@@ -501,7 +503,7 @@ class SnuddaPlace(object):
                     print(f"{neuron_name = }, {num = }, {neuron_path = }")
 
                     if neuron_name.split("_")[0] != neuron_type and neuron_name != neuron_type:
-                        raise ValueError(f"The keys in neuron_path must be {neuron_name}_X where X is usually a number")
+                        raise ValueError(f"The keys in neuron_path must be {neuron_name}_X where X is usually a number ({neuron_type = })")
 
                     morph = os.path.join(neuron_path, "morphology")
                     param = os.path.join(neuron_path, "parameters.json")

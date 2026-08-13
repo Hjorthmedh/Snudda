@@ -14,24 +14,45 @@ fi
 pushd $HOME/Snudda
 git pull
 
-module load snic-env
-module load cray-python
-module swap PrgEnv-cray PrgEnv-gnu
-module load cray-mpich-abi
-module unload cray-libsci
+# module load snic-env
+# module load cray-python
+# module swap PrgEnv-cray PrgEnv-gnu
+# module load cray-mpich-abi
+# module unload cray-libsci
+
+module load PDC
+module load neuron
 
 # Setup virtual environment
-python -m venv snudda_env
+python -m venv --system-site-packages snudda_env
 source snudda_env/bin/activate
 
 pip install --upgrade pip
-MPICC=cc pip install mpi4py
+# MPICC=cc pip install mpi4py
 
 pip install wheel
-pip install -r requirements.txt
-pip install neuron --upgrade
-pip install -e .[dev]
+# pip install -r requirements.txt
+# dardel-requirements.txt excludes mpi4py which we get from PDC/neuron modules loaded above
 
+grep -vE '^(mpi4py|neuron|bluepyopt)' requirements.txt > dardel-requirements.txt
+
+cat >> dardel-requirements.txt << 'EOF'
+
+# BluePyOpt dependencies
+deap
+efel
+Jinja2
+pandas
+Pebble
+pickleshare
+EOF
+
+
+pip install -r dardel-requirements.txt
+pip install bluepyopt --no-deps   # To avoid overwriting PDC neuron installation
+# pip install neuron --upgrade
+pip install -e ".[dev]" --no-deps
+pip install scikit-optimize
 
 
 

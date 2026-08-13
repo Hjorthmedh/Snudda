@@ -564,7 +564,7 @@ class SnuddaInput(object):
                 except:
                     import traceback
                     self.write_log(traceback.format_exc(), is_error=True)
-                    self.write_log(f"Did you forget to specify the name of the input to {neuron_type}?",
+                    self.write_log(f"Did you forget to specify the name of the input to {neuron_type}, e.g. 'cortical'?",
                                    force_print=True)
                     sys.exit(-1)
 
@@ -1115,6 +1115,19 @@ class SnuddaInput(object):
         csv_input["cluster_spread"] = csv_input.get("cluster_spread", None)
         csv_input["cluster_size"] = csv_input.get("cluster_size", None)
 
+        if "num_inputs" in input_inf:
+            if num_spike_trains < input_inf["num_inputs"]:
+                raise ValueError(f"Not enough inputs trains in csv file")
+
+            num_spike_trains = input_inf["num_inputs"]
+
+            if num_spike_trains > input_inf["num_inputs"]:
+                if self.verbose:
+                    self.write_log(f"Found {num_spike_trains} spikes in {csv_file}, only using first {input_inf['num_inputs']}")
+
+                csv_input["spikes"] = csv_input["spikes"][:num_spike_trains, :]
+                csv_input["num_spikes"] = csv_input["num_spikes"][:num_spike_trains]
+
         csv_input["num_inputs"] = num_spike_trains
         csv_input["parameter_id"] = rng_master.integers(1e6, size=num_spike_trains)
 
@@ -1303,8 +1316,29 @@ class SnuddaInput(object):
 
         t_spikes = []
 
-        for f, t_start, t_end in zip(frequencies, time_ranges[0], time_ranges[1]):
-            t_spikes.append(self.generate_poisson_spikes(f, (t_start, t_end), rng=rng))
+        if isinstance(frequencies, np.ndarray):
+            freq = frequencies.flatten()
+        else:
+            freq = frequencies
+
+        if isinstance(time_ranges[0], np.ndarray):
+            start_time = time_ranges[0].flatten()
+        else:
+            start_time = time_ranges[0]
+
+        if isinstance(time_ranges[1], np.ndarray):
+            end_time = time_ranges[1].flatten()
+        else:
+            end_time = time_ranges[1]
+
+        try:
+            for f, t_start, t_end in zip(freq, start_time, end_time):
+                t_spikes.append(self.generate_poisson_spikes(f, (t_start, t_end), rng=rng))
+        except:
+            import traceback
+            print(traceback.format_exc())
+            import pdb
+            pdb.set_trace()
 
         # Double check correct dimension
         return np.sort(np.concatenate(t_spikes))
@@ -1321,16 +1355,16 @@ class SnuddaInput(object):
 
         assert np.size(freq) == np.size(time_range[0]) or np.size(freq) == 1
 
-        if np.size(time_range[0]) > 1:
+        if type(time_range[0]) in (list, np.ndarray):
 
             if np.size(freq) == 1:
                 freq = np.full(np.size(time_range[0]), freq)
 
-            assert len(time_range[0]) == len(time_range[1]) == len(freq), \
+            assert np.size(time_range[0]) == np.size(time_range[1]) == np.size(freq), \
                 (f"Frequency, start and end time vectors need to be of same length."
                  f"\nfreq: {freq}\nstart: {time_range[0]}\nend:{time_range[1]}")
 
-            if self.time_interval_overlap_warning:
+            if self.time_interval_overlap_warning and np.size(time_range[0]) > 1:
                 assert (np.array(time_range[0][1:]) - np.array(time_range[1][0:-1]) >= 0).all(), \
                     f"Time range should not overlap: start: {time_range[0]}, end: {time_range[1]}"
 

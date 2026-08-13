@@ -137,6 +137,7 @@ class SnuddaInit(object):
                          slice_depth=None,
                          mesh_bin_width=None,
                          num_neurons=None,
+                         region_random_seed=None,
                          n_putative_points=None):
         """
         Sets up definition for a brain structure (e.g. Cortex, Striatum, ...).
@@ -197,6 +198,12 @@ class SnuddaInit(object):
             f"define_struct: Region {struct_name} is already defined."
 
         self.network_data["regions"][struct_name] = dict()
+
+        if region_random_seed is not None:
+            self.network_data["regions"][struct_name]["random_seed"] = region_random_seed
+        else:
+            # Create a random seed derived from the current init random stream
+            self.network_data["regions"][struct_name]["random_seed"] = self.init_rng.integers(0, 2**63, dtype=np.int64)
 
         if num_neurons is not None:
             self.network_data["regions"][struct_name]["num_neurons"] = num_neurons
