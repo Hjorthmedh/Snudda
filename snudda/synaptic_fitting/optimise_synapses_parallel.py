@@ -367,6 +367,7 @@ class SynapseOptimiser:
 
     def error_calculation(self, peak_height, decay_fits, time, volt, v_base, max_volt):
 
+        # TODO: Increase decay window for the last two pulses!! 100 or 150 ms from pulse.
         decay_window = [0.01, 0.045]
 
         try:
@@ -384,6 +385,8 @@ class SynapseOptimiser:
             for st in self.stim_time:
                 start_idx = np.argmin(np.abs(time - (st + decay_window[0])))
                 end_idx = np.argmin(np.abs(time - (st + decay_window[1])))
+
+                # TODO: Remove interpolation, use the raw traces, since we use averages they are cleaner.
 
                 if st not in self.exp_volt_interpolated:
                     self.exp_volt_interpolated[st] = np.interp(time[start_idx:end_idx],

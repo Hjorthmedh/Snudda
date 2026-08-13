@@ -2228,7 +2228,7 @@ class SnuddaPrune(object):
             chunk_size : Chunk size for processing
         """
 
-        num_neurons = self.hist_file["network/neurons/neuron_id"].shape[0]
+        num_neurons = np.int64(self.hist_file["network/neurons/neuron_id"].shape[0])
 
         assert self.max_channel_type is not None, "max_channel_type should not be None"
 

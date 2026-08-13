@@ -1848,8 +1848,8 @@ class SnuddaDetect(object):
         max_synapse_type = np.int64(max_synapse_type)
 
         while next_idx < n_rows:
-            src_id = data[next_idx, 0]
-            dest_id = data[next_idx, 1]
+            src_id = np.int64(data[next_idx, 0])
+            dest_id = np.int64(data[next_idx, 1])
 
             if hardcoded_synapse_type:
                 synapse_type = hardcoded_synapse_type
