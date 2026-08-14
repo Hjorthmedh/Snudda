@@ -26,6 +26,7 @@ class RunSynapseRun(object):
                  stim_times,
                  synapse_density,
                  num_synapses,
+                 num_soma_synapses,
                  neuron_parameter_key,
                  neuron_morphology_key,
                  neuron_path=None,
@@ -128,7 +129,8 @@ class RunSynapseRun(object):
         neuron_prototype = NeuronPrototype(neuron_path=neuron_path,
                                            neuron_name="OptimisationNeuron")
         self.morphology = neuron_prototype.clone(parameter_key=neuron_parameter_key,
-                                                 morphology_key=neuron_morphology_key)
+                                                 morphology_key=neuron_morphology_key,
+                                                 position=np.array([0,0,0]))
         # self.morphology = NeuronMorphology(swc_filename=neuron_morphology)
 
         # We need to setup the Neuron model
@@ -138,7 +140,8 @@ class RunSynapseRun(object):
                                   cell_name="OptimisationNeuron",
                                   # modulation_file=neuron_modulation,
                                   parameter_key=neuron_parameter_key,
-                                  morphology_key=neuron_morphology_key)
+                                  morphology_key=neuron_morphology_key,
+                                  position=np.array([0,0,0]))
 
         self.neuron.instantiate(sim=self.sim)
         self.set_resting_voltage(holding_voltage * 1e3)
@@ -163,6 +166,7 @@ class RunSynapseRun(object):
             self.setup_synapses(synapse_type=synapse_type,
                                 synapse_density=synapse_density,
                                 num_synapses=num_synapses,
+                                num_soma_synapses=num_soma_synapses,
                                 synapse_section_id=synapse_section_id,
                                 synapse_section_x=synapse_section_x)
 
@@ -185,6 +189,7 @@ class RunSynapseRun(object):
                        synapse_type,
                        synapse_density=None,
                        num_synapses=None,
+                       num_soma_synapses=None,
                        synapse_section_id=None,
                        synapse_section_x=None):
 
@@ -193,6 +198,7 @@ class RunSynapseRun(object):
         self.synapse_positions = self.add_synapse_density(synapse_type=synapse_type,
                                                           synapse_density=synapse_density,
                                                           num_synapses=num_synapses,
+                                                          num_soma_synapses=num_soma_synapses,
                                                           section_id=synapse_section_id,
                                                           section_x=synapse_section_x)
 
@@ -318,6 +324,7 @@ class RunSynapseRun(object):
     def add_synapse_density(self, synapse_type,
                             synapse_density,
                             num_synapses=None,
+                            num_soma_synapses=None,
                             plot_flag=False,
                             section_id=None,
                             section_x=None):
@@ -330,6 +337,7 @@ class RunSynapseRun(object):
             input_coords, section_id, section_x, density_function, dist_syn_soma = \
                 self.morphology.dendrite_input_locations(synapse_density_str=synapse_density,
                                                          num_locations=num_synapses,
+                                                         num_soma_synapses=num_soma_synapses,
                                                          rng=self.rng,
                                                          return_density=True)
 
@@ -360,6 +368,7 @@ class RunSynapseRun(object):
             input_coords, section_id, section_x, dist_syn_soma = \
                 self.morphology.dendrite_input_locations(synapse_density_str=synapse_density,
                                                          num_locations=num_synapses,
+                                                         num_soma_synapses=num_soma_synapses,
                                                          rng=self.rng)
 
             self.synapse_locations = input_coords

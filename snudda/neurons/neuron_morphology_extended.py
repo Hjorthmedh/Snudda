@@ -403,7 +403,8 @@ class NeuronMorphologyExtended:
         return synapse_density, dend_idx
 
     def dendrite_input_locations(self, synapse_density_str, rng, num_locations,
-                                 cluster_size=None, cluster_spread=20e-6):
+                                 cluster_size=None, cluster_spread=20e-6,
+                                 num_soma_synapses= None):
 
         synapse_density, dend_idx = self.get_weighted_synapse_density(synapse_density_str=synapse_density_str)
 
@@ -506,6 +507,14 @@ class NeuronMorphologyExtended:
             same_section = np.all(section_data[cluster_syn_idx][:, [0, 2]] == section_data[parent_idx[cluster_syn_idx]][:, [0, 2]], axis=1)
             sec_x = np.where(same_section, comp_x * section_data[cluster_syn_idx, 1] + (1-comp_x) * section_data[parent_idx[cluster_syn_idx], 1], comp_x * section_data[cluster_syn_idx, 1])    
             dist_to_soma = comp_x * geometry[cluster_syn_idx, 4] + (1 - comp_x) * geometry[parent_idx[cluster_syn_idx], 4]
+
+        if num_soma_synapses is not None and num_soma_synapses > 0:
+            # Append synapses on the soma
+
+            xyz = np.concat((xyz, np.atleast_2d(self.position).repeat(num_soma_synapses, axis=0)))
+            sec_id = np.concat((sec_id, np.full(num_soma_synapses, -1)))
+            sec_x = np.concat((sec_x, np.full(num_soma_synapses, 500)))
+            dist_to_soma = np.concat((dist_to_soma, np.full(num_soma_synapses, 0)))
 
         return xyz, sec_id, sec_x / 1e3, dist_to_soma
 

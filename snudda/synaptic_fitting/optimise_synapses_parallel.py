@@ -147,6 +147,7 @@ class SynapseOptimiser:
                  snudda_data=None,
                  neuron_set_file="neuron_set.json",
                  n_synapses = None,
+                 n_soma_synapses = None,
                  synapse_density = None,
                  name_tag=None,
                  synapse_parameter_file=None,
@@ -195,6 +196,7 @@ class SynapseOptimiser:
         # but we have option to override them when calling
         self.n_synapses_override = n_synapses
         self.synapse_density_override = synapse_density
+        self.n_soma_synapses_override = n_soma_synapses
 
         self.snudda_data = get_snudda_data(snudda_data=snudda_data)
 
@@ -214,6 +216,7 @@ class SynapseOptimiser:
         self.last_run_volt = None
         self.last_run_time = None
         self.last_run_parameters = None
+        self.syn_recording = None
 
         self.synapse_parameter_data = None
         self.synapse_section_id = None
@@ -278,6 +281,7 @@ class SynapseOptimiser:
         # This sets self.rsr_synapse_model
         self.setup_model(synapse_density_override=self.synapse_density_override,
                          n_synapses_override=self.n_synapses_override,
+                         n_soma_synapses_override=self.n_soma_synapses_override,
                          synapse_params=self.synapse_parameters,
                          synapse_position_override=(self.synapse_section_id, self.synapse_section_x),
                          init_synapses=self.pc.id() == 0)
@@ -674,6 +678,7 @@ class SynapseOptimiser:
     def setup_model(self,
                     synapse_density_override=None,
                     n_synapses_override=None,
+                    n_soma_synapses_override=None,
                     synapse_position_override=None,
                     synapse_params=None,
                     init_synapses=True):
@@ -710,6 +715,11 @@ class SynapseOptimiser:
             else:
                 raise Exception('Setup error: number of synapses not no specified in setup file (which ever that is?)')
 
+        if n_soma_synapses_override is not None:
+            n_soma_synapses = n_soma_synapses_override
+        else:
+            n_soma_synapses = c_prop.get("num_soma_synapses", 0)
+
         if "holding_current" in c_prop:
             holding_current = c_prop["holding_current"]
         else:
@@ -742,6 +752,7 @@ class SynapseOptimiser:
                           neuron_parameter_key=neuron_parameter_key,
                           stim_times=t_stim,
                           num_synapses=n_synapses,
+                          num_soma_synapses=n_soma_synapses,
                           synapse_density=synapse_density,
                           holding_voltage=trace_holding_voltage,
                           holding_current=holding_current,
@@ -1020,6 +1031,17 @@ class SynapseOptimiser:
 
         plt.savefig(fig_name, dpi=300)
 
+        if self.syn_recording is not None:
+            plt.figure()
+            for syn_record in self.syn_recording:
+                plt.plot(syn_record)
+            plt.title(title_str, fontsize=8, wrap=True)
+
+            fig_name_cur = fig_name.replace(".png", "-current.png")
+            plt.savefig(fig_name_cur, dpi=300)
+            print(f"Plotting current to {fig_name_cur}")
+
+
     def run_best_run(self):
 
         # Get the best parameters
@@ -1043,6 +1065,14 @@ class SynapseOptimiser:
             raise ValueError(f"Expected 5 parameters (U, tauR,tauF, tauRatio,cond), got {len(user_parameter_list)}")
 
         m_params = dict(zip(self.parameter_list, user_parameter_list))
+
+        # Let's also record currents from synapses
+        self.syn_recording = []
+
+        for syn in self.rsr_synapse_model.synapses:
+            data = neuron.h.Vector()
+            data.record(syn._ref_i)
+            self.syn_recording.append(data)
 
         t_sim, v_sim, i_sim = self.rsr_synapse_model.run2(pars=m_params)
 
@@ -1092,6 +1122,7 @@ if __name__ == "__main__":
                         type=lambda s: [float(x) for x in s.split(",")],
                         help="Run user parameters: U,tauR,tauF,tauRatio,cond")
     parser.add_argument("--n_synapses", type=int, default=None, help="Override number of synapses in config file")
+    parser.add_argument("--n_soma_synapses", type=int, default=None, help="Override number of soma synapses in config file")
     parser.add_argument("--synapse_density", type=str, default=None, help="Override synapse density in config file")
     parser.add_argument("--entropy", type=int, default=1023456734529028340264793840, help="Entropy for random generator")
     parser.add_argument("--profile", action="store_true", default=False)
@@ -1108,6 +1139,7 @@ if __name__ == "__main__":
                           synapse_parameter_file=args.synapse_parameter_file,
                           neuron_set_file=args.neuron_set_file,
                           n_synapses=args.n_synapses,
+                          n_soma_synapses=args.n_soma_synapses,
                           synapse_density=args.synapse_density,
                           load_parameters=args.user_parameters is None,
                           name_tag=args.name_tag,
