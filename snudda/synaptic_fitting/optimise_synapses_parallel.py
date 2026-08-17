@@ -1001,7 +1001,7 @@ class SynapseOptimiser:
 
         return lower_bound, upper_bound
 
-    def plot_last_run(self, fig_name=None):
+    def plot_last_run(self, fig_name=None, normalise_volt=True):
 
         if self.pc.id() != 0:
             return
@@ -1009,8 +1009,22 @@ class SynapseOptimiser:
         import matplotlib.pyplot as plt
 
         plt.figure()
-        plt.plot(self.last_run_time, (self.last_run_volt  - np.min(self.last_run_volt))/ (np.max(self.last_run_volt) - np.min(self.last_run_volt)), color='black', label="model")
-        plt.plot(self.exp_time, self.exp_volt , color='red', label="experiment")
+
+        if normalise_volt:
+            volt = (self.last_run_volt  - np.min(self.last_run_volt))/ (np.max(self.last_run_volt) - np.min(self.last_run_volt))
+        else:
+            volt = self.last_run_volt
+
+        t_idx = np.where(0.1 <= self.last_run_time)[0]
+
+        plt.plot(self.last_run_time[t_idx], volt[t_idx], color='black', label="model")
+
+        if normalise_volt:
+            # Only plot experimental data if trace plotted was normalised, since data is normalised
+            te_idx = np.where(0.1 <= self.exp_time)[0]
+
+            plt.plot(self.exp_time[te_idx], self.exp_volt[te_idx] , color='red', label="experiment")
+
         plt.xlabel("Time (s)")
         plt.ylabel("Voltage")
         plt.legend()

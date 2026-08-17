@@ -157,7 +157,7 @@ class RunSynapseRun(object):
 
         # We need to set the params also
         self.params = params
-        self.default_cond = 5e-7
+        self.default_cond = 5e-10
 
         self.synapse_positions = None
         self.stim_times = np.array(stim_times)
