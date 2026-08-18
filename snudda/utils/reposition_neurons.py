@@ -13,15 +13,26 @@ class RepositionNeurons(object):
         """
 
         self.position_file = position_file
+        self.hdf5_file = None
 
         if position_file is not None:
-            self.hdf5_file = h5py.File(position_file, "r+")
+            self.open(self.position_file)
+
+    def __del__(self):
+        self.close()
+
+    def open(self, position_file=None):
+
+        if position_file is None:
+            position_file = self.position_file
+        else:
+            self.position_file = position_file
+
+        self.hdf5_file = h5py.File(position_file, "r+")
 
         if "synapses" in self.hdf5_file["network"]:
             raise ValueError("This code should not be used after detection.")
 
-    def __del__(self):
-        self.close()
 
     def close(self):
 
