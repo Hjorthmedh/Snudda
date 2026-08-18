@@ -1,5 +1,9 @@
+import os
+import json
 import h5py
-
+from snudda.utils import snudda_parse_path
+from snudda.utils.snudda_path import snudda_simplify_path
+from snudda.utils import SnuddaLoad
 
 class RepositionNeurons(object):
     """ Reposition neurons in the network file. """
@@ -83,6 +87,37 @@ class RepositionNeurons(object):
             self.hdf5_file["network/neurons/morphology_key"][neuron_id] = morphology_key
         else:
             self.hdf5_file["network/neurons/morphology_key"][:] = morphology_key
+
+    def set_neuron_path(self, neuron_id, neuron_path):
+
+        if neuron_id is not None:
+            self.hdf5_file["network/neurons/neuron_path"][neuron_id] = neuron_path
+        else:
+            self.hdf5_file["network/neurons/neuron_path"][:] = neuron_path
+
+    def update_morphology(self, neuron_id=None):
+        # Uses neuron_path, parameter_key and morphology_key to find the path to the morphology
+
+        snudda_data = SnuddaLoad.to_str(self.hdf5_file["meta/snudda_data"][()])
+
+        if neuron_id is not None:
+            # OBS, the neuron_id must be an integer (or None)
+
+            neuron_path = SnuddaLoad.to_str(self.hdf5_file["network/neurons/neuron_path"][neuron_id])
+            parameter_key = SnuddaLoad.to_str(self.hdf5_file["network/neurons/parameter_key"][neuron_id])
+            morphology_key = SnuddaLoad.to_str(self.hdf5_file["network/neurons/morphology_key"][neuron_id])
+            meta_file = snudda_parse_path(os.path.join(neuron_path, "meta.json"), snudda_data)
+
+            with open(os.path.join(meta_file), "rt") as f:
+                meta = json.load(f)
+
+            morphology = meta[parameter_key][morphology_key]["morphology"]
+            self.hdf5_file["network/neurons/morphology"][neuron_id] = snudda_simplify_path(os.path.join(neuron_path, "morphology", morphology),
+                                                                                           snudda_data)
+
+        else:
+            for neuron_id in self.hdf5_file["network/neurons/neuron_id"]:
+                self.update_morphology(neuron_id)
 
     def set_parameter_key(self, neuron_id, parameter_key):
 
