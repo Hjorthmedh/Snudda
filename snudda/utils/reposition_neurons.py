@@ -4,7 +4,7 @@ import h5py
 class RepositionNeurons(object):
     """ Reposition neurons in the network file. """
 
-    def __init__(self, position_file):
+    def __init__(self, position_file=None):
 
         """ Constructor.
 
@@ -13,9 +13,12 @@ class RepositionNeurons(object):
         """
 
         self.position_file = position_file
-        self.hdf5_file = h5py.File(position_file, "r+")
 
-        assert "synapses" not in self.hdf5_file["network"], "This code should not be used after detection."
+        if position_file is not None:
+            self.hdf5_file = h5py.File(position_file, "r+")
+
+        if "synapses" in self.hdf5_file["network"]:
+            raise ValueError("This code should not be used after detection.")
 
     def __del__(self):
         self.close()
