@@ -187,6 +187,7 @@ class SynapseOptimiser:
 
         self.parameter_data_file_name = os.path.join(new_path, f"{new_file_name}-parameters-optimised-{synapse_type}.json")
         self.opt_state_data_file_name = os.path.join(new_path, f"{new_file_name}-opt-state-{synapse_type}.json.xz")   # Maybe change format if files get too big...
+        self.parameter_export_file_name = os.path.join(new_path, f"{new_file_name}-synapse-parameters-{synapse_type}.json")
 
         self.neuron_set_file = neuron_set_file
         self.seed = None
@@ -1073,9 +1074,12 @@ class SynapseOptimiser:
 
         self.run_models(best_param_list)
 
-    def export_best_parameters(self, output_file, parameter_key="1", overwrite=False):
+    def export_best_parameters(self, output_file=None, parameter_key="1", overwrite=False):
 
         if self.pc.id() == 0:
+            if output_file is None:
+                output_file = self.parameter_export_file_name
+
             best_param = self.synapse_parameter_data.get_best_parameterset()
 
             if not overwrite and os.path.isfile(output_file):
@@ -1092,6 +1096,8 @@ class SynapseOptimiser:
                 "meta": {"parameter_data_file": os.path.basename(self.parameter_data_file_name)},
                 "synapse":  syn_param
             }
+
+            os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
             with open(output_file, "w") as f:
                 json.dump(data, f)
@@ -1168,7 +1174,7 @@ if __name__ == "__main__":
     parser.add_argument("--n_soma_synapses", type=int, default=None, help="Override number of soma synapses in config file")
     parser.add_argument("--synapse_density", type=str, default=None, help="Override synapse density in config file")
     parser.add_argument("--entropy", type=int, default=1023456734529028340264793840, help="Entropy for random generator")
-    parser.add_argument("--export", type=str, default=None, help="Export synapse parameters")
+    parser.add_argument("--export", action="store_true", help="Export synapse parameters")
     parser.add_argument("--profile", action="store_true", default=False)
     parser.add_argument("--verbose", action="store_true", default=False)
 
@@ -1212,8 +1218,8 @@ if __name__ == "__main__":
     else:
         so.optimise(n_iterations=args.iterations)
 
-    if args.export is not None:
-        so.export_best_parameters(args.export)
+    if args.export:
+        so.export_best_parameters()
 
 
     # mpirun -n 5 python optimise_synapses_parallel.py ../data/synapses/example_data/10_MSN12_GBZ_CC_H20.json --iterations 50 --snudda_data /home/hjorth/HBP/BasalGangliaData/data/

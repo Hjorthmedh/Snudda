@@ -17,6 +17,8 @@ def export_synapse_parameters(parameter_data_file_name,
 
     best_param = parameter_bookkeper.get_best_parameterset()
 
+    os.makedirs(os.path.dirname(output_filename), exist_ok=True)
+
     if not overwrite and os.path.isfile(output_filename):
         with open(output_filename, "rt") as f:
             data = json.load(f)
