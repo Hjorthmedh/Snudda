@@ -484,6 +484,9 @@ class SynapseOptimiser:
 
     def optimise(self, n_iterations=10, load_state=True):
 
+        if n_iterations < 1:
+            return
+
         error_list = []
         start_time = time.perf_counter()
 
@@ -1070,6 +1073,32 @@ class SynapseOptimiser:
 
         self.run_models(best_param_list)
 
+    def export_best_parameters(self, output_file, parameter_key="1", overwrite=False):
+
+        if self.pc.id() == 0:
+            best_param = self.synapse_parameter_data.get_best_parameterset()
+
+            if not overwrite and os.path.isfile(output_file):
+                with open(output_file, "r") as f:
+                    data = json.load(f)
+            else:
+                data = dict()
+
+            # In case any extra parameters were specified
+            syn_param = self.synapse_parameters.copy()
+            syn_param |= { k:v for k,v in zip(self.parameter_list, best_param) }
+
+            data[parameter_key] = {
+                "meta": {"parameter_data_file": os.path.basename(self.parameter_data_file_name)},
+                "synapse":  syn_param
+            }
+
+            with open(output_file, "w") as f:
+                json.dump(data, f)
+
+            print(f"Wrote synapse parameters to {output_file}")
+
+
     def run_user_specified_parameters(self, user_parameter_list):
 
         if self.pc.id() != 0:
@@ -1139,6 +1168,7 @@ if __name__ == "__main__":
     parser.add_argument("--n_soma_synapses", type=int, default=None, help="Override number of soma synapses in config file")
     parser.add_argument("--synapse_density", type=str, default=None, help="Override synapse density in config file")
     parser.add_argument("--entropy", type=int, default=1023456734529028340264793840, help="Entropy for random generator")
+    parser.add_argument("--export", type=str, default=None, help="Export synapse parameters")
     parser.add_argument("--profile", action="store_true", default=False)
     parser.add_argument("--verbose", action="store_true", default=False)
 
@@ -1182,6 +1212,8 @@ if __name__ == "__main__":
     else:
         so.optimise(n_iterations=args.iterations)
 
+    if args.export is not None:
+        so.export_best_parameters(args.export)
 
 
     # mpirun -n 5 python optimise_synapses_parallel.py ../data/synapses/example_data/10_MSN12_GBZ_CC_H20.json --iterations 50 --snudda_data /home/hjorth/HBP/BasalGangliaData/data/
