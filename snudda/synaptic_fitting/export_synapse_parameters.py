@@ -9,7 +9,7 @@ def export_synapse_parameters(parameter_data_file_name,
                               parameter_key="1",
                               overwrite=True):
 
-    if extra_synapse_parameters is None:
+    if extra_synapse_parameters is not None:
         raise NotImplementedError(f"We need to read the extra synapse parameters and store them to the output file also")
 
     parameter_list = ["U", "tauR", "tauF", "tauRatio", "nmda_ratio"]
@@ -33,13 +33,19 @@ def export_synapse_parameters(parameter_data_file_name,
     with open(output_filename, "wt") as f:
         json.dump(data, f, indent=4)
 
+    print(f"Writing {output_filename}")
+
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser("Export synapse parameters")
     parser.add_argument("synapse_parameter_file_name")
     parser.add_argument("output_filename")
+    parser.add_argument("parameter_key", default="1")
+    parser.add_argument("overwrite", action="store_true")
     args = parser.parse_args()
 
     export_synapse_parameters(parameter_data_file_name=args.synapse_parameter_file_name,
-                              output_filename=args.output_filename)
+                              output_filename=args.output_filename,
+                              parameter_key=args.parameter_key,
+                              overwrite=args.overwrite)
