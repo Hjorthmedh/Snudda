@@ -25,9 +25,20 @@ def export_synapse_parameters(parameter_data_file_name,
     else:
         data = dict()
 
+    syn_param = dict(zip(parameter_list, best_param))
+
+    # Because tauR > tau we use tauRatio during optimisation, convert back to tau in parameter file
+    # since MOD file does not know about tauRatio
+    if "tauRatio" in syn_param:
+        if "tau" in syn_param:
+            raise ValueError(f"tau = tauR * tauRatio, however tau already set in {syn_param = }")
+
+        syn_param["tau"] = syn_param["tauR"] * syn_param["tauRatio"]
+        del syn_param["tauRatio"]
+
     data[parameter_key] = {
         "meta": { "parameter_data_file": os.path.basename(parameter_data_file_name)},
-        "synapse": dict(zip(parameter_list, best_param))
+        "synapse": syn_param
     }
 
     with open(output_filename, "wt") as f:
