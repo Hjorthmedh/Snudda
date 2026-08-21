@@ -52,8 +52,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser("Export synapse parameters")
     parser.add_argument("synapse_parameter_file_name")
     parser.add_argument("output_filename")
-    parser.add_argument("parameter_key", default="1")
-    parser.add_argument("overwrite", action="store_true")
+    parser.add_argument("--parameter_key", default="1")
+    parser.add_argument("--overwrite", action="store_true")
     args = parser.parse_args()
 
     export_synapse_parameters(parameter_data_file_name=args.synapse_parameter_file_name,
