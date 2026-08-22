@@ -374,6 +374,11 @@ class SnuddaDetect(object):
             self.logfile = None
 
     def __del__(self):
+        # sys.meta_path being None (or sys itself being torn down) means we're
+        # in interpreter shutdown -- skip network/IPC cleanup, it can hang or
+        # fail unpredictably. Local file closes are still safe to attempt.
+        if sys is None or sys.meta_path is None:
+            return
 
         if self.work_history is not None:
             try:

@@ -466,6 +466,12 @@ class SnuddaPrune(object):
 
         """ Destructor, cleans up temporary files after. """
 
+        # sys.meta_path being None (or sys itself being torn down) means we're
+        # in interpreter shutdown -- skip network/IPC cleanup, it can hang or
+        # fail unpredictably. Local file closes are still safe to attempt.
+        if sys is None or sys.meta_path is None:
+            return
+
         try:
             if self.hist_file is not None:
                 self.hist_file.close()
