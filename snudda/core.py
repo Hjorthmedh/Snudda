@@ -1042,7 +1042,8 @@ class Snudda(object):
             self.d_view.execute("import os")
             self.d_view.execute(f"os.environ['SNUDDA_DATA'] = '{os.getenv('SNUDDA_DATA')}'", block=True)
 
-    def get_expected_engines(self, ipython_profile="default"):
+    @staticmethod
+    def get_expected_engines(ipython_profile="default"):
 
         """Get the number of expected engines from the ipcontroller configuration."""
         ipython_dir = os.getenv('IPYTHONDIR', os.path.join(os.path.expanduser("~"), ".ipython"))
