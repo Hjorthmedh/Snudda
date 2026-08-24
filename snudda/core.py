@@ -85,7 +85,7 @@ class Snudda(object):
         self.rc = rc
         self.slurm_id = None
         self.cluster_id = None
-        self.profile_dir = None
+        self.ipython_dir = None
 
         self.logfile = None
 
@@ -966,14 +966,20 @@ class Snudda(object):
             job_id = os.environ.get("SLURM_JOB_ID", os.getpid())
             self.slurm_id = job_id
             self.cluster_id = f"sim_{job_id}_{uuid.uuid4().hex[:4]}"
-            profile = self.cluster_id
+            profile = "default"
 
-            print(f"!!!! start_parallel called -- {self.cluster_id}")
+            self.ipython_dir = os.path.join(
+                self.network_path,
+                ".ipyparallel",
+                self.cluster_id,
+            )
 
+            print(f"!!!! start_parallel called -- {self.cluster_id = }, {self.ipython_dir = }")
 
-            self.logfile.write(f"start_parallel called, {n_workers = }")
+            self.logfile.write(f"start_parallel called, {n_workers = } ({self.ipython_dir =})")
 
-            self.cluster = ipp.Cluster(n=n_workers, cluster_id=self.cluster_id, profile=profile)
+            self.cluster = ipp.Cluster(n=n_workers, cluster_id=self.cluster_id,
+                                       profile=profile, profile_dir=self.ipython_dir)
             self.cluster.start_cluster_sync()
             self.rc = self.cluster.connect_client_sync()
             self.rc.wait_for_engines(n=self.cluster.n, timeout=300)
@@ -984,7 +990,6 @@ class Snudda(object):
 
             # This just waits until all engines are registered before proceeding.
             self.d_view.execute("pass", block=True)
-            self.profile_dir = os.path.join(os.path.expanduser("~"), ".ipython", f"profile_{profile}")
         except:
             self.cluster = None
             self.d_view = None
@@ -1005,7 +1010,7 @@ class Snudda(object):
                 self.d_view.execute(f"os.environ['SNUDDA_DATA'] = '{os.getenv('SNUDDA_DATA')}'", block=True)
 
 
-    def stop_parallel(self, n_workers=None):
+    def stop_parallel(self, n_workers=None, cleanup=True):
 
         if self.cluster is not None:
             self.cluster.stop_cluster_sync()
@@ -1013,9 +1018,10 @@ class Snudda(object):
             self.rc = None
             self.d_view = None
 
-            if self.profile_dir is not None and os.path.isdir(self.profile_dir):
-                shutil.rmtree(self.profile_dir)
-                self.profile_dir = None
+        if cleanup:
+            if self.ipython_dir is not None and os.path.isdir(self.ipython_dir):
+                shutil.rmtree(self.ipython_dir)
+                self.ipython_dir = None
 
     def setup_parallel_OLD(self, ipython_profile=None, timeout=120, n_workers=None):
         """Setup ipyparallel workers."""
