@@ -964,6 +964,19 @@ class Snudda(object):
             return
 
         try:
+            if n_workers is None:
+                n_workers = os.environ.get("SLURM_NTASKS")
+
+            # On Cray (Dardel): each nested srun step needs a unique FI_CXI_DEFAULT_VNI.
+            # Set it here so ipyparallel's internal srun inherits it.
+            if os.environ.get("SLURM_JOB_ID") is not None:
+                try:
+                    import subprocess
+                    vni = subprocess.check_output(["od", "-vAn", "-N4", "-tu", "/dev/urandom"]).decode().strip()
+                    os.environ["FI_CXI_DEFAULT_VNI"] = vni
+                except Exception:
+                    pass
+
             job_id = os.environ.get("SLURM_JOB_ID", os.getpid())
             self.slurm_id = job_id
             self.cluster_id = f"sim_{job_id}_{uuid.uuid4().hex[:4]}"
@@ -983,7 +996,7 @@ class Snudda(object):
                                        profile=profile, profile_dir=self.ipython_dir)
             self.cluster.start_cluster_sync()
             self.rc = self.cluster.connect_client_sync()
-            self.rc.wait_for_engines(n=self.cluster.n, timeout=300)
+            self.rc.wait_for_engines(n=self.cluster.n, timeout=900)
 
             self.logfile.write(f"Connected engines: {self.rc.ids}")
 
