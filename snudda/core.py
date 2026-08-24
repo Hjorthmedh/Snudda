@@ -989,7 +989,7 @@ class Snudda(object):
                 self.cluster_id,
             )
 
-            print(f"!!!! start_parallel called -- {self.cluster_id = }, {self.ipython_dir = }")
+            print(f"!!!! start_parallel called -- {self.cluster_id = }, {n_workers = }, {self.ipython_dir = }")
 
             self.logfile.write(f"start_parallel called, {n_workers = } ({self.ipython_dir =})")
 
