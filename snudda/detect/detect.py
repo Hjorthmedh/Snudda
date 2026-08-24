@@ -2647,17 +2647,6 @@ class SnuddaDetect(object):
 
         self.write_log(f"setup_parallel: {d_view = }")
 
-        from snudda.core import Snudda
-        ipython_profile = os.getenv('IPYTHON_PROFILE')
-        n_workers = Snudda.get_expected_engines(ipython_profile=ipython_profile)
-
-        try:
-            self.write_log(f"Waiting for {n_workers} engines, currently have {len(self.rc.ids)}")
-            self.rc.wait_for_engines(n=n_workers, timeout=timeout)
-        except Exception as e:
-            raise RuntimeError(f"Engines did not start within {timeout} seconds: {e}")
-
-
         with d_view.sync_imports():
             from snudda import SnuddaDetect
 

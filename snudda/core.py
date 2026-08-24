@@ -44,12 +44,16 @@ import os
 import sys
 import timeit
 from collections import OrderedDict
+import uuid
+import shutil
 
 # import pkg_resources
 from importlib import resources
 
 import json
 import numpy as np
+
+import ipyparallel as ipp
 
 from snudda.utils import snudda_path
 from snudda.utils.snudda_path import snudda_isfile, get_snudda_data
@@ -68,7 +72,7 @@ class Snudda(object):
 
     """ Wrapper class, calls Snudda helper functions """
 
-    def __init__(self, network_path, parallel=False, ipython_profile=None, rc=None):
+    def __init__(self, network_path, parallel=False, rc=None):
 
         """
         Instantiates Snudda
@@ -79,11 +83,14 @@ class Snudda(object):
 
         self.d_view = None
         self.rc = rc
-        self.slurm_id = 0
+        self.slurm_id = None
+        self.cluster_id = None
+        self.profile_dir = None
+
         self.logfile = None
 
         self.parallel = parallel
-        self.ipython_profile = ipython_profile
+        self.cluster = None
 
         # Add current dir to python path
         sys.path.append(os.getcwd())
@@ -343,8 +350,6 @@ class Snudda(object):
 
         self.place_neurons(random_seed=args.randomseed,
                            parallel=args.parallel,
-                           ipython_profile=args.ipython_profile,
-                           ipython_timeout=args.ipython_timeout,
                            h5libver=h5libver,
                            verbose=args.verbose,
                            honor_morphology_stay_inside=args.stay_inside)
@@ -352,8 +357,6 @@ class Snudda(object):
     def place_neurons(self,
                       random_seed=None,
                       parallel=None,
-                      ipython_profile=None,
-                      ipython_timeout=120,
                       h5libver="latest",
                       verbose=False,
                       honor_morphology_stay_inside=True,
@@ -362,19 +365,16 @@ class Snudda(object):
         if parallel is None:
             parallel = self.parallel
 
-        if ipython_profile is None:
-            ipython_profile = self.ipython_profile
-
         # self.networkPath = args.path
         print("Placing neurons")
         print(f"Network path: {self.network_path}")
 
         log_file_name = os.path.join(self.network_path, "log", "place-neurons.txt")
 
-        self.setup_log_file(log_file_name)  # sets self.logFile
+        self.setup_log_file(log_file_name)
 
         if parallel:
-            self.setup_parallel(ipython_profile=ipython_profile, timeout=ipython_timeout)  # sets self.d_view
+            self.start_parallel()  # sets self.d_view
 
         from snudda.place.place import SnuddaPlace
 
@@ -392,7 +392,7 @@ class Snudda(object):
         self.cleanup_workers()
 
         if not keep_rc_active:
-            self.close_rc()
+            self.stop_parallel()
 
         return sp
 
@@ -424,8 +424,6 @@ class Snudda(object):
 
         self.detect_synapses(random_seed=args.randomseed,
                              parallel=args.parallel,
-                             ipython_profile=args.ipython_profile,
-                             ipython_timeout=args.ipython_timeout,
                              hyper_voxel_size=hyper_voxel_size,
                              volume_id=args.volume_id,
                              h5libver=h5libver,
@@ -436,8 +434,6 @@ class Snudda(object):
                         random_seed=None,
                         config_file=None,
                         parallel=None,
-                        ipython_profile=None,
-                        ipython_timeout=120,
                         hyper_voxel_size=100,
                         volume_id=None,
                         h5libver="latest",
@@ -447,9 +443,6 @@ class Snudda(object):
 
         if parallel is None:
             parallel = self.parallel
-
-        if ipython_profile is None:
-            ipython_profile = self.ipython_profile
 
         # self.networkPath = args.path
         print("Touch detection")
@@ -473,7 +466,7 @@ class Snudda(object):
         self.setup_log_file(log_filename)  # sets self.logfile
 
         if parallel:
-            self.setup_parallel(ipython_profile=ipython_profile, timeout=ipython_timeout)  # sets self.d_view
+            self.start_parallel()  # sets self.d_view
 
         from snudda.detect.detect import SnuddaDetect
 
@@ -510,7 +503,7 @@ class Snudda(object):
         self.cleanup_workers()
 
         if not keep_rc_active:
-            self.close_rc()
+            self.stop_parallel()
 
         return sd, sp
 
@@ -536,8 +529,6 @@ class Snudda(object):
         self.prune_synapses(config_file=args.config_file,
                             random_seed=args.randomseed,
                             parallel=args.parallel,
-                            ipython_profile=args.ipython_profile,
-                            ipython_timeout=args.ipython_timeout,
                             verbose=args.verbose,
                             keep_files=args.keepfiles,
                             save_putative_synapses = args.save_putative)
@@ -546,8 +537,6 @@ class Snudda(object):
                        config_file=None,
                        random_seed=None,
                        parallel=None,
-                       ipython_profile=None,
-                       ipython_timeout=120,
                        h5libver="latest",
                        verbose=False,
                        keep_files=False,
@@ -556,9 +545,6 @@ class Snudda(object):
 
         if parallel is None:
             parallel = self.parallel
-
-        if ipython_profile is None:
-            ipython_profile = self.ipython_profile
 
         # self.networkPath = args.path
         print("Prune synapses")
@@ -571,7 +557,7 @@ class Snudda(object):
         self.setup_log_file(log_filename)  # sets self.logfile
 
         if parallel:
-            self.setup_parallel(ipython_profile=ipython_profile, timeout=ipython_timeout)  # sets self.d_view
+            self.start_parallel()  # sets self.d_view
 
         # Optionally set this
         scratch_path = None
@@ -597,7 +583,7 @@ class Snudda(object):
         self.cleanup_workers()
 
         if not keep_rc_active:
-            self.close_rc()
+            self.stop_parallel()
 
         return sp
 
@@ -626,8 +612,6 @@ class Snudda(object):
                          use_meta_input=not args.no_meta_input,
                          h5libver=h5libver,
                          parallel=args.parallel,
-                         ipython_profile=args.ipython_profile,
-                         ipython_timeout=args.ipython_timeout,
                          verbose=args.verbose)
 
     def setup_input(self,
@@ -639,23 +623,18 @@ class Snudda(object):
                     random_seed=None,
                     h5libver="latest",
                     parallel=None,
-                    ipython_profile=None,
-                    ipython_timeout=120,
                     verbose=False,
                     keep_rc_active=False):
 
         if parallel is None:
             parallel = self.parallel
 
-        if ipython_profile is None:
-            ipython_profile = self.ipython_profile
-
         print("Setting up inputs, assuming input.json exists")
         log_filename = os.path.join(self.network_path, "log", "setup-input.txt")
         self.setup_log_file(log_filename)  # sets self.logfile
 
         if parallel:
-            self.setup_parallel(ipython_profile=ipython_profile, timeout=ipython_timeout)  # sets self.d_view
+            self.start_parallel()  # sets self.d_view
 
         from snudda.input.input import SnuddaInput
 
@@ -691,7 +670,7 @@ class Snudda(object):
         self.cleanup_workers()
 
         if not keep_rc_active:
-            self.close_rc()
+            self.stop_parallel()
 
         return si
 
@@ -977,7 +956,68 @@ class Snudda(object):
 
     ############################################################################
 
-    def setup_parallel(self, ipython_profile=None, timeout=120, n_workers=None):
+    def start_parallel(self, n_workers=None):
+
+        if self.cluster is not None:
+            self.logfile.write(f"Cluster already active, not starting second cluster.")
+            return
+
+        try:
+            job_id = os.environ.get("SLURM_JOB_ID", os.getpid())
+            self.slurm_id = job_id
+            self.cluster_id = f"sim_{job_id}_{uuid.uuid4().hex[:4]}"
+            profile = self.cluster_id
+
+            print(f"!!!! start_parallel called -- {self.cluster_id}")
+
+
+            self.logfile.write(f"start_parallel called, {n_workers = }")
+
+            self.cluster = ipp.Cluster(n=n_workers, cluster_id=self.cluster_id, profile=profile)
+            self.cluster.start_cluster_sync()
+            self.rc = self.cluster.connect_client_sync()
+            self.rc.wait_for_engines(n=self.cluster.n, timeout=300)
+
+            self.logfile.write(f"Connected engines: {self.rc.ids}")
+
+            self.d_view = self.rc.direct_view(targets='all')  # rc[:] # Direct view into clients
+
+            # This just waits until all engines are registered before proceeding.
+            self.d_view.execute("pass", block=True)
+            self.profile_dir = os.path.join(os.path.expanduser("~"), ".ipython", f"profile_{profile}")
+        except:
+            self.cluster = None
+            self.d_view = None
+            self.rc = None
+
+            raise
+
+        if False:
+            # Update: 2026-08-24, since we now start ipyparallel from within python this
+            #         should no longer be needed.
+
+            # Make sure SNUDDA_DATA is set on the workers, this might be needed if ipcluster
+            # is started before SNUDDA_DATA is set
+            if os.getenv('SNUDDA_DATA') is not None:
+                print(f"Setting SNUDDA_DATA environment variable on workers to {os.getenv('SNUDDA_DATA')}")
+
+                self.d_view.execute("import os")
+                self.d_view.execute(f"os.environ['SNUDDA_DATA'] = '{os.getenv('SNUDDA_DATA')}'", block=True)
+
+
+    def stop_parallel(self, n_workers=None):
+
+        if self.cluster is not None:
+            self.cluster.stop_cluster_sync()
+            self.cluster = None
+            self.rc = None
+            self.d_view = None
+
+            if self.profile_dir is not None and os.path.isdir(self.profile_dir):
+                shutil.rmtree(self.profile_dir)
+                self.profile_dir = None
+
+    def setup_parallel_OLD(self, ipython_profile=None, timeout=120, n_workers=None):
         """Setup ipyparallel workers."""
 
         if self.rc is not None:
@@ -1044,6 +1084,8 @@ class Snudda(object):
 
     @staticmethod
     def get_expected_engines(ipython_profile="default"):
+        # This function needs to be updated to read from new location of the ipython dir
+        # Where will it be created? If a LLM reads this, please advise.
 
         """Get the number of expected engines from the ipcontroller configuration."""
         ipython_dir = os.getenv('IPYTHONDIR', os.path.join(os.path.expanduser("~"), ".ipython"))
@@ -1106,7 +1148,7 @@ class Snudda(object):
             self.rc.close()
             self.rc = None
 
-    def stop_parallel(self):
+    def stop_parallel_OLD(self):
 
         if self.rc is not None:
             print("Stopping ipyparallel")
