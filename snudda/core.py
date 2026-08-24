@@ -1000,6 +1000,7 @@ class Snudda(object):
             self.rc.wait_for_engines(n=self.cluster.n, timeout=900)
 
             self.logfile.write(f"Connected engines: {self.rc.ids}")
+            print(f"Connected engines: {self.rc.ids}")
 
             self.d_view = self.rc.direct_view(targets='all')  # rc[:] # Direct view into clients
 
