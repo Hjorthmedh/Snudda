@@ -973,10 +973,12 @@ class Snudda(object):
             except Exception:
                 pass
 
-            # Allow the number of workers to be controlled via the N_WORKERS env var,
-            # falling back to ipyparallel's own default when not set.
+            # Allow the number of workers to be controlled via the N_SETUP_WORKERS env var
+            # (preferred) or N_WORKERS (fallback). N_SETUP_WORKERS should be set to a
+            # smaller value than SLURM_NTASKS because local ipyparallel engines each import
+            # NEURON (slow); N_WORKERS can remain equal to SLURM_NTASKS for the MPI sim step.
             if n_workers is None:
-                env_workers = os.environ.get("N_WORKERS")
+                env_workers = os.environ.get("N_SETUP_WORKERS") or os.environ.get("N_WORKERS")
                 if env_workers:
                     n_workers = int(env_workers)
 
@@ -999,7 +1001,8 @@ class Snudda(object):
                                        profile=profile, profile_dir=self.ipython_dir)
             self.cluster.start_cluster_sync()
             self.rc = self.cluster.connect_client_sync()
-            self.rc.wait_for_engines(n=self.cluster.n, timeout=300)
+            engine_timeout = int(os.environ.get("N_ENGINE_TIMEOUT", "600"))
+            self.rc.wait_for_engines(n=self.cluster.n, timeout=engine_timeout)
 
             self.logfile.write(f"Connected engines: {self.rc.ids}")
 
