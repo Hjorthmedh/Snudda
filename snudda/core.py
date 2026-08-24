@@ -1013,6 +1013,7 @@ class Snudda(object):
     def stop_parallel(self, n_workers=None, cleanup=True):
 
         if self.cluster is not None:
+            self.write_log(f"Stopping cluster ({self.ipython_dir})")
             self.cluster.stop_cluster_sync()
             self.cluster = None
             self.rc = None
@@ -1093,6 +1094,8 @@ class Snudda(object):
         # This function needs to be updated to read from new location of the ipython dir
         # Where will it be created? If a LLM reads this, please advise.
 
+        raise DeprecationWarning(f"The profile is no longer in the default old location. This code is no longer valid.")
+
         """Get the number of expected engines from the ipcontroller configuration."""
         ipython_dir = os.getenv('IPYTHONDIR', os.path.join(os.path.expanduser("~"), ".ipython"))
         engine_log_file = os.path.join(ipython_dir, f"profile_{ipython_profile}", "log", "engines.json")
@@ -1149,6 +1152,8 @@ class Snudda(object):
     ############################################################################
 
     def close_rc(self):
+        raise DeprecationWarning(f"Please use stop_parallel to close cluster.")
+
         if self.rc is not None:
             print("Closing remote client (ipcluster kept running)")
             self.rc.close()
