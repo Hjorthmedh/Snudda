@@ -62,7 +62,7 @@ class InputTuning(object):
 
         if rc is None and parallel:
             self.snudda.start_parallel()
-            rc = self.snudda.rc
+            self.rc = self.snudda.rc
         else:
             self.rc = rc
 

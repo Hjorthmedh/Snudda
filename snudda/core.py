@@ -87,7 +87,8 @@ class Snudda(object):
         self.cluster_id = None
         self.ipython_dir = None
 
-        self.logfile = None
+        snudda_log_file = os.path.join(self.network_path, "log", "snudda-core.txt")
+        self.logfile = self.setup_log_file(snudda_log_file)
 
         self.parallel = parallel
         self.cluster = None
@@ -1187,6 +1188,8 @@ class Snudda(object):
         except:
             print("Unable to set up log file " + str(log_file_name))
             self.logfile = None
+
+        return self.logfile
 
     ############################################################################
 
