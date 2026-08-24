@@ -58,12 +58,13 @@ class InputTuning(object):
         self.max_time = None  # self.input_duration * len(self.frequency_range)
         self.num_replicas = None
 
-        self.snudda = Snudda(network_path=network_path, rc=self.rc, parallel=parallel)
+        self.snudda = Snudda(network_path=network_path, rc=rc, parallel=parallel)
 
-        self.rc = rc
-
-        if self.rc is None and parallel:
+        if rc is None and parallel:
             self.snudda.start_parallel()
+            rc = self.snudda.rc
+        else:
+            self.rc = rc
 
         if not os.path.isdir(self.network_path):
             os.makedirs(self.network_path, exist_ok=True)
