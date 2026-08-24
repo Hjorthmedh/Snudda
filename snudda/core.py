@@ -964,6 +964,22 @@ class Snudda(object):
             return
 
         try:
+            # On Cray (Dardel): each nested srun step needs a unique FI_CXI_DEFAULT_VNI.
+            # Set it here so ipyparallel's internal srun inherits it.
+            try:
+                import subprocess
+                vni = subprocess.check_output(["od", "-vAn", "-N4", "-tu", "/dev/urandom"]).decode().strip()
+                os.environ["FI_CXI_DEFAULT_VNI"] = vni
+            except Exception:
+                pass
+
+            # Allow the number of workers to be controlled via the N_WORKERS env var,
+            # falling back to ipyparallel's own default when not set.
+            if n_workers is None:
+                env_workers = os.environ.get("N_WORKERS")
+                if env_workers:
+                    n_workers = int(env_workers)
+
             job_id = os.environ.get("SLURM_JOB_ID", os.getpid())
             self.slurm_id = job_id
             self.cluster_id = f"sim_{job_id}_{uuid.uuid4().hex[:4]}"
@@ -975,7 +991,7 @@ class Snudda(object):
                 self.cluster_id,
             )
 
-            print(f"!!!! start_parallel called -- {self.cluster_id = }, {self.ipython_dir = }")
+            print(f"!!!! start_parallel called -- {self.cluster_id = }, {self.ipython_dir = }, {n_workers = }")
 
             self.logfile.write(f"start_parallel called, {n_workers = } ({self.ipython_dir =})")
 
