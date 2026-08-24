@@ -1,10 +1,12 @@
-export IPYTHONDIR="`pwd`/.ipython"
-export IPYTHON_PROFILE=default
+# export IPYTHONDIR="`pwd`/.ipython"
+# export IPYTHON_PROFILE=default
 
 # If the BasalGangliaData directory exists, then use that for our data
-    
-ipcluster start --n=6 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
-sleep 20
+
+# 2026-08-24: Snudda now starts ipcluster itself.
+
+# ipcluster start --n=6 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&
+# sleep 20
 
 # simName=networks/test-10k
 simName=networks/test-5k
@@ -33,7 +35,7 @@ echo "Make sure the input config file was found, otherwise provide your own"
 # Uncomment this to generate input
 snudda input $simName --input $simName/input.json --parallel
 
-ipcluster stop
+# ipcluster stop
 
 # Uncomment this to run simulation
 # Remember you need to run "nrnivmodl data/cellspecs/mechanisms"
