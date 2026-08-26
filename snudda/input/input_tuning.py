@@ -40,7 +40,7 @@ class NumpyEncoder(json.JSONEncoder):
 class InputTuning(object):
 
     def __init__(self, network_path, snudda_data=None, rc=None, input_seed_list=None,
-                 parallel=False):
+                 parallel=False, n_workers=None):
 
         self.network_path = network_path
         self.neurons_path = None
@@ -61,7 +61,7 @@ class InputTuning(object):
         self.snudda = Snudda(network_path=network_path, rc=rc, parallel=parallel)
 
         if rc is None and parallel:
-            self.snudda.start_parallel()
+            self.snudda.start_parallel(n_workers=n_workers)
             self.rc = self.snudda.rc
         else:
             self.rc = rc
@@ -1940,6 +1940,7 @@ if __name__ == "__main__":
     parser.add_argument("--seed_list", type=str, default=None)
     parser.add_argument("--no_downsampling", action="store_true")
     parser.add_argument("--input_info", type=str, default=None)
+    parser.add_argument("--n_workers", default=None, type=int, help="Number of workers for network creation")
 
     args = parser.parse_args()
 
@@ -1952,7 +1953,8 @@ if __name__ == "__main__":
 
 
     if args.action == "setup":
-        input_scaling = InputTuning(args.networkPath, input_seed_list=seed_list, parallel=True)
+        input_scaling = InputTuning(args.networkPath, input_seed_list=seed_list,
+                                    parallel=True, n_workers=args.n_workers)
 
         input_frequency = ast.literal_eval(args.inputFrequency)
         if type(input_frequency) != list:
