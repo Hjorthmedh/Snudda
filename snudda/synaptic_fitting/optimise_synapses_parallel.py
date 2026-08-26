@@ -1197,7 +1197,7 @@ if __name__ == "__main__":
     parser.add_argument("--export", action="store_true", help="Export synapse parameters")
     parser.add_argument("--profile", action="store_true", default=False)
     parser.add_argument("--verbose", action="store_true", default=False)
-    parser.add_argument("--dont-update-neuronset-file", target="update_neuronset_file", action="store_false", default=True)
+    parser.add_argument("--dont-update-neuronset-file", dest="update_neuronset_file", action="store_false", default=True)
 
     args = parser.parse_args()
 
