@@ -245,7 +245,8 @@ class SynapseOptimiser:
         if synapse_parameter_file:
             with open(synapse_parameter_file, 'r') as f:
                 self.write_log(f"Reading synapse parameters from {synapse_parameter_file}")
-                self.synapse_parameters = json.load(f)["data"]
+                tmp = json.load(f)
+                self.synapse_parameters = tmp["data"] if "data" in tmp else tmp
         else:
             self.synapse_parameters = {}
 
