@@ -246,8 +246,17 @@ class SynapseOptimiser:
             with open(synapse_parameter_file, 'r') as f:
                 self.write_log(f"Reading synapse parameters from {synapse_parameter_file}")
                 tmp = json.load(f)
-                self.synapse_parameters = tmp["data"] if "data" in tmp else tmp
-        else:
+                if "data" in tmp:
+                    self.synapse_parameters = tmp["data"]
+                else:
+
+                    if len(tmp.keys()) != 1:
+                        raise ValueError(f"Synapse parameter, multiple keys in {synapse_parameter_file} not supported for optimisation.")
+
+                    for key, value in tmp.items():
+                        print(f"Reading parameters {value} from file")
+                        self.synapse_parameters = value
+
             self.synapse_parameters = {}
 
         self.setup_rng()
