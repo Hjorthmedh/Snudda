@@ -151,6 +151,7 @@ class SynapseOptimiser:
                  synapse_density = None,
                  name_tag=None,
                  synapse_parameter_file=None,
+                 update_neuronset_file=True,
                  verbose=True):
 
         os.makedirs("log", exist_ok=True)
@@ -173,6 +174,11 @@ class SynapseOptimiser:
         self.verbose = verbose
         self.rng = None
         self.sim = None
+
+        # This is useful if running multiple optimisations at the same time
+        # the first run will set this, subsequent runs will cause trouble if they run in parallel
+        # and all try to update it at same time.
+        self.update_neuronset_file = update_neuronset_file
 
         self.parameter_list = ["U", "tauR", "tauF", "tauRatio", "nmda_ratio"]
 
@@ -775,7 +781,9 @@ class SynapseOptimiser:
         self.pc.barrier()
 
         if self.rsr_synapse_model.holding_current != holding_current:
-            self.update_cell_properties(holding_current=self.rsr_synapse_model.holding_current)
+            self.log_file.write(f"Mismatch between passed holding current {holding_current}, and post-model detected holding current {self.rsr_synapse_model.holding_current}.")
+            if self.update_neuronset_file:
+                self.update_cell_properties(holding_current=self.rsr_synapse_model.holding_current)
 
         self.pc.barrier()
 
@@ -1014,12 +1022,15 @@ class SynapseOptimiser:
 
         plt.figure()
 
+        # Skip artifacts
+        t_idx = np.where(0.1 <= self.last_run_time)[0]
+
         if normalise_volt:
-            volt = (self.last_run_volt  - np.min(self.last_run_volt))/ (np.max(self.last_run_volt) - np.min(self.last_run_volt))
+            # Skip the first 0.1s of the trace, sometimes artifacts, that we dont want to afffect normalisation
+            volt = (self.last_run_volt  - np.min(self.last_run_volt[t_idx]))/ (np.max(self.last_run_volt[t_idx]) - np.min(self.last_run_volt[t_idx]))
         else:
             volt = self.last_run_volt
 
-        t_idx = np.where(0.1 <= self.last_run_time)[0]
 
         plt.plot(self.last_run_time[t_idx], volt[t_idx], color='black', label="model")
 
@@ -1186,6 +1197,7 @@ if __name__ == "__main__":
     parser.add_argument("--export", action="store_true", help="Export synapse parameters")
     parser.add_argument("--profile", action="store_true", default=False)
     parser.add_argument("--verbose", action="store_true", default=False)
+    parser.add_argument("--dont-update-neuronset-file", target="update_neuronset_file", action="store_false", default=True)
 
     args = parser.parse_args()
 
@@ -1202,6 +1214,7 @@ if __name__ == "__main__":
                           synapse_density=args.synapse_density,
                           load_parameters=args.user_parameters is None,
                           name_tag=args.name_tag,
+                          update_neuronset_file=args.update_neuronset_file,
                           entropy=args.entropy,
                           verbose=args.verbose)
 
