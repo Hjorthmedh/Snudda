@@ -543,7 +543,7 @@ class SynapseOptimiser:
                 opt.tell(model_parameter_list, error)
 
                 if i % 50 == 0 and i > 0:
-                    # Just for safety let's save every 100 iterations...
+                    # Just for safety let's save every 50 iterations...
                     elapsed_time = time.perf_counter() - start_time
                     self.write_log(f"Iteration {i}: Saving state to {self.opt_state_data_file_name} (elapsed time: {elapsed_time:.0f} seconds)")
                     self.save_opt_state(opt)
@@ -1189,7 +1189,7 @@ if __name__ == "__main__":
     parser.add_argument("--name_tag", type=str, default=None, help="Name tag for run")
     parser.add_argument("--user_parameters", default=None,
                         type=lambda s: [float(x) for x in s.split(",")],
-                        help="Run user parameters: U,tauR,tauF,tauRatio,cond")
+                        help="Run user parameters: U,tauR,tauF,tauRatio,nmda_ratio")
     parser.add_argument("--n_synapses", type=int, default=None, help="Override number of synapses in config file")
     parser.add_argument("--n_soma_synapses", type=int, default=None, help="Override number of soma synapses in config file")
     parser.add_argument("--synapse_density", type=str, default=None, help="Override synapse density in config file")
