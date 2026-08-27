@@ -1006,13 +1006,16 @@ class Snudda(object):
 
             # This just waits until all engines are registered before proceeding.
             self.d_view.execute("pass", block=True)
-        except Exception as e:
+        except Exception:
+
+            import traceback
+            self.logfile.write("Failed to start parallel, trying to resume in serial.")
+            self.logfile.write(traceback.format_exc())
+
             self.cluster = None
             self.d_view = None
             self.rc = None
 
-            self.logfile.write(f"Exception: {e}")
-            self.logfile.write("Failed to start parallel, trying to resume in serial.")
             # raise
 
         if False:
