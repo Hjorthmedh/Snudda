@@ -164,7 +164,7 @@ class SnuddaDetect(object):
         mem = self.memory()
         self.write_log(f"{mem}")
 
-        self.slurm_id = int(slurm_id)  # Make sure integer
+        self.slurm_id = int(slurm_id) if slurm_id is not None else 0  # Make sure integer
         self.workers_initialised = False
 
         self.voxel_size = voxel_size
