@@ -1006,12 +1006,14 @@ class Snudda(object):
 
             # This just waits until all engines are registered before proceeding.
             self.d_view.execute("pass", block=True)
-        except:
+        except Exception as e:
             self.cluster = None
             self.d_view = None
             self.rc = None
 
-            raise
+            self.logfile.write(f"Exception: {e}")
+            self.logfile.write("Failed to start parallel, trying to resume in serial.")
+            # raise
 
         if False:
             # Update: 2026-08-24, since we now start ipyparallel from within python this
