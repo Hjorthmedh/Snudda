@@ -1009,8 +1009,12 @@ class Snudda(object):
         except Exception:
 
             import traceback
+            error = traceback.format_exc()
+            print("Failed to start parallel, trying to resume in serial.")
+            print(error)  # Let's also print error, in case log file has problems
+
             self.logfile.write("Failed to start parallel, trying to resume in serial.")
-            self.logfile.write(traceback.format_exc())
+            self.logfile.write(error)
 
             self.cluster = None
             self.d_view = None
