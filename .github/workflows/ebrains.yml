@@ -1,4 +1,4 @@
-name: Snudda Mirror to Ebrains
+name: Snudda Mirror to Ebrains and KTH gitr
 
 # Configure the events that are going to trigger tha automated update of the mirror
 on:
@@ -30,4 +30,22 @@ jobs:
           source_repo: "Hjorthmedh/Snudda"
           source_branch: "refs/tags/*"
           destination_repo: "https://ghpusher:${{ secrets.EBRAINS_GITLAB_ACCESS_TOKEN }}@gitlab.ebrains.eu/hjorth/snudda.git"
+          destination_branch: "refs/tags/*"
+
+  to_gitr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: syncmaster
+        uses: wei/git-sync@v3
+        with:
+          source_repo: "https://github.com/Hjorthmedh/Snudda"
+          source_branch: "master"
+          destination_repo: "https://rlindr:${{ secrets.GITR_ACCESS_TOKEN }}@gitr.sys.kth.se/MBGM-lab/Snudda.git"
+          destination_branch: "master"
+      - name: synctags
+        uses: wei/git-sync@v3
+        with:
+          source_repo: "Hjorthmedh/Snudda"
+          source_branch: "refs/tags/*"
+          destination_repo: "https://rlindr:${{ secrets.GITR_ACCESS_TOKEN }}@gitr.sys.kth.se/MBGM-lab/Snudda.git"
           destination_branch: "refs/tags/*"
