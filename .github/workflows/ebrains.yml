@@ -40,12 +40,12 @@ jobs:
         with:
           source_repo: "https://github.com/Hjorthmedh/Snudda"
           source_branch: "master"
-          destination_repo: "https://rlindr:${{ secrets.GITR_ACCESS_TOKEN }}@gitr.sys.kth.se/MBGM-lab/Snudda.git"
+          destination_repo: "https://hjorth:${{ secrets.KTH_SNUDDA_MIRROR }}@gitr.sys.kth.se/MBGM-lab/Snudda.git"
           destination_branch: "master"
       - name: synctags
         uses: wei/git-sync@v3
         with:
           source_repo: "Hjorthmedh/Snudda"
           source_branch: "refs/tags/*"
-          destination_repo: "https://rlindr:${{ secrets.GITR_ACCESS_TOKEN }}@gitr.sys.kth.se/MBGM-lab/Snudda.git"
+          destination_repo: "https://hjorth:${{ secrets.KTH_SNUDDA_MIRROR }}@gitr.sys.kth.se/MBGM-lab/Snudda.git"
           destination_branch: "refs/tags/*"
