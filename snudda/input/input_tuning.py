@@ -39,7 +39,8 @@ class NumpyEncoder(json.JSONEncoder):
 
 class InputTuning(object):
 
-    def __init__(self, network_path, snudda_data=None, rc=None, input_seed_list=None):
+    def __init__(self, network_path, snudda_data=None, rc=None, input_seed_list=None,
+                 parallel=False, n_workers=None):
 
         self.network_path = network_path
         self.neurons_path = None
@@ -57,7 +58,13 @@ class InputTuning(object):
         self.max_time = None  # self.input_duration * len(self.frequency_range)
         self.num_replicas = None
 
-        self.rc = rc
+        self.snudda = Snudda(network_path=network_path, rc=rc, parallel=parallel)
+
+        if rc is None and parallel:
+            self.snudda.start_parallel(n_workers=n_workers)
+            self.rc = self.snudda.rc
+        else:
+            self.rc = rc
 
         if not os.path.isdir(self.network_path):
             os.makedirs(self.network_path, exist_ok=True)
@@ -79,6 +86,9 @@ class InputTuning(object):
         self.init_helper = SnuddaInit(network_path=self.network_path, snudda_data=self.snudda_data)
 
     # Writes config files
+
+    def stop_parallel(self):
+        self.snudda.stop_parallel()
 
     def setup_network(self, neurons_path=None, num_replicas=10, neuron_types=None,
                       parameter_key=None, morphology_key=None, modulation_key=None,
@@ -1930,6 +1940,7 @@ if __name__ == "__main__":
     parser.add_argument("--seed_list", type=str, default=None)
     parser.add_argument("--no_downsampling", action="store_true")
     parser.add_argument("--input_info", type=str, default=None)
+    parser.add_argument("--n_workers", default=None, type=int, help="Number of workers for network creation")
 
     args = parser.parse_args()
 
@@ -1940,9 +1951,11 @@ if __name__ == "__main__":
     else:
         seed_list = None
 
-    input_scaling = InputTuning(args.networkPath, input_seed_list=seed_list)
 
     if args.action == "setup":
+        input_scaling = InputTuning(args.networkPath, input_seed_list=seed_list,
+                                    parallel=True, n_workers=args.n_workers)
+
         input_frequency = ast.literal_eval(args.inputFrequency)
         if type(input_frequency) != list:
             input_frequency = np.array(list(input_frequency))
@@ -1963,7 +1976,9 @@ if __name__ == "__main__":
         print(f"Tip, to run in parallel on your local machine use: "
               f"mpiexec -n 4 python3 tuning{os.path.sep}input_tuning.py simulate <yournetworkhere>")
 
-    if args.action == "setup_background":
+    elif args.action == "setup_background":
+        input_scaling = InputTuning(args.networkPath, input_seed_list=seed_list, parallel=True)
+
         input_frequency = ast.literal_eval(args.inputFrequency)
 
         if type(input_frequency) != list:
@@ -1988,6 +2003,8 @@ if __name__ == "__main__":
                                              input_frequency=[input_frequency, input_frequency])
 
     elif args.action == "simulate":
+        input_scaling = InputTuning(args.networkPath, input_seed_list=seed_list, parallel=False)
+
         print("Run simulation...")
         print(f"Tip, to run in parallel on your local machine use: "
               f"mpiexec -n 4 python3 tuning{os.path.sep}input_tuning.py simulate <yournetworkhere>")
@@ -2000,14 +2017,22 @@ if __name__ == "__main__":
         input_scaling.simulate(mech_dir=args.mechDir, sample_dt=sample_dt)
 
     elif args.action == "analyse":
+        input_scaling = InputTuning(args.networkPath, input_seed_list=seed_list, parallel=False)
+
         # input_scaling.plot_generated_input()
         input_scaling.analyse_results(input_type=args.input_type)
 
     elif args.action == "analyse_background":
+        input_scaling = InputTuning(args.networkPath, input_seed_list=seed_list, parallel=False)
+
         input_scaling.analyse_background()
 
     else:
         print(f"Unknown action {args.action}")
+        input_scaling = None
+
+    if input_scaling:
+        input_scaling.stop_parallel()
 
     # python3 input_tuning/input_tuning.py setup networks/input_scaling_v1/ data/neurons/striatum/
     # mpiexec -n 4 python3 input_tuning/input_tuning.py simulate networks/input_scaling_v1/ < input.txt &> output-tuning.txt &

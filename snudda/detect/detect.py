@@ -164,7 +164,7 @@ class SnuddaDetect(object):
         mem = self.memory()
         self.write_log(f"{mem}")
 
-        self.slurm_id = int(slurm_id)  # Make sure integer
+        self.slurm_id = int(slurm_id) if slurm_id is not None else 0  # Make sure integer
         self.workers_initialised = False
 
         self.voxel_size = voxel_size
@@ -2646,17 +2646,6 @@ class SnuddaDetect(object):
             return
 
         self.write_log(f"setup_parallel: {d_view = }")
-
-        from snudda.core import Snudda
-        ipython_profile = os.getenv('IPYTHON_PROFILE')
-        n_workers = Snudda.get_expected_engines(ipython_profile=ipython_profile)
-
-        try:
-            self.write_log(f"Waiting for {n_workers} engines, currently have {len(self.rc.ids)}")
-            self.rc.wait_for_engines(n=n_workers, timeout=timeout)
-        except Exception as e:
-            raise RuntimeError(f"Engines did not start within {timeout} seconds: {e}")
-
 
         with d_view.sync_imports():
             from snudda import SnuddaDetect
