@@ -1038,7 +1038,9 @@ class Snudda(object):
     def stop_parallel(self, n_workers=None, cleanup=True):
 
         if self.cluster is not None:
-            self.logfile.write(f"Stopping cluster ({self.ipython_dir})")
+            if self.logfile is not None and not self.logfile.closed:
+                self.logfile.write(f"Stopping cluster ({self.ipython_dir})")
+
             self.cluster.stop_cluster_sync()
             self.cluster = None
             self.rc = None
