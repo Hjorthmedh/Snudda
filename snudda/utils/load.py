@@ -1178,6 +1178,7 @@ def snudda_load_cli():
     parser.add_argument("--keepOpen", help="This prevents loading of synapses to memory, and keeps HDF5 file open",
                         action="store_true")
     parser.add_argument("--detailed", help="More information", action="store_true")
+    parser.add_argument("--inspect", help="Inspect single neuron", type=int, default=None, dest="inspect")
     parser.add_argument("--voxels", help="Voxel information", action="store_true")
     parser.add_argument("--centre", help="List n neurons in centre (-1 = all)", type=int)
     parser.add_argument("--listParam", help="List parameters for neuron_id", type=int)
@@ -1193,6 +1194,15 @@ def snudda_load_cli():
         load_synapses = True
 
     nl = SnuddaLoad(args.network_file, load_synapses=load_synapses, verbose=True)
+
+    if args.inspect is not None:
+        neuron_id = args.inspect
+        n_data = nl.data["neurons"][neuron_id]
+        print(f"Inspecting neuron {neuron_id} ({n_data['name']})")
+
+        for key, value in nl.data["neurons"][neuron_id].items():
+            print(f"{key}: {value}")
+        return
 
     if args.listN:
         print("Neurons in network: ")
