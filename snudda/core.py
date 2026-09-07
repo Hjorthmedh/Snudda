@@ -72,7 +72,7 @@ class Snudda(object):
 
     """ Wrapper class, calls Snudda helper functions """
 
-    def __init__(self, network_path, parallel=False, rc=None):
+    def __init__(self, network_path, parallel=False, rc=None, n_workers=None):
 
         """
         Instantiates Snudda
@@ -86,6 +86,8 @@ class Snudda(object):
         self.slurm_id = None
         self.cluster_id = None
         self.ipython_dir = None
+
+        self.n_workers_requested = n_workers
 
         snudda_log_file = os.path.join(self.network_path, "log", "snudda-core.txt")
         self.logfile = self.setup_log_file(snudda_log_file)
@@ -965,8 +967,12 @@ class Snudda(object):
 
         try:
             if n_workers is None:
-                n_workers = os.environ.get("SLURM_NTASKS")
-                n_workers = int(n_workers) if n_workers is not None else None
+
+                if self.n_workers_requested is not None:
+                    n_workers = self.n_workers_requested
+                else:
+                    n_workers = os.environ.get("SLURM_NTASKS")
+                    n_workers = int(n_workers) if n_workers is not None else None
 
             # On Cray (Dardel): each nested srun step needs a unique FI_CXI_DEFAULT_VNI.
             # Set it here so ipyparallel's internal srun inherits it.
