@@ -285,7 +285,8 @@ class SnuddaInput(object):
 
         self.write_log(f"Writing spikes to {self.spike_data_filename}", force_print=True)
 
-        out_file = h5py.File(self.spike_data_filename, 'w', libver=self.h5libver)
+        out_file = h5py.File(self.spike_data_filename, 'w', libver=self.h5libver,
+                             driver='core', backing_store=True)
         out_file.create_dataset("config", data=json.dumps(self.input_info, indent=4))
         input_group = out_file.create_group("input")
 
