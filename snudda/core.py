@@ -819,6 +819,7 @@ class Snudda(object):
                  simulation_config=None,
                  export_core_neuron=False,
                  use_rxd_neuromodulation=None,
+                 clear_neuron_after=False,
                  verbose=False):
 
         start = timeit.default_timer()
@@ -947,6 +948,8 @@ class Snudda(object):
 
         # OBS! You want to do sim.clear_neuron() after the simulation if you need
         #      to setup another neuron simulation afterwards.
+        if clear_neuron_after:
+            sim.clear_neuron()
 
         # sim.plot()
         return sim
