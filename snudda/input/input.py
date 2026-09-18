@@ -1174,8 +1174,8 @@ class SnuddaInput(object):
 
         input = {k: input_inf.get(k, defaults.get(k, None)) for k in keys_to_copy}
 
-        if "spikes" in input and input["spikes"] is not None:
-            input["spikes"] = np.array(input["spikes"])
+        if "spikes" in input_inf and input_inf["spikes"] is not None:
+            input["spikes"] = np.array(input_inf["spikes"])
 
         if "population_unit_correlation" in input_inf:
             # Warn the user that we renamed the variable.
