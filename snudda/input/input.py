@@ -1160,7 +1160,7 @@ class SnuddaInput(object):
                         "correlation", "population_unit_correlation_fraction", "population_unit_id",
                         "num_soma_synapses", "location_random_seed",
                         "add_mother_spikes", "set_mother_spikes", "std_freq",
-                        "spines", "spikes"]
+                        "spines"]
 
         defaults = {"jitter": 0.0,
                     "start": 0.0,
