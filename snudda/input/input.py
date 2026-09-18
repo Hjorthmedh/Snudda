@@ -2445,7 +2445,7 @@ class SnuddaInput(object):
             # We need to pick which parameter set to use for the input also
             synapse_parameter_id = rng.integers(1e6, size=num_inputs)
 
-            if "spikes" in input_info:
+            if "spikes" in input_info and input_info["spikes"] is not None:
                 # Spikes are already pre-generated, use them.
                 freq = -1    # We do not know
                 return input_info["neuron_id"], input_info["input_type"], input_info["spikes"], freq, input_loc, synapse_parameter_id
