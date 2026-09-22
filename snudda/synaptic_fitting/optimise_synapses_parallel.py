@@ -180,7 +180,13 @@ class SynapseOptimiser:
         # and all try to update it at same time.
         self.update_neuronset_file = update_neuronset_file
 
-        self.parameter_list = ["U", "tauR", "tauF", "tauRatio", "nmda_ratio"]
+        if "glut" in synapse_type.lower():
+            self.parameter_list = ["U", "tauR", "tauF", "tauRatio", "nmda_ratio"]
+        elif "gaba" in synapse_type.lower():
+            self.parameter_list = ["U", "tauR", "tauF", "tauRatio"]
+        else:
+            raise ValueError("Currently different glut and gaba are only supported")
+
 
         self.data_file = data_file
         new_path, data_file_name = os.path.split(data_file)
@@ -213,6 +219,7 @@ class SynapseOptimiser:
         self.exp_volt = None
         self.exp_time = None
         self.exp_volt_interpolated = {}
+        self.normalise_volt = True
         self.sample_freq = None
         self.sim_time = 1.5
         self.trace_holding_voltage = None
@@ -242,6 +249,8 @@ class SynapseOptimiser:
 
         self.synapse_parameter_file = synapse_parameter_file
 
+        self.synapse_parameters = {}
+
         if synapse_parameter_file:
             with open(synapse_parameter_file, 'r') as f:
                 self.write_log(f"Reading synapse parameters from {synapse_parameter_file}")
@@ -253,11 +262,13 @@ class SynapseOptimiser:
                     if len(tmp.keys()) != 1:
                         raise ValueError(f"Synapse parameter, multiple keys in {synapse_parameter_file} not supported for optimisation.")
 
+                    # TODO: A bit dirty. If there is only one key (because of previous if statement)
+                    #       this code will then use that key's value as the dataset
+                    #       VERIFY INTENDED
                     for key, value in tmp.items():
                         print(f"Reading parameters {value} from file")
                         self.synapse_parameters = value
 
-            self.synapse_parameters = {}
 
         self.setup_rng()
 
@@ -351,19 +362,22 @@ class SynapseOptimiser:
             self.last_run_time = t_sim
             self.last_run_volt = v_sim
 
-            # We use normalised voltage instead of v_sim
-            v_norm = (v_sim - np.min(v_sim)) / (np.max(v_sim) - np.min(v_sim))
+            if self.normalise_volt:
+                # We use normalised voltage instead of v_sim
+                v = (v_sim - np.min(v_sim)) / (np.max(v_sim) - np.min(v_sim))
+            else:
+                v = v_sim
 
             max_volt = np.max(v_sim)
 
-            peak_idx = self.get_peak_idx(time=t_sim, volt=v_norm, stim_time=self.stim_time)
-            peak_height, decay_fits, v_base = self.find_trace_heights(t_sim, v_norm, peak_idx)
+            peak_idx = self.get_peak_idx(time=t_sim, volt=v, stim_time=self.stim_time)
+            peak_height, decay_fits, v_base = self.find_trace_heights(t_sim, v, peak_idx)
 
             # We need to take decay into accounts also for error, first version only uses peak heights
             error = self.error_calculation(peak_height=peak_height,
                                            decay_fits=decay_fits,
                                            time=t_sim,
-                                           volt=v_norm,
+                                           volt=v,
                                            v_base=v_base,
                                            max_volt=max_volt)
 
@@ -614,13 +628,24 @@ class SynapseOptimiser:
         with open(data_file, "r") as f:
             self.data = json.load(f)
 
-        self.exp_volt = np.array(self.data["data"]["mean_norm_trace"]).flatten()
+        if "mean_norm_trace" in self.data["data"]:
+            self.exp_volt = np.array(self.data["data"]["mean_norm_trace"]).flatten()
+            self.normalise_volt = True
+        else:
+            self.exp_volt = np.array(self.data["data"]["mean_trace"]).flatten()
+            self.normalise_volt = False
+
         self.sample_freq = self.data["meta_data"]["sample_frequency"]
 
         if "holding_voltage" in self.data["meta_data"]:
             self.trace_holding_voltage = self.data["meta_data"]["holding_voltage"]
         else:
-            self.trace_holding_voltage = np.mean(self.data["data"]["mean_norm_trace"][:10])
+            if self.normalise_volt:
+                raise ValueError(f"We can not guess holding voltage of neuron from a normalised trace, please set holding_voltage manually.")
+            else:
+                # 5000 Hz sampling, 0.1 seconds --> 500 points for guess
+                self.trace_holding_voltage = np.mean(self.data["data"]["mean_trace"][:500])
+
 
             if self.verbose:
                 self.write_log(f"Guessing holding voltage: {self.trace_holding_voltage}")
@@ -879,18 +904,18 @@ class SynapseOptimiser:
 
             if peak_height[0] > 0:
                 if idx_b < len(peak_idx) - 1:
-                    p0d = [0.06, 0.05, self.trace_holding_voltage]
+                    p0d = [0.06, 0.05, v_base]
                 else:
-                    p0d = [1e-5, 100, self.trace_holding_voltage]
+                    p0d = [1e-5, 100, v_base]
 
                     if self.synapse_type == "gaba":
-                        p0d = [1e-8, 10000, self.trace_holding_voltage]
+                        p0d = [1e-8, 10000, v_base]
             else:
                 # In some cases for GABA we had really fast decay back
                 if idx_b < len(peak_idx) - 1:
-                    p0d = [-0.06, 0.05, self.trace_holding_voltage]
+                    p0d = [-0.06, 0.05, v_base]
                 else:
-                    p0d = [-1e-5, 1e5, self.trace_holding_voltage]
+                    p0d = [-1e-5, 1e5, v_base]
 
             peak_idx_a = peak_idx[idx_b - 1]  # Prior peak
             peak_idx_b = peak_idx[idx_b]  # Next peak
@@ -1023,10 +1048,13 @@ class SynapseOptimiser:
 
         return lower_bound, upper_bound
 
-    def plot_last_run(self, fig_name=None, normalise_volt=True):
+    def plot_last_run(self, fig_name=None, normalise_volt=None):
 
         if self.pc.id() != 0:
             return
+
+        if normalise_volt is None:
+            normalise_volt = self.normalise_volt
 
         import matplotlib.pyplot as plt
 
@@ -1044,8 +1072,8 @@ class SynapseOptimiser:
 
         plt.plot(self.last_run_time[t_idx], volt[t_idx], color='black', label="model")
 
-        if normalise_volt:
-            # Only plot experimental data if trace plotted was normalised, since data is normalised
+        if normalise_volt == self.normalise_volt:
+            # Only plot experimental data if trace data is same as what we get from simulation (normalised/non_normalised)
             te_idx = np.where(0.1 <= self.exp_time)[0]
 
             plt.plot(self.exp_time[te_idx], self.exp_volt[te_idx] , color='red', label="experiment")
@@ -1068,6 +1096,7 @@ class SynapseOptimiser:
 
         os.makedirs("figures", exist_ok=True)
 
+        print(f"Saving figure to {fig_name}")
         plt.savefig(fig_name, dpi=300)
 
         if self.syn_recording is not None:
@@ -1252,6 +1281,8 @@ if __name__ == "__main__":
 
     if args.export:
         so.export_best_parameters()
+    else:
+        print("Use --export to export the parameters to file.")
 
 
     # mpirun -n 5 python optimise_synapses_parallel.py ../data/synapses/example_data/10_MSN12_GBZ_CC_H20.json --iterations 50 --snudda_data /home/hjorth/HBP/BasalGangliaData/data/
