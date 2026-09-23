@@ -183,7 +183,7 @@ class SynapseOptimiser:
         if "glut" in synapse_type.lower():
             self.parameter_list = ["U", "tauR", "tauF", "tauRatio", "nmda_ratio"]
         elif "gaba" in synapse_type.lower():
-            self.parameter_list = ["U", "tauR", "tauF", "tauRatio"]
+            self.parameter_list = ["U", "tauR", "tauF", "tauRatio", "cond"]
         else:
             raise ValueError("Currently different glut and gaba are only supported")
 
@@ -349,8 +349,8 @@ class SynapseOptimiser:
 
         # we need model parameters, and position of synapses (section_id, section_x)
 
-        if len(model_parameters) != 5:
-            raise ValueError(f"There should be five model parameters: {model_parameters}")
+        if len(model_parameters) != len(self.parameter_list):
+            raise ValueError(f"There should be {len(self.parameter_list)} model parameters: {model_parameters} = {', '.join(self.parameter_list)}")
 
         # print(f"Worker {self.pc.id()} received: {model_parameters}")
 
