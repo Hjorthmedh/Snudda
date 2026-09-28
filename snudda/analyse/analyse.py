@@ -847,7 +847,7 @@ class SnuddaAnalyse:
         matplotlib.rcParams.update({'font.size': 22})
         plt.figure()
         plt.plot(dist * 1e6, p_con)
-        plt.xlabel("Distance ($\mu$m)")
+        plt.xlabel(r"Distance ($\mu$m)")
         plt.ylabel("Connection probability")
 
         plt.title(f"{self.neuron_name(pre_type)} to {self.neuron_name(post_type)} connections")
@@ -875,6 +875,7 @@ class SnuddaAnalyse:
                                     num_bins=86,
                                     name_str="",
                                     side_len=None,
+                                    exp_min_dist=None,
                                     exp_max_dist=None,
                                     exp_data=None,
                                     exp_data_detailed=None,
@@ -901,6 +902,9 @@ class SnuddaAnalyse:
 
         if not exp_max_dist:
             exp_max_dist = []
+
+        if not exp_min_dist:
+            exp_min_dist = [0.0] * len(exp_max_dist)
 
         if not exp_data:
             if exp_data_detailed:
@@ -989,12 +993,12 @@ class SnuddaAnalyse:
 
         # Add lines for experimental data and matching data for model
         model_probs = {}
-        for (d_limit, p_exp, exp_num) in zip(exp_max_dist, exp_data, exp_data_detailed):
+        for (d_limit_min, d_limit_max, p_exp, exp_num) in zip(exp_min_dist, exp_max_dist, exp_data, exp_data_detailed):
             cnt = 0
             cnt_all = 0
 
             for (d, c, ca) in zip(dist, count_con.flatten(), count_all.flatten()):
-                if d <= d_limit:
+                if d_limit_min <= d < d_limit_max:
                     cnt += c
                     cnt_all += ca
 
@@ -1005,7 +1009,7 @@ class SnuddaAnalyse:
                     cnt_all = 1
 
                 p_model = float(cnt) / float(cnt_all)
-                model_probs[d_limit] = p_model
+                model_probs[d_limit_min, d_limit_max] = p_model
             except Exception as e:
                 import traceback
                 print(traceback.format_exc())
@@ -1014,7 +1018,7 @@ class SnuddaAnalyse:
                 import pdb
                 pdb.set_trace()
 
-            print(f"P(d<{d_limit}) = {p_model}")
+            print(f"P({d_limit_min} <=d<{d_limit_max}) = {p_model}")
             # ax = fig.get_axes()
 
             # Also add errorbars
@@ -1036,7 +1040,7 @@ class SnuddaAnalyse:
                 bar_centre = (ns + (z ** 2) / 2) / (n + z ** 2)
                 bar_height = z / (n + z ** 2) * np.sqrt((ns * (n - ns) / n + (z ** 2) / 4))
 
-                ax.errorbar(d_limit * 1e6 / 2, bar_centre, bar_height, color="gray",
+                ax.errorbar((d_limit_min + d_limit_max) * 1e6 / 2, bar_centre, bar_height, color="gray",
                             elinewidth=1, capsize=5)
 
             else:
@@ -1047,11 +1051,11 @@ class SnuddaAnalyse:
                 if exp_colour is None:
                     exp_colour = (0.8, 0.3 * plt_ctr, 0.3 * plt_ctr)
 
-                ax.plot([0, d_limit * 1e6], [p_exp, p_exp],
+                ax.plot([d_limit_min * 1e6, d_limit_max * 1e6], [p_exp, p_exp],
                         color=exp_colour, linewidth=2)
 
                 # Add a star also
-                ax.plot(d_limit * 1e6 / 2, p_exp,
+                ax.plot((d_limit_min + d_limit_max) * 1e6 / 2, p_exp,
                         color=exp_colour,
                         marker="D",
                         markersize=10)
@@ -1103,7 +1107,7 @@ class SnuddaAnalyse:
                              color='grey', step=None,
                              alpha=0.4)
 
-        plt.xlabel("Distance ($\mu$m)", fontsize=label_size)
+        plt.xlabel(r"Distance ($\mu$m)", fontsize=label_size)
         plt.ylabel("Con Prob (%)", fontsize=label_size)
 
         if x_max is not None:
@@ -1250,9 +1254,9 @@ class SnuddaAnalyse:
 
         label_size = 14
         if dist_3d:
-            plt.xlabel("Distance ($\mu$m)", fontsize=label_size)
+            plt.xlabel(r"Distance ($\mu$m)", fontsize=label_size)
         else:
-            plt.xlabel("2D Distance ($\mu$m)", fontsize=label_size)
+            plt.xlabel(r"2D Distance ($\mu$m)", fontsize=label_size)
         plt.ylabel("Connection probability", fontsize=label_size)
 
         plt.xticks(fontsize=12, rotation=0)
@@ -2022,7 +2026,7 @@ class SnuddaAnalyse:
         font_p = matplotlib.font_manager.FontProperties()
         font_p.set_size('small')
         plt.legend(legend_text, prop=font_p)
-        plt.xlabel('Distance from soma ($\mu$m)')
+        plt.xlabel(r'Distance from soma ($\mu$m)')
         plt.ylabel('Cumulative distrib.')
 
         fig_name += ".pdf"
@@ -2064,7 +2068,7 @@ class SnuddaAnalyse:
                 plt.plot(self.dend_position_edges[:end_idx] * 1e6,
                          cum_dist[:end_idx],
                          linewidth=3)
-                plt.xlabel('Distance from soma ($\mu$m)')
+                plt.xlabel(r'Distance from soma ($\mu$m)')
                 plt.ylabel('Cumulative distrib.')
                 plt.title(f"Synapses {self.neuron_name(self.all_types[pre_type])} "
                           f"to {self.neuron_name(self.all_types[post_type])}")
@@ -2126,7 +2130,7 @@ class SnuddaAnalyse:
                              np.divide(self.dend_position_bin[pair][1:end_idx],
                                        dend_hist_tot[post_type][1:end_idx] * 1e6))
                     plt.ylabel('Synapse/micrometer')
-                    plt.xlabel('Distance from soma ($\mu$m)')
+                    plt.xlabel(r'Distance from soma ($\mu$m)')
 
                     plt.title('Synapse density ' + self.neuron_name(pre_type)
                               + " to " + self.neuron_name(post_type))
@@ -2135,7 +2139,7 @@ class SnuddaAnalyse:
                     plt.plot(self.dend_position_edges[:end_idx] * 1e6,
                              self.dend_position_bin[pair][:end_idx])
                     plt.ylabel('Synapse count')
-                    plt.xlabel('Distance from soma ($\mu$m)')
+                    plt.xlabel(r'Distance from soma ($\mu$m)')
                     plt.ylim([0, np.ceil(np.max(self.dend_position_bin[pair][:end_idx]))])
 
                     plt.title(f"Synapses {self.neuron_name(pre_type)} to {self.neuron_name(post_type)}")

@@ -268,9 +268,10 @@ class OptimisePruning:
         for idx, (n_con, n_tot, p_exp) in enumerate(zip(n_connected, n_total, [x[2] for x in experimental_data])):
             # test = binomtest(n_con, n_tot, p_exp)
             # p_hyp[idx] = test.pvalue  # gave 0 when p values are too far apart, not informative
-            p_hyp[idx] = abs(n_con/n_tot - p_exp) / (0.10 * p_exp)
+            # Added handling of p_exp = 0
+            p_hyp[idx] = abs(n_con/n_tot - p_exp) / (0.10 * p_exp) if p_exp > 0 else abs(n_con/n_tot - p_exp) / 0.10
 
-        error = np.mean(p_hyp)
+        error = np.nanmean(p_hyp)
 
         per_pair_error = None
         std_pair_error = None
