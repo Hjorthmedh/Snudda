@@ -1577,6 +1577,7 @@ class SnuddaAnalyse:
 
     def num_incoming_connections(self, neuron_type, pre_type, side_len=None,
                                  volume_id=None,
+                                 neuron_id=None, pre_id=None,   # neuron_type gives neuron_id, pre_type gives pre_id,
                                  connection_type="synapses"):
 
         if volume_id is None:
@@ -1592,13 +1593,24 @@ class SnuddaAnalyse:
         # neuron_id = self.centreNeurons(neuron_id=self.populations[neuronType],
         #                              sideLen=sideLen)
 
-        neuron_id = self.get_sub_pop(volume_type=self.volume_type,
-                                     volume_part="centre",
-                                     side_len=side_len,
-                                     neuron_id=self.populations[neuron_type],
-                                     volume_id=volume_id)
+        if neuron_id is None:
+            neuron_id = self.get_sub_pop(volume_type=self.volume_type,
+                                         volume_part="centre",
+                                         side_len=side_len,
+                                         neuron_id=self.populations[neuron_type],
+                                         volume_id=volume_id)
+        else:
+            all_id_of_type = self.network_load.get_neuron_id_of_type(neuron_type)
+            if not set(neuron_id).issubset(set(all_id_of_type)):
+                raise ValueError(f"Not all neurons specified {neuron_id = } is of neuron type {neuron_type}")
 
-        pre_id = self.populations[pre_type]
+        if pre_id is None:
+            pre_id = self.populations[pre_type]
+        else:
+            all_id_of_type = self.network_load.get_neuron_id_of_type(pre_type)
+            if not set(pre_id).issubset(set(all_id_of_type)):
+                raise ValueError(f"Not all neurons specified {pre_id = } is of neuron type {pre_type}")
+
 
         print(f"#pre = {len(pre_id)}, #post = {len(neuron_id)}")
 
@@ -1673,9 +1685,11 @@ class SnuddaAnalyse:
     def plot_incoming_connections(self, pre_type, neuron_type, side_len=None,
                                   name_str="",
                                   connection_type="synapses",
+                                  neuron_id=None, pre_id=None,  # neuron_type gives neuron_id, pre_type gives pre_id,
                                   fig=None, colour=None, hist_range=None,
                                   bin_size=None,
-                                  num_bins=None):
+                                  num_bins=None,
+                                  extra_title=""):
 
         if pre_type not in self.populations:
             print(f"plot_incoming_connections: {pre_type} is not in the simulation")
@@ -1688,6 +1702,8 @@ class SnuddaAnalyse:
         (n_con, nSyn) = self.num_incoming_connections(neuron_type=neuron_type,
                                                       pre_type=pre_type,
                                                       side_len=side_len,
+                                                      pre_id=pre_id,
+                                                      neuron_id=neuron_id,
                                                       connection_type=connection_type)
 
         # Plotting number of connected neighbours
@@ -1725,7 +1741,7 @@ class SnuddaAnalyse:
 
         plt.xlabel("Number of connected neighbours")
         plt.ylabel("Probability density")
-        plt.title(f"{self.neuron_name(pre_type)} connecting to {self.neuron_name(neuron_type)}")
+        plt.title(f"{self.neuron_name(pre_type)} connecting to {self.neuron_name(neuron_type)} {extra_title}")
         plt.tight_layout()
         xleft, xright = plt.xlim()
         plt.xlim(0, xright)
