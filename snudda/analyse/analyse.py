@@ -1689,7 +1689,8 @@ class SnuddaAnalyse:
                                   fig=None, colour=None, hist_range=None,
                                   bin_size=None,
                                   num_bins=None,
-                                  extra_title=""):
+                                  extra_title="",
+                                  extra_filename_tag=""):
 
         if pre_type not in self.populations:
             print(f"plot_incoming_connections: {pre_type} is not in the simulation")
@@ -1749,7 +1750,7 @@ class SnuddaAnalyse:
         plt.ion()
         plt.draw()
 
-        fig_name = f"Network-{connection_type}-input-to-{neuron_type}-from-{pre_type}"
+        fig_name = f"Network-{connection_type}-input-to-{neuron_type}-from-{pre_type}{extra_filename_tag}"
 
         self.save_figure(plt, fig_name)
 
@@ -1786,7 +1787,7 @@ class SnuddaAnalyse:
         plt.ion()
         plt.draw()
 
-        fig_name = f"Network-{connection_type}-to-{neuron_type}-from-{pre_type}"
+        fig_name = f"Network-{connection_type}-to-{neuron_type}-from-{pre_type}{extra_filename_tag}"
 
         self.save_figure(plt, fig_name)
 
