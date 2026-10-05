@@ -1778,7 +1778,7 @@ class SnuddaAnalyse:
 
         plt.xlabel(f"Number of incoming {connection_type}")
         plt.ylabel("Probability density")
-        plt.title(f"{self.neuron_name(pre_type)} {connection_type} on {self.neuron_name(neuron_type)}")
+        plt.title(f"{self.neuron_name(pre_type)} {connection_type} on {self.neuron_name(neuron_type)} {extra_title}")
         plt.tight_layout()
 
         xleft, xright = plt.xlim()
@@ -2197,8 +2197,6 @@ class SnuddaAnalyse:
     # that
 
     def dendrite_density(self, num_bins, bin_width, side_len=None, volume_id=None):
-
-        assert False, "This code is not neuron prototype aware. It needs to update how it gets the location of morphologies"
 
         if volume_id is None:
             volume_id = self.volume_id

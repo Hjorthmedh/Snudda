@@ -7,6 +7,7 @@ import timeit
 import numpy as np
 
 from snudda.neurons.neuron_prototype import NeuronPrototype
+from snudda.utils.snudda_path import snudda_parse_path
 from snudda.utils.numpy_encoder import NumpyEncoder
 import scipy.sparse as sparse
 from scipy.spatial import distance_matrix
@@ -190,6 +191,15 @@ class SnuddaLoad(object):
             self.config = json.loads(f["meta/config"][()])
             data["config"] = self.config
 
+        if "meta/snudda_data" in f:
+            data["snudda_data"] = SnuddaLoad.to_str(f["meta/snudda_data"][()])
+
+            if self.snudda_data is None:
+                self.snudda_data = data["snudda_data"]
+                if self.verbose:
+                    print(f"Using {self.snudda_data = } as defined in file.")
+
+
         # Added so this code can also load the position file, which
         # does not have the network group yet
         if "network/synapses" in f:
@@ -312,12 +322,6 @@ class SnuddaLoad(object):
 
         if "meta/axon_stump_id_flag" in f:
             data["axon_stump_id_flag"] = f["meta/axon_stump_id_flag"][()]
-
-        if "meta/snudda_data" in f:
-            data["snudda_data"] = SnuddaLoad.to_str(f["meta/snudda_data"][()])
-
-            if self.snudda_data is None:
-                self.snudda_data = data["snudda_data"]
 
         data["neurons"] = self.extract_neurons(f)
 
@@ -837,6 +841,9 @@ class SnuddaLoad(object):
                               if x["name"] == neuron_name and (include_virtual or not x["virtual_neuron"])])
 
         return neuron_id
+
+    def get_morphology(self, neuron_id):
+        return snudda_parse_path(self.data["neurons"][neuron_id]["morphology"], self.snudda_data)
 
     def get_population_unit_members(self, population_unit, num_neurons=None, random_permute=False):
 
