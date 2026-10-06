@@ -478,7 +478,8 @@
                     "volume_id": "Striatum",
                     "neuron_path": {
                         "FS_0": "/home/hjorth/HBP/Snudda/tests/validation/striatum/fs/str-fs-e161205_FS1-mMTC180800A-IDB-v20190312"
-                    }
+                    },
+                    "deflection": 0.9
                 },
                 "dSPN": {
                     "num_neurons": 10,
