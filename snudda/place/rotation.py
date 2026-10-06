@@ -35,13 +35,21 @@ class SnuddaRotate:
 
                     orientation_info = region_data["volume"]["neuron_orientation"][neuron_type]
                     rotation_mode = orientation_info["rotation_mode"]
+
+                    if "vector_field" in rotation_mode:
+                        # For vector fields we want 0 default deflection, otherwise we would destroy the vector field
+                        deflection = orientation_info.get("deflection", None)
+                    else:
+                        # No vector field, default deflection is 1.0
+                        deflection = orientation_info.get("deflection", 1.0)
+
                     rotation_field_file = orientation_info["rotation_field_file"] if "rotation_field_file" in orientation_info else None
                     if rotation_field_file:
                         position, rotation = self.load_rotation_field(rotation_field_file, region_name)
                     else:
                         position, rotation = None, None
 
-                    self.rotation_lookup[region_name, neuron_type] = (rotation_mode, position, rotation)
+                    self.rotation_lookup[region_name, neuron_type] = (rotation_mode, position, rotation, deflection)
 
     @staticmethod
     def random_z_rotate(rng):
@@ -56,15 +64,21 @@ class SnuddaRotate:
         """ Gets rotations for neuron_type in volumne name at neuron_positions """
 
         if (volume_name, neuron_type) in self.rotation_lookup:
-            rotation_mode, field_position, field_rotation = self.rotation_lookup[volume_name, neuron_type]
+            rotation_mode, field_position, field_rotation, deflection = self.rotation_lookup[volume_name, neuron_type]
         else:
-            rotation_mode, field_position, field_rotation = "random", None, None
+            rotation_mode, field_position, field_rotation, deflection = "random", None, None, 1.0
 
         if not rotation_mode or rotation_mode.lower() == "none":
             rotation_matrices = [np.eye] * neuron_positions.shape[0]
 
         elif rotation_mode in ["random", "default"]:
-            rotation_matrices = [self.rand_rotation_matrix(rand_nums=rng.random(size=(3,)))
+
+            if deflection is None:
+                print(f"DEFLECTION IS NONE!! why")
+                import pdb
+                pdb.set_trace()
+
+            rotation_matrices = [self.rand_rotation_matrix(rand_nums=rng.random(size=(3,)), deflection=deflection)
                                  for x in range(0, neuron_positions.shape[0])]
 
         elif "vector_field" in rotation_mode:
@@ -85,6 +99,11 @@ class SnuddaRotate:
                 # We need to rotate z-axis to point to rotation_vector
                 rotation_matrices = [SnuddaRotate.rotation_matrix_from_vectors(np.array([0, 0, 1]), rv)
                                      for rv in rotation_vectors]
+
+            if deflection is not None and deflection > 0:
+                rotation_matrices = [np.matmul(x, self.rand_rotation_matrix(rand_nums=rng.random(size=(3,)), deflection=deflection))
+                                     for x in rotation_matrices]
+
         else:
             raise TypeError(f"Unknown rotation mode {rotation_mode}")
 

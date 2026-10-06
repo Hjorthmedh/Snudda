@@ -13,6 +13,7 @@
     },
     "regions": {
         "Striatum": {
+            "random_seed": 1761373999965033928,
             "volume": {
                 "type": "mesh",
                 "d_min": 1.5e-05,
