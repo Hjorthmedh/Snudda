@@ -239,7 +239,7 @@ class SnuddaInit(object):
 
     # This allows the user to specify a rotation field for neurons,
     # see examples/notebooks/example_of_neuronrotations.ipynb
-    def define_rotation(self, volume_id, neuron_type, rotation_mode, rotation_field_file=None):
+    def define_rotation(self, volume_id, neuron_type, rotation_mode, rotation_field_file=None, deflection=None):
 
         if "neuron_orientation" not in self.network_data["regions"][volume_id]["volume"]:
             self.network_data["regions"][volume_id]["volume"]["neuron_orientation"] = dict()
@@ -250,6 +250,9 @@ class SnuddaInit(object):
         if rotation_field_file:
             self.network_data["regions"][volume_id]["volume"]["neuron_orientation"][neuron_type]["rotation_field_file"] \
                 = rotation_field_file
+
+        if deflection is not None:
+            self.network_data["regions"][volume_id]["volume"]["neuron_orientation"][neuron_type]["deflection"] = deflection
 
     ############################################################################
 
