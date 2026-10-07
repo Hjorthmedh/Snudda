@@ -890,6 +890,7 @@ class SnuddaAnalyse:
                                     ax=None,
                                     return_ax=False,
                                     colour="black",
+                                    plot_model_comparison_bar=False,
                                     show_plot=None,
                                     save_figure=True,
                                     dump_data_to_file=None):
@@ -1050,6 +1051,12 @@ class SnuddaAnalyse:
 
                 if exp_colour is None:
                     exp_colour = (0.8, 0.3 * plt_ctr, 0.3 * plt_ctr)
+
+                if plot_model_comparison_bar:
+                    ax.plot([d_limit_min * 1e6, d_limit_max * 1e6],
+                            [p_model, p_model],
+                            color="blue",
+                            linewidth=2)
 
                 ax.plot([d_limit_min * 1e6, d_limit_max * 1e6], [p_exp, p_exp],
                         color=exp_colour, linewidth=2)
