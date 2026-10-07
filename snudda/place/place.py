@@ -249,7 +249,7 @@ class SnuddaPlace(object):
                                            mechanism_path=mech_filename,
                                            modulation_path=modulation,
                                            reaction_diffusion_path=reaction_diffusion,
-                                           load_morphology=False,
+                                           load_morphology=True,  # False, -- we need to calculate max dend dist.
                                            virtual_neuron=virtual_neuron,
                                            verbose=self.verbose)
 
@@ -1015,6 +1015,10 @@ class SnuddaPlace(object):
                                                       (len(self.neurons), 9),
                                                       "float",
                                                       compression="gzip")
+
+        all_max_soma_dist_dend = [x.morphology_data["neuron"].max_soma_dist_dend() for x in self.neurons]
+        neuron_max_soma_distance_dend = neuron_group.create_dataset("max_soma_distance_dend",
+                                                                    data=all_max_soma_dist_dend)
 
         # Write axons to hdf5 file
         ax_neuron, ax_name, ax_position, ax_rotation, ax_swc = self.gather_extra_axons()

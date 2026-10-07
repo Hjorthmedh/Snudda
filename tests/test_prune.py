@@ -275,6 +275,22 @@ class TestPrune(unittest.TestCase):
             self.assertEqual(sl.data["num_synapses"], 20*5)
             self.assertTrue((sl.data["synapses"][:, 8] >= 100).all())  # Column 8 -- distance to soma in micrometers
 
+        with self.subTest("synapse-relative-distance-dependent-pruning"):
+            # Testing distance dependent pruning
+            testing_config_file = os.path.join(self.network_path, "network-config-test-5r.json")
+            sp = SnuddaPrune(network_path=self.network_path, config_file=testing_config_file, verbose=True, keep_files=True)  # Use default config file
+            sp.prune()
+
+            # Load the pruned data and check it
+            sl = SnuddaLoad(pruned_output)
+
+            # "1*(r <= 0.5)" means we only keep synapses that are closer than half the dendrite with maximal lenght
+            print(f"num synapses : {sl.data['num_synapses']}")
+
+            self.assertEqual(sl.data["num_synapses"], 40)
+            self.assertTrue((sl.data["synapses"][:, 8] < 203*0.3).all())  # Column 8 -- distance to soma in micrometers
+
+
         # TODO: Need to do same test for Gap Junctions also -- but should be same results, since same codebase
         with self.subTest("gap-junction-f1"):
             # Test of f1

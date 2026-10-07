@@ -428,7 +428,8 @@ class SnuddaLoad(object):
             axon_density_bounds_xyz, \
             morph, neuron_path, \
             parameter_key, morphology_key, modulation_key, population_unit_id, \
-            reaction_diffusion_file \
+            reaction_diffusion_file,\
+            max_soma_distance_dend \
                 in zip(hdf5_file["network/neurons/name"][:],
                        hdf5_file["network/neurons/neuron_id"][:],
                        hdf5_file["network/neurons/hoc"][:],
@@ -446,7 +447,8 @@ class SnuddaLoad(object):
                        hdf5_file["network/neurons/morphology_key"][:],
                        hdf5_file["network/neurons/modulation_key"][:],
                        hdf5_file["network/neurons/population_unit_id"][:],
-                       hdf5_file["network/neurons/reaction_diffusion_file"][:]
+                       hdf5_file["network/neurons/reaction_diffusion_file"][:],
+                       hdf5_file["network/neurons/max_soma_distance_dend"][:]
                        ):
 
             n = dict([])
@@ -484,6 +486,8 @@ class SnuddaLoad(object):
                 n["axon_density_bounds_xyz"] = None
 
             n["axon_density_radius"] = axon_density_radius
+
+            n["max_soma_distance_dend"] = max_soma_distance_dend
 
             # If the code fails here, use snudda/utils/upgrade_old_network_file.py to upgrade your old data files
             par_key = SnuddaLoad.to_str(parameter_key)
