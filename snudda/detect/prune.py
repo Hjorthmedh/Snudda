@@ -2093,6 +2093,9 @@ class SnuddaPrune(object):
 
                 # distP contains d (variable for distance to soma)
                 d = synapses[next_read_pos:read_end_idx, 8] * 1e-6  # dendrite distance d, used in eval below
+
+                # TODO: Also calculate r, relative distance along dendrite (of maximal length or of all dend)
+
                 p = numexpr.evaluate(dist_p)
 
                 frac_flag = random_pool[:n_pair_synapses] < f1

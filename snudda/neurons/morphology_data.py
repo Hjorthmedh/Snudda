@@ -238,6 +238,10 @@ class MorphologyData:
     def has_dendrite(self):
         return len(self.sections[3]) > 0
 
+    def max_soma_dist_dend(self):
+        # Maximum distance to soma, on the dendrite
+        return np.max(self.geometry[self.section_data[:, 2] == 3, 4])
+
     def load_swc_file(self, swc_file=None, remapping_types={4: 3}, use_cache=True):
 
         """ Loads SWC morphology, not SNUDDA_DATA aware (file must exist).
@@ -293,6 +297,7 @@ class MorphologyData:
         self.geometry[:, :4] = data[:, 2:6] * 1e-6  # x, y, z, r -- converted to meter
 
         # Store metadata for points
+        # Columns: 0: section_id, 1: section_x (*1000), 2: section_type, 3: parent_id
         self.section_data = np.full((data.shape[0], 4), -1, dtype=np.int32)
         self.section_data[:, 2] = data[:, 1]
         self.section_data[0, 3] = -1
@@ -300,9 +305,9 @@ class MorphologyData:
         self.section_data[1:, 3] = parent_row_id
 
         # This remaps apical dendrites to normal dendrites 4 --> 3 (by default)
+        keys = self.section_data[:, 2].copy()
         for old_key, new_key in remapping_types.items():
-            key_idx = self.section_data[:, 2] == old_key
-            self.section_data[key_idx] = new_key
+            self.section_data[keys == old_key, 2] = new_key
 
         if (np.abs(self.section_data[:, 2] - data[:, 1]) > 1e-12).any():
             raise ValueError(f"Internal error, non integer ID numbers detected ({swc_file})")
