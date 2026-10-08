@@ -101,7 +101,7 @@ class SnuddaRotate:
                                      for rv in rotation_vectors]
 
             if deflection is not None and deflection > 0:
-                rotation_matrices = [np.matmul(x, self.rand_rotation_matrix(rand_nums=rng.random(size=(3,)), deflection=deflection))
+                rotation_matrices = [np.matmul(self.rand_rotation_matrix(rand_nums=rng.random(size=(3,), x), deflection=deflection))
                                      for x in rotation_matrices]
 
         else:
