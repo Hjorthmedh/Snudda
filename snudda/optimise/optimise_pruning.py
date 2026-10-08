@@ -269,9 +269,11 @@ class OptimisePruning:
             # test = binomtest(n_con, n_tot, p_exp)
             # p_hyp[idx] = test.pvalue  # gave 0 when p values are too far apart, not informative
             # Added handling of p_exp = 0
-            p_hyp[idx] = abs(n_con/n_tot - p_exp) / (0.10 * p_exp) if p_exp > 0 else abs(n_con/n_tot - p_exp) / 0.10
+            # p_hyp[idx] = abs(n_con/n_tot - p_exp) / (0.10 * p_exp) if p_exp > 0 else abs(n_con/n_tot - p_exp) / 0.10
+            # p_hyp[idx] = abs(n_con/n_tot - p_exp)  / 0.10  # 0.10 is just a scale factor
+            p_hyp[idx] = (abs(n_con/n_tot - p_exp)) ** 2  # 0.10 is just a scale factor
 
-        error = np.nanmean(p_hyp)
+        error = np.nanmean(p_hyp) * 1e4  # 10 is scale factor
 
         per_pair_error = None
         std_pair_error = None
@@ -279,7 +281,7 @@ class OptimisePruning:
 
         if mean_num_synapses_per_pair is not None:
             if n_pairs > 0:
-                per_pair_error = np.abs(mean_num_synapses_per_pair - np.mean(n_syn_list)) / 2.0
+                per_pair_error = np.abs(mean_num_synapses_per_pair - np.mean(n_syn_list)) / 5.0
             else:
                 per_pair_error = abs(mean_num_synapses_per_pair)
 
@@ -291,11 +293,11 @@ class OptimisePruning:
             error += std_pair_error
 
         if percentile20_pair is not None and n_pairs > 0:
-            percentile_error = np.abs(np.percentile(n_syn_list, 20) - percentile20_pair) / 0.1
+            percentile_error = np.abs(np.percentile(n_syn_list, 20) - percentile20_pair) * 5
             error += percentile_error
 
         if self.verbose:
-            print(f"Errors in P: {np.mean(p_hyp)}, error in num con: {per_pair_error}, std_pair_error: {std_pair_error}, percentile20_error: {percentile_error}")
+            print(f"Errors in P: {np.nanmean(p_hyp)}, error in num con: {per_pair_error}, std_pair_error: {std_pair_error}, percentile20_error: {percentile_error}")
 
         return error
 
@@ -416,7 +418,7 @@ class OptimisePruning:
                 if p_name == "f1":
                     param_bounds.append((0, 1))
                 elif p_name == "soft_max":
-                    param_bounds.append((0, 10))
+                    param_bounds.append((0, 5))
                 elif p_name == "mu2":
                     param_bounds.append((0, 5))
                 elif p_name == "a3":
