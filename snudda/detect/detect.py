@@ -1281,7 +1281,6 @@ class SnuddaDetect(object):
                             if isinstance(cluster_size, (np.ndarray, list)):
                                 cluster_size = round(self.hyper_voxel_rng.normal(loc=cluster_size[0],
                                                                                  scale=cluster_size[1]))
-                                
                             if cluster_size > 1:
                                 cluster_spread = con_dict[con_type]["cluster_spread"]
 

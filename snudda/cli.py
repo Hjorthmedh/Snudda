@@ -31,6 +31,8 @@ def snudda_cli():
     create_parser.add_argument("-input", "--input", help="Input config")
     create_parser.add_argument("-overwrite", "--overwrite", help="Allow overwriting of old directory", action="store_true")
     create_parser.add_argument("-parallel", "--parallel", action="store_true", default=False)
+    create_parser.add_argument("-n_workers", "--n_workers", default=None)
+
     create_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     create_parser.add_argument("--verbose", action="store_true")
 
@@ -162,7 +164,8 @@ def snudda_cli():
 
     args = parser.parse_args()
     parallel = args.parallel if "parallel" in vars(args) else None
-    snudda = Snudda(args.path, parallel=parallel)
+
+    snudda = Snudda(args.path, parallel=parallel, n_workers=getattr(args, "n_workers", None))
 
     actions = {"init": snudda.init_config_wrapper,
                "import": snudda.import_config_wrapper,
