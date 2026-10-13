@@ -4,6 +4,7 @@ import h5py
 from snudda.utils import snudda_parse_path
 from snudda.utils.snudda_path import snudda_simplify_path
 from snudda.utils import SnuddaLoad
+from snudda.neurons.morphology_data import MorphologyData
 
 class RepositionNeurons(object):
     """ Reposition neurons in the network file. """
@@ -112,8 +113,12 @@ class RepositionNeurons(object):
                 meta = json.load(f)
 
             morphology = meta[parameter_key][morphology_key]["morphology"]
-            self.hdf5_file["network/neurons/morphology"][neuron_id] = snudda_simplify_path(os.path.join(neuron_path, "morphology", morphology),
+            full_morphology_path = os.path.join(neuron_path, "morphology", morphology)
+            self.hdf5_file["network/neurons/morphology"][neuron_id] = snudda_simplify_path(full_morphology_path,
                                                                                            snudda_data)
+            # 2026-10-13: We need to update max_soma_dend_dist
+            md = MorphologyData(full_morphology_path)
+            self.hdf5_file["network/neurons/max_soma_distance_dend"][neuron_id] = md.max_soma_dist_dend()
 
         else:
             for neuron_id in self.hdf5_file["network/neurons/neuron_id"]:
