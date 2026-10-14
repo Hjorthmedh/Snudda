@@ -977,6 +977,9 @@ class Snudda(object):
                     n_workers = os.environ.get("SLURM_NTASKS")
                     n_workers = int(n_workers) if n_workers is not None else None
 
+            # Make sure it is an int
+            n_workers = int(n_workers)
+
             # On Cray (Dardel): each nested srun step needs a unique FI_CXI_DEFAULT_VNI.
             # Set it here so ipyparallel's internal srun inherits it.
             if os.environ.get("SLURM_JOB_ID") is not None:
