@@ -2969,19 +2969,30 @@ class SnuddaSimulate(object):
 
         for i, (sec, sec_x) in enumerate(zip(sec_list, sec_x_list)):
 
-            # If statement is just so we don't recalculate the norm_arc_dist every time
+            # Recalculate arc distances only when section changes
             if old_sec is None or not sec.same(old_sec):
                 num_points = int(h.n3d(sec=sec))
                 arc_dist = np.array([sec.arc3d(x) for x in range(0, num_points)])
-                norm_arc_dist = arc_dist / arc_dist[-1]
+                total_len = arc_dist[-1]
+                norm_arc_dist = arc_dist / total_len if total_len > 0 else arc_dist
                 old_sec = sec
 
-            # Find the closest point
-            closest_idx = np.argmin(np.abs(norm_arc_dist - sec_x))
-
-            syn_pos_nrn[i, 0] = h.x3d(closest_idx, sec=sec)
-            syn_pos_nrn[i, 1] = h.y3d(closest_idx, sec=sec)
-            syn_pos_nrn[i, 2] = h.z3d(closest_idx, sec=sec)
+            # Linearly interpolate between the two bracketing SWC points so that
+            # sparse morphologies (few pts/section) do not produce spurious large
+            # mismatches from snap-to-nearest-point rounding.
+            if len(norm_arc_dist) == 1:
+                syn_pos_nrn[i, 0] = h.x3d(0, sec=sec)
+                syn_pos_nrn[i, 1] = h.y3d(0, sec=sec)
+                syn_pos_nrn[i, 2] = h.z3d(0, sec=sec)
+            else:
+                j = int(np.searchsorted(norm_arc_dist, sec_x, side='right')) - 1
+                j = max(0, min(j, len(norm_arc_dist) - 2))
+                denom = norm_arc_dist[j + 1] - norm_arc_dist[j]
+                t = float(sec_x - norm_arc_dist[j]) / denom if denom > 0 else 0.0
+                t = max(0.0, min(1.0, t))
+                syn_pos_nrn[i, 0] = h.x3d(j, sec=sec) + t * (h.x3d(j + 1, sec=sec) - h.x3d(j, sec=sec))
+                syn_pos_nrn[i, 1] = h.y3d(j, sec=sec) + t * (h.y3d(j + 1, sec=sec) - h.y3d(j, sec=sec))
+                syn_pos_nrn[i, 2] = h.z3d(j, sec=sec) + t * (h.z3d(j + 1, sec=sec) - h.z3d(j, sec=sec))
 
         # We need to rotate the neuron to match the big simulation
         # !!! OBS, this assumes that soma is in 0,0,0 local coordinates
@@ -3000,17 +3011,22 @@ class SnuddaSimulate(object):
             bad_idx = np.where(syn_mismatch > bad_threshold)[0]
             bad_sec_len = [sec_list[bi].L for bi in bad_idx]
 
-            # If this happens, check that Neuron does not warn for removing sections
-            # due to having only one point
+            # Synapse position computed via linear interpolation between bracketing SWC
+            # points, so sparse morphologies no longer cause false positives here.
+            # Likely causes of a genuine mismatch:
+            #   1. Soma not centred at (0,0,0) in the SWC file.
+            #   2. A dendrite root that is far from the soma surface — NEURON then inserts
+            #      an extra connecting compartment, shifting all subsequent section IDs by 1.
+            #   3. Section-ID ordering differs between Snudda's SWC parser and NEURON
+            #      (e.g. a branch-point child of the soma that is itself a branch point
+            #      triggers a special-case in both parsers; verify they agree).
+            #   4. Coordinate-frame mismatch in relocate_NEURON.
             self.write_log(f"!!! Found {num_bad} synapses on "
                            f"{self.network_info['neurons'][dest_id]['name']} ({dest_id}) "
                            f" that are farther than {bad_threshold} mum away "
-                           f" (out of {len(syn_mismatch)} synapses)"
-                           f" Max found was {np.max(syn_mismatch):.0f} mum from expected location."
-                           f" morphology: {self.network_info['neurons'][dest_id]['morphology']}\n"
-                           f" Check that soma is centered at (0,0,0). Also check that the first dendritic"
-                           f" compartment of each dendrite is not too far away from the soma, then NEURON "
-                           f" adds an extra connecting compartment which messes up section IDs.",
+                           f" (out of {len(syn_mismatch)} synapses)."
+                           f" Max mismatch: {np.max(syn_mismatch):.0f} mum."
+                           f" Morphology: {self.network_info['neurons'][dest_id]['morphology']}",
                            is_error=True)
             self.write_log(f"Length of sections with bad synapses: {bad_sec_len}", is_error=True)
 
@@ -3021,17 +3037,8 @@ class SnuddaSimulate(object):
                 self.write_log(f"Neuron id: {dest_id} Bad synapse {bi} on {sec_list[bi]} {sec_x_list[bi]}, "
                       f"closer match at {closest_sec} {closest_sec_x}, dist: {min_dist} (source: {source_id_list[bi]})")
 
-            ### DEBUG PLOT!!!
-
             if True:
                 import matplotlib.pyplot as plt
-                # plt.figure()
-                #
-                # soma_dist = np.sqrt(np.sum(synapse_pos ** 2, axis=1))
-                # plt.scatter(soma_dist * 1e6, syn_mismatch)
-                # # plt.ion()
-                # plt.show()
-                # plt.title(self.network_info["neurons"][dest_id]["name"])
 
                 fig = plt.figure()
                 ax = fig.add_subplot(projection='3d')
@@ -3051,8 +3058,6 @@ class SnuddaSimulate(object):
                            syn_pos_nrn_rot[:, 2], color="black", s=syn_size*2)
 
                 if True:
-                    # Draw neuron
-                    # all_sec = [x for x in neuron.h.allsec() if "axon" not in str(x)]
                     all_sec = [s for s in self.neurons[dest_id].icell.dend]
                     for sec in all_sec:
                         x = np.array([h.x3d(i, sec=sec) for i in range(sec.n3d())])
@@ -3071,6 +3076,7 @@ class SnuddaSimulate(object):
 
                 import pdb
                 pdb.set_trace()
+
 
     ############################################################################
 
