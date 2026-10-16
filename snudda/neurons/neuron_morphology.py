@@ -655,15 +655,22 @@ class NeuronMorphology:
         # and not soma
         node_idx = np.where((points[:, 9] != 1) & (points[:, 5] != 1))[0]
 
-        # soma is section 0, but we dont include connection soma to first node
-        # so let the first dend node be 0, since the section ID is taken from
-        # the child ID
-        section_id = 1
+        # Dendrite section IDs start at 0, matching NEURON's dend[0], dend[1], ...
+        # (soma = -1 in map_id_to_compartment; axon = -2; dendrites = 0, 1, 2, ...)
+        section_id = 0
 
         # Sonata specifies first axon, then basal, then apical sections
         axon_idx = node_idx[np.where(points[node_idx, 5] == 2)[0]]
         basal_idx = node_idx[np.where(points[node_idx, 5] == 3)[0]]
         apical_idx = node_idx[np.where(points[node_idx, 5] == 4)[0]]
+
+        # Find the first dendrite node whose parent is soma (parent_idx == 0).
+        # NEURON creates a stub section for a soma-adjacent branch point ONLY
+        # when that branch point is the first dendrite soma child in SWC order.
+        # For all other soma-adjacent branch points, NEURON does not create a stub.
+        soma_dend_node_idxs = [n for n in list(basal_idx) + list(apical_idx)
+                               if int(points[n, 6]) == 0]
+        first_dend_soma_child_idx = min(soma_dend_node_idxs) if soma_dend_node_idxs else -1
 
         # If simulation will use an axon stump, where each axon branch is shortened
         # to a stump with the same section ID, then we need to make sure the
@@ -676,16 +683,19 @@ class NeuronMorphology:
         # Set soma ID to 0
         points[0, 10] = 0
 
-        # Calculate sectionID for dendrites
-        section_id = 1
+        # Calculate sectionID for dendrites (starting at 0 to match NEURON dend[0])
+        section_id = 0
 
         # Axon dealt with, only loop over dendrites next
         node_loop_list = [basal_idx, apical_idx]
 
         for idxList in node_loop_list:
             for nIdx in idxList:
-                if points[nIdx, 6] > 0:
-                    # Set section ID, exclude soma, and compartments bordering to soma
+                # Assign section IDs to dendrite nodes. Soma-adjacent nodes are
+                # always in node_idx (they get +50 added to child count), but only
+                # branch points (count > 51) with the first-dend-soma-child index
+                # get a section — that is the only case where NEURON creates a stub.
+                if points[nIdx, 6] > 0 or (points[nIdx, 9] > 51 and nIdx == first_dend_soma_child_idx):
                     points[nIdx, 10] = section_id
                     section_id += 1
 
@@ -756,6 +766,40 @@ class NeuronMorphology:
             links[idx, 6] = points[id0, 5]  # type (use parent,
             # to avoid soma to dend link)
 
+        # Add links for soma-adjacent dendrite branch points.
+        # The main link-building loop (above) skips all soma->child links
+        # (id0 == 0).  But when such a child is also a branch point, NEURON
+        # creates a proper dendrite section for it, so Snudda must too.
+        # We identify these nodes by: type in {3,4}, parent==soma (id0==0),
+        # and child-count > 51 (soma-adjacent points get +50 added at line 647,
+        # so > 51 means at least 2 real children == branch point).
+        soma_branch_links = []
+        for nIdx in node_idx:
+            if int(points[nIdx, 5]) not in (3, 4):
+                continue
+            if int(points[nIdx, 6]) != 0:   # parent must be soma
+                continue
+            if points[nIdx, 9] <= 51:        # not a branch point
+                continue
+            if nIdx != first_dend_soma_child_idx:  # only first dend soma child gets a stub
+                continue
+            sid = int(points[nIdx, 10])
+            if sid < 0:
+                continue  # section_id was not assigned (should not happen)
+            section_len = float(points[nIdx, 11])
+            soma_dist   = float(points[nIdx, 7])
+            new_link = np.zeros(7)
+            new_link[0] = 0          # parent index = soma
+            new_link[1] = nIdx       # child index = branch point
+            new_link[2] = sid        # section_id
+            new_link[3] = 0.0        # secX0 (at soma end)
+            new_link[4] = soma_dist / section_len if section_len > 0 else 1.0  # secX1
+            new_link[5] = 0          # node_parent = soma
+            new_link[6] = float(points[nIdx, 5])  # type = child (dendrite), not parent
+            soma_branch_links.append(new_link)
+        if soma_branch_links:
+            links = np.vstack([links, np.array(soma_branch_links)])
+
         # Store the soma, axon, dend and links in the object
 
         self.soma = np.zeros((1, 4))
@@ -798,8 +842,11 @@ class NeuronMorphology:
             self.axon[idx, 4] = points[a_idx, 7]  # dist to soma
 
         for idx, d_idx in enumerate(dend_link_idx):
-            self.dend_links[idx, 0] = dend_lookup[int(links[d_idx, 0])]  # ID0 - parent
-            self.dend_links[idx, 1] = dend_lookup[int(links[d_idx, 1])]  # ID1
+            id0 = int(links[d_idx, 0])
+            id1 = int(links[d_idx, 1])
+            # Parent may be soma (not in dend_lookup); use child as both endpoints
+            self.dend_links[idx, 0] = dend_lookup[id0] if id0 in dend_lookup else dend_lookup[id1]
+            self.dend_links[idx, 1] = dend_lookup[id1]  # ID1
 
             self.dend_sec_id[idx] = links[d_idx, 2]
             self.dend_sec_x[idx, :] = links[d_idx, 3:5]

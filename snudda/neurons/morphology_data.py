@@ -109,10 +109,12 @@ class SectionMetaData:
         comp_len = self.morphology_data.geometry[self.point_idx[-1], 4] \
                    - self.morphology_data.geometry[self.point_idx[0], 4]
 
-        # Comment: Soma should not be part of the point_idx, so this is not needed.
-        # if self.morphology_data.section_data[self.point_idx[0], 2] == 1:
-        #     # If first point (parent point) is soma then we have to be careful and subtract soma radie if inside.
-        #     comp_len -= self.morphology_data.geometry[self.point_idx[0], 3]
+        if comp_len <= 0 and len(self.point_idx) == 1:
+            # 1-point section (e.g. soma-adjacent branch point): use distance from parent
+            parent_idx = int(self.morphology_data.section_data[self.point_idx[0], 3])
+            if parent_idx >= 0:
+                comp_len = self.morphology_data.geometry[self.point_idx[0], 4] \
+                           - self.morphology_data.geometry[parent_idx, 4]
 
         if comp_len <= 0:
             raise ValueError(f"Negative section length detected: {self.morphology_data.swc_file}")
@@ -358,20 +360,28 @@ class MorphologyData:
 
         section_counter = dict()
 
+        # Find the first dendrite point directly connected to soma (parent=0, type 3 or 4).
+        # NEURON creates a stub section for a soma-adjacent branch point only when
+        # that branch point is the first dendrite soma child in SWC order.
+        first_dend_soma_child = next(
+            (i for i, row in enumerate(self.section_data)
+             if i > 0 and row[3] == 0 and int(row[2]) in (3, 4)),
+            -1
+        )
+
         # Assign section id to all points in section_data
         for idx, row in enumerate(self.section_data):
             section_type = row[2]
             parent_id = row[3]
 
+            if parent_id == 0 and idx in branch_id and idx != first_dend_soma_child:
+                # Soma-adjacent branch point that is NOT the first dend soma child:
+                # NEURON does not create a stub section for it, so suppress it here
+                # to avoid creating an extra section that NEURON doesn't have.
+                self.section_data[idx, 2] = 0
+                section_type = 0
+
             if parent_id == -1 or edge_flag[parent_id]:
-
-                # https://github.com/neuronsimulator/nrn/blob/5038de0b79ddf7da9b536639989da4c10dbae7f7/share/lib/hoc/import3d/read_swc.hoc?fbclid=IwAR2kEJOcWkbze8i6G2t9uUVZn5MfmxdSHtm3yzWdP240guJY9KFCalUMvug#L304
-                if parent_id == 0 and idx in branch_id:
-
-                    # Special case, parent is soma, and the point itself is a branch point
-                    # then mark it as section_type = 0, to not create a one point section
-                    self.section_data[idx, 2] = 0
-                    section_type = 0
 
                 # Parent point is edge, create new section
                 if section_type not in section_counter:
