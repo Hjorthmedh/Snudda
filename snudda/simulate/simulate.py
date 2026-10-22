@@ -172,6 +172,7 @@ class SnuddaSimulate(object):
         self.total_nodes = int(self.pc.nhost())
 
         self.post_init_mods = dict()
+        self.post_init_pointer_mapping = dict()
 
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
@@ -295,6 +296,12 @@ class SnuddaSimulate(object):
 
             if "post_init_modifications" in self.sim_info:
                 self.post_init_mods = self.sim_info["post_init_modifications"]
+
+            if "post_init_pointer_mapping" in self.sim_info:
+                self.post_init_pointer_mapping = self.sim_info["post_init_pointer_mapping"]
+
+                # Example post_init_pointer_mapping:
+                # {"Nair_2016_optimized_ptr": { "cal": "ca_ref", "DA": "da_ref"}}
 
             # The rest of the configuration file is parsed in setup_parse_sim_info() further down.
 
@@ -1179,6 +1186,9 @@ class SnuddaSimulate(object):
         # This allows us to modify ion channel conductance on the fly before runnigg simulation
         # Can be useful to e.g. increase KIR channel conductance
         self.post_initialisation_modifications()
+
+        # This allows the user to setup pointers for different mechanisms to RxD species
+        self.post_initialisation_pointer_mapping()
 
     ############################################################################
 
@@ -2354,6 +2364,9 @@ class SnuddaSimulate(object):
 
             if (pre_type, post_type) in self.network_info["connectivity_distributions"]:
                 channel_model_id = self.network_info["connectivity_distributions"][(pre_type, post_type)][synapse_type]["channel_model_id"]
+        else:
+            pre_type = None
+            post_type = None
 
         s_list = [synapse_info for synapse_info in synapse_list
                   if channel_model_id is None or channel_model_id == synapse_info[2]]
@@ -2794,6 +2807,56 @@ class SnuddaSimulate(object):
                 self.write_log(traceback.format_exc(), is_error=True)
                 import pdb
                 pdb.set_trace()
+
+    def post_initialisation_pointer_mapping(self):
+        if len(self.post_init_pointer_mapping) == 0:
+            return
+
+        n_set = 0
+
+
+        for nid, n in self.neurons.items():
+            if n.modulation is None:
+                if self.verbose:
+                    self.write_log(f"[post_initialisation_pointer_mapping] neuron {nid}: no modulation, skipping")
+                continue
+            if n.modulation.node_cache is None:
+                n.modulation.build_node_cache()
+            # Region lookup: walk soma vs basal vs axon and pick the matching region
+            soma_secs = set(n.icell.soma)
+            axon_secs = set(n.icell.axon) if hasattr(n.icell, "axon") else set()
+            for sec in n.icell.all:
+                if sec in soma_secs:
+                    region_name = "soma_internal"
+                elif sec in axon_secs:
+                    region_name = "axon_internal"
+                else:
+                    region_name = "dend_internal"
+                for seg in sec:
+
+                    for mod_suffix, ref_info in self.post_init_pointer_mapping.items():
+
+                        mech = getattr(seg, mod_suffix, None)
+                        if mech is None:
+                            continue
+
+                        for species, ref_str in ref_info.items():
+                            try:
+                                node = n.modulation.get_node_from_cache(species, seg, region_name)
+                            except KeyError as e:
+                                self.write_log(f"[post_initialisation_pointer_mapping - {mod_suffix}] no RxD node for {seg}: {e}")
+                                continue
+
+                            h.setpointer(node._ref_concentration, ref_str, mech)
+
+                        n_set += 1
+
+        if self.verbose:
+            self.write_log(f"[post_initialisation_pointer_mapping] setpointer ref on {n_set} segments")
+
+
+
+
 
     def run(self, t=None, hold_v=None):
 

@@ -7,6 +7,7 @@ import timeit
 import numpy as np
 
 from snudda.neurons.neuron_prototype import NeuronPrototype
+from snudda.utils.snudda_path import snudda_parse_path
 from snudda.utils.numpy_encoder import NumpyEncoder
 import scipy.sparse as sparse
 from scipy.spatial import distance_matrix
@@ -190,6 +191,15 @@ class SnuddaLoad(object):
             self.config = json.loads(f["meta/config"][()])
             data["config"] = self.config
 
+        if "meta/snudda_data" in f:
+            data["snudda_data"] = SnuddaLoad.to_str(f["meta/snudda_data"][()])
+
+            if self.snudda_data is None:
+                self.snudda_data = data["snudda_data"]
+                if self.verbose:
+                    print(f"Using {self.snudda_data = } as defined in file.")
+
+
         # Added so this code can also load the position file, which
         # does not have the network group yet
         if "network/synapses" in f:
@@ -313,12 +323,6 @@ class SnuddaLoad(object):
         if "meta/axon_stump_id_flag" in f:
             data["axon_stump_id_flag"] = f["meta/axon_stump_id_flag"][()]
 
-        if "meta/snudda_data" in f:
-            data["snudda_data"] = SnuddaLoad.to_str(f["meta/snudda_data"][()])
-
-            if self.snudda_data is None:
-                self.snudda_data = data["snudda_data"]
-
         data["neurons"] = self.extract_neurons(f)
 
         # This is for old format, update for new format
@@ -424,7 +428,8 @@ class SnuddaLoad(object):
             axon_density_bounds_xyz, \
             morph, neuron_path, \
             parameter_key, morphology_key, modulation_key, population_unit_id, \
-            reaction_diffusion_file \
+            reaction_diffusion_file,\
+            max_soma_distance_dend \
                 in zip(hdf5_file["network/neurons/name"][:],
                        hdf5_file["network/neurons/neuron_id"][:],
                        hdf5_file["network/neurons/hoc"][:],
@@ -442,7 +447,8 @@ class SnuddaLoad(object):
                        hdf5_file["network/neurons/morphology_key"][:],
                        hdf5_file["network/neurons/modulation_key"][:],
                        hdf5_file["network/neurons/population_unit_id"][:],
-                       hdf5_file["network/neurons/reaction_diffusion_file"][:]
+                       hdf5_file["network/neurons/reaction_diffusion_file"][:],
+                       hdf5_file["network/neurons/max_soma_distance_dend"][:]
                        ):
 
             n = dict([])
@@ -480,6 +486,8 @@ class SnuddaLoad(object):
                 n["axon_density_bounds_xyz"] = None
 
             n["axon_density_radius"] = axon_density_radius
+
+            n["max_soma_distance_dend"] = max_soma_distance_dend
 
             # If the code fails here, use snudda/utils/upgrade_old_network_file.py to upgrade your old data files
             par_key = SnuddaLoad.to_str(parameter_key)
@@ -838,6 +846,9 @@ class SnuddaLoad(object):
 
         return neuron_id
 
+    def get_morphology(self, neuron_id):
+        return snudda_parse_path(self.data["neurons"][neuron_id]["morphology"], self.snudda_data)
+
     def get_population_unit_members(self, population_unit, num_neurons=None, random_permute=False):
 
         """
@@ -1178,6 +1189,7 @@ def snudda_load_cli():
     parser.add_argument("--keepOpen", help="This prevents loading of synapses to memory, and keeps HDF5 file open",
                         action="store_true")
     parser.add_argument("--detailed", help="More information", action="store_true")
+    parser.add_argument("--inspect", help="Inspect single neuron", type=int, default=None, dest="inspect")
     parser.add_argument("--voxels", help="Voxel information", action="store_true")
     parser.add_argument("--centre", help="List n neurons in centre (-1 = all)", type=int)
     parser.add_argument("--listParam", help="List parameters for neuron_id", type=int)
@@ -1193,6 +1205,15 @@ def snudda_load_cli():
         load_synapses = True
 
     nl = SnuddaLoad(args.network_file, load_synapses=load_synapses, verbose=True)
+
+    if args.inspect is not None:
+        neuron_id = args.inspect
+        n_data = nl.data["neurons"][neuron_id]
+        print(f"Inspecting neuron {neuron_id} ({n_data['name']})")
+
+        for key, value in nl.data["neurons"][neuron_id].items():
+            print(f"{key}: {value}")
+        return
 
     if args.listN:
         print("Neurons in network: ")

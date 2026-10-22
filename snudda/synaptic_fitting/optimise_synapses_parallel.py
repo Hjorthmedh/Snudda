@@ -147,9 +147,11 @@ class SynapseOptimiser:
                  snudda_data=None,
                  neuron_set_file="neuron_set.json",
                  n_synapses = None,
+                 n_soma_synapses = None,
                  synapse_density = None,
                  name_tag=None,
                  synapse_parameter_file=None,
+                 update_neuronset_file=True,
                  verbose=True):
 
         os.makedirs("log", exist_ok=True)
@@ -173,7 +175,18 @@ class SynapseOptimiser:
         self.rng = None
         self.sim = None
 
-        self.parameter_list = ["U", "tauR", "tauF", "tauRatio", "nmda_ratio"]
+        # This is useful if running multiple optimisations at the same time
+        # the first run will set this, subsequent runs will cause trouble if they run in parallel
+        # and all try to update it at same time.
+        self.update_neuronset_file = update_neuronset_file
+
+        if "glut" in synapse_type.lower():
+            self.parameter_list = ["U", "tauR", "tauF", "tauRatio", "nmda_ratio"]
+        elif "gaba" in synapse_type.lower():
+            self.parameter_list = ["U", "tauR", "tauF", "tauRatio", "cond"]
+        else:
+            raise ValueError("Currently different glut and gaba are only supported")
+
 
         self.data_file = data_file
         new_path, data_file_name = os.path.split(data_file)
@@ -186,6 +199,7 @@ class SynapseOptimiser:
 
         self.parameter_data_file_name = os.path.join(new_path, f"{new_file_name}-parameters-optimised-{synapse_type}.json")
         self.opt_state_data_file_name = os.path.join(new_path, f"{new_file_name}-opt-state-{synapse_type}.json.xz")   # Maybe change format if files get too big...
+        self.parameter_export_file_name = os.path.join(new_path, f"{new_file_name}-synapse-parameters-{synapse_type}.json")
 
         self.neuron_set_file = neuron_set_file
         self.seed = None
@@ -195,6 +209,7 @@ class SynapseOptimiser:
         # but we have option to override them when calling
         self.n_synapses_override = n_synapses
         self.synapse_density_override = synapse_density
+        self.n_soma_synapses_override = n_soma_synapses
 
         self.snudda_data = get_snudda_data(snudda_data=snudda_data)
 
@@ -204,6 +219,7 @@ class SynapseOptimiser:
         self.exp_volt = None
         self.exp_time = None
         self.exp_volt_interpolated = {}
+        self.normalise_volt = True
         self.sample_freq = None
         self.sim_time = 1.5
         self.trace_holding_voltage = None
@@ -214,6 +230,7 @@ class SynapseOptimiser:
         self.last_run_volt = None
         self.last_run_time = None
         self.last_run_parameters = None
+        self.syn_recording = None
 
         self.synapse_parameter_data = None
         self.synapse_section_id = None
@@ -232,12 +249,26 @@ class SynapseOptimiser:
 
         self.synapse_parameter_file = synapse_parameter_file
 
+        self.synapse_parameters = {}
+
         if synapse_parameter_file:
             with open(synapse_parameter_file, 'r') as f:
                 self.write_log(f"Reading synapse parameters from {synapse_parameter_file}")
-                self.synapse_parameters = json.load(f)["data"]
-        else:
-            self.synapse_parameters = {}
+                tmp = json.load(f)
+                if "data" in tmp:
+                    self.synapse_parameters = tmp["data"]
+                else:
+
+                    if len(tmp.keys()) != 1:
+                        raise ValueError(f"Synapse parameter, multiple keys in {synapse_parameter_file} not supported for optimisation.")
+
+                    # TODO: A bit dirty. If there is only one key (because of previous if statement)
+                    #       this code will then use that key's value as the dataset
+                    #       VERIFY INTENDED
+                    for key, value in tmp.items():
+                        print(f"Reading parameters {value} from file")
+                        self.synapse_parameters = value
+
 
         self.setup_rng()
 
@@ -278,6 +309,7 @@ class SynapseOptimiser:
         # This sets self.rsr_synapse_model
         self.setup_model(synapse_density_override=self.synapse_density_override,
                          n_synapses_override=self.n_synapses_override,
+                         n_soma_synapses_override=self.n_soma_synapses_override,
                          synapse_params=self.synapse_parameters,
                          synapse_position_override=(self.synapse_section_id, self.synapse_section_x),
                          init_synapses=self.pc.id() == 0)
@@ -317,8 +349,8 @@ class SynapseOptimiser:
 
         # we need model parameters, and position of synapses (section_id, section_x)
 
-        if len(model_parameters) != 5:
-            raise ValueError(f"There should be five model parameters: {model_parameters}")
+        if len(model_parameters) != len(self.parameter_list):
+            raise ValueError(f"There should be {len(self.parameter_list)} model parameters: {model_parameters} = {', '.join(self.parameter_list)}")
 
         # print(f"Worker {self.pc.id()} received: {model_parameters}")
 
@@ -330,19 +362,22 @@ class SynapseOptimiser:
             self.last_run_time = t_sim
             self.last_run_volt = v_sim
 
-            # We use normalised voltage instead of v_sim
-            v_norm = (v_sim - np.min(v_sim)) / (np.max(v_sim) - np.min(v_sim))
+            if self.normalise_volt:
+                # We use normalised voltage instead of v_sim
+                v = (v_sim - np.min(v_sim)) / (np.max(v_sim) - np.min(v_sim))
+            else:
+                v = v_sim
 
             max_volt = np.max(v_sim)
 
-            peak_idx = self.get_peak_idx(time=t_sim, volt=v_norm, stim_time=self.stim_time)
-            peak_height, decay_fits, v_base = self.find_trace_heights(t_sim, v_norm, peak_idx)
+            peak_idx = self.get_peak_idx(time=t_sim, volt=v, stim_time=self.stim_time)
+            peak_height, decay_fits, v_base = self.find_trace_heights(t_sim, v, peak_idx)
 
             # We need to take decay into accounts also for error, first version only uses peak heights
             error = self.error_calculation(peak_height=peak_height,
                                            decay_fits=decay_fits,
                                            time=t_sim,
-                                           volt=v_norm,
+                                           volt=v,
                                            v_base=v_base,
                                            max_volt=max_volt)
 
@@ -367,8 +402,7 @@ class SynapseOptimiser:
 
     def error_calculation(self, peak_height, decay_fits, time, volt, v_base, max_volt):
 
-        # TODO: Increase decay window for the last two pulses!! 100 or 150 ms from pulse.
-        decay_window = [0.01, 0.045]
+        decay_windows = [(0.01, 0.045)] * (len(self.stim_time) - 2) + [(0.01, 0.21)] * 2
 
         try:
             # Error in peak heights
@@ -382,18 +416,15 @@ class SynapseOptimiser:
             decay_error = 0
 
             # Error in decay
-            for st in self.stim_time:
+            for st, decay_window  in zip(self.stim_time, decay_windows):
                 start_idx = np.argmin(np.abs(time - (st + decay_window[0])))
                 end_idx = np.argmin(np.abs(time - (st + decay_window[1])))
 
-                # TODO: Remove interpolation, use the raw traces, since we use averages they are cleaner.
-
+                # Interpolate points, since the sampling rates might differ between exp and  simulation
                 if st not in self.exp_volt_interpolated:
                     self.exp_volt_interpolated[st] = np.interp(time[start_idx:end_idx],
                                                                self.exp_time,
                                                                self.exp_volt)
-
-                # TODO, interpolate points to match exp data!!
 
                 decay_error += np.sum(np.abs(volt[start_idx:end_idx] - self.exp_volt_interpolated[st])) / (end_idx - start_idx)
 
@@ -484,6 +515,9 @@ class SynapseOptimiser:
 
     def optimise(self, n_iterations=10, load_state=True):
 
+        if n_iterations < 1:
+            return
+
         error_list = []
         start_time = time.perf_counter()
 
@@ -533,7 +567,7 @@ class SynapseOptimiser:
                 opt.tell(model_parameter_list, error)
 
                 if i % 50 == 0 and i > 0:
-                    # Just for safety let's save every 100 iterations...
+                    # Just for safety let's save every 50 iterations...
                     elapsed_time = time.perf_counter() - start_time
                     self.write_log(f"Iteration {i}: Saving state to {self.opt_state_data_file_name} (elapsed time: {elapsed_time:.0f} seconds)")
                     self.save_opt_state(opt)
@@ -594,13 +628,24 @@ class SynapseOptimiser:
         with open(data_file, "r") as f:
             self.data = json.load(f)
 
-        self.exp_volt = np.array(self.data["data"]["mean_norm_trace"]).flatten()
+        if "mean_norm_trace" in self.data["data"]:
+            self.exp_volt = np.array(self.data["data"]["mean_norm_trace"]).flatten()
+            self.normalise_volt = True
+        else:
+            self.exp_volt = np.array(self.data["data"]["mean_trace"]).flatten()
+            self.normalise_volt = False
+
         self.sample_freq = self.data["meta_data"]["sample_frequency"]
 
         if "holding_voltage" in self.data["meta_data"]:
             self.trace_holding_voltage = self.data["meta_data"]["holding_voltage"]
         else:
-            self.trace_holding_voltage = np.mean(self.data["data"]["mean_norm_trace"][:10])
+            if self.normalise_volt:
+                raise ValueError(f"We can not guess holding voltage of neuron from a normalised trace, please set holding_voltage manually.")
+            else:
+                # 5000 Hz sampling, 0.1 seconds --> 500 points for guess
+                self.trace_holding_voltage = np.mean(self.data["data"]["mean_trace"][:500])
+
 
             if self.verbose:
                 self.write_log(f"Guessing holding voltage: {self.trace_holding_voltage}")
@@ -678,6 +723,7 @@ class SynapseOptimiser:
     def setup_model(self,
                     synapse_density_override=None,
                     n_synapses_override=None,
+                    n_soma_synapses_override=None,
                     synapse_position_override=None,
                     synapse_params=None,
                     init_synapses=True):
@@ -714,6 +760,11 @@ class SynapseOptimiser:
             else:
                 raise Exception('Setup error: number of synapses not no specified in setup file (which ever that is?)')
 
+        if n_soma_synapses_override is not None:
+            n_soma_synapses = n_soma_synapses_override
+        else:
+            n_soma_synapses = c_prop.get("num_soma_synapses", 0)
+
         if "holding_current" in c_prop:
             holding_current = c_prop["holding_current"]
         else:
@@ -746,6 +797,7 @@ class SynapseOptimiser:
                           neuron_parameter_key=neuron_parameter_key,
                           stim_times=t_stim,
                           num_synapses=n_synapses,
+                          num_soma_synapses=n_soma_synapses,
                           synapse_density=synapse_density,
                           holding_voltage=trace_holding_voltage,
                           holding_current=holding_current,
@@ -764,7 +816,9 @@ class SynapseOptimiser:
         self.pc.barrier()
 
         if self.rsr_synapse_model.holding_current != holding_current:
-            self.update_cell_properties(holding_current=self.rsr_synapse_model.holding_current)
+            self.log_file.write(f"Mismatch between passed holding current {holding_current}, and post-model detected holding current {self.rsr_synapse_model.holding_current}.")
+            if self.update_neuronset_file:
+                self.update_cell_properties(holding_current=self.rsr_synapse_model.holding_current)
 
         self.pc.barrier()
 
@@ -850,18 +904,18 @@ class SynapseOptimiser:
 
             if peak_height[0] > 0:
                 if idx_b < len(peak_idx) - 1:
-                    p0d = [0.06, 0.05, self.trace_holding_voltage]
+                    p0d = [0.06, 0.05, v_base]
                 else:
-                    p0d = [1e-5, 100, self.trace_holding_voltage]
+                    p0d = [1e-5, 100, v_base]
 
                     if self.synapse_type == "gaba":
-                        p0d = [1e-8, 10000, self.trace_holding_voltage]
+                        p0d = [1e-8, 10000, v_base]
             else:
                 # In some cases for GABA we had really fast decay back
                 if idx_b < len(peak_idx) - 1:
-                    p0d = [-0.06, 0.05, self.trace_holding_voltage]
+                    p0d = [-0.06, 0.05, v_base]
                 else:
-                    p0d = [-1e-5, 1e5, self.trace_holding_voltage]
+                    p0d = [-1e-5, 1e5, v_base]
 
             peak_idx_a = peak_idx[idx_b - 1]  # Prior peak
             peak_idx_b = peak_idx[idx_b]  # Next peak
@@ -994,16 +1048,36 @@ class SynapseOptimiser:
 
         return lower_bound, upper_bound
 
-    def plot_last_run(self, fig_name=None):
+    def plot_last_run(self, fig_name=None, normalise_volt=None):
 
         if self.pc.id() != 0:
             return
 
+        if normalise_volt is None:
+            normalise_volt = self.normalise_volt
+
         import matplotlib.pyplot as plt
 
         plt.figure()
-        plt.plot(self.last_run_time, (self.last_run_volt  - np.min(self.last_run_volt))/ (np.max(self.last_run_volt) - np.min(self.last_run_volt)), color='black', label="model")
-        plt.plot(self.exp_time, self.exp_volt , color='red', label="experiment")
+
+        # Skip artifacts
+        t_idx = np.where(0.1 <= self.last_run_time)[0]
+
+        if normalise_volt:
+            # Skip the first 0.1s of the trace, sometimes artifacts, that we dont want to afffect normalisation
+            volt = (self.last_run_volt  - np.min(self.last_run_volt[t_idx]))/ (np.max(self.last_run_volt[t_idx]) - np.min(self.last_run_volt[t_idx]))
+        else:
+            volt = self.last_run_volt
+
+
+        plt.plot(self.last_run_time[t_idx], volt[t_idx], color='black', label="model")
+
+        if normalise_volt == self.normalise_volt:
+            # Only plot experimental data if trace data is same as what we get from simulation (normalised/non_normalised)
+            te_idx = np.where(0.1 <= self.exp_time)[0]
+
+            plt.plot(self.exp_time[te_idx], self.exp_volt[te_idx] , color='red', label="experiment")
+
         plt.xlabel("Time (s)")
         plt.ylabel("Voltage")
         plt.legend()
@@ -1022,7 +1096,19 @@ class SynapseOptimiser:
 
         os.makedirs("figures", exist_ok=True)
 
+        print(f"Saving figure to {fig_name}")
         plt.savefig(fig_name, dpi=300)
+
+        if self.syn_recording is not None:
+            plt.figure()
+            for syn_record in self.syn_recording:
+                plt.plot(syn_record)
+            plt.title(title_str, fontsize=8, wrap=True)
+
+            fig_name_cur = fig_name.replace(".png", "-current.png")
+            plt.savefig(fig_name_cur, dpi=300)
+            print(f"Plotting current to {fig_name_cur}")
+
 
     def run_best_run(self):
 
@@ -1038,6 +1124,46 @@ class SynapseOptimiser:
 
         self.run_models(best_param_list)
 
+    def export_best_parameters(self, output_file=None, parameter_key="1", overwrite=False):
+
+        if self.pc.id() == 0:
+            if output_file is None:
+                output_file = self.parameter_export_file_name
+
+            best_param = self.synapse_parameter_data.get_best_parameterset()
+
+            if not overwrite and os.path.isfile(output_file):
+                with open(output_file, "r") as f:
+                    data = json.load(f)
+            else:
+                data = dict()
+
+            # In case any extra parameters were specified
+            syn_param = self.synapse_parameters.copy()
+            syn_param |= { k:v for k,v in zip(self.parameter_list, best_param) }
+
+            # Because tauR > tau we use tauRatio during optimisation, convert back to tau in parameter file
+            # since MOD file does not know about tauRatio
+            if "tauRatio" in syn_param:
+                if "tau" in syn_param:
+                    raise ValueError(f"tau = tauR * tauRatio, however tau already set in {syn_param = }")
+
+                syn_param["tau"] = syn_param["tauR"] * syn_param["tauRatio"]
+                del syn_param["tauRatio"]
+
+            data[parameter_key] = {
+                "meta": {"parameter_data_file": os.path.basename(self.parameter_data_file_name)},
+                "synapse":  syn_param
+            }
+
+            os.makedirs(os.path.dirname(output_file), exist_ok=True)
+
+            with open(output_file, "w") as f:
+                json.dump(data, f)
+
+            print(f"Wrote synapse parameters to {output_file}")
+
+
     def run_user_specified_parameters(self, user_parameter_list):
 
         if self.pc.id() != 0:
@@ -1047,6 +1173,14 @@ class SynapseOptimiser:
             raise ValueError(f"Expected 5 parameters (U, tauR,tauF, tauRatio,cond), got {len(user_parameter_list)}")
 
         m_params = dict(zip(self.parameter_list, user_parameter_list))
+
+        # Let's also record currents from synapses
+        self.syn_recording = []
+
+        for syn in self.rsr_synapse_model.synapses:
+            data = neuron.h.Vector()
+            data.record(syn._ref_i)
+            self.syn_recording.append(data)
 
         t_sim, v_sim, i_sim = self.rsr_synapse_model.run2(pars=m_params)
 
@@ -1094,12 +1228,15 @@ if __name__ == "__main__":
     parser.add_argument("--name_tag", type=str, default=None, help="Name tag for run")
     parser.add_argument("--user_parameters", default=None,
                         type=lambda s: [float(x) for x in s.split(",")],
-                        help="Run user parameters: U,tauR,tauF,tauRatio,cond")
+                        help="Run user parameters: U,tauR,tauF,tauRatio,nmda_ratio")
     parser.add_argument("--n_synapses", type=int, default=None, help="Override number of synapses in config file")
+    parser.add_argument("--n_soma_synapses", type=int, default=None, help="Override number of soma synapses in config file")
     parser.add_argument("--synapse_density", type=str, default=None, help="Override synapse density in config file")
     parser.add_argument("--entropy", type=int, default=1023456734529028340264793840, help="Entropy for random generator")
+    parser.add_argument("--export", action="store_true", help="Export synapse parameters")
     parser.add_argument("--profile", action="store_true", default=False)
     parser.add_argument("--verbose", action="store_true", default=False)
+    parser.add_argument("--dont-update-neuronset-file", dest="update_neuronset_file", action="store_false", default=True)
 
     args = parser.parse_args()
 
@@ -1112,9 +1249,11 @@ if __name__ == "__main__":
                           synapse_parameter_file=args.synapse_parameter_file,
                           neuron_set_file=args.neuron_set_file,
                           n_synapses=args.n_synapses,
+                          n_soma_synapses=args.n_soma_synapses,
                           synapse_density=args.synapse_density,
                           load_parameters=args.user_parameters is None,
                           name_tag=args.name_tag,
+                          update_neuronset_file=args.update_neuronset_file,
                           entropy=args.entropy,
                           verbose=args.verbose)
 
@@ -1140,6 +1279,10 @@ if __name__ == "__main__":
     else:
         so.optimise(n_iterations=args.iterations)
 
+    if args.export:
+        so.export_best_parameters()
+    else:
+        print("Use --export to export the parameters to file.")
 
 
     # mpirun -n 5 python optimise_synapses_parallel.py ../data/synapses/example_data/10_MSN12_GBZ_CC_H20.json --iterations 50 --snudda_data /home/hjorth/HBP/BasalGangliaData/data/

@@ -285,7 +285,8 @@ class SnuddaInput(object):
 
         self.write_log(f"Writing spikes to {self.spike_data_filename}", force_print=True)
 
-        out_file = h5py.File(self.spike_data_filename, 'w', libver=self.h5libver)
+        out_file = h5py.File(self.spike_data_filename, 'w', libver=self.h5libver,
+                             driver='core', backing_store=True)
         out_file.create_dataset("config", data=json.dumps(self.input_info, indent=4))
         input_group = out_file.create_group("input")
 
@@ -1172,6 +1173,9 @@ class SnuddaInput(object):
                     }
 
         input = {k: input_inf.get(k, defaults.get(k, None)) for k in keys_to_copy}
+
+        if "spikes" in input_inf and input_inf["spikes"] is not None:
+            input["spikes"] = np.array(input_inf["spikes"])
 
         if "population_unit_correlation" in input_inf:
             # Warn the user that we renamed the variable.
@@ -2383,7 +2387,9 @@ class SnuddaInput(object):
                 (f"Virtual neuron {self.neuron_name[neuron_id]}"
                  f" should have only one spike train, fix nSpikeTrains in config")
 
-            # Virtual neurons input handled through touch detection
+            # Activation of virtual neurons activates there touch-detected synapses
+            # and thus provides input to the simulated neurons.
+            # Here input_loc is not used.
             input_loc = None
 
             if "spike_file" in input_info:
@@ -2439,7 +2445,7 @@ class SnuddaInput(object):
             # We need to pick which parameter set to use for the input also
             synapse_parameter_id = rng.integers(1e6, size=num_inputs)
 
-            if "spikes" in input_info:
+            if "spikes" in input_info and input_info["spikes"] is not None:
                 # Spikes are already pre-generated, use them.
                 freq = -1    # We do not know
                 return input_info["neuron_id"], input_info["input_type"], input_info["spikes"], freq, input_loc, synapse_parameter_id

@@ -1,0 +1,31 @@
+{
+    "regions": {
+	"Striatum": {
+	    "connectivity": {
+		"ballanddoublestick,ballanddoublestick": {
+		    "GABA": {
+			"conductance": [1.1e-9, 1.5e-9],
+			"pruning": {
+			    "f1": 1,
+			    "soft_max": 5,
+			    "mu2": null,
+			    "a3": 1,
+			    "dist_pruning": "1*(r <= 0.3)"
+			}
+		    },
+		    "gap_junction": {
+			"conductance": [5e-10, 1e-10],
+			"channel_parameters": null,
+			"pruning": {
+			    "f1": 1,
+			    "soft_max": 8,
+			    "mu2": null,
+			    "a3": 1.0,
+			    "dist_pruning": null
+			}
+		    }
+		}
+	    }
+	}
+    }
+}

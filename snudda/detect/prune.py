@@ -208,6 +208,9 @@ class SnuddaPrune(object):
 
         self.open_work_history_file(work_history_file=self.work_history_file, config_file=config_file)
 
+        # This is used for distance dependent pruning, if the user specifies "r" (relative soma distance) instead of "d" (absolute soma distance)
+        self.max_soma_distance_dend = self.hist_file["network/neurons/max_soma_distance_dend"][()].copy()
+
         self.set_scratch_path(scratch_path)
         self.load_pruning_information(config_file=config_file)
 
@@ -465,6 +468,12 @@ class SnuddaPrune(object):
     def __del__(self):
 
         """ Destructor, cleans up temporary files after. """
+
+        # sys.meta_path being None (or sys itself being torn down) means we're
+        # in interpreter shutdown -- skip network/IPC cleanup, it can hang or
+        # fail unpredictably. Local file closes are still safe to attempt.
+        if sys is None or sys.meta_path is None:
+            return
 
         try:
             if self.hist_file is not None:
@@ -2087,6 +2096,15 @@ class SnuddaPrune(object):
 
                 # distP contains d (variable for distance to soma)
                 d = synapses[next_read_pos:read_end_idx, 8] * 1e-6  # dendrite distance d, used in eval below
+
+                # Also calculate r, relative distance along dendrite (of maximal length or of all dend)
+                r = d / self.max_soma_distance_dend[dest_id]
+
+                if (r < 0).any() or (r > 1).any():
+                    raise ValueError(f"Relative dendrite distance should always be 0 <= r <= 1, "
+                                     f"got min={r.min()}, max={r.max()} for neuron {dest_id} "
+                                     f"(max_soma_distance_dend={self.max_soma_distance_dend[dest_id]})")
+
                 p = numexpr.evaluate(dist_p)
 
                 frac_flag = random_pool[:n_pair_synapses] < f1

@@ -847,7 +847,7 @@ class SnuddaAnalyse:
         matplotlib.rcParams.update({'font.size': 22})
         plt.figure()
         plt.plot(dist * 1e6, p_con)
-        plt.xlabel("Distance ($\mu$m)")
+        plt.xlabel(r"Distance ($\mu$m)")
         plt.ylabel("Connection probability")
 
         plt.title(f"{self.neuron_name(pre_type)} to {self.neuron_name(post_type)} connections")
@@ -875,6 +875,7 @@ class SnuddaAnalyse:
                                     num_bins=86,
                                     name_str="",
                                     side_len=None,
+                                    exp_min_dist=None,
                                     exp_max_dist=None,
                                     exp_data=None,
                                     exp_data_detailed=None,
@@ -889,6 +890,7 @@ class SnuddaAnalyse:
                                     ax=None,
                                     return_ax=False,
                                     colour="black",
+                                    plot_model_comparison_bar=False,
                                     show_plot=None,
                                     save_figure=True,
                                     dump_data_to_file=None):
@@ -901,6 +903,9 @@ class SnuddaAnalyse:
 
         if not exp_max_dist:
             exp_max_dist = []
+
+        if not exp_min_dist:
+            exp_min_dist = [0.0] * len(exp_max_dist)
 
         if not exp_data:
             if exp_data_detailed:
@@ -989,12 +994,12 @@ class SnuddaAnalyse:
 
         # Add lines for experimental data and matching data for model
         model_probs = {}
-        for (d_limit, p_exp, exp_num) in zip(exp_max_dist, exp_data, exp_data_detailed):
+        for (d_limit_min, d_limit_max, p_exp, exp_num) in zip(exp_min_dist, exp_max_dist, exp_data, exp_data_detailed):
             cnt = 0
             cnt_all = 0
 
             for (d, c, ca) in zip(dist, count_con.flatten(), count_all.flatten()):
-                if d <= d_limit:
+                if d_limit_min <= d < d_limit_max:
                     cnt += c
                     cnt_all += ca
 
@@ -1005,7 +1010,7 @@ class SnuddaAnalyse:
                     cnt_all = 1
 
                 p_model = float(cnt) / float(cnt_all)
-                model_probs[d_limit] = p_model
+                model_probs[d_limit_min, d_limit_max] = p_model
             except Exception as e:
                 import traceback
                 print(traceback.format_exc())
@@ -1014,7 +1019,7 @@ class SnuddaAnalyse:
                 import pdb
                 pdb.set_trace()
 
-            print(f"P(d<{d_limit}) = {p_model}")
+            print(f"P({d_limit_min} <=d<{d_limit_max}) = {p_model}")
             # ax = fig.get_axes()
 
             # Also add errorbars
@@ -1036,7 +1041,7 @@ class SnuddaAnalyse:
                 bar_centre = (ns + (z ** 2) / 2) / (n + z ** 2)
                 bar_height = z / (n + z ** 2) * np.sqrt((ns * (n - ns) / n + (z ** 2) / 4))
 
-                ax.errorbar(d_limit * 1e6 / 2, bar_centre, bar_height, color="gray",
+                ax.errorbar((d_limit_min + d_limit_max) * 1e6 / 2, bar_centre, bar_height, color="gray",
                             elinewidth=1, capsize=5)
 
             else:
@@ -1047,11 +1052,17 @@ class SnuddaAnalyse:
                 if exp_colour is None:
                     exp_colour = (0.8, 0.3 * plt_ctr, 0.3 * plt_ctr)
 
-                ax.plot([0, d_limit * 1e6], [p_exp, p_exp],
+                if plot_model_comparison_bar:
+                    ax.plot([d_limit_min * 1e6, d_limit_max * 1e6],
+                            [p_model, p_model],
+                            color="blue",
+                            linewidth=2)
+
+                ax.plot([d_limit_min * 1e6, d_limit_max * 1e6], [p_exp, p_exp],
                         color=exp_colour, linewidth=2)
 
                 # Add a star also
-                ax.plot(d_limit * 1e6 / 2, p_exp,
+                ax.plot((d_limit_min + d_limit_max) * 1e6 / 2, p_exp,
                         color=exp_colour,
                         marker="D",
                         markersize=10)
@@ -1103,7 +1114,7 @@ class SnuddaAnalyse:
                              color='grey', step=None,
                              alpha=0.4)
 
-        plt.xlabel("Distance ($\mu$m)", fontsize=label_size)
+        plt.xlabel(r"Distance ($\mu$m)", fontsize=label_size)
         plt.ylabel("Con Prob (%)", fontsize=label_size)
 
         if x_max is not None:
@@ -1250,9 +1261,9 @@ class SnuddaAnalyse:
 
         label_size = 14
         if dist_3d:
-            plt.xlabel("Distance ($\mu$m)", fontsize=label_size)
+            plt.xlabel(r"Distance ($\mu$m)", fontsize=label_size)
         else:
-            plt.xlabel("2D Distance ($\mu$m)", fontsize=label_size)
+            plt.xlabel(r"2D Distance ($\mu$m)", fontsize=label_size)
         plt.ylabel("Connection probability", fontsize=label_size)
 
         plt.xticks(fontsize=12, rotation=0)
@@ -1573,6 +1584,7 @@ class SnuddaAnalyse:
 
     def num_incoming_connections(self, neuron_type, pre_type, side_len=None,
                                  volume_id=None,
+                                 neuron_id=None, pre_id=None,   # neuron_type gives neuron_id, pre_type gives pre_id,
                                  connection_type="synapses"):
 
         if volume_id is None:
@@ -1588,13 +1600,24 @@ class SnuddaAnalyse:
         # neuron_id = self.centreNeurons(neuron_id=self.populations[neuronType],
         #                              sideLen=sideLen)
 
-        neuron_id = self.get_sub_pop(volume_type=self.volume_type,
-                                     volume_part="centre",
-                                     side_len=side_len,
-                                     neuron_id=self.populations[neuron_type],
-                                     volume_id=volume_id)
+        if neuron_id is None:
+            neuron_id = self.get_sub_pop(volume_type=self.volume_type,
+                                         volume_part="centre",
+                                         side_len=side_len,
+                                         neuron_id=self.populations[neuron_type],
+                                         volume_id=volume_id)
+        else:
+            all_id_of_type = self.network_load.get_neuron_id_of_type(neuron_type)
+            if not set(neuron_id).issubset(set(all_id_of_type)):
+                raise ValueError(f"Not all neurons specified {neuron_id = } is of neuron type {neuron_type}")
 
-        pre_id = self.populations[pre_type]
+        if pre_id is None:
+            pre_id = self.populations[pre_type]
+        else:
+            all_id_of_type = self.network_load.get_neuron_id_of_type(pre_type)
+            if not set(pre_id).issubset(set(all_id_of_type)):
+                raise ValueError(f"Not all neurons specified {pre_id = } is of neuron type {pre_type}")
+
 
         print(f"#pre = {len(pre_id)}, #post = {len(neuron_id)}")
 
@@ -1669,9 +1692,12 @@ class SnuddaAnalyse:
     def plot_incoming_connections(self, pre_type, neuron_type, side_len=None,
                                   name_str="",
                                   connection_type="synapses",
+                                  neuron_id=None, pre_id=None,  # neuron_type gives neuron_id, pre_type gives pre_id,
                                   fig=None, colour=None, hist_range=None,
                                   bin_size=None,
-                                  num_bins=None):
+                                  num_bins=None,
+                                  extra_title="",
+                                  extra_filename_tag=""):
 
         if pre_type not in self.populations:
             print(f"plot_incoming_connections: {pre_type} is not in the simulation")
@@ -1684,6 +1710,8 @@ class SnuddaAnalyse:
         (n_con, nSyn) = self.num_incoming_connections(neuron_type=neuron_type,
                                                       pre_type=pre_type,
                                                       side_len=side_len,
+                                                      pre_id=pre_id,
+                                                      neuron_id=neuron_id,
                                                       connection_type=connection_type)
 
         # Plotting number of connected neighbours
@@ -1721,7 +1749,7 @@ class SnuddaAnalyse:
 
         plt.xlabel("Number of connected neighbours")
         plt.ylabel("Probability density")
-        plt.title(f"{self.neuron_name(pre_type)} connecting to {self.neuron_name(neuron_type)}")
+        plt.title(f"{self.neuron_name(pre_type)} connecting to {self.neuron_name(neuron_type)} {extra_title}")
         plt.tight_layout()
         xleft, xright = plt.xlim()
         plt.xlim(0, xright)
@@ -1729,7 +1757,7 @@ class SnuddaAnalyse:
         plt.ion()
         plt.draw()
 
-        fig_name = f"Network-{connection_type}-input-to-{neuron_type}-from-{pre_type}"
+        fig_name = f"Network-{connection_type}-input-to-{neuron_type}-from-{pre_type}{extra_filename_tag}"
 
         self.save_figure(plt, fig_name)
 
@@ -1757,7 +1785,7 @@ class SnuddaAnalyse:
 
         plt.xlabel(f"Number of incoming {connection_type}")
         plt.ylabel("Probability density")
-        plt.title(f"{self.neuron_name(pre_type)} {connection_type} on {self.neuron_name(neuron_type)}")
+        plt.title(f"{self.neuron_name(pre_type)} {connection_type} on {self.neuron_name(neuron_type)} {extra_title}")
         plt.tight_layout()
 
         xleft, xright = plt.xlim()
@@ -1766,7 +1794,7 @@ class SnuddaAnalyse:
         plt.ion()
         plt.draw()
 
-        fig_name = f"Network-{connection_type}-to-{neuron_type}-from-{pre_type}"
+        fig_name = f"Network-{connection_type}-to-{neuron_type}-from-{pre_type}{extra_filename_tag}"
 
         self.save_figure(plt, fig_name)
 
@@ -2022,7 +2050,7 @@ class SnuddaAnalyse:
         font_p = matplotlib.font_manager.FontProperties()
         font_p.set_size('small')
         plt.legend(legend_text, prop=font_p)
-        plt.xlabel('Distance from soma ($\mu$m)')
+        plt.xlabel(r'Distance from soma ($\mu$m)')
         plt.ylabel('Cumulative distrib.')
 
         fig_name += ".pdf"
@@ -2064,7 +2092,7 @@ class SnuddaAnalyse:
                 plt.plot(self.dend_position_edges[:end_idx] * 1e6,
                          cum_dist[:end_idx],
                          linewidth=3)
-                plt.xlabel('Distance from soma ($\mu$m)')
+                plt.xlabel(r'Distance from soma ($\mu$m)')
                 plt.ylabel('Cumulative distrib.')
                 plt.title(f"Synapses {self.neuron_name(self.all_types[pre_type])} "
                           f"to {self.neuron_name(self.all_types[post_type])}")
@@ -2126,7 +2154,7 @@ class SnuddaAnalyse:
                              np.divide(self.dend_position_bin[pair][1:end_idx],
                                        dend_hist_tot[post_type][1:end_idx] * 1e6))
                     plt.ylabel('Synapse/micrometer')
-                    plt.xlabel('Distance from soma ($\mu$m)')
+                    plt.xlabel(r'Distance from soma ($\mu$m)')
 
                     plt.title('Synapse density ' + self.neuron_name(pre_type)
                               + " to " + self.neuron_name(post_type))
@@ -2135,7 +2163,7 @@ class SnuddaAnalyse:
                     plt.plot(self.dend_position_edges[:end_idx] * 1e6,
                              self.dend_position_bin[pair][:end_idx])
                     plt.ylabel('Synapse count')
-                    plt.xlabel('Distance from soma ($\mu$m)')
+                    plt.xlabel(r'Distance from soma ($\mu$m)')
                     plt.ylim([0, np.ceil(np.max(self.dend_position_bin[pair][:end_idx]))])
 
                     plt.title(f"Synapses {self.neuron_name(pre_type)} to {self.neuron_name(post_type)}")
@@ -2176,8 +2204,6 @@ class SnuddaAnalyse:
     # that
 
     def dendrite_density(self, num_bins, bin_width, side_len=None, volume_id=None):
-
-        assert False, "This code is not neuron prototype aware. It needs to update how it gets the location of morphologies"
 
         if volume_id is None:
             volume_id = self.volume_id

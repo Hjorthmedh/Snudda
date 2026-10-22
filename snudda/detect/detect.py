@@ -164,7 +164,7 @@ class SnuddaDetect(object):
         mem = self.memory()
         self.write_log(f"{mem}")
 
-        self.slurm_id = int(slurm_id)  # Make sure integer
+        self.slurm_id = int(slurm_id) if slurm_id is not None else 0  # Make sure integer
         self.workers_initialised = False
 
         self.voxel_size = voxel_size
@@ -374,6 +374,11 @@ class SnuddaDetect(object):
             self.logfile = None
 
     def __del__(self):
+        # sys.meta_path being None (or sys itself being torn down) means we're
+        # in interpreter shutdown -- skip network/IPC cleanup, it can hang or
+        # fail unpredictably. Local file closes are still safe to attempt.
+        if sys is None or sys.meta_path is None:
+            return
 
         if self.work_history is not None:
             try:
@@ -1276,7 +1281,6 @@ class SnuddaDetect(object):
                             if isinstance(cluster_size, (np.ndarray, list)):
                                 cluster_size = round(self.hyper_voxel_rng.normal(loc=cluster_size[0],
                                                                                  scale=cluster_size[1]))
-                                
                             if cluster_size > 1:
                                 cluster_spread = con_dict[con_type]["cluster_spread"]
 
@@ -2625,7 +2629,7 @@ class SnuddaDetect(object):
 
     ############################################################################
 
-    def setup_parallel(self, d_view=None):
+    def setup_parallel(self, d_view=None, timeout=300):
 
         """ Prepares workers for parallel execution if d_view is not None. """
 
