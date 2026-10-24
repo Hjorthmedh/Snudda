@@ -67,6 +67,10 @@ class TestCLI(unittest.TestCase):
             os.chdir(network_path)
 
         with self.subTest(stage="setup-parallel"):
+
+            # TODO: Remove this setup code, since Snudda now does it internally.
+
+            """            
             os.environ["IPYTHONDIR"] = os.path.join(os.path.abspath(os.getcwd()), ".ipython")
             os.environ["IPYTHON_PROFILE"] = "default"
 
@@ -102,6 +106,8 @@ class TestCLI(unittest.TestCase):
 
             # os.system("ipcluster start -n 4 --profile=$IPYTHON_PROFILE --ip=127.0.0.1&")
             # time.sleep(15)
+            
+        """
 
         # with self.subTest(stage="init-parallel-BIG"):
         #     run_cli_command("init tiny_parallel --size 1000000 --overwrite")
@@ -139,6 +145,11 @@ class TestCLI(unittest.TestCase):
         with self.subTest(stage="input"):
             run_cli_command("input tiny_parallel --input tiny_parallel/input.json --parallel")
 
+        # Also try to create network in one go, parallel.
+        with self.subTest(stage="create-parallel"):
+            run_cli_command("create tiny_parallel --input tiny_parallel/input.json --parallel")
+
+
         # with self.subTest(stage="init-parallel-full"):
         #     run_cli_command("init large_parallel --size 1670000 --overwrite")
 
@@ -147,6 +158,8 @@ class TestCLI(unittest.TestCase):
 
         with self.subTest(stage="parallel-stop"):
 
+            # No longer need to close the parallel worker, Snudda does it internally.
+            """
             if self.cluster_process.stdout:
                 self.cluster_process.stdout.close()
             if self.cluster_process.stderr:
@@ -160,6 +173,8 @@ class TestCLI(unittest.TestCase):
             #     self.cluster_process.wait(timeout=10)
             # except subprocess.TimeoutExpired:
             #     self.cluster_process.kill()            # os.system("ipcluster stop")
+
+            """
 
         #  Only serial tests below this line, we stopped ipcluster.
 
@@ -248,6 +263,9 @@ class TestCLI(unittest.TestCase):
         copyfile(input_file, "tiny_serial/input.json")
         with self.subTest(stage="input"):
             run_cli_command("input tiny_serial --time 1.0 --inputFile tiny_serial/input-spikes.hdf5")
+
+        with self.subTest(stage="create-serial"):
+            run_cli_command("create tiny_serial --input tiny_serial/input.json")
 
     def tearDown(self) -> None:
 
