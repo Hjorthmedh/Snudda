@@ -645,8 +645,14 @@ class SnuddaPlace(object):
 
         for neuron_id, new_morphology in modified_neurons:
             # Replace the original morphology with the warped morphology, morphology includes rotation
-            self.neurons[neuron_id].swc_filename = new_morphology
-            self.neurons[neuron_id].rotation = np.eye(3)
+            neuron = self.neurons[neuron_id]
+            neuron.swc_filename = new_morphology
+            neuron.add_morphology(swc_file=new_morphology,
+                                  name="neuron",
+                                  position=neuron.position,
+                                  rotation=np.eye(3),
+                                  overwrite=True)
+            neuron.rotation = np.eye(3)
 
     @staticmethod
     def avoid_edges_helper(bend_neuron_info, network_path):

@@ -6,6 +6,7 @@
       <sourceFolder url="file://$MODULE_DIR$/snudda_env/lib64/python3.11/site-packages" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/.venv-pycharm" />
       <excludeFolder url="file://$MODULE_DIR$/venv" />
+      <excludeFolder url="file://$MODULE_DIR$/snudda_env" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.13 (Snudda)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
