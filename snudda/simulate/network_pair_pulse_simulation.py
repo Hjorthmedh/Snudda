@@ -779,6 +779,10 @@ class SnuddaNetworkPairPulseSimulation:
                 idx_max[i] = np.argmax(np.abs(data - data[0]))
                 t_max[i] = t[idx_max[i]] - t[0]
                 amp[i] = data[idx_max[i]] - data[0]
+
+                if idx_max[i] in [0, len(data) - 1]:
+                    # Last or first position selected, probably incorrectly detected
+                    amp[i] = np.nan
         
         except:
             import traceback
@@ -791,9 +795,9 @@ class SnuddaNetworkPairPulseSimulation:
             print("No responses... too short distance!")
             return None, None, None, None 
 
-        print(f"Min amp: {np.min(amp)}")
-        print(f"Max amp: {np.max(amp)}")
-        print(f"Mean amp: {np.mean(amp)} +/- {np.std(amp)}")
+        print(f"Min amp: {np.nanmin(amp)}")
+        print(f"Max amp: {np.nanmax(amp)}")
+        print(f"Mean amp: {np.nanmean(amp)} +/- {np.nanstd(amp)}")
         print(f"Amps: {amp}")
 
         # Now we have all synapse deflections in synapseData
@@ -824,8 +828,8 @@ class SnuddaNetworkPairPulseSimulation:
             plt.errorbar(t_end, exp_mean * plot_conversion, exp_std * plot_conversion, ecolor="red",
                          marker='o', color="red")
             
-            model_mean = np.mean(amp) * plot_conversion
-            model_std = np.std(amp) * plot_conversion
+            model_mean = np.nanmean(amp) * plot_conversion
+            model_std = np.nanstd(amp) * plot_conversion
             plt.errorbar(t_end - 2, model_mean, model_std, ecolor="blue",
                          marker="o", color="blue")
 
