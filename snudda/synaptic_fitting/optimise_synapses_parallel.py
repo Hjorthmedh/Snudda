@@ -405,7 +405,7 @@ class SynapseOptimiser:
         decay_windows = [(0.01, 0.045)] * (len(self.stim_time) - 2) + [(0.01, 0.21)] * 2
 
         try:
-            # Error in peak heights
+            # Error in peak heights --- TODO: Try sqrt(peak_diff ** 2)
             peak_error = np.abs(peak_height - self.exp_peak_height)
 
             # Weight errors
