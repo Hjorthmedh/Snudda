@@ -184,8 +184,10 @@ class SnuddaNetworkPairPulseSimulation:
 
         if cut_outside:
             from snudda.utils.cut import SnuddaCut
+            cut_equation = f"(-{slice_depth/2} < z) & (z < {slice_depth/2})"
+            print(f"Cutting silce using {cut_equation}")
             cut = SnuddaCut(network_file=self.network_file,
-                            cut_equation=f"(-{slice_depth/2} < z) & (z < {slice_depth/2})",
+                            cut_equation=cut_equation,
                             show_plot=True)
 
             self.network_file = cut.out_file_name
