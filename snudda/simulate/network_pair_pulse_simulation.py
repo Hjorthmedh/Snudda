@@ -616,7 +616,8 @@ class SnuddaNetworkPairPulseSimulation:
     # This extracts all the voltage deflections, to see how strong they are
 
     def analyse(self, max_dist=None, n_max_show=10, pre_id=None, post_type=None, clamp_mode=None, exp_data_file=None,
-                force_post_id=None, time_window = 0.05, include_gap_junctions=False, check_pre_type=True):
+                force_post_id=None, time_window = 0.05, include_gap_junctions=False, check_pre_type=True,
+                filter_spiking=False):
 
         import matplotlib
         import matplotlib.pyplot as plt
@@ -678,6 +679,10 @@ class SnuddaNetworkPairPulseSimulation:
 
         self.possible_post_id = [x["neuron_id"] for x in self.data["neurons"] if x["type"] == post_type]
         self.possible_post_id = list(set(self.possible_post_id)-set(self.pre_id))
+
+        if filter_spiking:
+            volt_data = ssd.get_data("voltage", self.possible_post_id)[0]
+            self.possible_post_id = [p_id for p_id in self.possible_post_id if all(volt_data[p_id] < 0)]
 
         recorded_data = ssd.get_data(data_unit, self.possible_post_id)[0]
 
