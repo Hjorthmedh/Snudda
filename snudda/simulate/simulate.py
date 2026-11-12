@@ -2887,8 +2887,27 @@ class SnuddaSimulate(object):
         # Important, when simulating gap junctions, neurons on both sides of the gap junction
         # must be simulated.
 
+        # Determine which neurons are explicitly voltage-clamped in the config
+        voltage_clamped_ids = set()
+        if self.sim_info is not None and "voltage_clamp" in self.sim_info:
+            for nid_str in self.sim_info["voltage_clamp"].keys():
+                voltage_clamped_ids.add(int(nid_str))
+
         if hold_v is None:
             self.sim.neuron.h.finitialize()
+        elif len(voltage_clamped_ids) > 0:
+            # Voltage clamps are present: initialize all neurons at their own v_init
+            # so free-running pre-synaptic neurons are not forced to the post-synaptic
+            # clamping voltage, which causes spurious initialization spikes.
+            # Voltage-clamped neurons are then set explicitly to hold_v below.
+            self.write_log(f"Voltage clamp detected: finitialize() without override, "
+                           f"then setting {len(voltage_clamped_ids)} clamped neurons to {hold_v * 1e3} mV")
+            self.sim.neuron.h.finitialize()
+            for neuron_id in voltage_clamped_ids:
+                if neuron_id in self.neurons:
+                    for sec in self.neurons[neuron_id].icell.all:
+                        for seg in sec:
+                            seg.v = hold_v * 1e3
         else:
             self.write_log(f"User override for holding voltage: {hold_v * 1e3} mV")
             self.sim.neuron.h.finitialize(hold_v * 1e3)
