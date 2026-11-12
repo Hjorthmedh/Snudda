@@ -681,7 +681,7 @@ class SnuddaSimulate(object):
                 holding_current_init_time = 0.1
 
             # This will run simulation for 0.1 seconds, to calculate the current needed
-            self.setup_holding_currents(holding_current_init_time=0.1)
+            self.setup_holding_currents(holding_current_init_time=holding_current_init_time)
 
             if "voltage_clamp" in self.sim_info:
                 for neuron_id, clamp_info in self.sim_info["voltage_clamp"].items():
@@ -2893,6 +2893,16 @@ class SnuddaSimulate(object):
             self.write_log(f"User override for holding voltage: {hold_v * 1e3} mV")
             self.sim.neuron.h.finitialize(hold_v * 1e3)
 
+        for neuron_id, hold_voltage in self.current_injection_voltage.items():
+            cell = self.neurons[neuron_id].icell
+            print(f"Overriding voltage in neuron {neuron_id} {hold_voltage * 1e3}mV ")
+
+            for sec in cell.all:  # If your cell exposes all sections this way
+                for seg in sec:
+                    seg.v = hold_voltage * 1e3
+
+        neuron.h.fcurrent()
+
         # Asked on neuron, check answer:
         # https://www.neuron.yale.edu/phpBB/viewtopic.php?f=2&t=4161&p=18021
 
@@ -3337,7 +3347,7 @@ class SnuddaSimulate(object):
             vc = neuron.h.SEClamp(soma(0.5))
             vc.rs = 1e-9
             vc.amp1 = hold_voltage * 1e3
-            vc.dur1 = 100
+            vc.dur1 = holding_current_init_time*1e3*1.1  # Give it 10% extra time.
 
             soma_v_clamp.append((soma, vc))
 
