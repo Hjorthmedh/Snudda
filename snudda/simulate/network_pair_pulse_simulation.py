@@ -682,7 +682,10 @@ class SnuddaNetworkPairPulseSimulation:
 
         if filter_spiking:
             volt_data = ssd.get_data("voltage", self.possible_post_id)[0]
+            old_len = len(self.possible_post_id)
             self.possible_post_id = [p_id for p_id in self.possible_post_id if all(volt_data[p_id] < 0)]
+            if len(self.possible_post_id) < old_len:
+                print(f"Removed {old_len - len(self.possible_post_id)} possible post synaptic neurons that spiked ({len(self.possible_post_id)} kept)")
 
         recorded_data = ssd.get_data(data_unit, self.possible_post_id)[0]
 
