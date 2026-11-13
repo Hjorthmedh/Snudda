@@ -2729,6 +2729,34 @@ class SnuddaAnalyse:
 
     ############################################################################
 
+    def soma_dist_to_targets(self, pre_type, post_type):
+
+        pre_id = np.array(self.network_load.get_neuron_id_of_type(pre_type))
+        post_id = np.array(self.network_load.get_neuron_id_of_type(post_type))
+
+        pre_positions = self.network_load.data["neuron_positions"][pre_id, :]
+        post_positions = self.network_load.data["neuron_positions"][post_id, :]
+
+        con_mat = self.connection_matrix[pre_id, :][:, post_id]
+
+        # Only compute distances for connected pairs, no full distance matrix needed
+        rows, cols = con_mat.nonzero()
+
+        if pre_type == post_type:
+            keep = pre_id[rows] != post_id[cols]  # drop self-connections if any
+            rows, cols = rows[keep], cols[keep]
+
+        all_dist = np.linalg.norm(pre_positions[rows, :] - post_positions[cols, :], axis=1) * 1e6  # micrometers
+
+        plt.figure()
+        plt.hist(all_dist, weights=np.full(all_dist.shape, 1/len(pre_id)))
+        plt.xlabel(r"Distance ($\mu$m)")
+        plt.ylabel("Count")
+        plt.title(f"{self.neuron_name(pre_type)} to {self.neuron_name(post_type)}")
+        self.save_figure(plt, f"soma-soma-dist-{pre_type}-{post_type}")
+
+
+
     # Number of ChINs connected to each MS
 
     ############################################################################
