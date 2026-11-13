@@ -349,7 +349,7 @@ class SnuddaSimulate(object):
 
         self.synapse_dict = dict()  # Avoid premature garbage collection
         self.i_stim = []
-        self.v_clamp_list = []
+        self.v_clamp_list = {}
         self.gap_junction_dict = dict()
         self.external_stim = dict()
         self.t_save = []
@@ -2153,7 +2153,7 @@ class SnuddaSimulate(object):
 
             self.write_log(f"Resistance: {rs}, voltage: {vc.amp1}mV")
 
-            self.v_clamp_list.append((cID, v, vc))
+            self.v_clamp_list[cID] = (v, vc)
 
             if save_i_flag:
                 cur = self.sim.neuron.h.Vector()
@@ -2901,7 +2901,7 @@ class SnuddaSimulate(object):
                 for seg in sec:
                     seg.v = hold_voltage * 1e3
 
-        for neuron_id, hold_voltage, _ in self.v_clamp_list.items():
+        for neuron_id, (hold_voltage, _) in self.v_clamp_list.items():
             cell = self.neurons[neuron_id].icell
             print(f"Overriding voltage in neuron {neuron_id} {hold_voltage * 1e3}mV (voltage clamp)")
 
@@ -3495,7 +3495,7 @@ class SnuddaSimulate(object):
         self.virtual_neurons = {}
 
         self.i_stim = []
-        self.v_clamp_list = []
+        self.v_clamp_list = {}
         self.current_injection_voltage = None
         self.gap_junction_dict = dict()
         self.external_stim = dict([])
