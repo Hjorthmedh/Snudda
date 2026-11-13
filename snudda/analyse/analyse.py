@@ -2747,11 +2747,10 @@ class SnuddaAnalyse:
             rows, cols = rows[keep], cols[keep]
 
         all_dist = np.linalg.norm(pre_positions[rows, :] - post_positions[cols, :], axis=1) * 1e6  # micrometers
-
         plt.figure()
-        plt.hist(all_dist, weights=np.full(all_dist.shape, 1/len(pre_id)))
+        plt.hist(all_dist, weights=np.full(all_dist.shape, 1/len(pre_id)), bins=20)
         plt.xlabel(r"Distance ($\mu$m)")
-        plt.ylabel("Count")
+        plt.ylabel("Connection count")
         plt.title(f"{self.neuron_name(pre_type)} to {self.neuron_name(post_type)}")
         self.save_figure(plt, f"soma-soma-dist-{pre_type}-{post_type}")
 
