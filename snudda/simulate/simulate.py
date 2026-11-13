@@ -349,7 +349,7 @@ class SnuddaSimulate(object):
 
         self.synapse_dict = dict()  # Avoid premature garbage collection
         self.i_stim = []
-        self.v_clamp_list = []
+        self.v_clamp_dict = dict()
         self.gap_junction_dict = dict()
         self.external_stim = dict()
         self.t_save = []
@@ -2153,7 +2153,7 @@ class SnuddaSimulate(object):
 
             self.write_log(f"Resistance: {rs}, voltage: {vc.amp1}mV")
 
-            self.v_clamp_list.append((cID, v, vc))
+            self.v_clamp_dict[cID] = (v, vc)
 
             if save_i_flag:
                 cur = self.sim.neuron.h.Vector()
@@ -2854,8 +2854,16 @@ class SnuddaSimulate(object):
         if self.verbose:
             self.write_log(f"[post_initialisation_pointer_mapping] setpointer ref on {n_set} segments")
 
+    def _apply_hold_voltages(self):
+        for nid, v in (self.current_injection_voltage or {}).items():
+            for sec in self.neurons[nid].icell.all:
+                for seg in sec.allseg():
+                    seg.v = v * 1e3
 
-
+        for nid, (v, _) in self.v_clamp_dict.items():
+            for sec in self.neurons[nid].icell.all:
+                for seg in sec.allseg():
+                    seg.v = v * 1e3
 
 
     def run(self, t=None, hold_v=None):
@@ -2887,29 +2895,15 @@ class SnuddaSimulate(object):
         # Important, when simulating gap junctions, neurons on both sides of the gap junction
         # must be simulated.
 
+        self.fih_hold = h.FInitializeHandler(0, self._apply_hold_voltages)
+
         if hold_v is None:
             self.sim.neuron.h.finitialize()
         else:
             self.write_log(f"User override for holding voltage: {hold_v * 1e3} mV")
             self.sim.neuron.h.finitialize(hold_v * 1e3)
 
-        for neuron_id, hold_voltage in self.current_injection_voltage.items():
-            cell = self.neurons[neuron_id].icell
-            print(f"Overriding voltage in neuron {neuron_id} {hold_voltage * 1e3}mV (current injection)")
-
-            for sec in cell.all:  # If your cell exposes all sections this way
-                for seg in sec:
-                    seg.v = hold_voltage * 1e3
-
-        for neuron_id, hold_voltage, _ in self.v_clamp_list.items():
-            cell = self.neurons[neuron_id].icell
-            print(f"Overriding voltage in neuron {neuron_id} {hold_voltage * 1e3}mV (voltage clamp)")
-
-            for sec in cell.all:  # If your cell exposes all sections this way
-                for seg in sec:
-                    seg.v = hold_voltage * 1e3
-
-        neuron.h.fcurrent()
+#        neuron.h.fcurrent()
 
         # Asked on neuron, check answer:
         # https://www.neuron.yale.edu/phpBB/viewtopic.php?f=2&t=4161&p=18021
@@ -3360,11 +3354,11 @@ class SnuddaSimulate(object):
             soma_v_clamp.append((soma, vc))
 
             for seg in soma:
-                seg.v = hold_voltage
+                seg.v = hold_voltage * 1e3
 
             for sec in self.neurons[neuron_id].icell.dend:
                 for seg in sec:
-                    seg.v = hold_voltage
+                    seg.v = hold_voltage * 1e3
 
         neuron.h.fcurrent()
         neuron.h.tstop = holding_current_init_time * 1e3
@@ -3495,7 +3489,7 @@ class SnuddaSimulate(object):
         self.virtual_neurons = {}
 
         self.i_stim = []
-        self.v_clamp_list = []
+        self.v_clamp_dict = dict()
         self.current_injection_voltage = None
         self.gap_junction_dict = dict()
         self.external_stim = dict([])
