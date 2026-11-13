@@ -84,7 +84,7 @@ class SnuddaNetworkPairPulseSimulation:
     def __init__(self, network_path,
                  pre_type, post_type=None,
                  exp_type=None,
-                 current_injection=0.5e-9,
+                 current_injection=10e-9,
                  current_injection_duration=1e-3,
                  holding_current_init_time = 0.1,
                  n_stimulated_neurons=None, 
