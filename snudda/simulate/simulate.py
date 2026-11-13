@@ -2153,7 +2153,7 @@ class SnuddaSimulate(object):
 
             self.write_log(f"Resistance: {rs}, voltage: {vc.amp1}mV")
 
-            self.v_clamp_list.append(vc)
+            self.v_clamp_list.append((cID, v, vc))
 
             if save_i_flag:
                 cur = self.sim.neuron.h.Vector()
@@ -2895,7 +2895,15 @@ class SnuddaSimulate(object):
 
         for neuron_id, hold_voltage in self.current_injection_voltage.items():
             cell = self.neurons[neuron_id].icell
-            print(f"Overriding voltage in neuron {neuron_id} {hold_voltage * 1e3}mV ")
+            print(f"Overriding voltage in neuron {neuron_id} {hold_voltage * 1e3}mV (current injection)")
+
+            for sec in cell.all:  # If your cell exposes all sections this way
+                for seg in sec:
+                    seg.v = hold_voltage * 1e3
+
+        for neuron_id, hold_voltage, _ in self.v_clamp_list.items():
+            cell = self.neurons[neuron_id].icell
+            print(f"Overriding voltage in neuron {neuron_id} {hold_voltage * 1e3}mV (voltage clamp)")
 
             for sec in cell.all:  # If your cell exposes all sections this way
                 for seg in sec:
