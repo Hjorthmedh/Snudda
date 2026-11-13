@@ -2185,13 +2185,18 @@ class SnuddaSimulate(object):
         local_cell_id = np.intersect1d(cell_id, list(self.neurons.keys()))
 
         for cid in local_cell_id:
+            neuron = self.neurons[cid]
+            if neuron.section_lookup is None:
+                neuron.build_section_lookup()
+
             sec_id = [-1]  # Soma is sec_id = -1
             sec_x = [0.5]
 
-            for sid, sec in enumerate(self.neurons[cid].icell.dend):
+            dend_sids = sorted(k for k in neuron.section_lookup.keys() if k >= 0)
+            self.write_log(f"add_volt_recording_all: neuron {cid} has {len(dend_sids)} dend sections in section_lookup")
 
-                assert int(sec.name().split('[')[-1].strip(']')) == sid, \
-                    f"Internal error, assumed {sid} was section id of {sec.name()}"
+            for sid in dend_sids:
+                sec = neuron.section_lookup[sid]
 
                 if centre_only_flag:
                     sec_id.append(sid)
