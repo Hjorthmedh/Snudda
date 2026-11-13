@@ -875,6 +875,7 @@ class SnuddaAnalyse:
                                     num_bins=86,
                                     name_str="",
                                     side_len=None,
+                                    restrict_post=True,
                                     exp_min_dist=None,
                                     exp_max_dist=None,
                                     exp_data=None,
@@ -931,14 +932,15 @@ class SnuddaAnalyse:
         pre_id = self.populations[pre_type]
         post_id = self.populations[post_type]
 
-        # We can in principle use all pairs, but here we restrict to just the
-        # pairs who's post partner are in the centre
-        # postID = self.centreNeurons(neuron_id=postID,sideLen=sideLen)
-        post_id = self.get_sub_pop(volume_type=self.volume_type,
-                                   volume_part="centre",
-                                   side_len=side_len,
-                                   neuron_id=post_id,
-                                   volume_id=volume_id)
+        if restrict_post:
+            # We can in principle use all pairs, but here we restrict to just the
+            # pairs who's post partner are in the centre
+            # postID = self.centreNeurons(neuron_id=postID,sideLen=sideLen)
+            post_id = self.get_sub_pop(volume_type=self.volume_type,
+                                       volume_part="centre",
+                                       side_len=side_len,
+                                       neuron_id=post_id,
+                                       volume_id=volume_id)
 
         if pre_type not in self.populations:
             print(f"plotConnectionProbabilityChannels: {pre_type} is not in the simulation")
