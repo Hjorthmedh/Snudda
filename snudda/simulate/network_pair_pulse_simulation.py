@@ -624,7 +624,13 @@ class SnuddaNetworkPairPulseSimulation:
 
     def analyse(self, max_dist=None, n_max_show=10, pre_id=None, post_type=None, clamp_mode=None, exp_data_file=None,
                 force_post_id=None, time_window = 0.05, include_gap_junctions=False, check_pre_type=True,
-                filter_spiking=False, spike_threshold=0):
+                filter_spiking=False, spike_threshold=0, filter_small_amps=False):
+
+        """
+            Some connections have failure rates > 0, for those you can use filter_small_amps. If it is True, we will filter anything smaller than 0.001 of max amp,
+            if it is a value, we will use that as a fraction of max_amp to filter.
+
+        """
 
         import matplotlib
         import matplotlib.pyplot as plt
@@ -644,6 +650,9 @@ class SnuddaNetworkPairPulseSimulation:
             plot_unit_string = "Voltage"
         else:
             raise ValueError(f"Unknown clamp_mode = {clamp_mode}, should be 'voltage' or 'current'")
+
+        if filter_small_amps == True:
+            filter_small_amps = 1e-3
         
         self.setup_exp_data(data_file=exp_data_file)
 
@@ -798,7 +807,11 @@ class SnuddaNetworkPairPulseSimulation:
                 if idx_max[i] in [0, len(data) - 1]:
                     # Last or first position selected, probably incorrectly detected
                     amp[i] = np.nan
-        
+
+            if filter_small_amps:
+                # Filter out small amps
+                amp[amp < np.nanmax(amp) * filter_small_amps] = np.nan
+
         except:
             import traceback
             t_str = traceback.format_exc()
@@ -819,7 +832,11 @@ class SnuddaNetworkPairPulseSimulation:
         matplotlib.rcParams.update({'font.size': 22})
 
         sort_idx = np.argsort(amp)
+        # Remove sort_idx that correspond to NaN
+        sort_idx = sort_idx[~np.isnan(amp[sort_idx])]
+
         if n_max_show is not None and len(sort_idx) > n_max_show:
+
             keep_idx = [sort_idx[int(np.round(x))] for x in np.linspace(0, len(sort_idx) - 1, n_max_show)]
         else:
             keep_idx = sort_idx
