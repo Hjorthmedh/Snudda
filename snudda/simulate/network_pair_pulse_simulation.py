@@ -86,6 +86,7 @@ class SnuddaNetworkPairPulseSimulation:
                  exp_type=None,
                  current_injection=10e-9,
                  current_injection_duration=1e-3,
+                 holding_current_init_time = 0.1,
                  n_stimulated_neurons=None, 
                  hold_voltage=-80e-3,
                  max_dist=50e-6,
@@ -105,6 +106,7 @@ class SnuddaNetworkPairPulseSimulation:
         self.exp_type = exp_type
 
         self.n_stimulated_neurons = n_stimulated_neurons
+        self.holding_current_init_time = holding_current_init_time
 
         self.pre_type = pre_type
 
@@ -149,7 +151,7 @@ class SnuddaNetworkPairPulseSimulation:
               slice_depth = 150e-6,
               slice_side_len = 500e-6,
               random_seed=None, density=80500, d_min=15e-6,
-              parallel=False):
+              parallel=False, n_workers=None):
 
         if random_seed:
             self.random_seed = random_seed
@@ -164,7 +166,7 @@ class SnuddaNetworkPairPulseSimulation:
             slice_depth = None
 
         from snudda import Snudda
-        snd = Snudda(network_path=self.network_path, parallel=parallel)
+        snd = Snudda(network_path=self.network_path, parallel=parallel, n_workers=n_workers)
 
         snd.init_tiny(neuron_paths=neuron_paths,
                       neuron_names=neuron_names,
@@ -182,8 +184,10 @@ class SnuddaNetworkPairPulseSimulation:
 
         if cut_outside:
             from snudda.utils.cut import SnuddaCut
+            cut_equation = f"(-{slice_depth/2} < z) & (z < {slice_depth/2})"
+            print(f"Cutting silce using {cut_equation}")
             cut = SnuddaCut(network_file=self.network_file,
-                            cut_equation="(-75e-6 < z) & (z < 75e-6)",
+                            cut_equation=cut_equation,
                             show_plot=True)
 
             self.network_file = cut.out_file_name
@@ -297,10 +301,13 @@ class SnuddaNetworkPairPulseSimulation:
                                 clamp_id=None,  # Override for neurons to clamp
                                 stim_all_at_once=False,
                                 return_run_str=False,
-                                holding_current_init_time=0.1,
+                                holding_current_init_time=None,
                                 max_workers=None,
                                 inactivate_neuron=None,
                                 inactivate_neuron_channel=None):
+
+        if holding_current_init_time is not None:
+            self.holding_current_init_time = holding_current_init_time
 
         if clamp_mode not in ("current", "voltage"):
             raise ValueError(f"Clamp mode {clamp_mode} is not supported. (use 'voltage' or 'current')")
@@ -322,10 +329,10 @@ class SnuddaNetworkPairPulseSimulation:
 
         post_id = list(set([x["neuron_id"] for x in network_info["neurons"]]) - set(self.pre_id))
 
-        self.inj_spacing = float(max(self.inj_spacing, holding_current_init_time))
+        # self.inj_spacing = float(max(self.inj_spacing, holding_current_init_time))
 
         # inj_info contains (pre_id, inj_start_time)
-        self.inj_info = list(zip(self.pre_id, self.inj_spacing + self.inj_spacing * np.arange(0, len(self.pre_id))))
+        self.inj_info = list(zip(self.pre_id, self.holding_current_init_time + self.inj_spacing * np.arange(0, len(self.pre_id))))
 
         try:
             sim_end = self.inj_info[-1][1] + self.inj_spacing + self.inj_duration
@@ -343,7 +350,7 @@ class SnuddaNetworkPairPulseSimulation:
         if not stim_all_at_once:
             print(f"Sequential stimulation")
             # Sequential stimulation
-            for pre_id, start_time in zip(self.pre_id, self.inj_spacing + self.inj_spacing * np.arange(0, len(self.pre_id))):
+            for pre_id, start_time in zip(self.pre_id, self.holding_current_init_time + self.inj_spacing * np.arange(0, len(self.pre_id))):
                 start_time = float(start_time)
                 current_injection_info[str(pre_id)] = { "time": [0, start_time, start_time + 1e-6,
                                                                  start_time + self.inj_duration,
@@ -354,14 +361,14 @@ class SnuddaNetworkPairPulseSimulation:
         else:
             print("Stimulate all presynaptic neurons at once")
             # All at once stimulation
-            sim_end = 2 * self.inj_spacing
+            sim_end = self.holding_current_init_time + self.inj_duration + self.inj_spacing
 
-            self.inj_info = [(self.pre_id, self.inj_spacing)]  # All presynaptic neurons are stimulated at t=self.inj_spacing
+            self.inj_info = [(self.pre_id, self.holding_current_init_time)]  # All presynaptic neurons are stimulated at t=self.holding_current_init_time
 
             for pre_id in self.pre_id:
-                current_injection_info[str(pre_id)] = { "time": [0, self.inj_spacing, self.inj_spacing + 1e-6,
-                                                                 self.inj_spacing + self.inj_duration,
-                                                                 self.inj_spacing + self.inj_duration + 1e-6,
+                current_injection_info[str(pre_id)] = { "time": [0, self.holding_current_init_time, self.holding_current_init_time + 1e-6,
+                                                                 self.holding_current_init_time + self.inj_duration,
+                                                                 self.holding_current_init_time + self.inj_duration + 1e-6,
                                                                  sim_end],
                                                         "current": [0, 0, self.cur_inj, self.cur_inj, 0, 0] }
 
@@ -395,7 +402,7 @@ class SnuddaNetworkPairPulseSimulation:
                        "current_injection_info": current_injection_info,
                        "reversal_potential_override": reversal_potential,  # {"ALL": {"tmGabaA": gaba_rev}},
                        "hold_voltage": self.hold_v,
-                       "holding_current_init_time": holding_current_init_time
+                       "holding_current_init_time": self.holding_current_init_time
                        }
 
         if clamp_mode == "voltage":
@@ -557,7 +564,7 @@ class SnuddaNetworkPairPulseSimulation:
                 self.pre_id = self.pre_id[:self.n_stimulated_neurons]
 
         # inj_info contains (pre_id, inj_start_time)
-        self.inj_info = list(zip(self.pre_id, self.inj_spacing + self.inj_spacing * np.arange(0, len(self.pre_id))))
+        self.inj_info = list(zip(self.pre_id, self.holding_current_init_time + self.inj_spacing * np.arange(0, len(self.pre_id))))
 
         sim_end = self.inj_info[-1][1] + self.inj_spacing
 
@@ -616,7 +623,8 @@ class SnuddaNetworkPairPulseSimulation:
     # This extracts all the voltage deflections, to see how strong they are
 
     def analyse(self, max_dist=None, n_max_show=10, pre_id=None, post_type=None, clamp_mode=None, exp_data_file=None,
-                force_post_id=None, time_window = 0.05, include_gap_junctions=False, check_pre_type=True):
+                force_post_id=None, time_window = 0.05, include_gap_junctions=False, check_pre_type=True,
+                filter_spiking=False, spike_threshold=0):
 
         import matplotlib
         import matplotlib.pyplot as plt
@@ -679,13 +687,20 @@ class SnuddaNetworkPairPulseSimulation:
         self.possible_post_id = [x["neuron_id"] for x in self.data["neurons"] if x["type"] == post_type]
         self.possible_post_id = list(set(self.possible_post_id)-set(self.pre_id))
 
+        if filter_spiking:
+            volt_data = ssd.get_data("voltage", self.possible_post_id)[0]
+            old_len = len(self.possible_post_id)
+            self.possible_post_id = [p_id for p_id in self.possible_post_id if all(volt_data[p_id] < spike_threshold)]
+            if len(self.possible_post_id) < old_len:
+                print(f"Removed {old_len - len(self.possible_post_id)} possible post synaptic neurons that spiked ({len(self.possible_post_id)} kept)")
+
         recorded_data = ssd.get_data(data_unit, self.possible_post_id)[0]
 
         # injInfo contains (preID,injStartTime)
         if self.stim_all_at_once:
-            self.inj_info = [(self.pre_id, self.inj_spacing)]
+            self.inj_info = [(self.pre_id, self.holding_current_init_time)]
         else:
-            self.inj_info = zip(self.pre_id, self.inj_spacing + self.inj_spacing * np.arange(0, len(self.pre_id)))
+            self.inj_info = zip(self.pre_id, self.holding_current_init_time + self.inj_spacing * np.arange(0, len(self.pre_id)))
 
         # For each pre synaptic neuron, find the voltage deflection in each
         # of its post synaptic neurons
@@ -779,6 +794,10 @@ class SnuddaNetworkPairPulseSimulation:
                 idx_max[i] = np.argmax(np.abs(data - data[0]))
                 t_max[i] = t[idx_max[i]] - t[0]
                 amp[i] = data[idx_max[i]] - data[0]
+
+                if idx_max[i] in [0, len(data) - 1]:
+                    # Last or first position selected, probably incorrectly detected
+                    amp[i] = np.nan
         
         except:
             import traceback
@@ -791,9 +810,9 @@ class SnuddaNetworkPairPulseSimulation:
             print("No responses... too short distance!")
             return None, None, None, None 
 
-        print(f"Min amp: {np.min(amp)}")
-        print(f"Max amp: {np.max(amp)}")
-        print(f"Mean amp: {np.mean(amp)} +/- {np.std(amp)}")
+        print(f"Min amp: {np.nanmin(amp)}")
+        print(f"Max amp: {np.nanmax(amp)}")
+        print(f"Mean amp: {np.nanmean(amp)} +/- {np.nanstd(amp)}")
         print(f"Amps: {amp}")
 
         # Now we have all synapse deflections in synapseData
@@ -824,8 +843,8 @@ class SnuddaNetworkPairPulseSimulation:
             plt.errorbar(t_end, exp_mean * plot_conversion, exp_std * plot_conversion, ecolor="red",
                          marker='o', color="red")
             
-            model_mean = np.mean(amp) * plot_conversion
-            model_std = np.std(amp) * plot_conversion
+            model_mean = np.nanmean(amp) * plot_conversion
+            model_std = np.nanstd(amp) * plot_conversion
             plt.errorbar(t_end - 2, model_mean, model_std, ecolor="blue",
                          marker="o", color="blue")
 
@@ -939,7 +958,7 @@ class SnuddaNetworkPairPulseSimulation:
             plot_unit = "mV"
             plot_unit_string = "Voltage"
         else:
-            raise ValueError(f"Unknown clamp_mode = {clamp_mode}, should be 'voltage' or 'current'")
+            raise ValueError(f"Unknown clamp_mode = {clamp_mode}, should be voltage or current ")
 
         self.setup_exp_data(data_file=exp_data_file)
 
@@ -981,9 +1000,9 @@ class SnuddaNetworkPairPulseSimulation:
         recorded_data_pre = ssd.get_data(data_unit, self.pre_id)[0]
 
         if self.stim_all_at_once:
-            self.inj_info = [(self.pre_id, self.inj_spacing)]
+            self.inj_info = [(self.pre_id, self.holding_current_init_time)]
         else:
-            self.inj_info = zip(self.pre_id, self.inj_spacing + self.inj_spacing * np.arange(0, len(self.pre_id)))
+            self.inj_info = zip(self.pre_id, self.holding_current_init_time + self.inj_spacing * np.arange(0, len(self.pre_id)))
 
         synapse_data = []
 

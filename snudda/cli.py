@@ -31,7 +31,7 @@ def snudda_cli():
     create_parser.add_argument("-input", "--input", help="Input config")
     create_parser.add_argument("-overwrite", "--overwrite", help="Allow overwriting of old directory", action="store_true")
     create_parser.add_argument("-parallel", "--parallel", action="store_true", default=False)
-    create_parser.add_argument("-n_workers", "--n_workers", default=None)
+    create_parser.add_argument("-n_workers", "--n_workers", default=None, type=int)
 
     create_parser.add_argument("--profile", help="Run python cProfile", action="store_true")
     create_parser.add_argument("--verbose", action="store_true")
@@ -72,6 +72,7 @@ def snudda_cli():
     place_parser.add_argument("-parallel", "--parallel", action="store_true", default=False)
     place_parser.add_argument("-ipython_profile", "--ipython_profile", default=None)
     place_parser.add_argument("-ipython_timeout", "--ipython_timeout", default=120, type=int)
+    place_parser.add_argument("-n_workers", "--n_workers", default=None, type=int)
 
     detect_parser = sub_parsers.add_parser("detect")
     detect_parser.add_argument("path", help="Location of network")
@@ -86,6 +87,8 @@ def snudda_cli():
     detect_parser.add_argument("-parallel", "--parallel", action="store_true", default=False)
     detect_parser.add_argument("-ipython_profile", "--ipython_profile", default=None)
     detect_parser.add_argument("-ipython_timeout", "--ipython_timeout", default=120, type=int)
+    detect_parser.add_argument("-n_workers", "--n_workers", default=None, type=int)
+
 
     prune_parser = sub_parsers.add_parser("prune")
     prune_parser.add_argument("path", help="Location of network")
@@ -102,6 +105,8 @@ def snudda_cli():
     prune_parser.add_argument("-parallel", "--parallel", action="store_true", default=False)
     prune_parser.add_argument("-ipython_profile", "--ipython_profile", default=None)
     prune_parser.add_argument("-ipython_timeout", "--ipython_timeout", default=120, type=int)
+    prune_parser.add_argument("-n_workers", "--n_workers", default=None, type=int)
+
 
     input_parser = sub_parsers.add_parser("input")
     input_parser.add_argument("path", help="Location of network")
@@ -119,6 +124,8 @@ def snudda_cli():
     input_parser.add_argument("-ipython_profile", "--ipython_profile", default=None)
     input_parser.add_argument("-ipython_timeout", "--ipython_timeout", default=120, type=int)
     input_parser.add_argument("-no_meta_input", "--no_meta_input", help="Do not use meta.json as stimulation input", action="store_true", default=False)
+    input_parser.add_argument("-n_workers", "--n_workers", default=None, type=int)
+
 
     simulate_parser = sub_parsers.add_parser("simulate")
     simulate_parser.add_argument("path", help="Location of network")

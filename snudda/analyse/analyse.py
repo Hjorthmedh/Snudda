@@ -875,6 +875,7 @@ class SnuddaAnalyse:
                                     num_bins=86,
                                     name_str="",
                                     side_len=None,
+                                    restrict_post=True,
                                     exp_min_dist=None,
                                     exp_max_dist=None,
                                     exp_data=None,
@@ -931,14 +932,15 @@ class SnuddaAnalyse:
         pre_id = self.populations[pre_type]
         post_id = self.populations[post_type]
 
-        # We can in principle use all pairs, but here we restrict to just the
-        # pairs who's post partner are in the centre
-        # postID = self.centreNeurons(neuron_id=postID,sideLen=sideLen)
-        post_id = self.get_sub_pop(volume_type=self.volume_type,
-                                   volume_part="centre",
-                                   side_len=side_len,
-                                   neuron_id=post_id,
-                                   volume_id=volume_id)
+        if restrict_post:
+            # We can in principle use all pairs, but here we restrict to just the
+            # pairs who's post partner are in the centre
+            # postID = self.centreNeurons(neuron_id=postID,sideLen=sideLen)
+            post_id = self.get_sub_pop(volume_type=self.volume_type,
+                                       volume_part="centre",
+                                       side_len=side_len,
+                                       neuron_id=post_id,
+                                       volume_id=volume_id)
 
         if pre_type not in self.populations:
             print(f"plotConnectionProbabilityChannels: {pre_type} is not in the simulation")
@@ -2726,6 +2728,33 @@ class SnuddaAnalyse:
         pdb.set_trace()
 
     ############################################################################
+
+    def soma_dist_to_targets(self, pre_type, post_type):
+
+        pre_id = np.array(self.network_load.get_neuron_id_of_type(pre_type))
+        post_id = np.array(self.network_load.get_neuron_id_of_type(post_type))
+
+        pre_positions = self.network_load.data["neuron_positions"][pre_id, :]
+        post_positions = self.network_load.data["neuron_positions"][post_id, :]
+
+        con_mat = self.connection_matrix[pre_id, :][:, post_id]
+
+        # Only compute distances for connected pairs, no full distance matrix needed
+        rows, cols = con_mat.nonzero()
+
+        if pre_type == post_type:
+            keep = pre_id[rows] != post_id[cols]  # drop self-connections if any
+            rows, cols = rows[keep], cols[keep]
+
+        all_dist = np.linalg.norm(pre_positions[rows, :] - post_positions[cols, :], axis=1) * 1e6  # micrometers
+        plt.figure()
+        plt.hist(all_dist, weights=np.full(all_dist.shape, 1/len(pre_id)), bins=20)
+        plt.xlabel(r"Distance ($\mu$m)")
+        plt.ylabel("Connection count")
+        plt.title(f"{self.neuron_name(pre_type)} to {self.neuron_name(post_type)}")
+        self.save_figure(plt, f"soma-soma-dist-{pre_type}-{post_type}")
+
+
 
     # Number of ChINs connected to each MS
 
