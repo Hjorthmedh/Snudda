@@ -91,11 +91,22 @@ class RunMultiplePairRecordingExperiments:
         if isinstance(post_type, list):
             return all([self.analyse(exp_key=exp_key, post_type=pt) for pt in post_type])
 
+        exp_anal = exp_info.get("analyse", {})
+
+        filter_small_amps = exp_anal.get("filter_small_amps", False)
+        filter_spiking = exp_anal.get("filter_spiking", False)
+        spike_threshold = exp_anal.get("spike_threshold", 0)
+        time_window = exp_anal.get("time_window", 0.050)
 
         model_mean, model_sd, trace_fig, hist_fig = \
             self.pps.analyse(post_type=post_type,
                              exp_data_file=exp_info["experiment"],
-                             clamp_mode=exp_info["setup"]["clamp_mode"])
+                             clamp_mode=exp_info["setup"]["clamp_mode"],
+                             time_window = time_window,
+                             spike_threshold = spike_threshold,
+                             filter_spiking = filter_spiking,
+                             filter_small_amps=filter_small_amps)
+
 
         pre_type = exp_info["setup"]["pre_type"]
         exp_name = exp_info["exp_name"]
