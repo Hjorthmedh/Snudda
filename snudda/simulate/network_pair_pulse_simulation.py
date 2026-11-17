@@ -862,6 +862,8 @@ class SnuddaNetworkPairPulseSimulation:
             
             model_mean = np.nanmean(amp) * plot_conversion
             model_std = np.nanstd(amp) * plot_conversion
+
+
             plt.errorbar(t_end - 2, model_mean, model_std, ecolor="blue",
                          marker="o", color="blue")
 
@@ -896,7 +898,10 @@ class SnuddaNetworkPairPulseSimulation:
 
         plt.pause(5)
 
-        return model_mean, model_std, trace_fig, hist_fig
+        model_mean_raw = np.nanmean(amp)
+        model_std_raw = np.nanstd(amp)
+
+        return model_mean_raw, model_std_raw, trace_fig, hist_fig
 
     ############################################################################
 
@@ -941,8 +946,11 @@ class SnuddaNetworkPairPulseSimulation:
             data_file = snudda_parse_path(os.path.join("$DATA", "synapses", "pair_pulse_experiment_data.json"),
                                           self.snudda_data)
 
-        with open(data_file, "r") as f:
-            exp_data = json.load(f)
+        if isinstance(data_file, dict):
+            exp_data = data_file
+        else:
+            with open(data_file, "r") as f:
+                exp_data = json.load(f)
 
         for exp_name, exp_info in exp_data.items():
             for pre_neuron in exp_info:
