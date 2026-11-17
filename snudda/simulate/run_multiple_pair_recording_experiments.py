@@ -91,15 +91,13 @@ class RunMultiplePairRecordingExperiments:
         if isinstance(post_type, list):
             return all([self.analyse(exp_key=exp_key, post_type=pt) for pt in post_type])
 
-        pre_type = exp_info["setup"]["pre_type"]
 
         model_mean, model_sd, trace_fig, hist_fig = \
-            self.pps.analyse(pre_type=pre_type,
-                             post_type=post_type,
+            self.pps.analyse(post_type=post_type,
                              exp_data_file=exp_info["experiment"],
                              clamp_mode=exp_info["setup"]["clamp_mode"])
 
-
+        pre_type = exp_info["setup"]["pre_type"]
         exp_name = exp_info["exp_name"]
         exp_text = ""
         is_ok = False
