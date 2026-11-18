@@ -1,6 +1,7 @@
 # This code loads all the setup from a JSON file, and the simulates it
 # import os
 import json
+import shutil
 import subprocess
 import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -80,6 +81,11 @@ class RunMultiplePairRecordingExperiments:
         run_str = self.pps.write_simulation_config(gaba_rev=exp_setup["GABA_rev"],
                                                    clamp_mode=exp_setup["clamp_mode"],
                                                    return_run_str=True)
+
+        # On Cray/Dardel mpirun is not available; use srun instead.
+        if shutil.which("mpirun") is None and shutil.which("srun") is not None:
+            run_str = run_str.replace("mpirun", "srun", 1)
+
         print(f"Running:\n   {run_str}")
         # os.system(run_str)
         subprocess.run(run_str, shell=True, check=True)

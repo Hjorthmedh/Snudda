@@ -142,6 +142,7 @@ class SnuddaNetworkPairPulseSimulation:
         self.inj_info = []
         self.exp_data = dict()
         self.random_seed = random_seed
+        self.pre_virtual = False  # Set True by ablate_post(make_pre_virtual=True)
 
     ############################################################################
 
@@ -192,7 +193,40 @@ class SnuddaNetworkPairPulseSimulation:
 
             self.network_file = cut.out_file_name
 
-    def ablate_post(self, pre_id=None, post_type=None, remove_pre_without_targets=False, include_gap_junctions=False):
+    def setup_from_master(self, master_network_path, slice_side_len, slice_depth):
+        """Set up experiment network by cutting from a pre-built master network.
+
+        Skips the expensive place/detect/prune phase. The master network must already
+        have been built with build_master_network.py (produces network-synapses.hdf5).
+
+        Args:
+            master_network_path: Path to master network containing network-synapses.hdf5
+            slice_side_len: Side length of the square slice to cut (metres)
+            slice_depth: Depth of the slice in z (metres)
+        """
+        import os
+        from snudda.utils.cut import SnuddaCut
+
+        os.makedirs(self.network_path, exist_ok=True)
+
+        master_file = os.path.join(master_network_path, "network-synapses.hdf5")
+        if not os.path.exists(master_file):
+            raise FileNotFoundError(f"Master network not found: {master_file}")
+
+        half_len = slice_side_len / 2
+        half_depth = slice_depth / 2
+        cut_equation = f"(abs(x) < {half_len}) & (abs(y) < {half_len}) & (abs(z) < {half_depth})"
+        print(f"Cutting master network: {cut_equation}")
+
+        out_file = os.path.join(self.network_path, "network-cut-slice.hdf5")
+        cut = SnuddaCut(network_file=master_file,
+                        cut_equation=cut_equation,
+                        out_file_name=out_file)
+        self.network_file = cut.out_file_name
+        print(f"Cut complete: {self.network_file}")
+
+    def ablate_post(self, pre_id=None, post_type=None, remove_pre_without_targets=False,
+                    include_gap_junctions=False, make_pre_virtual=False):
 
         # This ablates neurons that are not connected to the pre synaptic neurons
         sa = SnuddaAblateNetwork(network_file=self.network_file)
@@ -221,6 +255,12 @@ class SnuddaNetworkPairPulseSimulation:
                                              remove_pre_without_targets=remove_pre_without_targets,
                                              include_gap_junctions=include_gap_junctions)
 
+        if make_pre_virtual:
+            # Mark pre-neurons as virtual (spike-only, no morphology simulated).
+            # Spike times are written separately by write_virtual_input_spikes().
+            sa.make_virtual_neuron_id = list(self.pre_id)
+            self.pre_virtual = True
+
         new_network_file = self.network_file.replace(".hdf5", "") + "-ablated.hdf5"
 
         sa.write_network(out_file_name=new_network_file)
@@ -237,6 +277,39 @@ class SnuddaNetworkPairPulseSimulation:
 
 
         self.network_file = new_network_file
+
+    def write_virtual_input_spikes(self, stim_all_at_once=False):
+        """Write input-spikes.hdf5 for virtual pre-neurons.
+
+        Spike times match the staggered (or simultaneous) schedule that
+        write_simulation_config would use for current injection.
+
+        Args:
+            stim_all_at_once: If True all pre-neurons spike at holding_current_init_time.
+
+        Returns:
+            Path to the written input-spikes.hdf5 file.
+        """
+        import h5py
+
+        snudda_loader = SnuddaLoad(network_file=self.network_file)
+        id_to_name = {n["neuron_id"]: n["name"] for n in snudda_loader.data["neurons"]}
+        snudda_loader.close()
+
+        input_spikes_file = os.path.join(self.network_path, "input-spikes.hdf5")
+        with h5py.File(input_spikes_file, "w") as f:
+            grp = f.create_group("input")
+            for i, nid in enumerate(self.pre_id):
+                if stim_all_at_once:
+                    t_ms = np.array([self.holding_current_init_time * 1e3])
+                else:
+                    t_spike = self.holding_current_init_time + self.inj_spacing * i
+                    t_ms = np.array([t_spike * 1e3])
+                name = id_to_name[nid]
+                grp.create_group(name).create_dataset("spikes", data=t_ms)
+
+        print(f"Virtual pre-neuron spikes written to: {input_spikes_file}")
+        return input_spikes_file
 
     def setup_OLD(self, n_dSPN=120, n_iSPN=120, n_FS=20, n_LTS=0, n_ChIN=0,
               volume_type=None,
@@ -347,7 +420,15 @@ class SnuddaNetworkPairPulseSimulation:
 
         self.stim_all_at_once = stim_all_at_once
 
-        if not stim_all_at_once:
+        if self.pre_virtual:
+            # Pre-neurons are virtual (spike-only); write their spikes to input-spikes.hdf5
+            # and skip current injection — they fire at the same times as the injection schedule.
+            input_spikes_file = self.write_virtual_input_spikes(stim_all_at_once=stim_all_at_once)
+            if stim_all_at_once:
+                sim_end = self.holding_current_init_time + self.inj_duration + self.inj_spacing
+                self.inj_info = [(self.pre_id, self.holding_current_init_time)]
+            # current_injection_info stays empty for pre-neurons; they drive via VecStim
+        elif not stim_all_at_once:
             print(f"Sequential stimulation")
             # Sequential stimulation
             for pre_id, start_time in zip(self.pre_id, self.holding_current_init_time + self.inj_spacing * np.arange(0, len(self.pre_id))):
@@ -404,6 +485,9 @@ class SnuddaNetworkPairPulseSimulation:
                        "hold_voltage": self.hold_v,
                        "holding_current_init_time": self.holding_current_init_time
                        }
+
+        if self.pre_virtual:
+            sim_config["input_file"] = "$network_path/input-spikes.hdf5"
 
         if clamp_mode == "voltage":
             volt_clamp_info = dict()
