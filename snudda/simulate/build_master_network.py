@@ -8,8 +8,9 @@ Usage (local test):
     python build_master_network.py <network_path> [--snudda_data PATH]
 
 Usage (Dardel, inside SLURM):
-    srun -n <N> python build_master_network.py <network_path>
+    python build_master_network.py <network_path> --n_workers $SLURM_NTASKS
 
+Place/detect/prune use ipyparallel (not MPI), so run as plain python, not srun.
 The network_path will contain network-synapses.hdf5 when done.
 """
 
@@ -42,7 +43,7 @@ NEURON_COUNTS = {k: max(1, round(v * NEURON_DENSITY * VOLUME_MM3))
                  for k, v in CELL_FRACTIONS.items()}
 
 
-def build(network_path, snudda_data=None, random_seed=None, parallel=True):
+def build(network_path, snudda_data=None, random_seed=None, parallel=True, n_workers=None):
     if snudda_data is None:
         snudda_data = os.environ.get("SNUDDA_DATA")
     if snudda_data is None:
@@ -63,7 +64,7 @@ def build(network_path, snudda_data=None, random_seed=None, parallel=True):
         print(f"  {n}: {c}")
     print(f"  Total: {sum(number_of_neurons)}")
 
-    sn = Snudda(network_path=network_path)
+    sn = Snudda(network_path=network_path, parallel=parallel, n_workers=n_workers)
 
     sn.init_tiny(neuron_paths=neuron_paths,
                  neuron_names=neuron_names,
@@ -76,7 +77,7 @@ def build(network_path, snudda_data=None, random_seed=None, parallel=True):
                  side_len=MASTER_VOLUME_SIDE,
                  slice_depth=MASTER_VOLUME_DEPTH)
 
-    sn.create_network(parallel=parallel)
+    sn.create_network()
 
     meta = write_network_meta(network_path, snudda_data=snudda_data)
     if not meta.get("snudda_git", {}).get("clean", True):
@@ -94,9 +95,15 @@ if __name__ == "__main__":
     parser.add_argument("--random_seed", type=int, default=None)
     parser.add_argument("--no_parallel", action="store_true",
                         help="Disable ipyparallel (single-process, for testing)")
+    parser.add_argument("--n_workers", type=int, default=None,
+                        help="Number of ipyparallel workers (default: $N_WORKERS or auto)")
     args = parser.parse_args()
+
+    n_workers = args.n_workers or (int(os.environ["N_WORKERS"])
+                                   if "N_WORKERS" in os.environ else None)
 
     build(network_path=args.network_path,
           snudda_data=args.snudda_data,
           random_seed=args.random_seed,
-          parallel=not args.no_parallel)
+          parallel=not args.no_parallel,
+          n_workers=n_workers)
