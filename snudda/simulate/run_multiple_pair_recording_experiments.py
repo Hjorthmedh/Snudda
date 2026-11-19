@@ -69,7 +69,7 @@ class RunMultiplePairRecordingExperiments:
         self.pps.ablate_post(remove_pre_without_targets=True)
 
 
-    def run_slice(self, exp_key):
+    def run_slice(self, exp_key, runner="mpirun"):
 
         exp_info = self.experiment_config[exp_key]
         exp_setup = exp_info["setup"]
@@ -79,7 +79,8 @@ class RunMultiplePairRecordingExperiments:
 
         run_str = self.pps.write_simulation_config(gaba_rev=exp_setup["GABA_rev"],
                                                    clamp_mode=exp_setup["clamp_mode"],
-                                                   return_run_str=True)
+                                                   return_run_str=True,
+                                                   runner=runner)
         print(f"Running:\n   {run_str}")
         # os.system(run_str)
         subprocess.run(run_str, shell=True, check=True)
