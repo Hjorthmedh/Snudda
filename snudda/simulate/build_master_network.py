@@ -17,6 +17,7 @@ import argparse
 import os
 
 from snudda.core import Snudda
+from snudda.utils.reproducibility import write_network_meta
 
 
 # Realistic cell-type fractions and density for mouse striatum (snudda_data).
@@ -77,6 +78,10 @@ def build(network_path, snudda_data=None, random_seed=None, parallel=True):
                  slice_depth=MASTER_VOLUME_DEPTH)
 
     sn.create_network(parallel=parallel)
+
+    meta = write_network_meta(network_path, snudda_data=snudda_data)
+    if not meta.get("snudda_git", {}).get("clean", True):
+        print("WARNING: Snudda repo has uncommitted changes — see network_build_meta.json")
 
     print(f"Master network complete: {network_path}/network-synapses.hdf5")
 

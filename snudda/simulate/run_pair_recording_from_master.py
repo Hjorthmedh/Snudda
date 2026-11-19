@@ -131,7 +131,9 @@ class RunPairRecordingFromMaster:
             run_str = run_str.replace("mpirun", "srun", 1)
 
         print(f"Running:\n   {run_str}")
-        subprocess.run(run_str, shell=True, check=True)
+        result = subprocess.run(run_str, shell=True)
+        if result.returncode != 0:
+            print(f"Warning: srun returned exit code {result.returncode}, attempting to analyse anyway.")
 
     def analyse(self, exp_key, post_type=None):
         exp_info = self.experiment_config[exp_key]

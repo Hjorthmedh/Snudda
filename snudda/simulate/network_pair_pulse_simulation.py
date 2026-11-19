@@ -60,6 +60,7 @@ from snudda.utils import snudda_parse_path
 from snudda.utils.snudda_path import get_snudda_data
 
 from snudda.utils.ablate_network import SnuddaAblateNetwork
+from snudda.utils.reproducibility import write_network_meta
 
 # We want to match Taverna 2008 data:
 
@@ -193,6 +194,8 @@ class SnuddaNetworkPairPulseSimulation:
 
             self.network_file = cut.out_file_name
 
+        write_network_meta(self.network_path, snudda_data=self.snudda_data)
+
     def setup_from_master(self, master_network_path, slice_side_len, slice_depth):
         """Set up experiment network by cutting from a pre-built master network.
 
@@ -224,6 +227,7 @@ class SnuddaNetworkPairPulseSimulation:
                         out_file_name=out_file)
         self.network_file = cut.out_file_name
         print(f"Cut complete: {self.network_file}")
+        write_network_meta(self.network_path, snudda_data=self.snudda_data)
 
     def ablate_post(self, pre_id=None, post_type=None, remove_pre_without_targets=False,
                     include_gap_junctions=False, make_pre_virtual=False):
@@ -258,7 +262,7 @@ class SnuddaNetworkPairPulseSimulation:
         if make_pre_virtual:
             # Mark pre-neurons as virtual (spike-only, no morphology simulated).
             # Spike times are written separately by write_virtual_input_spikes().
-            sa.make_virtual_neuron_id = list(self.pre_id)
+            sa.make_virtual(self.pre_id)
             self.pre_virtual = True
 
         new_network_file = self.network_file.replace(".hdf5", "") + "-ablated.hdf5"
