@@ -304,7 +304,8 @@ class SnuddaNetworkPairPulseSimulation:
                                 holding_current_init_time=None,
                                 max_workers=None,
                                 inactivate_neuron=None,
-                                inactivate_neuron_channel=None):
+                                inactivate_neuron_channel=None,
+                                runner="mpirun"):
 
         if holding_current_init_time is not None:
             self.holding_current_init_time = holding_current_init_time
@@ -448,7 +449,7 @@ class SnuddaNetworkPairPulseSimulation:
         else:
             worker_str = ""
 
-        run_cmd = f"mpirun {worker_str} snudda simulate {self.network_path} --simulation_config {self.simulation_config_file}"
+        run_cmd = f"{runner} {worker_str} snudda simulate {self.network_path} --simulation_config {self.simulation_config_file}"
 
         if return_run_str:
             return run_cmd
