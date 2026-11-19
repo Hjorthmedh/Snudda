@@ -63,8 +63,7 @@ def build(network_path, snudda_data=None, random_seed=None, parallel=True):
         print(f"  {n}: {c}")
     print(f"  Total: {sum(number_of_neurons)}")
 
-    sn = Snudda(network_path=network_path, snudda_data=snudda_data,
-                random_seed=random_seed)
+    sn = Snudda(network_path=network_path)
 
     sn.init_tiny(neuron_paths=neuron_paths,
                  neuron_names=neuron_names,
