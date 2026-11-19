@@ -23,7 +23,7 @@ from snudda.utils.reproducibility import write_network_meta
 
 # Realistic cell-type fractions and density for mouse striatum (snudda_data).
 # Volume: 1 mm × 1 mm × 400 µm = 0.4 mm³, density ~85 000 /mm³.
-MASTER_VOLUME_SIDE = 1e-3     # metres
+MASTER_VOLUME_SIDE = 500e-6   # metres
 MASTER_VOLUME_DEPTH = 400e-6  # metres
 NEURON_DENSITY = 85000        # per mm³
 
