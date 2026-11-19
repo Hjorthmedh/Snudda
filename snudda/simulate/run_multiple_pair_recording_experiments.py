@@ -67,7 +67,7 @@ class RunMultiplePairRecordingExperiments:
                        number_of_neurons=number_of_neurons,
                        connection_config=exp_info["connection_config"], parallel=True)
 
-        self.pps.ablate_post(remove_pre_without_targets=True)
+        self.pps.ablate_post(remove_pre_without_targets=True, make_pre_virtual=True)
 
 
     def run_slice(self, exp_key):
