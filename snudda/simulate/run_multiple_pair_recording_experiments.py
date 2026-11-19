@@ -139,8 +139,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser("Slice pair pulse experiment")
     parser.add_argument("exp_file", type=str)
     parser.add_argument("--exp_key", type=str, default=None)
+    parser.add_argument("--runner", type=str, default="mpirun")
     args = parser.parse_args()
 
-    mpr = RunMultiplePairRecordingExperiments(experiment_config=args.exp_file)
+    mpr = RunMultiplePairRecordingExperiments(experiment_config=args.exp_file,
+                                              runner=args.runner)
 
     mpr.process(exp_key=args.exp_key)
