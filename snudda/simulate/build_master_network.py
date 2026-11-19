@@ -39,38 +39,37 @@ _DISPLAY_NAME = {
     "chin": "ChIN", "lts": "LTS", "th": "TH", "ngf": "NGF",
 }
 
-# Fallback fractions for types whose snudda_data directory lacks a <type>.json.
-# Values sourced from BasalGangliaData/data/neurons/striatum/<type>/<type>.json.
-_FALLBACK_FRACTIONS = {
-    "dSPN": 0.475,
-    "iSPN": 0.475,
-    "FS":   0.013,
-}
-
-
 def _read_fractions(snudda_data):
-    """Read cell-type fractions from snudda_data neuron JSON files.
+    """Read cell-type fractions from neuron JSON files.
 
-    Each neurons/striatum/<type>/<type>.json has a top-level key (the display
-    name) whose value holds a 'fraction' field.  Types that lack this JSON fall
-    back to _FALLBACK_FRACTIONS (values from BasalGangliaData).
+    For each cell type, looks for neurons/striatum/<type>/<type>.json in:
+      1. snudda_data  (deployed copy, may not have all types)
+      2. ~/BasalGangliaData/data  (source repo, always complete)
+
+    The JSON has a top-level display-name key whose value holds 'fraction'.
     Returns {display_name: fraction}.
     """
+    bgdata_root = os.path.expanduser("~/BasalGangliaData/data")
+    search_roots = [snudda_data, bgdata_root]
+
     fractions = {}
     for ct in CELL_TYPES:
         display = _DISPLAY_NAME[ct]
-        jf = os.path.join(snudda_data, "neurons", "striatum", ct, f"{ct}.json")
-        if os.path.exists(jf):
-            data = json.load(open(jf))
-            top = next(iter(data.values())) if isinstance(next(iter(data.values())), dict) else data
-            frac = top.get("fraction")
-            if frac is not None:
-                fractions[display] = float(frac)
-                continue
-        if display in _FALLBACK_FRACTIONS:
-            fractions[display] = _FALLBACK_FRACTIONS[display]
-        else:
-            raise ValueError(f"No fraction found for {display} in {jf} and no fallback defined")
+        frac = None
+        for root in search_roots:
+            jf = os.path.join(root, "neurons", "striatum", ct, f"{ct}.json")
+            if os.path.exists(jf):
+                data = json.load(open(jf))
+                top = next(iter(data.values())) if isinstance(next(iter(data.values())), dict) else data
+                frac = top.get("fraction")
+                if frac is not None:
+                    fractions[display] = float(frac)
+                    break
+        if frac is None:
+            raise ValueError(
+                f"No fraction found for {display}: checked {search_roots}"
+            )
+
     total = sum(fractions.values())
     if abs(total - 1.0) > 0.05:
         print(f"WARNING: cell-type fractions sum to {total:.4f} (expected ~1.0)")
