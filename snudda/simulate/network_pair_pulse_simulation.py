@@ -309,8 +309,10 @@ class SnuddaNetworkPairPulseSimulation:
                 else:
                     t_spike = self.holding_current_init_time + self.inj_spacing * i
                     t_ms = np.array([t_spike * 1e3])
-                name = id_to_name[nid]
-                grp.create_group(name).create_dataset("spikes", data=t_ms)
+                # Keyed by neuron ID (str) so names like "ChIN_0" don't collide;
+                # wrapped in "activity/" to match simulate.py: input[str(ID)]["activity"]["spikes"]
+                nid_grp = grp.create_group(str(nid))
+                nid_grp.create_group("activity").create_dataset("spikes", data=t_ms)
 
         print(f"Virtual pre-neuron spikes written to: {input_spikes_file}")
         return input_spikes_file
