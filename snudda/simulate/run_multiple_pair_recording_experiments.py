@@ -26,15 +26,15 @@ class RunMultiplePairRecordingExperiments:
 
         self.pps = None
 
-    def process(self, exp_key=None):
+    def process(self, exp_key=None, runner="mpirun"):
 
         if exp_key is None:
             for exp_key in self.experiment_config.keys():
-                self.process(exp_key)
+                self.process(exp_key, runner=runner)
             return
 
         self.setup_slice(exp_key)
-        self.run_slice(exp_key)
+        self.run_slice(exp_key, runner=runner)
         self.analyse(exp_key)
 
     def setup_slice(self, exp_key):
@@ -142,7 +142,6 @@ if __name__ == "__main__":
     parser.add_argument("--runner", type=str, default="mpirun")
     args = parser.parse_args()
 
-    mpr = RunMultiplePairRecordingExperiments(experiment_config=args.exp_file,
-                                              runner=args.runner)
+    mpr = RunMultiplePairRecordingExperiments(experiment_config=args.exp_file)
 
-    mpr.process(exp_key=args.exp_key)
+    mpr.process(exp_key=args.exp_key, runner=args.runner)
