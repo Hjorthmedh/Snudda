@@ -245,6 +245,11 @@ class SnuddaNetworkPairPulseSimulation:
             if self.n_stimulated_neurons is not None:
                 self.pre_id = self.pre_id[:self.n_stimulated_neurons]
 
+        # Fall back to the instance post_type (e.g. "LTS") so the master-network
+        # sub-slice is restricted to the target type rather than all pre-syn targets.
+        if post_type is None and self.post_type not in (None, "ALL"):
+            post_type = self.post_type
+
         sa.keep_only_neurons_and_targets(neuron_id=self.pre_id, post_type=post_type,
                                          remove_pre_without_targets=remove_pre_without_targets,
                                          include_gap_junctions=include_gap_junctions)
