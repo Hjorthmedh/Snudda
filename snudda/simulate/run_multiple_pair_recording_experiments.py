@@ -11,7 +11,7 @@ from snudda.simulate.network_pair_pulse_simulation import SnuddaNetworkPairPulse
 
 class RunMultiplePairRecordingExperiments:
 
-    def __init__(self, experiment_config):
+    def __init__(self, experiment_config, summary_file="pair_summary.txt", n_sim_workers=None):
 
         """ Running pair recording experiments defined in experiment_config.
 
@@ -25,6 +25,8 @@ class RunMultiplePairRecordingExperiments:
             with open(experiment_config, "rt") as f:
                 self.experiment_config = json.load(f)
 
+        self.summary_file = summary_file
+        self.n_sim_workers = n_sim_workers
         self.pps = None
 
     def process(self, exp_key=None):
@@ -80,6 +82,7 @@ class RunMultiplePairRecordingExperiments:
 
         run_str = self.pps.write_simulation_config(gaba_rev=exp_setup["GABA_rev"],
                                                    clamp_mode=exp_setup["clamp_mode"],
+                                                   max_workers=self.n_sim_workers,
                                                    return_run_str=True)
 
         # On Cray/Dardel mpirun is not available; use srun instead.
@@ -135,7 +138,7 @@ class RunMultiplePairRecordingExperiments:
                 exp_text += "FAILED.\n"
                 is_ok = False
 
-        with open("pair_summary.txt", "a") as f:
+        with open(self.summary_file, "a") as f:
             f.write(exp_text)
 
         plt.close("all")
@@ -147,8 +150,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser("Slice pair pulse experiment")
     parser.add_argument("exp_file", type=str)
     parser.add_argument("--exp_key", type=str, default=None)
+    parser.add_argument("--summary_file", type=str, default="pair_summary.txt",
+                        help="File to append pass/fail results to (default: pair_summary.txt)")
+    parser.add_argument("--n_sim_workers", type=int, default=None,
+                        help="Number of MPI workers for simulation (default: use all available)")
     args = parser.parse_args()
 
-    mpr = RunMultiplePairRecordingExperiments(experiment_config=args.exp_file)
+    mpr = RunMultiplePairRecordingExperiments(experiment_config=args.exp_file,
+                                              summary_file=args.summary_file,
+                                              n_sim_workers=args.n_sim_workers)
 
     mpr.process(exp_key=args.exp_key)
