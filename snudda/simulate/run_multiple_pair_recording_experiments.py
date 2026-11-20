@@ -11,7 +11,8 @@ from snudda.simulate.network_pair_pulse_simulation import SnuddaNetworkPairPulse
 
 class RunMultiplePairRecordingExperiments:
 
-    def __init__(self, experiment_config, summary_file="pair_summary.txt", n_sim_workers=None):
+    def __init__(self, experiment_config, summary_file="pair_summary.txt", n_sim_workers=None,
+                 disable_gj=False):
 
         """ Running pair recording experiments defined in experiment_config.
 
@@ -27,6 +28,7 @@ class RunMultiplePairRecordingExperiments:
 
         self.summary_file = summary_file
         self.n_sim_workers = n_sim_workers
+        self.disable_gj = disable_gj
         self.pps = None
 
     def process(self, exp_key=None):
@@ -84,6 +86,9 @@ class RunMultiplePairRecordingExperiments:
                                                    clamp_mode=exp_setup["clamp_mode"],
                                                    max_workers=self.n_sim_workers,
                                                    return_run_str=True)
+
+        if self.disable_gj:
+            run_str += " --disableGJ"
 
         # On Cray/Dardel mpirun is not available; use srun instead.
         if shutil.which("mpirun") is None and shutil.which("srun") is not None:
@@ -154,10 +159,13 @@ if __name__ == "__main__":
                         help="File to append pass/fail results to (default: pair_summary.txt)")
     parser.add_argument("--n_sim_workers", type=int, default=None,
                         help="Number of MPI workers for simulation (default: use all available)")
+    parser.add_argument("--disable_gj", action="store_true", default=False,
+                        help="Disable gap junctions (passes --disableGJ to snudda simulate)")
     args = parser.parse_args()
 
     mpr = RunMultiplePairRecordingExperiments(experiment_config=args.exp_file,
                                               summary_file=args.summary_file,
-                                              n_sim_workers=args.n_sim_workers)
+                                              n_sim_workers=args.n_sim_workers,
+                                              disable_gj=args.disable_gj)
 
     mpr.process(exp_key=args.exp_key)
