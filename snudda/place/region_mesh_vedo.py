@@ -294,7 +294,7 @@ class NeuronPlacer:
         if len(close_pairs) == 0:
             return points, True
 
-        close_neurons = np.array(list(close_pairs), dtype=int)
+        close_neurons = np.array(sorted(close_pairs), dtype=int)
         unique, counts = np.unique(close_neurons, return_counts=True)
 
         if max(counts) == 1:
