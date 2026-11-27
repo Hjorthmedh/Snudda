@@ -305,7 +305,7 @@ class NeuronPlacer:
         else:
             # First remove the worst offenders, with the most neighbours
             # (but none with count 1, we do those separately
-            sort_idx = np.argsort(-counts)
+            sort_idx = np.argsort(-counts, kind='stable')
             sorted_offenders = unique[sort_idx]
             sorted_counts = counts[sort_idx]
 
