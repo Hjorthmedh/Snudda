@@ -294,7 +294,7 @@ class NeuronPlacer:
         if len(close_pairs) == 0:
             return points, True
 
-        close_neurons = np.array(list(close_pairs), dtype=int)
+        close_neurons = np.array(sorted(close_pairs), dtype=int)
         unique, counts = np.unique(close_neurons, return_counts=True)
 
         if max(counts) == 1:
@@ -305,7 +305,7 @@ class NeuronPlacer:
         else:
             # First remove the worst offenders, with the most neighbours
             # (but none with count 1, we do those separately
-            sort_idx = np.argsort(-counts)
+            sort_idx = np.argsort(-counts, kind='stable')
             sorted_offenders = unique[sort_idx]
             sorted_counts = counts[sort_idx]
 
