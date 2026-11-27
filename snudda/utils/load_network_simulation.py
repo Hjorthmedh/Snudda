@@ -186,6 +186,7 @@ class SnuddaLoadSimulation:
 
         """ Returns data for neuron_id """
 
+        import sys; sys.settrace(None)  # prevent bdb.BdbQuit from stale ipyparallel/srun trace
         data = dict()
         sec_id_x = dict()
         syn_info = dict()

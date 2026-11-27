@@ -67,7 +67,8 @@ class SnuddaSimulate(object):
                  disable_gap_junctions=None,
                  sample_dt=None,
                  use_rxd_neuromodulation=None,
-                 simulation_config=None):
+                 simulation_config=None,
+                 simulate_only=None):
 
         """
         Constructor
@@ -124,6 +125,7 @@ class SnuddaSimulate(object):
         else:
             self.input_file = input_file
 
+        self._explicit_output_file = output_file is not None
         if output_file is not None:
             self.output_file = output_file
         else:
@@ -151,6 +153,8 @@ class SnuddaSimulate(object):
         self.sample_dt = sample_dt  # None means all values, 0.0005 means 0.5ms time resolution in saved files
         self.sim_dt = 0.025*1e-3
         self.use_cvode = False
+
+        self.simulate_only = np.array(simulate_only, dtype=int) if simulate_only is not None else None
 
         self.pc = h.ParallelContext()
         self.pc.timeout(600)
@@ -226,7 +230,7 @@ class SnuddaSimulate(object):
                 self.input_file = self.sim_info["input_file"].replace("$network_path", self.network_path)
                 self.write_log(f"Input file: {self.input_file}")
 
-            if "output_file" in self.sim_info:
+            if "output_file" in self.sim_info and not self._explicit_output_file:
                 self.output_file = self.sim_info["output_file"].replace("$network_path", self.network_path)
                 self.write_log(f"Output file: {self.output_file}")
 
@@ -349,7 +353,7 @@ class SnuddaSimulate(object):
 
         self.synapse_dict = dict()  # Avoid premature garbage collection
         self.i_stim = []
-        self.v_clamp_list = []
+        self.v_clamp_dict = dict()
         self.gap_junction_dict = dict()
         self.external_stim = dict()
         self.t_save = []
@@ -816,6 +820,9 @@ class SnuddaSimulate(object):
         real_neuron_id = np.array([x["neuron_id"] for x in self.network_info["neurons"] if not x["virtual_neuron"]])
         virtual_neuron_id = np.array([x["neuron_id"] for x in self.network_info["neurons"] if x["virtual_neuron"]])
 
+        if self.simulate_only is not None:
+            real_neuron_id = real_neuron_id[np.isin(real_neuron_id, self.simulate_only)]
+
         r_idx = range(int(self.pc.id()), len(real_neuron_id), int(self.pc.nhost()))
         v_idx = range(int(self.pc.id()), len(virtual_neuron_id), int(self.pc.nhost()))
 
@@ -828,8 +835,9 @@ class SnuddaSimulate(object):
         self.write_log(f"Worker {int(self.pc.id())} has real neurons {real_neuron_id[r_idx] = }\n"
                        f"{virtual_neuron_id[v_idx] =}")
 
-        assert len(real_neuron_id) >= int(self.pc.nhost()), \
-            f"Do not allocate more workers ({int(self.pc.nhost())}) than there are real neurons ({len(real_neuron_id)})."
+        if self.simulate_only is None:
+            assert len(real_neuron_id) >= int(self.pc.nhost()), \
+                f"Do not allocate more workers ({int(self.pc.nhost())}) than there are real neurons ({len(real_neuron_id)})."
 
     ############################################################################
 
@@ -2153,7 +2161,7 @@ class SnuddaSimulate(object):
 
             self.write_log(f"Resistance: {rs}, voltage: {vc.amp1}mV")
 
-            self.v_clamp_list.append(vc)
+            self.v_clamp_dict[cID] = (v, vc)
 
             if save_i_flag:
                 cur = self.sim.neuron.h.Vector()
@@ -2854,8 +2862,16 @@ class SnuddaSimulate(object):
         if self.verbose:
             self.write_log(f"[post_initialisation_pointer_mapping] setpointer ref on {n_set} segments")
 
+    def _apply_hold_voltages(self):
+        for nid, v in (self.current_injection_voltage or {}).items():
+            for sec in self.neurons[nid].icell.all:
+                for seg in sec.allseg():
+                    seg.v = v * 1e3
 
-
+        for nid, (v, _) in self.v_clamp_dict.items():
+            for sec in self.neurons[nid].icell.all:
+                for seg in sec.allseg():
+                    seg.v = v * 1e3
 
 
     def run(self, t=None, hold_v=None):
@@ -2912,15 +2928,7 @@ class SnuddaSimulate(object):
             self.write_log(f"User override for holding voltage: {hold_v * 1e3} mV")
             self.sim.neuron.h.finitialize(hold_v * 1e3)
 
-        for neuron_id, hold_voltage in self.current_injection_voltage.items():
-            cell = self.neurons[neuron_id].icell
-            print(f"Overriding voltage in neuron {neuron_id} {hold_voltage * 1e3}mV ")
-
-            for sec in cell.all:  # If your cell exposes all sections this way
-                for seg in sec:
-                    seg.v = hold_voltage * 1e3
-
-        neuron.h.fcurrent()
+#        neuron.h.fcurrent()
 
         # Asked on neuron, check answer:
         # https://www.neuron.yale.edu/phpBB/viewtopic.php?f=2&t=4161&p=18021
@@ -3371,11 +3379,11 @@ class SnuddaSimulate(object):
             soma_v_clamp.append((soma, vc))
 
             for seg in soma:
-                seg.v = hold_voltage
+                seg.v = hold_voltage * 1e3
 
             for sec in self.neurons[neuron_id].icell.dend:
                 for seg in sec:
-                    seg.v = hold_voltage
+                    seg.v = hold_voltage * 1e3
 
         neuron.h.fcurrent()
         neuron.h.tstop = holding_current_init_time * 1e3
@@ -3506,7 +3514,7 @@ class SnuddaSimulate(object):
         self.virtual_neurons = {}
 
         self.i_stim = []
-        self.v_clamp_list = []
+        self.v_clamp_dict = dict()
         self.current_injection_voltage = None
         self.gap_junction_dict = dict()
         self.external_stim = dict([])

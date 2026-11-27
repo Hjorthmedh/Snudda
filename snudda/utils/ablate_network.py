@@ -346,7 +346,7 @@ class SnuddaAblateNetwork:
                                       remap_id=remap_id)
 
                 if var_name == "virtual_neuron" and len(self.make_virtual_neuron_id) > 0:
-                    virt_id = [remap_id[x] for x in self.make_virtual_neuron_id]
+                    virt_id = sorted([remap_id[x] for x in self.make_virtual_neuron_id])
                     neuron_group[var_name][virt_id] = True
 
                     virt_neuron_names = [self.snudda_load.data["neurons"][x]["name"] for x in self.make_virtual_neuron_id]

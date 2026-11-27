@@ -184,8 +184,10 @@ class SnuddaNetworkPairPulseSimulation:
 
         if cut_outside:
             from snudda.utils.cut import SnuddaCut
+            cut_equation = f"(-{slice_depth/2} < z) & (z < {slice_depth/2})"
+            print(f"Cutting silce using {cut_equation}")
             cut = SnuddaCut(network_file=self.network_file,
-                            cut_equation=f"(-{slice_depth/2} < z) & (z < {slice_depth/2})",
+                            cut_equation=cut_equation,
                             show_plot=True)
 
             self.network_file = cut.out_file_name
@@ -302,7 +304,8 @@ class SnuddaNetworkPairPulseSimulation:
                                 holding_current_init_time=None,
                                 max_workers=None,
                                 inactivate_neuron=None,
-                                inactivate_neuron_channel=None):
+                                inactivate_neuron_channel=None,
+                                runner="mpirun"):
 
         if holding_current_init_time is not None:
             self.holding_current_init_time = holding_current_init_time
@@ -446,7 +449,7 @@ class SnuddaNetworkPairPulseSimulation:
         else:
             worker_str = ""
 
-        run_cmd = f"mpirun {worker_str} snudda simulate {self.network_path} --simulation_config {self.simulation_config_file}"
+        run_cmd = f"{runner} {worker_str} snudda simulate {self.network_path} --simulation_config {self.simulation_config_file}"
 
         if return_run_str:
             return run_cmd
@@ -622,7 +625,13 @@ class SnuddaNetworkPairPulseSimulation:
 
     def analyse(self, max_dist=None, n_max_show=10, pre_id=None, post_type=None, clamp_mode=None, exp_data_file=None,
                 force_post_id=None, time_window = 0.05, include_gap_junctions=False, check_pre_type=True,
-                filter_spiking=False, spike_threshold=0):
+                filter_spiking=False, spike_threshold=0, filter_small_amps=False):
+
+        """
+            Some connections have failure rates > 0, for those you can use filter_small_amps. If it is True, we will filter anything smaller than 0.001 of max amp,
+            if it is a value, we will use that as a fraction of max_amp to filter.
+
+        """
 
         import matplotlib
         import matplotlib.pyplot as plt
@@ -642,6 +651,9 @@ class SnuddaNetworkPairPulseSimulation:
             plot_unit_string = "Voltage"
         else:
             raise ValueError(f"Unknown clamp_mode = {clamp_mode}, should be 'voltage' or 'current'")
+
+        if filter_small_amps == True:
+            filter_small_amps = 1e-3
         
         self.setup_exp_data(data_file=exp_data_file)
 
@@ -796,7 +808,11 @@ class SnuddaNetworkPairPulseSimulation:
                 if idx_max[i] in [0, len(data) - 1]:
                     # Last or first position selected, probably incorrectly detected
                     amp[i] = np.nan
-        
+
+            if filter_small_amps:
+                # Filter out small amps
+                amp[amp < np.nanmax(amp) * filter_small_amps] = np.nan
+
         except:
             import traceback
             t_str = traceback.format_exc()
@@ -817,7 +833,11 @@ class SnuddaNetworkPairPulseSimulation:
         matplotlib.rcParams.update({'font.size': 22})
 
         sort_idx = np.argsort(amp)
+        # Remove sort_idx that correspond to NaN
+        sort_idx = sort_idx[~np.isnan(amp[sort_idx])]
+
         if n_max_show is not None and len(sort_idx) > n_max_show:
+
             keep_idx = [sort_idx[int(np.round(x))] for x in np.linspace(0, len(sort_idx) - 1, n_max_show)]
         else:
             keep_idx = sort_idx
@@ -843,6 +863,8 @@ class SnuddaNetworkPairPulseSimulation:
             
             model_mean = np.nanmean(amp) * plot_conversion
             model_std = np.nanstd(amp) * plot_conversion
+
+
             plt.errorbar(t_end - 2, model_mean, model_std, ecolor="blue",
                          marker="o", color="blue")
 
@@ -877,7 +899,10 @@ class SnuddaNetworkPairPulseSimulation:
 
         plt.pause(5)
 
-        return model_mean, model_std, trace_fig, hist_fig
+        model_mean_raw = np.nanmean(amp)
+        model_std_raw = np.nanstd(amp)
+
+        return model_mean_raw, model_std_raw, trace_fig, hist_fig
 
     ############################################################################
 
@@ -922,11 +947,16 @@ class SnuddaNetworkPairPulseSimulation:
             data_file = snudda_parse_path(os.path.join("$DATA", "synapses", "pair_pulse_experiment_data.json"),
                                           self.snudda_data)
 
-        with open(data_file, "r") as f:
-            exp_data = json.load(f)
+        if isinstance(data_file, dict):
+            exp_data = data_file
+        else:
+            with open(data_file, "r") as f:
+                exp_data = json.load(f)
 
         for exp_name, exp_info in exp_data.items():
             for pre_neuron in exp_info:
+                if pre_neuron.startswith("_") or not isinstance(exp_info[pre_neuron], dict):
+                    continue
                 for post_neuron in exp_info[pre_neuron]:
                     self.exp_data[exp_name, pre_neuron, post_neuron] = exp_info[pre_neuron][post_neuron]
 

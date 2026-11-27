@@ -957,19 +957,25 @@ class SnuddaPrune(object):
             # (0, 521, 5242880, 0.75)
 
             # Low level opening hdf5 file, to have greater cache size
+            # Pre-delete any stale file: Lustre does not reliably truncate existing HDF5 files.
+            if os.path.exists(outfile_name):
+                os.remove(outfile_name)
             try:
                 fid = h5py.h5f.create(outfile_name.encode(),
                                       flags=h5py.h5f.ACC_TRUNC,
                                       fapl=propfaid)
                 out_file = h5py.File(fid, libver=self.h5libver, driver=self.h5driver)
             except:
-                self.write_log(f"Error while trying to create file {outfile_name.encode()}")
+                self.write_log(f"Error while trying to create file {outfile_name.encode()}, falling back to standard open")
                 import traceback
                 error_msg = traceback.format_exc()
                 self.write_log(error_msg, is_error=True)
-                import pdb
-                pdb.set_trace()
+                if os.path.exists(outfile_name):
+                    os.remove(outfile_name)
+                out_file = h5py.File(outfile_name, "w", libver=self.h5libver, driver=self.h5driver)
         else:
+            if os.path.exists(outfile_name):
+                os.remove(outfile_name)
             out_file = h5py.File(outfile_name, "w", libver=self.h5libver, driver=self.h5driver)
 
         network_group = out_file.create_group("network")
