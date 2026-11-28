@@ -226,14 +226,8 @@ class SnuddaNetworkPairPulseSimulation:
         sa.write_network(out_file_name=new_network_file)
 
         # We need to remap neuron_id from the old to the new ablated network
-        try:
-            remap_dict = sa.get_remap_dictionary()
-            self.pre_id = [remap_dict[int(x)] for x in self.pre_id]
-        except Exception as e:
-            import traceback
-            print(traceback.format_exc())
-            import pdb
-            pdb.set_trace()
+        remap_dict = sa.get_remap_dictionary()
+        self.pre_id = [remap_dict[int(x)] for x in self.pre_id]
 
 
         self.network_file = new_network_file
